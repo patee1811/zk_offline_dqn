@@ -1,0 +1,51 @@
+We consider a discounted Markov decision process with state space $\states$, action space $\actions$, reward function $r$, and discount factor $\gamma \in [0,1)$. Our experimental environment is CartPole-v1, which has low-dimensional continuous observations and a discrete action space of size two.
+
+\paragraph{Committed offline dataset.}
+Instead of learning from online interaction, we assume a fixed trajectory dataset is collected first and then transformed into a transition dataset
+\[
+\dataset = \{(s_i, a_i, r_i, s'_i, d_i)\}_{i=1}^N,
+\]
+where $d_i \in \{0,1\}$ indicates whether the transition is terminal. In the eventual verifiable setting, the dataset will be committed before training, and all claimed computations must be shown to be consistent with that commitment.
+
+\paragraph{Offline value learning.}
+Given $\dataset$, the learning objective is to estimate an action-value function $Q_\theta(s,a)$ without further environment interaction. For DQN-style training, the Bellman target for a transition is
+\[
+y_i = r_i + \gamma (1-d_i) \max_{a' \in \actions} Q_{\bar{\theta}}(s'_i, a'),
+\]
+or, in Double DQN form,
+\[
+y_i = r_i + \gamma (1-d_i)\, Q_{\bar{\theta}}\!\left(s'_i, \arg\max_{a' \in \actions} Q_\theta(s'_i, a')\right),
+\]
+where $\bar{\theta}$ denotes target network parameters.
+
+The TD loss over a minibatch $B$ is
+\[
+\mathcal{L}_{\mathrm{TD}}(\theta; B)
+=
+\frac{1}{|B|}
+\sum_{i \in B}
+\ell\big(Q_\theta(s_i,a_i), y_i\big),
+\]
+where $\ell$ is a pointwise regression loss such as the Huber loss.
+
+\paragraph{Behavior cloning.}
+For comparison, we also study behavior cloning (BC), which treats the offline dataset as supervised state-action pairs and learns a policy $\pi_\phi(a\mid s)$ by minimizing cross-entropy against the dataset actions. BC does not bootstrap through learned value targets and therefore serves as a useful reference point for understanding whether dataset failures are due to data quality or to offline temporal-difference learning itself.
+
+\paragraph{Conservative offline RL.}
+To bridge the gap between imitation and naive offline Q-learning, we evaluate a discrete conservative Q-learning variant. In addition to the TD term, it penalizes large Q-values on actions not supported by the data through a regularizer of the form
+\[
+\mathcal{L}_{\mathrm{CQL}}(\theta; B)
+=
+\mathcal{L}_{\mathrm{TD}}(\theta; B)
++
+\alpha
+\left(
+\log \sum_{a \in \actions} e^{Q_\theta(s,a)}
+-
+Q_\theta(s,a_{\mathrm{data}})
+\right),
+\]
+where $\alpha > 0$ controls conservatism.
+
+\paragraph{Goal of verifiability.}
+Our long-term goal is not merely to train offline RL from fixed data, but to prove that specific training computations were correctly carried out over a committed dataset. In this work, we therefore treat the offline RL benchmark as the foundation upon which future proof statements will be built.

@@ -1,0 +1,7 @@
+We presented a concrete research path toward zero-knowledge verifiable offline DQN training from committed trajectories. Instead of attempting to solve general RL verifiability at once, we first established an offline benchmark pipeline on CartPole-v1 and studied how different datasets interact with different learning paradigms.
+
+Our findings are clear. A narrow high-return behavior dataset is excellent for behavior cloning, but naive offline Double DQN collapses on it. A conservative Q-learning objective substantially recovers performance, making it a much stronger candidate for future verifiable training than naive offline Q-learning. Conversely, a broad random dataset can support strong offline Double DQN performance, highlighting the importance of dataset coverage.
+
+These observations matter for the zero-knowledge agenda. Verifiability is only useful if the certified computation is itself meaningful and stable. The present results therefore motivate a proof roadmap that begins with committed minibatch membership, Bellman target correctness, and TD loss correctness over fixed offline datasets, and only later extends to gradient update proofs.
+
+The next steps are to formalize dataset commitments, define precise public and private inputs for the MVP proof statement, and translate the experimentally validated offline training computations into proof-friendly arithmetic circuits.

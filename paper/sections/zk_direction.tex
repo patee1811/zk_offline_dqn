@@ -1,0 +1,41 @@
+The experimental results suggest that zero-knowledge verifiable RL should not start from fully general online interaction or from unstable offline training. Instead, it should begin from a fixed offline dataset and a narrow set of arithmetic statements that are both meaningful and tractable.
+
+\subsection*{Why offline training first}
+
+A fixed dataset is the natural bridge between RL and zero-knowledge proofs:
+\begin{itemize}[leftmargin=1.5em]
+    \item the dataset can be committed once, for example via a Merkle commitment;
+    \item minibatch membership can be verified against the commitment;
+    \item Bellman targets and TD losses can be expressed as deterministic computations over committed data and public model parameters;
+    \item training becomes reproducible in a way that online RL is not.
+\end{itemize}
+
+For these reasons, our roadmap deliberately avoids starting with PPO, SAC, or general online exploration. Offline DQN-style training provides a much cleaner first target.
+
+\subsection*{Proof roadmap}
+
+We propose the following staged proof design.
+
+\paragraph{Stage 1: committed dataset membership.}
+A prover claims that a minibatch used during training belongs to a previously committed trajectory or transition dataset. The proof should show membership of each transition in the committed structure.
+
+\paragraph{Stage 2: Bellman target correctness.}
+Given a committed minibatch, public discount factor $\gamma$, public target network parameters, and public next-state values, the prover shows that the Bellman target for each transition was computed correctly.
+
+\paragraph{Stage 3: TD loss correctness.}
+Given the predicted Q-values for the minibatch and the Bellman targets, the prover shows that the TD loss was computed correctly.
+
+\paragraph{Stage 4: gradient update correctness.}
+Only after the previous components are stable should we attempt to prove that one optimizer update was computed correctly. This step is substantially more expensive and should be treated as an extension rather than the first milestone.
+
+\subsection*{Public and private inputs}
+
+A plausible MVP split is:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Public inputs:} dataset commitment root, model architecture, batch size, discount factor, selected training step index, and possibly public network weights for the audited step.
+    \item \textbf{Private inputs:} concrete minibatch transitions, Merkle authentication paths, and internal arithmetic witnesses used to compute Bellman targets and TD loss.
+\end{itemize}
+
+\subsection*{Connection to current baselines}
+
+The current experiments help identify what should eventually be proved. Behavior cloning is attractive because its loss is simple, but it does not capture Bellman-style value learning. Offline Double DQN captures the right type of computation but is unstable on narrow behavior datasets. CQL-lite is therefore a promising candidate for future verifiable training work: it preserves the offline value-learning structure while improving stability on the behavior dataset that is most naturally aligned with committed trajectories.

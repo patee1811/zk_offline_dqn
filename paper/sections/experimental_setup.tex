@@ -1,0 +1,62 @@
+\subsection*{Experimental objective}
+
+The experimental section is designed to answer three questions that are directly relevant to a future verifiable training setting:
+\begin{enumerate}[leftmargin=1.5em]
+    \item How does offline performance depend on dataset structure when the dataset is fixed in advance?
+    \item Does a narrow high-return dataset favor imitation, bootstrapped value learning, or both?
+    \item Does a conservative offline RL objective provide a better value-learning foundation for later proof statements?
+\end{enumerate}
+
+Our goal is therefore not to optimize CartPole performance at all costs, but to identify which learning procedures remain meaningful when training is restricted to a committed offline dataset.
+
+\subsection*{Pipeline}
+
+The full workflow has four stages:
+\begin{enumerate}[leftmargin=1.5em]
+    \item train an online DQN behavior policy on CartPole-v1;
+    \item collect fixed trajectory datasets under different collection policies;
+    \item flatten trajectories into replay-style transition datasets; and
+    \item train offline baselines on the resulting fixed transitions.
+\end{enumerate}
+
+The online DQN policy is used only for data collection. All reported learning results are obtained \emph{offline}, from a dataset that is fixed before training begins.
+
+\subsection*{Environment and function approximator}
+
+All experiments use CartPole-v1. Observations are four-dimensional continuous vectors and the action space is discrete with two actions. The neural function approximator is a multilayer perceptron with two hidden layers of width 128 and ReLU activations. For value-based methods we use a target network, Huber (SmoothL1) loss for the TD term, gradient clipping at 10.0, and periodic target-network synchronization.
+
+\subsection*{Datasets}
+
+We construct several fixed datasets, each with approximately 47k transitions.
+
+\paragraph{Random matched dataset.}
+\texttt{random\_matched} is collected with uniformly random actions until its size matches the main behavior dataset. It is broad in state-action coverage, action-balanced, and relatively noisy, with shorter episodes and a higher terminal ratio.
+
+\paragraph{Behavior dataset \texttt{dqn\_eps010}.}
+This dataset is collected from a trained DQN behavior policy using $\epsilon=0.10$ during data generation. It contains longer episodes and higher-quality actions, but its support is narrower than the random dataset.
+
+\paragraph{Mixed datasets.}
+We also form transition-level mixtures of random and behavior data, specifically \texttt{mixed\_random50\_dqn010} and \texttt{mixed\_random20\_dqn010}. These datasets interpolate raw statistics between the two extremes, but, as shown later, interpolation in dataset composition does not automatically produce interpolation in learning stability.
+
+\subsection*{Methods}
+
+We compare three baselines.
+
+\paragraph{Offline Double DQN.}
+This baseline uses Double DQN targets on a fixed offline replay dataset. It includes early stopping, checkpoint selection, and no additional environment interaction.
+
+\paragraph{Behavior Cloning (BC).}
+This baseline treats the dataset as supervised state-action pairs and trains a policy to predict the dataset action from the current state. BC provides a useful reference because it removes Bellman bootstrapping entirely.
+
+\paragraph{CQL-lite.}
+This method augments the offline Double DQN objective with a conservative penalty. In the present draft we use $\alpha=1.0$. The purpose is not to claim a fully tuned CQL implementation, but to test whether a conservative objective stabilizes offline value learning on narrow-support behavior data.
+
+\subsection*{Training and evaluation protocol}
+
+We use seeds 42, 123, and 999 when available. During training, we periodically run 10-episode evaluations and save the best checkpoint. Because short evaluations can be noisy, every selected checkpoint is then re-evaluated over 100 episodes. The paper reports these 100-episode re-evaluations as the main quantitative result.
+
+This protocol serves two purposes. First, it reduces the risk of over-interpreting transient short-horizon spikes. Second, it is closer to the eventual verifiable setting, where one would want to distinguish the audited training computation itself from a separate and more reliable downstream validation procedure.
+
+\subsection*{Why this setup matters for zero-knowledge verifiability}
+
+The experimental setup mirrors the structure needed for a proof system. The dataset is fixed before training. Training steps are deterministic given the dataset, minibatch indices, model parameters, and hyperparameters. Bellman targets and TD losses are explicit arithmetic objects. This makes the offline setting the right place to determine \emph{which} learning computations are worth proving before tackling the cost of proof construction itself.

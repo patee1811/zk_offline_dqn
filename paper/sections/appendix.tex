@@ -1,0 +1,114 @@
+\appendix
+
+\section{Hyperparameter Details}
+\label{app:hyperparameters}
+
+Table~\ref{tab:app-hparams} records the settings that were explicitly fixed and repeatedly referenced in the reported experiments. We intentionally separate these from implementation-level defaults that were not varied in the current study. This keeps the appendix faithful to what is actually supported by the present draft.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Explicitly reported experimental settings.}
+\label{tab:app-hparams}
+\begin{tabular}{p{4.3cm}p{7.2cm}}
+\toprule
+Setting & Value \\
+\midrule
+Environment & CartPole-v1 \\
+Observation dimension & 4 \\
+Action space size & 2 \\
+Network architecture & MLP with 2 hidden layers of width 128 \\
+Hidden activation & ReLU \\
+Offline Double DQN learning rate & $1 \times 10^{-4}$ \\
+CQL-lite learning rate & $1 \times 10^{-4}$ \\
+TD loss & SmoothL1Loss (Huber loss) \\
+Gradient clipping & 10.0 \\
+Target network & Enabled for value-based methods \\
+Offline target rule & Double DQN target \\
+CQL-lite conservative weight & $\alpha = 1.0$ \\
+Behavior-dataset collection policy & Trained DQN with $\epsilon = 0.10$ during data collection \\
+Model selection protocol & Periodic 10-episode evaluation with best-checkpoint saving \\
+Final reporting protocol & 100-episode re-evaluation of selected checkpoints \\
+Reported seeds & 42, 123, 999 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Dataset Summary}
+\label{app:dataset-stats}
+
+The current study is organized around four offline datasets. Table~\ref{tab:app-datasets} summarizes their roles and qualitative statistics. We deliberately report the qualitative properties that drive the paper's conclusions, because those are the quantities most directly tied to method behavior in the present draft.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Dataset summary used throughout the paper. Sizes are approximately matched at around 47k transitions.}
+\label{tab:app-datasets}
+\begin{tabular}{p{2.8cm}p{2.6cm}p{1.4cm}p{5.2cm}}
+\toprule
+Dataset & Source policy & Size & Main characteristics \\
+\midrule
+\texttt{random\_matched} & Uniform random & $\approx 47$k & Broad state-action coverage, near-balanced actions, shorter episodes, higher terminal ratio, noisy trajectories. \\
+\texttt{dqn\_eps010} & Trained DQN with $\epsilon=0.10$ & $\approx 47$k & Narrower support, longer episodes, lower terminal ratio, higher-return behavior, good action supervision. \\
+\texttt{mixed\_random50\_}\\\texttt{dqn010} & 50--50 transition mix & $\approx 47$k & Intermediate raw statistics, but poor performance with the current offline Double DQN trainer. \\
+\texttt{mixed\_random20\_}\\\texttt{dqn010} & 20--80 transition mix & $\approx 47$k & Closer to the behavior dataset than the random dataset, yet still poor with the current transition-level mixing strategy. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two high-level contrasts are the most important:
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{random\_matched} provides coverage without behavior quality;
+    \item \texttt{dqn\_eps010} provides behavior quality without broad support.
+\end{itemize}
+These opposing properties explain why the same offline dataset can favor different learning paradigms.
+
+\section{File Naming Conventions}
+\label{app:naming}
+
+To keep the code and data pipeline auditable, we adopt a simple file naming scheme.
+
+\paragraph{Episode datasets.}
+Raw collected trajectories are stored as
+\begin{center}
+\texttt{<dataset\_name>\_episodes.pkl}
+\end{center}
+with companion summaries
+\begin{center}
+\texttt{<dataset\_name>\_episodes.summary.json}.
+\end{center}
+Examples include:\begin{quote}\ttfamily\small cartpole\_random\_matched\_episodes.pkl\\ cartpole\_dqn\_eps010\_episodes.pkl\end{quote}
+
+\paragraph{Transition datasets.}
+Flattened replay-style data are stored as
+\begin{center}
+\texttt{<dataset\_name>\_transitions.pkl}
+\end{center}
+with companion summaries
+\begin{center}
+\texttt{<dataset\_name>\_transitions.summary.json}.
+\end{center}
+Examples include:\begin{quote}\ttfamily\small cartpole\_dqn\_eps010\_transitions.pkl\\ cartpole\_random\_matched\_transitions.pkl\\ cartpole\_mixed\_random20\_dqn010\_transitions.pkl\\ cartpole\_mixed\_random50\_dqn010\_transitions.pkl\end{quote}
+
+\paragraph{Scripts.}
+The codebase follows a stage-oriented naming style:
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{generate\_*} for data collection;
+    \item \texttt{flatten\_*} for episode-to-transition conversion;
+    \item \texttt{train\_*} for model training;
+    \item \texttt{evaluate\_*} for checkpoint re-evaluation; and
+    \item \texttt{analyze\_*} for post-hoc log or dataset analysis.
+\end{itemize}
+
+This convention is useful not only for reproducibility, but also for the later zero-knowledge setting, where one wants a clean separation between data generation, dataset commitment, model training, and audited verification statements.
+
+\section{Reporting Notes}
+\label{app:reporting-notes}
+
+We distinguish two different kinds of variability in the paper:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{within-seed evaluation variance}, reported as the standard deviation over the 100 evaluation episodes for a selected checkpoint; and
+    \item \textbf{across-seed variance}, reported in aggregate rows as the standard deviation across seed-wise mean returns.
+\end{itemize}
+
+This distinction matters because a method can be internally variable within an evaluation rollout while still being consistent across random seeds, or vice versa. The strong seed sensitivity of offline Double DQN on \texttt{random\_matched} is an example of the second case.

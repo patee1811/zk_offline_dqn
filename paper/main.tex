@@ -1,0 +1,66 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+\title{Zero-Knowledge Verifiable Offline DQN Training from Committed Trajectories}
+\author{Ngoc Duy}
+\date{\today}
+
+\newcommand{\dataset}{\mathcal{D}}
+\newcommand{\states}{\mathcal{S}}
+\newcommand{\actions}{\mathcal{A}}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\bellman}{\mathcal{T}}
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+
+\begin{document}
+
+\maketitle
+
+\input{sections/abstract}
+
+\section{Introduction}
+\input{sections/introduction}
+
+\section{Problem Setup}
+\input{sections/problem_setup}
+
+\section{Experimental Setup}
+\input{sections/experimental_setup}
+
+\section{Results}
+\input{sections/results}
+
+\section{Toward Zero-Knowledge Verifiable Training}
+\input{sections/zk_direction}
+
+\section{Conclusion}
+\input{sections/conclusion}
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\input{sections/appendix}
+
+\end{document}
