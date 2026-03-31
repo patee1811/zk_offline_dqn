@@ -1,127 +1,79 @@
-import hashlib
 import json
-import pickle
+import hashlib
+import torch
+import torch.nn as nn
 
 from zk_offline_dqn.zk_specs import (
     encode_fp,
-    serialize_transition_leaf,
     compute_td_target_fp,
-    compute_mse_loss_fp,
+    compute_smooth_l1_loss_fp,
 )
 
-
-DATASET_PATH = "data/cartpole_dqn_eps010_transitions.pkl"
-LEAF_HASHES_PATH = "artifacts/cartpole_dqn_eps010_leaf_hashes.json"
-MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
+TEMPLATE_ARTIFACT_PATH = "artifacts/sample_minibatch_td_artifact.json"
+CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 OUTPUT_PATH = "artifacts/sample_minibatch_td_artifact.json"
 
-BATCH_INDICES = [0, 1, 2, 3]
 
-# Tạm thời gán tay witness Q-values để test batch arithmetic
-Q_ONLINE_REALS = [1.234, 0.800, 1.100, 0.950]
-Q_TARGET_MAX_REALS = [1.500, 1.200, 1.300, 1.100]
+class QNetwork(nn.Module):
+    def __init__(self, obs_dim: int, n_actions: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(obs_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+            nn.Linear(128, n_actions),
+        )
+
+    def forward(self, x):
+        return self.net(x)
 
 
-def encode_leaf_for_hash(leaf):
-    s = ",".join(str(x) for x in leaf)
-    return s.encode("utf-8")
-
-
-def hash_leaf(leaf):
-    return hashlib.sha256(encode_leaf_for_hash(leaf)).hexdigest()
-
-
-def load_dataset(path):
+def file_sha256(path: str) -> str:
+    h = hashlib.sha256()
     with open(path, "rb") as f:
-        return pickle.load(f)
-
-
-def get_transition_at_index(data, idx):
-    required_keys = ["obs", "actions", "rewards", "next_obs", "dones"]
-
-    if not (isinstance(data, dict) and all(k in data for k in required_keys)):
-        raise ValueError(
-            "Expected columnar dict with keys "
-            "['obs', 'actions', 'rewards', 'next_obs', 'dones']."
-        )
-
-    n = len(data["obs"])
-    if idx < 0 or idx >= n:
-        raise ValueError(f"idx must be in [0, {n-1}], got {idx}")
-
-    return {
-        "obs": [float(x) for x in data["obs"][idx]],
-        "action": int(data["actions"][idx]),
-        "reward": float(data["rewards"][idx]),
-        "next_obs": [float(x) for x in data["next_obs"][idx]],
-        "done": int(data["dones"][idx]),
-    }
-
-
-def get_merkle_path(levels, leaf_index):
-    path = []
-    idx = leaf_index
-
-    for level_id in range(len(levels) - 1):
-        level = levels[level_id]
-
-        if idx % 2 == 0:
-            current_is_left = True
-            sibling_index = idx + 1 if idx + 1 < len(level) else idx
-        else:
-            current_is_left = False
-            sibling_index = idx - 1
-
-        path.append(
-            {
-                "level": level_id,
-                "current_index": idx,
-                "sibling_index": sibling_index,
-                "sibling_hash": level[sibling_index],
-                "current_is_left": current_is_left,
-            }
-        )
-
-        idx = idx // 2
-
-    return path
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def main():
-    if len(BATCH_INDICES) != len(Q_ONLINE_REALS):
-        raise ValueError("BATCH_INDICES and Q_ONLINE_REALS must have same length.")
-    if len(BATCH_INDICES) != len(Q_TARGET_MAX_REALS):
-        raise ValueError("BATCH_INDICES and Q_TARGET_MAX_REALS must have same length.")
+    with open(TEMPLATE_ARTIFACT_PATH, "r", encoding="utf-8") as f:
+        artifact = json.load(f)
 
-    data = load_dataset(DATASET_PATH)
+    ckpt = torch.load(CHECKPOINT_PATH, map_location="cpu")
+    checkpoint_sha256 = file_sha256(CHECKPOINT_PATH)
 
-    with open(LEAF_HASHES_PATH, "r", encoding="utf-8") as f:
-        leaf_hash_data = json.load(f)
+    online_net = QNetwork(ckpt["obs_dim"], ckpt["n_actions"])
+    online_net.load_state_dict(ckpt["model_state_dict"])
+    online_net.eval()
 
-    with open(MERKLE_PATH, "r", encoding="utf-8") as f:
-        merkle_data = json.load(f)
+    target_net = QNetwork(ckpt["obs_dim"], ckpt["n_actions"])
+    target_net.load_state_dict(ckpt["target_net_state_dict"])
+    target_net.eval()
 
-    items = []
-    batch_loss_sum_fp = 0
+    total_loss_fp = 0
+    batch_size = int(artifact["public"]["batch_size"])
 
-    for idx, q_online_real, q_target_max_real in zip(
-        BATCH_INDICES, Q_ONLINE_REALS, Q_TARGET_MAX_REALS
-    ):
-        transition = get_transition_at_index(data, idx)
-        leaf = serialize_transition_leaf(transition)
-        recomputed_leaf_hash = hash_leaf(leaf)
-        stored_leaf_hash = leaf_hash_data["leaf_hashes"][idx]
+    for item in artifact["items"]:
+        transition = item["transition"]
 
-        if recomputed_leaf_hash != stored_leaf_hash:
-            raise ValueError(
-                "Recomputed leaf hash does not match stored leaf hash.\n"
-                f"idx={idx}\n"
-                f"recomputed={recomputed_leaf_hash}\n"
-                f"stored={stored_leaf_hash}"
-            )
+        obs = torch.tensor(transition["obs"], dtype=torch.float32).unsqueeze(0)
+        next_obs = torch.tensor(transition["next_obs"], dtype=torch.float32).unsqueeze(0)
 
+        action = int(transition["action"])
         reward_fp = encode_fp(float(transition["reward"]))
         done_int = int(transition["done"])
+
+        with torch.no_grad():
+            q_obs_online = online_net(obs).squeeze(0)
+            q_next_online = online_net(next_obs).squeeze(0)
+            q_next_target = target_net(next_obs).squeeze(0)
+
+        q_online_real = float(q_obs_online[action].item())
+
+        next_action_online = int(torch.argmax(q_next_online).item())
+        q_target_max_real = float(q_next_target[next_action_online].item())
 
         q_online_fp = encode_fp(q_online_real)
         q_target_max_fp = encode_fp(q_target_max_real)
@@ -131,47 +83,39 @@ def main():
             done=done_int,
             q_target_max_fp=q_target_max_fp,
         )
-        loss_fp = compute_mse_loss_fp(
+
+        loss_fp = compute_smooth_l1_loss_fp(
             q_online_fp=q_online_fp,
             target_fp=target_fp,
         )
 
-        batch_loss_sum_fp += loss_fp
-
-        item = {
-            "index": idx,
-            "transition": transition,
-            "leaf": leaf,
-            "leaf_hash": recomputed_leaf_hash,
-            "merkle_path": get_merkle_path(merkle_data["levels"], idx),
-            "td_witness": {
-                "q_online_fp": q_online_fp,
-                "q_target_max_fp": q_target_max_fp,
-                "target_fp": target_fp,
-                "loss_fp": loss_fp,
-            },
-            "debug": {
-                "q_online_real": q_online_real,
-                "q_target_max_real": q_target_max_real,
-            },
+        item["td_witness"] = {
+            "q_online_fp": q_online_fp,
+            "q_target_max_fp": q_target_max_fp,
+            "target_fp": target_fp,
+            "loss_fp": loss_fp,
         }
-        items.append(item)
 
-    batch_size = len(items)
-    batch_loss_fp = batch_loss_sum_fp // batch_size
+        item["debug"] = {
+            "q_online_real_for_debug": q_online_real,
+            "q_next_online_for_debug": q_next_online.tolist(),
+            "q_next_target_for_debug": q_next_target.tolist(),
+            "next_action_online_for_debug": next_action_online,
+            "q_target_max_real_for_debug": q_target_max_real,
+        }
 
-    artifact = {
-        "public": {
-            "dataset_root": merkle_data["merkle_root"],
-            "batch_size": batch_size,
-            "loss_type": "mse",
-            "batch_loss_fp": batch_loss_fp,
-        },
-        "items": items,
-        "notes": {
-            "purpose": "minibatch TD arithmetic test before ZK circuit",
-            "batch_indices": BATCH_INDICES,
-        },
+        total_loss_fp += loss_fp
+
+    batch_loss_fp = total_loss_fp // batch_size
+
+    artifact["public"]["loss_type"] = "smooth_l1"
+    artifact["public"]["batch_loss_fp"] = batch_loss_fp
+    artifact["public"]["checkpoint_sha256"] = checkpoint_sha256
+
+    artifact["notes"] = {
+        "checkpoint_path": CHECKPOINT_PATH,
+        "q_target_source": "double_dqn_target_net_at_online_argmax",
+        "purpose": "minibatch TD arithmetic test using checkpoint-derived Double DQN target",
     }
 
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
@@ -180,19 +124,22 @@ def main():
     print("=== MINIBATCH TD ARTIFACT EXPORTED ===")
     print("output_path =", OUTPUT_PATH)
     print("dataset_root =", artifact["public"]["dataset_root"])
+    print("checkpoint_path =", CHECKPOINT_PATH)
+    print("checkpoint_sha256 =", checkpoint_sha256)
     print("batch_size =", batch_size)
     print("batch_loss_fp =", batch_loss_fp)
-
-    print("\n=== PER-ITEM SUMMARY ===")
-    for i, item in enumerate(items):
-        td = item["td_witness"]
+    print()
+    print("=== PER-ITEM SUMMARY ===")
+    for i, item in enumerate(artifact["items"]):
+        w = item["td_witness"]
+        d = item["debug"]
         print(
-            f"item[{i}] "
-            f"index={item['index']} "
-            f"q_online_fp={td['q_online_fp']} "
-            f"q_target_max_fp={td['q_target_max_fp']} "
-            f"target_fp={td['target_fp']} "
-            f"loss_fp={td['loss_fp']} "
+            f"item[{i}] index={item['index']} "
+            f"next_action_online={d['next_action_online_for_debug']} "
+            f"q_online_fp={w['q_online_fp']} "
+            f"q_target_max_fp={w['q_target_max_fp']} "
+            f"target_fp={w['target_fp']} "
+            f"loss_fp={w['loss_fp']} "
             f"path_length={len(item['merkle_path'])}"
         )
 

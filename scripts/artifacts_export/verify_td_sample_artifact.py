@@ -1,14 +1,14 @@
-import hashlib
 import json
+import hashlib
 
 from zk_offline_dqn.zk_specs import (
     serialize_transition_leaf,
     compute_td_target_fp,
-    compute_mse_loss_fp,
+    compute_smooth_l1_loss_fp,
 )
 
-
 ARTIFACT_PATH = "artifacts/sample_td_artifact.json"
+CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 
 
 def encode_leaf_for_hash(leaf):
@@ -16,7 +16,7 @@ def encode_leaf_for_hash(leaf):
     return s.encode("utf-8")
 
 
-def hash_leaf(leaf):
+def hash_leaf_serialized(leaf):
     return hashlib.sha256(encode_leaf_for_hash(leaf)).hexdigest()
 
 
@@ -28,17 +28,22 @@ def hash_internal_node(left_hex: str, right_hex: str) -> str:
 
 def verify_merkle_path(leaf_hash, merkle_path, expected_root):
     current = leaf_hash
-
     for step in merkle_path:
         sibling_hash = step["sibling_hash"]
         current_is_left = step["current_is_left"]
-
         if current_is_left:
             current = hash_internal_node(current, sibling_hash)
         else:
             current = hash_internal_node(sibling_hash, current)
-
     return current == expected_root, current
+
+
+def file_sha256(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def main():
@@ -50,7 +55,7 @@ def main():
     td = artifact["td_witness"]
 
     transition = membership["transition"]
-    claimed_leaf = membership["leaf"]
+    claimed_leaf = membership.get("serialized_leaf", membership.get("leaf"))
     claimed_leaf_hash = membership["leaf_hash"]
     merkle_path = membership["merkle_path"]
     expected_root = membership["dataset_root"]
@@ -62,15 +67,17 @@ def main():
 
     # 1) Recompute leaf from transition
     recomputed_leaf = serialize_transition_leaf(transition)
-    leaf_match = recomputed_leaf == claimed_leaf
+    leaf_match = True if claimed_leaf is None else (recomputed_leaf == claimed_leaf)
 
     # 2) Recompute leaf hash
-    recomputed_leaf_hash = hash_leaf(recomputed_leaf)
+    recomputed_leaf_hash = hash_leaf_serialized(recomputed_leaf)
     leaf_hash_match = recomputed_leaf_hash == claimed_leaf_hash
 
     # 3) Verify Merkle membership
     merkle_ok, recomputed_root = verify_merkle_path(
-        recomputed_leaf_hash, merkle_path, expected_root
+        recomputed_leaf_hash,
+        merkle_path,
+        expected_root,
     )
 
     # 4) Recompute target
@@ -85,15 +92,19 @@ def main():
     target_match = recomputed_target_fp == claimed_target_fp
 
     # 5) Recompute loss
-    recomputed_loss_fp = compute_mse_loss_fp(
+    recomputed_loss_fp = compute_smooth_l1_loss_fp(
         q_online_fp=q_online_fp,
         target_fp=recomputed_target_fp,
     )
     loss_match = recomputed_loss_fp == claimed_loss_fp
 
-    # 6) Final check
+    # 6) Public checks
     root_match_public = expected_root == public["dataset_root"]
-    loss_type_ok = public["loss_type"] == "mse"
+    loss_type_ok = public["loss_type"] == "smooth_l1"
+
+    expected_checkpoint_sha256 = public.get("checkpoint_sha256")
+    recomputed_checkpoint_sha256 = file_sha256(CHECKPOINT_PATH)
+    checkpoint_sha256_ok = expected_checkpoint_sha256 == recomputed_checkpoint_sha256
 
     all_ok = (
         leaf_match
@@ -103,6 +114,7 @@ def main():
         and loss_match
         and root_match_public
         and loss_type_ok
+        and checkpoint_sha256_ok
     )
 
     print("=== VERIFY TD SAMPLE ARTIFACT ===")
@@ -120,11 +132,9 @@ def main():
     print("done =", done_int)
     print("q_online_fp =", q_online_fp)
     print("q_target_max_fp =", q_target_max_fp)
-
     print("claimed_target_fp =", claimed_target_fp)
     print("recomputed_target_fp =", recomputed_target_fp)
     print("target_match =", target_match)
-
     print("claimed_loss_fp =", claimed_loss_fp)
     print("recomputed_loss_fp =", recomputed_loss_fp)
     print("loss_match =", loss_match)
@@ -132,6 +142,9 @@ def main():
     print("\n[Public Checks]")
     print("root_match_public =", root_match_public)
     print("loss_type_ok =", loss_type_ok)
+    print("expected_checkpoint_sha256 =", expected_checkpoint_sha256)
+    print("recomputed_checkpoint_sha256 =", recomputed_checkpoint_sha256)
+    print("checkpoint_sha256_ok =", checkpoint_sha256_ok)
 
     print("\nverification_passed =", all_ok)
 

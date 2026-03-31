@@ -93,11 +93,12 @@ def add_suffix_to_path(path_str: str, suffix: str) -> Path:
     return path.with_name(f"{path.stem}_{suffix}{path.suffix}")
 
 
-def save_checkpoint(path: Path, q_net, obs_dim, n_actions, step, seed, best_eval_return, best_step, args):
+def save_checkpoint(path: Path, q_net, target_net, obs_dim, n_actions, step, seed, best_eval_return, best_step, args):
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
             "model_state_dict": q_net.state_dict(),
+            "target_net_state_dict": target_net.state_dict(),
             "obs_dim": obs_dim,
             "n_actions": n_actions,
             "step": step,
@@ -218,6 +219,7 @@ def main():
                 save_checkpoint(
                     path=best_ckpt_path,
                     q_net=q_net,
+                    target_net=target_net,
                     obs_dim=obs_dim,
                     n_actions=n_actions,
                     step=step,
@@ -264,6 +266,7 @@ def main():
     save_checkpoint(
         path=last_ckpt_path,
         q_net=q_net,
+        target_net=target_net,
         obs_dim=obs_dim,
         n_actions=n_actions,
         step=step,
