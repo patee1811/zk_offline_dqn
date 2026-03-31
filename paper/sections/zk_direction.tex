@@ -1,41 +1,75 @@
-The experimental results suggest that zero-knowledge verifiable RL should not start from fully general online interaction or from unstable offline training. Instead, it should begin from a fixed offline dataset and a narrow set of arithmetic statements that are both meaningful and tractable.
+\section{Toward Verifiable Offline DQN Training}
+\label{sec:zk-direction}
+
+Our longer-term goal is zero-knowledge verifiable offline reinforcement learning from committed data. At the current stage, however, the repository does not yet implement a full zero-knowledge proving backend. What we now have is a concrete \emph{pre-ZK artifact-verifier prototype} that formalizes the core statement structure needed for such a system.
+
+The experimental results suggest that verifiable RL should not begin from fully general online interaction or from unstable end-to-end proof targets. Instead, it should begin from a fixed offline dataset and from a narrow family of arithmetic statements that are both meaningful and tractable. This is precisely why our current formulation starts from offline DQN-style training on committed data.
 
 \subsection*{Why offline training first}
 
-A fixed dataset is the natural bridge between RL and zero-knowledge proofs:
+A fixed offline dataset is the natural bridge between reinforcement learning and cryptographic verification:
 \begin{itemize}[leftmargin=1.5em]
-    \item the dataset can be committed once, for example via a Merkle commitment;
-    \item minibatch membership can be verified against the commitment;
-    \item Bellman targets and TD losses can be expressed as deterministic computations over committed data and public model parameters;
-    \item training becomes reproducible in a way that online RL is not.
+    \item the dataset can be committed once, for example through a Merkle commitment;
+    \item sampled transitions can be checked against the commitment through membership proofs;
+    \item Bellman targets and TD losses can be expressed as deterministic computations over committed samples and a publicly anchored model artifact;
+    \item the resulting pipeline is much more reproducible than online RL with ongoing exploration.
 \end{itemize}
 
-For these reasons, our roadmap deliberately avoids starting with PPO, SAC, or general online exploration. Offline DQN-style training provides a much cleaner first target.
+For these reasons, our roadmap does not begin with PPO, SAC, or general online interaction. Offline DQN-style value learning provides a much cleaner first verification target.
 
-\subsection*{Proof roadmap}
+\subsection*{What the current prototype already verifies}
 
-We propose the following staged proof design.
+The current repository verifies, in a Python artifact-verifier prototype, the following claims for sampled transitions drawn from a committed offline dataset.
 
-\paragraph{Stage 1: committed dataset membership.}
-A prover claims that a minibatch used during training belongs to a previously committed trajectory or transition dataset. The proof should show membership of each transition in the committed structure.
+First, each sampled transition is checked against a public Merkle root, establishing membership in the committed dataset.
 
-\paragraph{Stage 2: Bellman target correctness.}
-Given a committed minibatch, public discount factor $\gamma$, public target network parameters, and public next-state values, the prover shows that the Bellman target for each transition was computed correctly.
+Second, given a publicly anchored checkpoint, the prototype verifies Bellman target correctness under Double DQN semantics: the next action is selected by the online network, while the corresponding target value is taken from the target network.
 
-\paragraph{Stage 3: TD loss correctness.}
-Given the predicted Q-values for the minibatch and the Bellman targets, the prover shows that the TD loss was computed correctly.
+Third, it verifies the correctness of the per-sample TD loss using SmoothL1 loss in fixed-point form.
 
-\paragraph{Stage 4: gradient update correctness.}
-Only after the previous components are stable should we attempt to prove that one optimizer update was computed correctly. This step is substantially more expensive and should be treated as an extension rather than the first milestone.
+Fourth, for minibatches, it verifies the correctness of the batch-average TD loss.
+
+A key implementation detail is that the checkpoint is now publicly anchored by a SHA-256 digest. This means the verifier is not merely checking arithmetic in the abstract, but arithmetic tied to a specific model artifact. In the current implementation, both the online-network parameters and the target-network parameters are loaded from the checkpoint, bringing the prototype substantially closer to the actual semantics of offline Double DQN training.
+
+\subsection*{Current MVP statement}
+
+The current MVP statement can be phrased as follows:
+
+\begin{quote}
+Given a public commitment to an offline transition dataset and a public hash of a model checkpoint, verify that a sampled minibatch belongs to the committed dataset, and that the Double-DQN-style Bellman targets and SmoothL1 TD losses for that minibatch are computed correctly.
+\end{quote}
+
+This is the main statement structure currently realized by the repository.
 
 \subsection*{Public and private inputs}
 
-A plausible MVP split is:
+A plausible MVP split, consistent with the current prototype, is:
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Public inputs:} dataset commitment root, model architecture, batch size, discount factor, selected training step index, and possibly public network weights for the audited step.
-    \item \textbf{Private inputs:} concrete minibatch transitions, Merkle authentication paths, and internal arithmetic witnesses used to compute Bellman targets and TD loss.
+    \item \textbf{Public inputs:} dataset commitment root, checkpoint SHA-256, loss type, batch size, and batch-average fixed-point loss.
+    \item \textbf{Private witness:} sampled transitions, serialized leaves, Merkle authentication paths, and the fixed-point arithmetic witnesses used for per-sample target and loss computation.
 \end{itemize}
+
+Some constants are currently fixed by the implementation rather than exposed explicitly as public inputs, including the fixed-point scale, discount factor, SmoothL1 parameter, and network architecture. In a future proving system, these should either be hard-coded into the circuit or published explicitly as public parameters.
+
+\subsection*{What is not yet proved}
+
+The current prototype is still weaker than a full proof of training. In particular, it does not yet prove:
+\begin{itemize}[leftmargin=1.5em]
+    \item that the checkpoint itself was produced by correct optimization;
+    \item that minibatches were sampled according to a formally specified sampling rule;
+    \item that optimizer updates were executed correctly;
+    \item that target-network synchronization was performed correctly across training steps;
+    \item that an entire sequence of training steps led to the published checkpoint.
+\end{itemize}
+
+Accordingly, the present system should be described as a \emph{pre-ZK verifiable artifact prototype for membership plus TD-target/loss correctness}, not yet as a full zero-knowledge proof of training system.
 
 \subsection*{Connection to current baselines}
 
-The current experiments help identify what should eventually be proved. Behavior cloning is attractive because its loss is simple, but it does not capture Bellman-style value learning. Offline Double DQN captures the right type of computation but is unstable on narrow behavior datasets. CQL-lite is therefore a promising candidate for future verifiable training work: it preserves the offline value-learning structure while improving stability on the behavior dataset that is most naturally aligned with committed trajectories.
+The current experiments also clarify what should eventually be proved. Behavior cloning is attractive from a verification perspective because its objective is simpler, but it does not capture Bellman-style value learning. Offline Double DQN captures the right structure for RL-specific verification, but its empirical behavior is unstable on narrow behavior datasets. CQL-lite is therefore an interesting future target: it retains offline value-learning structure while improving stability on the kind of behavior-generated dataset that aligns naturally with committed trajectories.
+
+\subsection*{Next milestone}
+
+The next natural step is to move from verified TD arithmetic on committed samples to one verified offline DQN update step. That stronger statement would need to include forward pass correctness, Bellman target correctness, SmoothL1 loss correctness, gradient computation, optimizer update, and a public commitment or hash of the post-update checkpoint.
+
+In that sense, the current repository has completed the statement-design and artifact-validation stage that should precede a genuine zero-knowledge proof backend.
