@@ -1,10 +1,10 @@
-\subsection*{Evaluation principle}
+\subsection{Evaluation Principle}
 
 Unless otherwise noted, all claims in this section are based on \emph{100-episode re-evaluation} of the best checkpoint selected during training. We use short 10-episode evaluations only for model selection, because they are cheaper but noticeably noisier. This distinction is important: several runs show optimistic early spikes under 10-episode evaluation that do not fully survive longer re-evaluation.
 
-\subsection*{Main benchmark on the behavior dataset}
+\subsection{Main Benchmark on the Behavior Dataset}
 
-Table~\ref{tab:dqn010-main} reports the main comparison on the narrow behavior dataset \texttt{dqn\_eps010}. Three patterns are immediate.
+\Cref{tab:dqn010-main} reports the main comparison on the narrow behavior dataset \texttt{dqn\_eps010}. Three patterns are immediate.
 
 First, naive offline Double DQN is consistently weak on this dataset. Across the three seeds, its 100-episode re-evaluation means are only 31.50, 54.25, and 94.68. The aggregate across-seed mean is 60.14, which is far below the other baselines.
 
@@ -12,9 +12,9 @@ Second, behavior cloning is strong on the same dataset. Its seed-wise re-evaluat
 
 Third, CQL-lite largely closes the gap between imitation and offline value learning. Its seed-wise re-evaluation means are 416.14, 341.79, and 447.42, with an across-seed mean of 401.78. While CQL-lite does not dominate BC on every seed, it dramatically outperforms naive offline Double DQN and is competitive with the strongest imitation baseline.
 
-\begin{table}[ht]
+\begin{table}[!t]
 \centering
-\small
+\footnotesize
 \caption{Main results on \texttt{dqn\_eps010}. Seed rows report 100-episode re-evaluation mean $\pm$ standard deviation for the best checkpoint of that seed. Aggregate rows report the mean $\pm$ standard deviation \emph{across seed-wise means}, not across individual evaluation episodes.}
 \label{tab:dqn010-main}
 \begin{tabular}{llcc}
@@ -39,25 +39,25 @@ CQL-lite ($\alpha=1.0$) & aggregate & --- & 401.78 $\pm$ 54.26 \\
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:dqn010-method-comparison} visualizes the same result at the method level. The plot makes the central story visually clear: on the committed-style narrow behavior dataset, imitation and conservative offline RL occupy a high-performance regime, while naive offline Double DQN remains in a low-performance regime.
+\Cref{fig:dqn010-method-comparison} visualizes the same result at the method level. The plot makes the central story visually clear: on the committed-style narrow behavior dataset, imitation and conservative offline RL occupy a high-performance regime, while naive offline Double DQN remains in a low-performance regime.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
 \centering
 \includegraphics[width=0.86\linewidth]{figures/dqn_eps010_method_comparison.png}
 \caption{Method-level comparison on \texttt{dqn\_eps010}. Bars show the mean of the seed-wise 100-episode returns; error bars show standard deviation across seeds; dots show individual seeds.}
 \label{fig:dqn010-method-comparison}
 \end{figure}
 
-\subsection*{Dataset--method interaction benchmark}
+\subsection{Dataset--Method Interaction Benchmark}
 
-The broader benchmark is summarized in Table~\ref{tab:dataset-method-benchmark}. The key point is that dataset quality cannot be discussed independently of the learning algorithm.
+The broader benchmark is summarized in \Cref{tab:dataset-method-benchmark}. The key point is that dataset quality cannot be discussed independently of the learning algorithm.
 
-\begin{table}[ht]
+\begin{table*}[!t]
 \centering
 \small
 \caption{Cross-dataset benchmark summary. Numerical entries are 100-episode re-evaluation means when available. ``Qualitative'' indicates that the current draft only supports a robust qualitative conclusion rather than a complete multi-seed numeric comparison.}
 \label{tab:dataset-method-benchmark}
-\begin{tabular}{p{2.7cm}p{2.2cm}p{4.8cm}}
+\begin{tabular}{p{4.5cm} p{3.5cm} p{8.5cm}}
 \toprule
 Dataset & Method & Result / observation \\
 \midrule
@@ -66,37 +66,40 @@ Dataset & Method & Result / observation \\
 \texttt{dqn\_eps010} & Offline Double DQN & Consistent collapse across seeds: 31.50, 54.25, 94.68. \\
 \texttt{dqn\_eps010} & Behavior Cloning & Strong and comparatively stable: 392.87, 461.88, 398.19. \\
 \texttt{dqn\_eps010} & CQL-lite & Strong and competitive with BC: 416.14, 341.79, 447.42. \\
-\texttt{mixed\_random50\_}\\\texttt{dqn010} & Offline Double DQN & Qualitatively poor; best checkpoints appear extremely early and final performance remains weak. \\
-\texttt{mixed\_random20\_}\\\texttt{dqn010} & Offline Double DQN & Qualitatively poor; simple transition-level mixing does not rescue learning in the current pipeline. \\
+\texttt{mixed\_random50\_dqn010} & Offline Double DQN & Qualitatively poor; best checkpoints appear extremely early and final performance remains weak. \\
+\texttt{mixed\_random20\_dqn010} & Offline Double DQN & Qualitatively poor; simple transition-level mixing does not rescue learning in the current pipeline. \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
-This benchmark reveals a useful three-way alignment.
-
-\paragraph{Coverage-rich random data favors bootstrapped value learning.}
-The \texttt{random\_matched} dataset is broad and noisy. That broad support appears to help offline Double DQN on two of the three seeds, even though the underlying trajectories are low quality. In other words, value-learning success here is not driven by strong behavior quality, but by state-action coverage.
-
-\paragraph{Narrow high-return data favors imitation.}
-The \texttt{dqn\_eps010} dataset is much narrower but contains far better actions. This is exactly the structure that behavior cloning can exploit, because BC only needs reliable supervised actions rather than broad support for bootstrapped backups.
-
-\paragraph{Conservative offline RL is the best compromise on narrow behavior data.}
-CQL-lite preserves the Bellman-style value-learning structure while avoiding much of the collapse seen in naive offline Double DQN. This makes it the strongest current \emph{offline RL} baseline on \texttt{dqn\_eps010}, even though BC remains an excellent imitation reference point.
-
-\subsection*{Why the mixed datasets do not help}
+\subsection{Why the Mixed Datasets Do Not Help}
 
 A natural hypothesis is that adding random transitions to a narrow behavior dataset should improve coverage and therefore rescue offline Double DQN. In the current experiments, that hypothesis is not supported. Both \texttt{mixed\_random50\_dqn010} and \texttt{mixed\_random20\_dqn010} remain poor under the present trainer.
 
 This negative result is important. It suggests that transition-level mixing is not automatically beneficial: low-quality and high-quality data may interact in a way that degrades the target distribution seen by the value learner. Put differently, dataset composition matters not only through marginal coverage statistics, but also through how the induced backup targets behave during offline training.
 
-\subsection*{Discussion}
+\subsection{Preliminary Verification Results on Committed Minibatches}
 
-The results support a sharper interpretation than a simple ``better dataset / worse dataset'' story.
+In addition to the RL baseline results above, we evaluated the pre-ZK one-step update prototype on multiple committed minibatches. The goal of this experiment is not to claim a full proof of training, but to test whether the statement structure remains internally consistent across different minibatch sizes. In all tested runs, the exporter successfully produced a one-step update artifact and the verifier accepted it after checking membership, TD arithmetic, batch-loss consistency, gradient recomputation, parameter-delta consistency, SGD update consistency, checkpoint anchoring, and target-network invariance.
 
-\begin{enumerate}[leftmargin=1.5em]
-    \item \textbf{Dataset suitability is method dependent.} The same fixed dataset can be highly effective for imitation, highly unstable for naive offline Q-learning, and substantially improved by a conservative objective.
-    \item \textbf{Coverage and behavior quality play different roles.} Broad random data helps bootstrapped offline value learning, whereas narrow high-return behavior data is better aligned with imitation.
-    \item \textbf{Conservative objectives are a promising bridge.} CQL-lite retains the value-learning structure needed for Bellman-style proof statements, but behaves much more reliably than naive offline Double DQN on the dataset most naturally aligned with committed trajectories.
-\end{enumerate}
+\begin{table*}[!t]
+\centering
+\small
+\caption{Preliminary one-step update verification results across minibatch sizes.}
+\label{tab:one_step_verification}
+\begin{tabular}{c c c c c}
+\toprule
+Batch size & Batch indices & Batch loss (fp) & Export time (s) & Verify time (s) \\
+\midrule
+1  & \texttt{[0]} & 80  & 2.5105 & 1.5538 \\
+2  & \texttt{[0,1]} & 123 & 2.7638 & 1.4984 \\
+4  & \texttt{[0,1,2,3]} & 106 & 2.6312 & 1.5235 \\
+8  & \texttt{[0,\dots,7]} & 99  & 2.7076 & 1.5544 \\
+16 & \texttt{[0,\dots,15]} & 98 & 2.6446 & 1.5396 \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
-These points matter directly for the zero-knowledge agenda. A proof system should not begin by certifying a training rule that is empirically unstable on the target data regime. In our setting, naive offline Double DQN captures the right computational structure but has the wrong empirical behavior on \texttt{dqn\_eps010}. Behavior cloning is stable, but it does not exercise Bellman targets. CQL-lite is therefore the most promising current foundation for a verifiable offline RL pipeline: it still uses Bellman-style computations, yet it behaves robustly enough to justify proving those computations in the first place.
+All five configurations achieved successful verification. Across the tested range, artifact export time remained between approximately $2.51$ and $2.76$ seconds, while verification time remained between approximately $1.50$ and $1.55$ seconds. Although these timings come from a Python pre-ZK artifact/verifier pipeline rather than a cryptographic proving backend, they show that the current one-step statement is already experimentally stable across multiple committed minibatch sizes.
+
+These results should be interpreted carefully. The current prototype still verifies only a single SGD update step with explicit minibatch indices and a fixed target network during the statement. It does not yet verify multi-step training traces, replay-sampling correctness over time, target-network synchronization across a full run, or a true zero-knowledge proof backend. Nevertheless, the experiment provides useful evidence that the stronger one-step statement is viable as an intermediate research milestone between TD-arithmetic verification and full proof-of-training.

@@ -12,7 +12,7 @@
 
 This repository contains the source code for our research on combining **Offline Reinforcement Learning** with **verification-oriented proof design** for trustworthy training from committed data.
 
-The current repository is **not yet a full zero-knowledge proof-of-training system**. Instead, it implements a **pre-ZK artifact-verifier prototype** for a concrete MVP statement over offline DQN-style training.
+The current repository is **not yet a full zero-knowledge proof-of-training system**. Instead, it implements a **pre-ZK artifact-verifier prototype** for concrete offline DQN-style statements over committed data.
 
 The core idea is:
 
@@ -28,8 +28,9 @@ At the current stage, the repository can verify:
 3. **TD loss correctness** — the per-sample **SmoothL1** temporal-difference loss is computed correctly.
 4. **Batch-level loss integrity** — the reported minibatch average loss matches the actual computation.
 5. **Checkpoint anchoring** — the audited model checkpoint is publicly tied by **SHA-256**.
+6. **One-step SGD update consistency** — for a fixed committed minibatch, the repository can also check gradient recomputation, parameter-delta consistency, and SGD-update consistency for one offline DQN update step.
 
-All arithmetic is represented in **fixed-point integer form** to make verification deterministic and compatible with future proof-system backends.
+All arithmetic used for TD-artifact verification is represented in **fixed-point integer form** to make verification deterministic and compatible with future proof-system backends.
 
 ---
 
@@ -48,11 +49,17 @@ The project is beyond the proposal stage and currently includes:
   - Double-DQN-style Bellman target correctness,
   - SmoothL1 TD loss correctness,
   - minibatch-average TD loss correctness,
-  - checkpoint anchoring via SHA-256.
+  - checkpoint anchoring via SHA-256,
+- a stronger **pre-ZK one-step update prototype** for:
+  - one offline DQN SGD update step from a committed minibatch,
+  - pre-update and post-update checkpoint anchoring,
+  - gradient recomputation consistency,
+  - parameter-delta consistency,
+  - SGD update consistency.
 
 This repository should currently be described as:
 
-> **a pre-ZK artifact-verification prototype for committed-data membership and TD-arithmetic correctness**
+> **a pre-ZK artifact-verification prototype for committed-data membership, TD-arithmetic correctness, and one-step update consistency**
 
 —not yet as a full proof-of-training system.
 
@@ -77,16 +84,39 @@ Concretely, the current artifact pipeline verifies:
 - minibatch average loss,
 - public checkpoint identity through `checkpoint_sha256`.
 
+### Stronger Current Prototype Milestone
+
+The repository now also includes a stronger pre-ZK prototype for:
+
+> **one offline DQN SGD update step from a committed minibatch**
+
+For a fixed minibatch drawn from the committed dataset, the current one-step artifact/verifier pipeline checks:
+
+- transition membership via Merkle proofs,
+- Double-DQN Bellman target correctness,
+- SmoothL1 TD loss correctness,
+- batch-average loss consistency,
+- consistency of the pre-update checkpoint hash,
+- consistency of the post-update checkpoint hash,
+- consistency of the pre-update and post-update online-network states,
+- invariance of the target network during the one-step statement,
+- gradient recomputation consistency,
+- parameter-delta consistency,
+- SGD update consistency `w' = w - lr * g`.
+
+This stronger milestone is still a **Python pre-ZK artifact/verifier prototype**, not yet a true zero-knowledge proving backend.
+
 ### Not Yet Verified
 
 The current repository does **not yet** verify:
 
-- that the checkpoint itself was produced by correct training,
-- optimizer updates,
-- gradient computation,
+- that the checkpoint itself was produced by a full correct training trace,
+- optimizer updates across many steps,
 - target-network synchronization across all training steps,
 - sampling-rule correctness across the full training trace,
-- a full end-to-end proof of training.
+- model selection / early stopping / best-checkpoint selection,
+- a full end-to-end proof of training,
+- recursive proof composition or a production ZK backend.
 
 ---
 
@@ -94,18 +124,19 @@ The current repository does **not yet** verify:
 
 ```text
 zk_offline_dqn/
-├── zk_offline_dqn/              # Core Python package
+├── zk_offline_dqn/                      # Core Python package
 │   ├── __init__.py
-│   └── zk_specs.py              # Fixed-point encoding, TD arithmetic, ZK-friendly constants
+│   ├── zk_specs.py                      # Fixed-point encoding, TD arithmetic, ZK-friendly constants
+│   └── artifact_export_utils.py         # Shared helpers for artifact export / one-step verification
 │
 ├── scripts/
-│   ├── training/                # Model training scripts
+│   ├── training/                        # Model training scripts
 │   │   ├── train_cartpole_dqn.py
 │   │   ├── train_offline_dqn.py
 │   │   ├── train_cql.py
 │   │   └── train_bc.py
 │   │
-│   ├── data_gen/                # Dataset generation & preprocessing
+│   ├── data_gen/                        # Dataset generation & preprocessing
 │   │   ├── generate_cartpole_dataset.py
 │   │   ├── generate_cartpole_dataset_from_dqn.py
 │   │   ├── generate_dataset_from_dqn_until_transitions.py
@@ -131,9 +162,13 @@ zk_offline_dqn/
 │   │   ├── export_transition_membership_artifact.py
 │   │   ├── export_td_sample_artifact.py
 │   │   ├── export_minibatch_td_artifact.py
+│   │   ├── export_td_sample_artifact_from_dataset.py
+│   │   ├── export_minibatch_td_artifact_from_dataset.py
+│   │   ├── export_one_step_update_artifact.py
 │   │   ├── verify_transition_membership_artifact.py
 │   │   ├── verify_td_sample_artifact.py
-│   │   └── verify_minibatch_td_artifact.py
+│   │   ├── verify_minibatch_td_artifact.py
+│   │   └── verify_one_step_update_artifact.py
 │   │
 │   └── zk_proofs/
 │       ├── build_leaf_hashes.py
@@ -141,14 +176,14 @@ zk_offline_dqn/
 │       ├── check_merkle_membership.py
 │       └── check_real_transition.py
 │
-├── paper/                       # LaTeX draft
-├── data/                        # Datasets (git-ignored)
-├── models/                      # Checkpoints (git-ignored)
-├── logs/                        # Training logs (git-ignored)
-├── artifacts/                   # Exported artifacts (git-ignored)
-├── plots/                       # Plots (git-ignored)
+├── paper/                               # LaTeX draft
+├── data/                                # Datasets (git-ignored)
+├── models/                              # Checkpoints (git-ignored)
+├── logs/                                # Training logs (git-ignored)
+├── artifacts/                           # Exported artifacts (git-ignored)
+├── plots/                               # Plots (git-ignored)
 │
-├── proof_statement_design.md    # MVP proof statement design
+├── proof_statement_design.md            # MVP and stronger one-step statement design
 ├── setup.py
 ├── requirements.txt
 ├── LICENSE
@@ -161,7 +196,7 @@ zk_offline_dqn/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/zk_offline_dqn.git
+git clone https://github.com/patee1811/zk_offline_dqn.git
 cd zk_offline_dqn
 
 # Create and activate a virtual environment
@@ -247,7 +282,62 @@ python scripts/artifacts_export/export_minibatch_td_artifact.py
 python scripts/artifacts_export/verify_minibatch_td_artifact.py
 ```
 
-### Stage 6: Analyze results
+### Stage 6: Export artifacts directly from dataset + Merkle + checkpoint
+
+```bash
+# Single-sample artifact built directly from real dataset + real Merkle tree + real checkpoint
+python scripts/artifacts_export/export_td_sample_artifact_from_dataset.py \
+    --data data/cartpole_dqn_eps010_transitions.pkl \
+    --merkle artifacts/cartpole_dqn_eps010_merkle.json \
+    --checkpoint models/offline_dqn_with_target_seed42_best.pt \
+    --index 0 \
+    --out artifacts/td_sample_from_dataset.json
+
+python scripts/artifacts_export/verify_td_sample_artifact.py
+```
+
+```bash
+# Minibatch artifact built directly from real dataset + real Merkle tree + real checkpoint
+python scripts/artifacts_export/export_minibatch_td_artifact_from_dataset.py \
+    --data data/cartpole_dqn_eps010_transitions.pkl \
+    --merkle artifacts/cartpole_dqn_eps010_merkle.json \
+    --checkpoint models/offline_dqn_with_target_seed42_best.pt \
+    --indices 0,1,2,3 \
+    --out artifacts/minibatch_td_from_dataset.json
+
+python scripts/artifacts_export/verify_minibatch_td_artifact.py
+```
+
+### Stage 7: Export and verify one offline DQN SGD update step
+
+```bash
+python scripts/artifacts_export/export_one_step_update_artifact.py \
+    --data data/cartpole_dqn_eps010_transitions.pkl \
+    --merkle artifacts/cartpole_dqn_eps010_merkle.json \
+    --checkpoint models/offline_dqn_with_target_seed42_best.pt \
+    --indices 0,1,2,3 \
+    --lr 0.001 \
+    --post-checkpoint-out models/offline_dqn_one_step_sgd.pt \
+    --out artifacts/one_step_update_artifact.json
+```
+
+```bash
+python scripts/artifacts_export/verify_one_step_update_artifact.py
+```
+
+The current one-step verifier checks:
+
+- committed-minibatch membership,
+- Double-DQN target correctness,
+- SmoothL1 TD loss correctness,
+- batch-loss consistency,
+- pre/post checkpoint anchoring,
+- target-network invariance,
+- gradient recomputation consistency,
+- delta-tensor consistency,
+- SGD update consistency.
+
+### Stage 8: Analyze results
 
 ```bash
 python scripts/analysis/analyze_offline_log.py --log logs/offline_dqn_cartpole_log_seed42.csv
@@ -267,7 +357,15 @@ The current TD-artifact pipeline uses:
 - **SmoothL1 loss** in fixed-point arithmetic,
 - **checkpoint anchoring** using `checkpoint_sha256`.
 
-This makes the current verifier substantially closer to real offline Double DQN training semantics than a purely symbolic arithmetic demo.
+The stronger one-step update prototype additionally checks:
+
+- consistency between the committed minibatch and the recomputed training loss,
+- consistency between the recomputed gradients and stored gradient tensors,
+- consistency between parameter deltas and the actual pre/post online-network states,
+- consistency of the SGD rule `w' = w - lr * g`,
+- invariance of the target network during the one-step statement.
+
+This makes the current repository substantially closer to real offline Double DQN training semantics than a purely symbolic arithmetic demo.
 
 ---
 
@@ -288,15 +386,29 @@ The fixed-point arithmetic used in the project is defined in [`zk_offline_dqn/zk
 
 ## Proof Statement Design
 
-The current MVP proof statement is documented in:
+The current proof statements are documented in:
 
 ```text
 proof_statement_design.md
 ```
 
-In short, the current statement is:
+In short, the repository currently contains two levels of statement design:
 
-> Given a public commitment to an offline transition dataset and a public hash of a model checkpoint, verify that sampled transitions belong to the committed dataset and that their Double-DQN-style Bellman targets and SmoothL1 TD losses are computed correctly.
+1. **MVP TD-arithmetic statement**
+   - verify committed transition membership,
+   - verify Double-DQN Bellman target correctness,
+   - verify SmoothL1 TD loss correctness,
+   - verify minibatch-average loss correctness,
+   - anchor the checkpoint publicly by SHA-256.
+
+2. **Stronger one-step update statement**
+   - verify one offline DQN SGD update step from a committed minibatch,
+   - check pre/post checkpoint consistency,
+   - check gradient recomputation consistency,
+   - check parameter-delta consistency,
+   - check SGD update consistency.
+
+The current implementation is still **pre-ZK**: it formalizes and verifies the statement structure in Python, but does not yet provide a true zero-knowledge proving backend.
 
 ---
 
@@ -314,21 +426,21 @@ Typical generated files include:
 
 ## Recommended Next Technical Milestone
 
-The next milestone after the current MVP is:
+The next milestone after the current stronger pre-ZK prototype is:
 
-> **one verified offline DQN update step**
+> **multi-step verified offline DQN update traces or a more circuit-friendly encoding of the current one-step update statement**
 
-That step should extend the current system from:
+Two natural directions are:
 
-- committed minibatch membership,
-- Bellman target correctness,
-- SmoothL1 TD loss correctness,
+1. **Extend from one verified step to K verified steps**
+   - chain pre/post checkpoint hashes across steps,
+   - keep target-network synchronization explicit,
+   - study proof/verification overhead growth.
 
-to also include:
-
-- gradient computation,
-- optimizer update,
-- pre-update and post-update checkpoint anchoring.
+2. **Make the one-step statement more ZK-friendly**
+   - compress or quantize gradient/delta representations more aggressively,
+   - reduce floating-point dependence,
+   - move toward circuit-compatible witness representations.
 
 ---
 
@@ -338,10 +450,10 @@ If you find this work useful, please cite:
 
 ```bibtex
 @misc{zk_offline_dqn_2026,
-    title   = {Zero-Knowledge Verifiable Offline DQN Training from Committed Trajectories},
-    author  = {Ngoc Duy},
-    year    = {2026},
-    url     = {https://github.com/<your-username>/zk_offline_dqn}
+  title        = {Zero-Knowledge Verifiable Offline DQN Training from Committed Trajectories},
+  author       = {Ngoc Duy},
+  year         = {2026},
+  howpublished = {\url{https://github.com/patee1811/zk_offline_dqn}}
 }
 ```
 

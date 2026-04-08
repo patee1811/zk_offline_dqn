@@ -1,35 +1,35 @@
-\appendix
+\appendices
 
 \section{Hyperparameter Details}
 \label{app:hyperparameters}
 
-Table~\ref{tab:app-hparams} records the settings that were explicitly fixed and repeatedly referenced in the reported experiments. We intentionally separate these from implementation-level defaults that were not varied in the current study. This keeps the appendix faithful to what is actually supported by the present draft.
+\Cref{tab:app-hparams} records the settings that were explicitly fixed and repeatedly referenced in the reported experiments.
 
-\begin{table}[ht]
+\begin{table}[!t]
 \centering
-\small
+\footnotesize
 \caption{Explicitly reported experimental settings.}
 \label{tab:app-hparams}
-\begin{tabular}{p{4.3cm}p{7.2cm}}
+\begin{tabular}{ll}
 \toprule
 Setting & Value \\
 \midrule
 Environment & CartPole-v1 \\
-Observation dimension & 4 \\
+Observation dim. & 4 \\
 Action space size & 2 \\
-Network architecture & MLP with 2 hidden layers of width 128 \\
+Network arch. & MLP, 2 hidden layers $\times$ 128 \\
 Hidden activation & ReLU \\
-Offline Double DQN learning rate & $1 \times 10^{-4}$ \\
-CQL-lite learning rate & $1 \times 10^{-4}$ \\
-TD loss & SmoothL1Loss (Huber loss) \\
+Offline DQN LR & $1 \times 10^{-4}$ \\
+CQL-lite LR & $1 \times 10^{-4}$ \\
+TD loss & SmoothL1Loss (Huber) \\
 Gradient clipping & 10.0 \\
-Target network & Enabled for value-based methods \\
-Offline target rule & Double DQN target \\
-CQL-lite conservative weight & $\alpha = 1.0$ \\
-Behavior-dataset collection policy & Trained DQN with $\epsilon = 0.10$ during data collection \\
-Model selection protocol & Periodic 10-episode evaluation with best-checkpoint saving \\
-Final reporting protocol & 100-episode re-evaluation of selected checkpoints \\
-Reported seeds & 42, 123, 999 \\
+Target network & Enabled \\
+Target rule & Double DQN \\
+CQL-lite $\alpha$ & 1.0 \\
+Behavior policy & DQN, $\epsilon = 0.10$ \\
+Model selection & 10-ep periodic eval \\
+Final evaluation & 100-episode re-eval \\
+Seeds & 42, 123, 999 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -37,24 +37,24 @@ Reported seeds & 42, 123, 999 \\
 \section{Dataset Summary}
 \label{app:dataset-stats}
 
-The current study is organized around four offline datasets. Table~\ref{tab:app-datasets} summarizes their roles and qualitative statistics. We deliberately report the qualitative properties that drive the paper's conclusions, because those are the quantities most directly tied to method behavior in the present draft.
+\Cref{tab:app-datasets} summarizes the four offline datasets used in this study. All datasets contain approximately 47k transitions.
 
-\begin{table}[ht]
+\begin{table*}[!t]
 \centering
-\small
-\caption{Dataset summary used throughout the paper. Sizes are approximately matched at around 47k transitions.}
+\footnotesize
+\caption{Dataset summary. Sizes are approximately matched at around 47k transitions.}
 \label{tab:app-datasets}
-\begin{tabular}{p{2.8cm}p{2.6cm}p{1.4cm}p{5.2cm}}
+\begin{tabular}{l l l p{7cm}}
 \toprule
 Dataset & Source policy & Size & Main characteristics \\
 \midrule
-\texttt{random\_matched} & Uniform random & $\approx 47$k & Broad state-action coverage, near-balanced actions, shorter episodes, higher terminal ratio, noisy trajectories. \\
-\texttt{dqn\_eps010} & Trained DQN with $\epsilon=0.10$ & $\approx 47$k & Narrower support, longer episodes, lower terminal ratio, higher-return behavior, good action supervision. \\
-\texttt{mixed\_random50\_}\\\texttt{dqn010} & 50--50 transition mix & $\approx 47$k & Intermediate raw statistics, but poor performance with the current offline Double DQN trainer. \\
-\texttt{mixed\_random20\_}\\\texttt{dqn010} & 20--80 transition mix & $\approx 47$k & Closer to the behavior dataset than the random dataset, yet still poor with the current transition-level mixing strategy. \\
+\texttt{random\_matched} & Uniform random & $\approx 47$k & Broad state--action coverage, near-balanced actions, shorter episodes, higher terminal ratio, noisy trajectories. \\
+\texttt{dqn\_eps010} & Trained DQN, $\epsilon\!=\!0.10$ & $\approx 47$k & Narrower support, longer episodes, lower terminal ratio, higher-return behavior, good action supervision. \\
+\texttt{mixed\_random50\_dqn010} & 50--50 mix & $\approx 47$k & Intermediate raw statistics, but poor under offline Double DQN. \\
+\texttt{mixed\_random20\_dqn010} & 20--80 mix & $\approx 47$k & Closer to behavior data, yet still poor with transition-level mixing. \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 Two high-level contrasts are the most important:
 \begin{itemize}[leftmargin=1.5em]
@@ -63,52 +63,69 @@ Two high-level contrasts are the most important:
 \end{itemize}
 These opposing properties explain why the same offline dataset can favor different learning paradigms.
 
+\section{Fixed-Point Specification}
+\label{app:fixedpoint-spec}
+
+\Cref{tab:app-fp-spec} lists the complete fixed-point specification used in all verification artifacts, defined in the \texttt{zk\_specs.py} module.
+
+\begin{table}[!t]
+\centering
+\footnotesize
+\caption{Fixed-point arithmetic specification.}
+\label{tab:app-fp-spec}
+\begin{tabular}{l l p{2.8cm}}
+\toprule
+Parameter & Value & Description \\
+\midrule
+\texttt{FP\_SCALE} & 1000 & Scaling: $\mathrm{fp}(x) = \mathrm{round}(x \cdot 1000)$ \\
+\texttt{OBS\_DIM} & 4 & Observation dimension \\
+\texttt{ACTION\_DIM} & 2 & Action space size \\
+\texttt{GAMMA\_FP} & 990 & $\gamma = 0.99$ in fixed-point \\
+\texttt{LOSS\_TYPE} & \texttt{smooth\_l1} & SmoothL1 loss \\
+\texttt{SMOOTH\_L1\_BETA\_FP} & 1000 & $\beta = 1.0$ in fixed-point \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Artifact JSON Schema}
+\label{app:artifact-schema}
+
+Each verification artifact is a JSON file with three top-level keys:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{\texttt{public}}: values visible to the verifier (\texttt{dataset\_root}, \texttt{checkpoint\_sha256}, \texttt{loss\_type}, \texttt{batch\_size}, \texttt{batch\_loss\_fp}).
+    \item \textbf{\texttt{items}}: per-transition witness entries (transition data, serialized leaf, leaf hash, Merkle path, TD witness).
+    \item \textbf{\texttt{notes}}: metadata including file paths, scope, and limitations.
+\end{itemize}
+
+For the one-step update artifact, the schema additionally includes:
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{public}: \texttt{pre/post\_}\allowbreak\texttt{checkpoint\_}\allowbreak\texttt{sha256}, \texttt{optimizer\_type}, \texttt{learning\_rate\_fp};
+    \item \texttt{update\_witness}: \texttt{batch\_loss\_fp}, state-dict SHA-256 hashes, \texttt{parameter\_summaries}, \texttt{gradient\_tensors}, \texttt{delta\_tensors}.
+\end{itemize}
+
 \section{File Naming Conventions}
 \label{app:naming}
 
-To keep the code and data pipeline auditable, we adopt a simple file naming scheme.
-
-\paragraph{Episode datasets.}
-Raw collected trajectories are stored as
-\begin{center}
-\texttt{<dataset\_name>\_episodes.pkl}
-\end{center}
-with companion summaries
-\begin{center}
-\texttt{<dataset\_name>\_episodes.summary.json}.
-\end{center}
-Examples include:\begin{quote}\ttfamily\small cartpole\_random\_matched\_episodes.pkl\\ cartpole\_dqn\_eps010\_episodes.pkl\end{quote}
-
-\paragraph{Transition datasets.}
-Flattened replay-style data are stored as
-\begin{center}
-\texttt{<dataset\_name>\_transitions.pkl}
-\end{center}
-with companion summaries
-\begin{center}
-\texttt{<dataset\_name>\_transitions.summary.json}.
-\end{center}
-Examples include:\begin{quote}\ttfamily\small cartpole\_dqn\_eps010\_transitions.pkl\\ cartpole\_random\_matched\_transitions.pkl\\ cartpole\_mixed\_random20\_dqn010\_transitions.pkl\\ cartpole\_mixed\_random50\_dqn010\_transitions.pkl\end{quote}
-
-\paragraph{Scripts.}
 The codebase follows a stage-oriented naming style:
 \begin{itemize}[leftmargin=1.5em]
     \item \texttt{generate\_*} for data collection;
     \item \texttt{flatten\_*} for episode-to-transition conversion;
     \item \texttt{train\_*} for model training;
-    \item \texttt{evaluate\_*} for checkpoint re-evaluation; and
-    \item \texttt{analyze\_*} for post-hoc log or dataset analysis.
+    \item \texttt{evaluate\_*} for checkpoint re-evaluation;
+    \item \texttt{export\_*} and \texttt{verify\_*} for artifact verification; and
+    \item \texttt{analyze\_*} for post-hoc analysis.
 \end{itemize}
 
-This convention is useful not only for reproducibility, but also for the later zero-knowledge setting, where one wants a clean separation between data generation, dataset commitment, model training, and audited verification statements.
+Episode datasets use the naming \texttt{<name>\_episodes.pkl} with companion \texttt{.summary.json} files. Transition-level datasets use \texttt{<name>\_transitions.pkl}.
 
 \section{Reporting Notes}
 \label{app:reporting-notes}
 
-We distinguish two different kinds of variability in the paper:
+We distinguish two kinds of variability:
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{within-seed evaluation variance}, reported as the standard deviation over the 100 evaluation episodes for a selected checkpoint; and
-    \item \textbf{across-seed variance}, reported in aggregate rows as the standard deviation across seed-wise mean returns.
+    \item \textbf{within-seed evaluation variance}: standard deviation over the 100 evaluation episodes for a selected checkpoint;
+    \item \textbf{across-seed variance}: standard deviation across seed-wise mean returns (reported in aggregate rows).
 \end{itemize}
 
-This distinction matters because a method can be internally variable within an evaluation rollout while still being consistent across random seeds, or vice versa. The strong seed sensitivity of offline Double DQN on \texttt{random\_matched} is an example of the second case.
+This distinction matters because a method can be internally variable yet consistent across seeds, or vice versa.

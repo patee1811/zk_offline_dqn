@@ -1,75 +1,233 @@
-\section{Toward Verifiable Offline DQN Training}
-\label{sec:zk-direction}
+% System Design and Methodology
+% (section heading is defined in main.tex)
 
-Our longer-term goal is zero-knowledge verifiable offline reinforcement learning from committed data. At the current stage, however, the repository does not yet implement a full zero-knowledge proving backend. What we now have is a concrete \emph{pre-ZK artifact-verifier prototype} that formalizes the core statement structure needed for such a system.
+\label{sec:system-design-body}
 
-The experimental results suggest that verifiable RL should not begin from fully general online interaction or from unstable end-to-end proof targets. Instead, it should begin from a fixed offline dataset and from a narrow family of arithmetic statements that are both meaningful and tractable. This is precisely why our current formulation starts from offline DQN-style training on committed data.
+This section describes the design of our pre-ZK verification system for offline DQN training. \Cref{fig:system-architecture} provides an overview of the end-to-end pipeline, and subsequent subsections formalize each component.
 
-\subsection*{Why offline training first}
+\begin{figure*}[!t]
+\centering
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners=3pt, minimum width=2.6cm, minimum height=0.8cm, align=center, font=\small},
+    data/.style={box, fill=blue!8},
+    commit/.style={box, fill=green!10},
+    train/.style={box, fill=orange!10},
+    verify/.style={box, fill=red!8},
+    arr/.style={-{Stealth[length=5pt]}, thick},
+    lab/.style={font=\scriptsize, midway, above}
+]
+% Row 1: Data pipeline
+\node[data] (env) {CartPole-v1};
+\node[data, right=0.6cm of env] (policy) {Behavior\\Policy};
+\node[data, right=0.6cm of policy] (episodes) {Episode\\Dataset};
+\node[data, right=0.6cm of episodes] (trans) {Transition\\Dataset $\dataset$};
+\draw[arr] (env) -- (policy);
+\draw[arr] (policy) -- node[lab] {$\epsilon$-greedy} (episodes);
+\draw[arr] (episodes) -- node[lab] {flatten} (trans);
+
+% Row 2: Split into commitment and training
+\node[commit, below left=1.6cm and -0.2cm of trans] (merkle) {Merkle Tree\\Commitment};
+\node[train, below right=1.6cm and -0.2cm of trans] (training) {Offline Training\\DQN / CQL / BC};
+\draw[arr] (trans) -- (merkle);
+\draw[arr] (trans) -- (training);
+
+% Row 3: Public outputs
+\node[commit, below=0.8cm of merkle] (root) {Public Root\\$h(\dataset)$};
+\node[train, below=0.8cm of training] (ckpt) {Checkpoint $\theta$\\SHA-256 Anchor};
+\draw[arr] (merkle) -- (root);
+\draw[arr] (training) -- (ckpt);
+
+% Row 4: Artifact export and verification
+\node[verify, below=1.4cm of $(root)!0.5!(ckpt)$, minimum width=3.8cm] (artifact) {Artifact Export\\and Verification};
+\draw[arr] (root) |- (artifact);
+\draw[arr] (ckpt) |- (artifact);
+
+% Result
+\node[verify, below=0.7cm of artifact, minimum width=2.8cm] (result) {Verification\\Result};
+\draw[arr] (artifact) -- (result);
+\end{tikzpicture}
+\caption{End-to-end system architecture. The offline transition dataset is both committed via a Merkle tree and used for offline training. Verification artifacts tie training computations back to the committed data and the publicly anchored checkpoint.}
+\label{fig:system-architecture}
+\end{figure*}
+
+\subsection{Why Offline Training First}
 
 A fixed offline dataset is the natural bridge between reinforcement learning and cryptographic verification:
 \begin{itemize}[leftmargin=1.5em]
-    \item the dataset can be committed once, for example through a Merkle commitment;
+    \item the dataset can be committed once, for example through a Merkle tree~\cite{merkle1987};
     \item sampled transitions can be checked against the commitment through membership proofs;
-    \item Bellman targets and TD losses can be expressed as deterministic computations over committed samples and a publicly anchored model artifact;
+    \item Bellman targets and TD losses can be expressed as deterministic computations over committed samples and a publicly anchored model checkpoint;
     \item the resulting pipeline is much more reproducible than online RL with ongoing exploration.
 \end{itemize}
-
 For these reasons, our roadmap does not begin with PPO, SAC, or general online interaction. Offline DQN-style value learning provides a much cleaner first verification target.
 
-\subsection*{What the current prototype already verifies}
+\subsection{Dataset Commitment via Merkle Trees}
+\label{sec:merkle-commitment}
 
-The current repository verifies, in a Python artifact-verifier prototype, the following claims for sampled transitions drawn from a committed offline dataset.
+We commit the offline transition dataset $\dataset$ using a SHA-256-based Merkle tree~\cite{merkle1987}. Each transition $(s_i, a_i, r_i, s'_i, d_i)$ is first serialized into a fixed-point integer vector:
+\begin{align*}
+\mathrm{leaf}_i &= [\mathrm{fp}(s_i^{(1)}), \ldots, \mathrm{fp}(s_i^{(d)}),\; a_i,\; \mathrm{fp}(r_i), \\
+&\quad \mathrm{fp}(s'^{(1)}_i), \ldots, \mathrm{fp}(s'^{(d)}_i),\; d_i],
+\end{align*}
+where $\mathrm{fp}(x) = \mathrm{round}(x \cdot S)$ encodes a real value into a fixed-point integer with scale factor $S$. The leaf hash is then $h_i = \mathrm{SHA\text{-}256}(\mathrm{leaf}_i)$.
 
-First, each sampled transition is checked against a public Merkle root, establishing membership in the committed dataset.
+The Merkle tree is constructed bottom-up by hashing pairs of consecutive nodes:
+\[
+h_{\mathrm{parent}} = \mathrm{SHA\text{-}256}(h_{\mathrm{left}} \,\|\, h_{\mathrm{right}}).
+\]
+The resulting root hash $h(\dataset)$ serves as the public commitment to the entire dataset. To prove that a transition $i$ belongs to $\dataset$, the prover provides the leaf contents, the leaf hash, and an authentication path of sibling hashes from the leaf to the root. The verifier recomputes the root from the path and checks equality with the public commitment.
 
-Second, given a publicly anchored checkpoint, the prototype verifies Bellman target correctness under Double DQN semantics: the next action is selected by the online network, while the corresponding target value is taken from the target network.
+\subsection{Fixed-Point Arithmetic}
+\label{sec:fixed-point}
 
-Third, it verifies the correctness of the per-sample TD loss using SmoothL1 loss in fixed-point form.
-
-Fourth, for minibatches, it verifies the correctness of the batch-average TD loss.
-
-A key implementation detail is that the checkpoint is now publicly anchored by a SHA-256 digest. This means the verifier is not merely checking arithmetic in the abstract, but arithmetic tied to a specific model artifact. In the current implementation, both the online-network parameters and the target-network parameters are loaded from the checkpoint, bringing the prototype substantially closer to the actual semantics of offline Double DQN training.
-
-\subsection*{Current MVP statement}
-
-The current MVP statement can be phrased as follows:
-
-\begin{quote}
-Given a public commitment to an offline transition dataset and a public hash of a model checkpoint, verify that a sampled minibatch belongs to the committed dataset, and that the Double-DQN-style Bellman targets and SmoothL1 TD losses for that minibatch are computed correctly.
-\end{quote}
-
-This is the main statement structure currently realized by the repository.
-
-\subsection*{Public and private inputs}
-
-A plausible MVP split, consistent with the current prototype, is:
+To make all TD-related arithmetic explicit and compatible with future proof backends, we represent real-valued quantities in fixed-point form. The specification is defined by:
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Public inputs:} dataset commitment root, checkpoint SHA-256, loss type, batch size, and batch-average fixed-point loss.
-    \item \textbf{Private witness:} sampled transitions, serialized leaves, Merkle authentication paths, and the fixed-point arithmetic witnesses used for per-sample target and loss computation.
+    \item \textbf{Scale factor:} $S = 1000$, so encoding is $\mathrm{fp}(x) = \mathrm{round}(x \cdot 1000)$.
+    \item \textbf{Discount factor:} $\gamma = 0.99$ is encoded as $\gamma_{\mathrm{fp}} = 990$.
+    \item \textbf{SmoothL1 beta:} $\beta = 1.0$ is encoded as $\beta_{\mathrm{fp}} = 1000$.
 \end{itemize}
 
-Some constants are currently fixed by the implementation rather than exposed explicitly as public inputs, including the fixed-point scale, discount factor, SmoothL1 parameter, and network architecture. In a future proving system, these should either be hard-coded into the circuit or published explicitly as public parameters.
+The fixed-point Bellman target computation follows:
+\begin{equation}\label{eq:fp-target}
+y_{\mathrm{fp}} = r_{\mathrm{fp}} + (1 - d) \cdot \left\lfloor \frac{\gamma_{\mathrm{fp}} \cdot q^{\mathrm{target}}_{\mathrm{fp}}}{\,S\,} \right\rfloor,
+\end{equation}
+where $q^{\mathrm{target}}_{\mathrm{fp}}$ is the fixed-point target Q-value. The fixed-point SmoothL1 loss is:
+\begin{equation}\label{eq:fp-loss}
+\ell_{\mathrm{fp}}(q, y) = \begin{cases}
+\left\lfloor \frac{|\delta_{\mathrm{fp}}|^2}{2 \,\beta_{\mathrm{fp}}} \right\rfloor & \text{if } |\delta_{\mathrm{fp}}| < \beta_{\mathrm{fp}}, \\[6pt]
+|\delta_{\mathrm{fp}}| - \left\lfloor \frac{\beta_{\mathrm{fp}}}{2} \right\rfloor & \text{otherwise,}
+\end{cases}
+\end{equation}
+where $\delta_{\mathrm{fp}} = q_{\mathrm{fp}} - y_{\mathrm{fp}}$. This integer-only arithmetic makes the computations deterministic and directly expressible as constraints in a future arithmetic circuit.
 
-\subsection*{What is not yet proved}
+\subsection{Verification Statements}
+\label{sec:verification-statements}
 
-The current prototype is still weaker than a full proof of training. In particular, it does not yet prove:
+We define three increasingly strong verification statements, each building on the previous one.
+
+\subsubsection{Single-Sample TD Statement}
+
+For one transition $(s, a, r, s', d)$ drawn from the committed dataset:
+\begin{enumerate}[leftmargin=1.5em]
+    \item prove the transition is included in the committed dataset via Merkle membership;
+    \item prove $q_{\mathrm{online}} = Q_\theta(s)[a]$;
+    \item prove $a^* = \arg\max_{a'} Q_\theta(s')[a']$ (Double DQN action selection);
+    \item prove $q_{\mathrm{target}} = Q_{\bar\theta}(s')[a^*]$ (target network evaluation);
+    \item prove $y = r + (1-d) \cdot \gamma \cdot q_{\mathrm{target}}$ (Bellman target);
+    \item prove $\ell = \mathrm{SmoothL1}(q_{\mathrm{online}}, y)$ (TD loss).
+\end{enumerate}
+
+\subsubsection{Minibatch TD Statement}
+
+For a minibatch $B = \{i_1, \ldots, i_k\}$ of transitions:
+\begin{enumerate}[leftmargin=1.5em]
+    \item prove each transition $i_j$ is included in the committed dataset;
+    \item prove each per-sample Bellman target and TD loss is correct;
+    \item prove the batch-average loss: $\mathcal{L}_{\mathrm{fp}} = \lfloor \sum_j \ell_j / k \rfloor$.
+\end{enumerate}
+
+\subsubsection{One-Step SGD Update Statement}
+
+For one fixed minibatch of committed transitions with a pre-update checkpoint:
+\begin{enumerate}[leftmargin=1.5em]
+    \item prove all transitions belong to the committed dataset;
+    \item prove all Double DQN Bellman targets are correct;
+    \item prove all SmoothL1 TD losses are correct;
+    \item prove the minibatch-average loss is correct;
+    \item prove gradients are recomputed consistently from the pre-update checkpoint;
+    \item prove the parameter deltas are consistent: $\Delta\theta = \theta' - \theta$;
+    \item prove the SGD update rule: $\theta' = \theta - \eta \cdot \nabla\mathcal{L}$;
+    \item prove the target network remains unchanged during this one-step statement;
+    \item prove the post-update checkpoint hash matches the updated parameters.
+\end{enumerate}
+
+\Cref{fig:verification-pipeline} illustrates the complete verification pipeline for the one-step update statement.
+
+\begin{figure*}[!t]
+\centering
+\begin{tikzpicture}[
+    vstep/.style={draw, rounded corners=2pt, minimum width=5.5cm, minimum height=0.65cm, align=center, font=\small},
+    inp/.style={vstep, fill=blue!8, minimum width=3.4cm},
+    chk/.style={vstep, fill=yellow!12},
+    res/.style={vstep, fill=green!15, font=\small\bfseries},
+    arr/.style={-{Stealth[length=4pt]}, thick}
+]
+% Inputs
+\node[inp] (ckpt) {Pre-Checkpoint $\theta$};
+\node[inp, right=0.3cm of ckpt] (batch) {Minibatch Indices};
+\node[inp, right=0.3cm of batch] (root) {Merkle Root};
+
+% Steps
+\node[chk, below=0.9cm of batch] (s1) {1. Checkpoint SHA-256 Anchoring};
+\node[chk, below=0.5cm of s1] (s2) {2. Merkle Membership (per transition)};
+\node[chk, below=0.5cm of s2] (s3) {3. Bellman Target + SmoothL1 Loss (fixed-point)};
+\node[chk, below=0.5cm of s3] (s4) {4. Batch-Average Loss Consistency};
+\node[chk, below=0.5cm of s4] (s5) {5. Gradient Recomputation Consistency};
+\node[chk, below=0.5cm of s5] (s6) {6. SGD Update: $\theta' = \theta - \eta \nabla\mathcal{L}$};
+\node[chk, below=0.5cm of s6] (s7) {7. Post-Checkpoint Anchoring + Target Invariance};
+
+% Result
+\node[res, below=0.7cm of s7] (result) {Verification: PASS / FAIL};
+
+% Arrows
+\draw[arr] (ckpt) |- (s1);
+\draw[arr] (batch) -- (s1);
+\draw[arr] (root) |- (s1);
+\draw[arr] (s1) -- (s2);
+\draw[arr] (s2) -- (s3);
+\draw[arr] (s3) -- (s4);
+\draw[arr] (s4) -- (s5);
+\draw[arr] (s5) -- (s6);
+\draw[arr] (s6) -- (s7);
+\draw[arr] (s7) -- (result);
+\end{tikzpicture}
+\caption{Verification pipeline for the one-step offline DQN SGD update statement. Each step represents a check that must pass for overall verification to succeed.}
+\label{fig:verification-pipeline}
+\end{figure*}
+
+\subsection{Artifact Design: Public and Private Inputs}
+\label{sec:artifact-design}
+
+The verification artifacts are structured with a clear separation between public inputs and private witness data, following the standard prover--verifier paradigm.
+
+\paragraph{Public inputs.}
+The verifier sees:
 \begin{itemize}[leftmargin=1.5em]
-    \item that the checkpoint itself was produced by correct optimization;
+    \item $h(\dataset)$: Merkle root of the committed transition dataset;
+    \item \texttt{checkpoint\_sha256}: SHA-256 hash of the model checkpoint file;
+    \item \texttt{loss\_type}: the loss function identifier (\texttt{smooth\_l1});
+    \item \texttt{batch\_size} and \texttt{batch\_loss\_fp}: for minibatch artifacts;
+    \item \texttt{pre\_checkpoint\_sha256} and \texttt{post\_checkpoint\_sha256}: for one-step update artifacts;
+    \item \texttt{optimizer\_type} and \texttt{learning\_rate\_fp}: for one-step update artifacts.
+\end{itemize}
+
+\paragraph{Private witness.}
+The prover keeps private:
+\begin{itemize}[leftmargin=1.5em]
+    \item sampled transition contents $(s, a, r, s', d)$;
+    \item serialized fixed-point leaf representations;
+    \item Merkle authentication paths;
+    \item per-sample Q-value evaluations and TD witnesses ($q_{\mathrm{online,fp}}$, $q_{\mathrm{target,fp}}$, $y_{\mathrm{fp}}$, $\ell_{\mathrm{fp}}$);
+    \item for one-step update: gradient tensors, parameter deltas, and pre/post network states.
+\end{itemize}
+
+\paragraph{Implicit constants.}
+Some parameters are currently fixed by the implementation rather than exposed as public inputs: the fixed-point scale ($S = 1000$), discount factor ($\gamma_{\mathrm{fp}} = 990$), SmoothL1 beta ($\beta_{\mathrm{fp}} = 1000$), and the network architecture (MLP with layers $4 \to 128 \to 128 \to 2$). In a future proving circuit, these must either be hard-coded or made explicit public parameters.
+
+\subsection{Checkpoint Anchoring}
+\label{sec:checkpoint-anchoring}
+
+A critical design requirement is that verification statements are tied to specific model artifacts. The checkpoint is publicly anchored by its SHA-256 digest, computed over the serialized file. This means the verifier is not merely checking arithmetic in the abstract, but arithmetic tied to a specific model state. For the one-step update statement, both the pre-update and post-update checkpoints are anchored, and the verifier additionally checks that the target network state is identical across both checkpoints.
+
+\subsection{Current Scope and Limitations}
+\label{sec:scope-limitations}
+
+The current prototype is a \emph{pre-ZK artifact-verifier} implemented in Python. It is not yet a full zero-knowledge proof system. In particular, it does not yet prove:
+\begin{itemize}[leftmargin=1.5em]
+    \item that the checkpoint itself was produced by correct optimization from initialization;
     \item that minibatches were sampled according to a formally specified sampling rule;
-    \item that optimizer updates were executed correctly;
     \item that target-network synchronization was performed correctly across training steps;
-    \item that an entire sequence of training steps led to the published checkpoint.
+    \item that an entire sequence of training steps led to the published checkpoint;
+    \item any of the above statements in a true zero-knowledge proving backend.
 \end{itemize}
-
-Accordingly, the present system should be described as a \emph{pre-ZK verifiable artifact prototype for membership plus TD-target/loss correctness}, not yet as a full zero-knowledge proof of training system.
-
-\subsection*{Connection to current baselines}
-
-The current experiments also clarify what should eventually be proved. Behavior cloning is attractive from a verification perspective because its objective is simpler, but it does not capture Bellman-style value learning. Offline Double DQN captures the right structure for RL-specific verification, but its empirical behavior is unstable on narrow behavior datasets. CQL-lite is therefore an interesting future target: it retains offline value-learning structure while improving stability on the kind of behavior-generated dataset that aligns naturally with committed trajectories.
-
-\subsection*{Next milestone}
-
-The next natural step is to move from verified TD arithmetic on committed samples to one verified offline DQN update step. That stronger statement would need to include forward pass correctness, Bellman target correctness, SmoothL1 loss correctness, gradient computation, optimizer update, and a public commitment or hash of the post-update checkpoint.
-
-In that sense, the current repository has completed the statement-design and artifact-validation stage that should precede a genuine zero-knowledge proof backend.
+The system should therefore be described as a \emph{pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, and one-step update consistency}. As the project progresses, additional verification steps will be implemented toward a complete proof-of-training system.

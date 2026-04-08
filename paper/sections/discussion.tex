@@ -1,0 +1,25 @@
+The results support a sharper interpretation than a simple ``better dataset / worse dataset'' story. We organize the discussion around three themes: dataset--method interaction, implications for verifiable RL, and current limitations.
+
+\subsection{Dataset Suitability Is Method-Dependent}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{The same fixed dataset can be highly effective for imitation, highly unstable for naive offline Q-learning, and substantially improved by a conservative objective.} On \texttt{dqn\_eps010}, behavior cloning achieves 417.65 across-seed mean return while naive offline Double DQN achieves only 60.14. CQL-lite recovers to 401.78, demonstrating that the learning algorithm, not merely the data, determines offline performance.
+    \item \textbf{Coverage and behavior quality play different roles.} Broad random data helps bootstrapped offline value learning~\cite{levine2020offline}, whereas narrow high-return behavior data is better aligned with imitation. This is consistent with the distribution-shift analysis of offline RL~\cite{fujimoto2019offpolicy, kumar2020cql}.
+    \item \textbf{Conservative objectives are a promising bridge.} CQL-lite~\cite{kumar2020cql} retains the value-learning structure needed for Bellman-style proof statements, but behaves much more reliably than naive offline Double DQN on the dataset most naturally aligned with committed trajectories.
+\end{enumerate}
+
+\subsection{Implications for Verifiable Reinforcement Learning}
+
+These findings matter directly for the zero-knowledge agenda. A proof system should not begin by certifying a training rule that is empirically unstable on the target data regime. In our setting, naive offline Double DQN captures the right computational structure but has the wrong empirical behavior on \texttt{dqn\_eps010}. Behavior cloning is stable, but it does not exercise Bellman targets and therefore produces weaker proof statements. CQL-lite is therefore the most promising current foundation for a verifiable offline RL pipeline: it still uses Bellman-style computations, yet it behaves robustly enough to justify proving those computations in the first place.
+
+The preliminary verification results (\Cref{tab:one_step_verification}) further demonstrate that the one-step update statement is experimentally stable across tested minibatch sizes, with both export and verification times remaining approximately constant. This suggests that the per-sample verification overhead scales modestly, which is encouraging for future extension to larger minibatches and multi-step traces.
+
+\subsection{Current Limitations}
+
+Several limitations should be noted. First, the experiments are conducted only on CartPole-v1~\cite{brockman2016gym}, which has a low-dimensional state space and a small discrete action space. The scalability of both the offline RL analysis and the verification pipeline to higher-dimensional environments remains an open question.
+
+Second, the fixed-point arithmetic uses a scale factor of $S = 1000$, which introduces quantization error. While this is sufficient for the current prototype, higher precision may be required for more complex environments or deeper networks.
+
+Third, the current implementation verifies only a single SGD update step. A full proof of training would require chaining many such steps, handling target-network synchronization, and verifying replay-sampling across the entire training trace. These extensions constitute the next research milestones.
+
+Fourth, no true zero-knowledge proving backend has been implemented. The current system is a Python artifact-verifier prototype that enforces the intended statement structure but does not yet provide zero-knowledge or succinctness properties.

@@ -1,11 +1,8 @@
-\documentclass[11pt]{article}
+\documentclass[journal]{IEEEtran}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage{microtype}
 
-\usepackage[a4paper,margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{booktabs}
 \usepackage{multirow}
@@ -13,26 +10,37 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta, fit, calc}
+
+\usepackage{cite}
 \usepackage{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
 
+% IEEE-style cross-reference names
+\crefname{figure}{Fig.}{Figs.}
+\Crefname{figure}{Fig.}{Figs.}
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Table}{Tables}
+\crefname{section}{Section}{Sections}
+\Crefname{section}{Section}{Sections}
+
 \hypersetup{
-  colorlinks=true,
-  linkcolor=blue,
-  citecolor=blue,
-  urlcolor=blue
+  colorlinks=false,
+  pdfborder={0 0 0}
 }
 
 \title{Zero-Knowledge Verifiable Offline DQN Training from Committed Trajectories}
-\author{Ngoc Duy}
-\date{\today}
+\author{Ngoc~Duy%
+\thanks{N. Duy is with the Faculty of Information Technology, University of Engineering and Technology (UET), Vietnam National University, Hanoi (e-mail: duypt114@gmail.com).}}
 
 \newcommand{\dataset}{\mathcal{D}}
 \newcommand{\states}{\mathcal{S}}
 \newcommand{\actions}{\mathcal{A}}
 \newcommand{\reals}{\mathbb{R}}
 \newcommand{\bellman}{\mathcal{T}}
-\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
 
 \begin{document}
 
@@ -40,25 +48,31 @@
 
 \input{sections/abstract}
 
-\section{Introduction}
+\section{Introduction}\label{sec:introduction}
 \input{sections/introduction}
 
-\section{Problem Setup}
+\section{Related Work}\label{sec:related-work}
+\input{sections/related_work}
+
+\section{Problem Setup}\label{sec:problem-setup}
 \input{sections/problem_setup}
 
-\section{Experimental Setup}
-\input{sections/experimental_setup}
-
-\section{Results}
-\input{sections/results}
-
-\section{Toward Zero-Knowledge Verifiable Training}
+\section{System Design and Methodology}\label{sec:system-design}
 \input{sections/zk_direction}
 
-\section{Conclusion}
+\section{Experimental Setup}\label{sec:experimental-setup}
+\input{sections/experimental_setup}
+
+\section{Results}\label{sec:results}
+\input{sections/results}
+
+\section{Discussion}\label{sec:discussion}
+\input{sections/discussion}
+
+\section{Conclusion and Future Work}\label{sec:conclusion}
 \input{sections/conclusion}
 
-\bibliographystyle{plain}
+\bibliographystyle{IEEEtran}
 \bibliography{refs}
 
 \input{sections/appendix}

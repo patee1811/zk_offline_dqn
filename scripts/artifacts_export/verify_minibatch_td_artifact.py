@@ -7,7 +7,7 @@ from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
 )
 
-ARTIFACT_PATH = "artifacts/sample_minibatch_td_artifact.json"
+ARTIFACT_PATH = "artifacts/minibatch_td_from_dataset.json"
 CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 
 
