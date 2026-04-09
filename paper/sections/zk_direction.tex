@@ -3,7 +3,7 @@
 
 \label{sec:system-design-body}
 
-This section describes the design of our pre-ZK verification system for offline DQN training. \Cref{fig:system-architecture} provides an overview of the end-to-end pipeline, and subsequent subsections formalize each component.
+This section describes the design of our pre-ZK verification system for offline DQN training from committed trajectories. \Cref{fig:system-architecture} provides an overview of the end-to-end pipeline, and subsequent subsections formalize each component.
 
 \begin{figure*}[!t]
 \centering
@@ -54,7 +54,7 @@ This section describes the design of our pre-ZK verification system for offline 
 
 A fixed offline dataset is the natural bridge between reinforcement learning and cryptographic verification:
 \begin{itemize}[leftmargin=1.5em]
-    \item the dataset can be committed once, for example through a Merkle tree~\cite{merkle1987};
+    \item the dataset can be committed once, for example through a Merkle tree;
     \item sampled transitions can be checked against the commitment through membership proofs;
     \item Bellman targets and TD losses can be expressed as deterministic computations over committed samples and a publicly anchored model checkpoint;
     \item the resulting pipeline is much more reproducible than online RL with ongoing exploration.
@@ -64,7 +64,7 @@ For these reasons, our roadmap does not begin with PPO, SAC, or general online i
 \subsection{Dataset Commitment via Merkle Trees}
 \label{sec:merkle-commitment}
 
-We commit the offline transition dataset $\dataset$ using a SHA-256-based Merkle tree~\cite{merkle1987}. Each transition $(s_i, a_i, r_i, s'_i, d_i)$ is first serialized into a fixed-point integer vector:
+We commit the offline transition dataset $\dataset$ using a SHA-256-based Merkle tree. Each transition $(s_i, a_i, r_i, s'_i, d_i)$ is first serialized into a fixed-point integer vector:
 \begin{align*}
 \mathrm{leaf}_i &= [\mathrm{fp}(s_i^{(1)}), \ldots, \mathrm{fp}(s_i^{(d)}),\; a_i,\; \mathrm{fp}(r_i), \\
 &\quad \mathrm{fp}(s'^{(1)}_i), \ldots, \mathrm{fp}(s'^{(d)}_i),\; d_i],
@@ -103,7 +103,7 @@ where $\delta_{\mathrm{fp}} = q_{\mathrm{fp}} - y_{\mathrm{fp}}$. This integer-o
 \subsection{Verification Statements}
 \label{sec:verification-statements}
 
-We define three increasingly strong verification statements, each building on the previous one.
+We define four increasingly strong verification statements, each building on the previous one.
 
 \subsubsection{Single-Sample TD Statement}
 
@@ -141,7 +141,17 @@ For one fixed minibatch of committed transitions with a pre-update checkpoint:
     \item prove the post-update checkpoint hash matches the updated parameters.
 \end{enumerate}
 
-\Cref{fig:verification-pipeline} illustrates the complete verification pipeline for the one-step update statement.
+\subsubsection{Short Training-Trace Statement}
+
+For a sequence of committed minibatches and checkpoints over multiple SGD steps:
+\begin{enumerate}[leftmargin=1.5em]
+    \item prove each step satisfies the one-step update statement;
+    \item prove checkpoint chaining consistency across steps, so that the post-checkpoint of step $t$ matches the pre-checkpoint of step $t+1$;
+    \item prove the declared target-network synchronization rule is applied consistently at the specified synchronization steps;
+    \item prove the final published checkpoint hash matches the end of the verified trace.
+\end{enumerate}
+
+\Cref{fig:verification-pipeline} illustrates the verification pipeline for the one-step update statement, which acts as the building block for the stronger short-trace statement.
 
 \begin{figure*}[!t]
 \centering
@@ -181,7 +191,7 @@ For one fixed minibatch of committed transitions with a pre-update checkpoint:
 \draw[arr] (s6) -- (s7);
 \draw[arr] (s7) -- (result);
 \end{tikzpicture}
-\caption{Verification pipeline for the one-step offline DQN SGD update statement. Each step represents a check that must pass for overall verification to succeed.}
+\caption{Verification pipeline for the one-step offline DQN SGD update statement. Each step represents a check that must pass for overall verification to succeed. The short-trace verifier composes this step-level statement over multiple updates.}
 \label{fig:verification-pipeline}
 \end{figure*}
 
@@ -198,7 +208,8 @@ The verifier sees:
     \item \texttt{loss\_type}: the loss function identifier (\texttt{smooth\_l1});
     \item \texttt{batch\_size} and \texttt{batch\_loss\_fp}: for minibatch artifacts;
     \item \texttt{pre\_checkpoint\_sha256} and \texttt{post\_checkpoint\_sha256}: for one-step update artifacts;
-    \item \texttt{optimizer\_type} and \texttt{learning\_rate\_fp}: for one-step update artifacts.
+    \item \texttt{optimizer\_type} and \texttt{learning\_rate\_fp}: for one-step update artifacts;
+    \item \texttt{initial\_checkpoint\_sha256}, \texttt{final\_checkpoint\_sha256}, \texttt{num\_steps}, and the declared synchronization schedule for short-trace artifacts.
 \end{itemize}
 
 \paragraph{Private witness.}
@@ -208,7 +219,8 @@ The prover keeps private:
     \item serialized fixed-point leaf representations;
     \item Merkle authentication paths;
     \item per-sample Q-value evaluations and TD witnesses ($q_{\mathrm{online,fp}}$, $q_{\mathrm{target,fp}}$, $y_{\mathrm{fp}}$, $\ell_{\mathrm{fp}}$);
-    \item for one-step update: gradient tensors, parameter deltas, and pre/post network states.
+    \item for one-step update: gradient tensors, parameter deltas, and pre/post network states;
+    \item for short traces: the sequence of intermediate checkpoints and synchronization events needed to witness multi-step chaining.
 \end{itemize}
 
 \paragraph{Implicit constants.}
@@ -217,19 +229,20 @@ Some parameters are currently fixed by the implementation rather than exposed as
 \subsection{Checkpoint Anchoring}
 \label{sec:checkpoint-anchoring}
 
-A critical design requirement is that verification statements are tied to specific model artifacts. The checkpoint is publicly anchored by its SHA-256 digest, computed over the serialized file. This means the verifier is not merely checking arithmetic in the abstract, but arithmetic tied to a specific model state. For the one-step update statement, both the pre-update and post-update checkpoints are anchored, and the verifier additionally checks that the target network state is identical across both checkpoints.
+A critical design requirement is that verification statements are tied to specific model artifacts. The checkpoint is publicly anchored by its SHA-256 digest, computed over the serialized file. This means the verifier is not merely checking arithmetic in the abstract, but arithmetic tied to a specific model state. For the one-step update statement, both the pre-update and post-update checkpoints are anchored. For the short-trace statement, the initial checkpoint, intermediate chained checkpoints, and final checkpoint are all tied together through explicit hash-based chaining conditions.
 
 \subsection{Current Scope and Limitations}
 \label{sec:scope-limitations}
 
-The current prototype is a \emph{pre-ZK artifact-verifier} implemented in Python. It is not yet a full zero-knowledge proof system. In particular, it does not yet prove:
+The current prototype is a \emph{pre-ZK artifact/verifier} implemented in Python. It is not yet a full zero-knowledge proof system. In particular, it does not yet prove:
 \begin{itemize}[leftmargin=1.5em]
-    \item that the checkpoint itself was produced by correct optimization from initialization;
-    \item that minibatches were sampled according to a formally specified sampling rule;
-    \item that target-network synchronization was performed correctly across training steps;
-    \item that an entire sequence of training steps led to the published checkpoint;
-    \item any of the above statements in a true zero-knowledge proving backend.
+    \item that a full training run from initialization to the published checkpoint has been verified end-to-end;
+    \item that minibatches were sampled according to a formally specified sampling rule over the entire run;
+    \item that long-horizon target-network synchronization has been proved over realistic training lengths;
+    \item that model-selection procedures such as best-checkpoint selection or early stopping were verified;
+    \item any of the above statements inside a true zero-knowledge proving backend.
 \end{itemize}
-The system should therefore be described as a \emph{pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, and one-step update consistency}. As the project progresses, additional verification steps will be implemented toward a complete proof-of-training system.
 
-The current repository now goes beyond one-step update verification and already supports a short verified training trace prototype for two-step SGD update chains with explicit target-network synchronization. This shifts the next technical milestone from ``first verified update step'' to stronger directions such as longer trace composition, richer synchronization schedules, replay-sampling constraints, and eventually a true zero-knowledge backend.
+The system should therefore be described as a \emph{pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, one-step SGD update consistency, and short verified training traces}. The repository now goes beyond isolated one-step verification and already supports successful short-trace verification for 2-step, 4-step, and 8-step SGD update chains with explicit checkpoint chaining and target-network synchronization semantics.
+
+This changes the next technical milestone. The project is no longer best described as aiming only for a ``first verified update step.'' Instead, the next natural goal is stronger multi-step verification: longer trace composition, clearer replay-sampling constraints, stronger synchronization semantics, more circuit-friendly witness design, and eventual migration to a real zero-knowledge backend.
