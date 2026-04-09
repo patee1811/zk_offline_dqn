@@ -10,6 +10,9 @@ from typing import Any, Dict, List
 import torch
 
 
+SUPPORTED_SAMPLING_RULE = "contiguous_deterministic"
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Export a short verified training trace artifact by chaining one-step update artifacts."
@@ -29,6 +32,18 @@ def parse_args():
         type=int,
         default=0,
         help="If > 0, sync target network after every k steps.",
+    )
+    parser.add_argument(
+        "--sampling-rule-type",
+        type=str,
+        default=SUPPORTED_SAMPLING_RULE,
+        help=f"Sampling rule enforced by the exporter. Currently supported: {SUPPORTED_SAMPLING_RULE}",
+    )
+    parser.add_argument(
+        "--start-offset",
+        type=int,
+        default=0,
+        help="Optional start offset for deterministic contiguous sampling.",
     )
     parser.add_argument(
         "--work-dir",
@@ -61,12 +76,62 @@ def load_trace_batches(trace_batches_json: str) -> List[List[int]]:
     batches = json.loads(trace_batches_json)
     if not isinstance(batches, list) or not batches:
         raise ValueError("trace-batches-json must be a non-empty JSON list.")
-    parsed = []
+
+    parsed: List[List[int]] = []
     for batch in batches:
         if not isinstance(batch, list) or not batch:
             raise ValueError("Each trace batch must be a non-empty list.")
         parsed.append([int(x) for x in batch])
     return parsed
+
+
+def expected_contiguous_batch_indices(
+    step_idx: int,
+    batch_size: int,
+    start_offset: int = 0,
+) -> List[int]:
+    start = start_offset + step_idx * batch_size
+    return list(range(start, start + batch_size))
+
+
+def validate_trace_batches_against_sampling_rule(
+    trace_batches: List[List[int]],
+    sampling_rule_type: str,
+    start_offset: int,
+) -> int:
+    if sampling_rule_type != SUPPORTED_SAMPLING_RULE:
+        raise ValueError(
+            f"Unsupported sampling_rule_type={sampling_rule_type!r}. "
+            f"Currently supported: {SUPPORTED_SAMPLING_RULE!r}"
+        )
+
+    if not trace_batches:
+        raise ValueError("trace_batches must not be empty")
+
+    batch_size = len(trace_batches[0])
+    if batch_size <= 0:
+        raise ValueError("batch_size must be > 0")
+
+    for step_idx, batch_indices in enumerate(trace_batches):
+        if len(batch_indices) != batch_size:
+            raise ValueError(
+                "all steps must use the same batch size for sampling-rule checking; "
+                f"step 0 has batch_size={batch_size}, but step {step_idx} has "
+                f"batch_size={len(batch_indices)}"
+            )
+
+        expected = expected_contiguous_batch_indices(
+            step_idx=step_idx,
+            batch_size=batch_size,
+            start_offset=start_offset,
+        )
+        if batch_indices != expected:
+            raise ValueError(
+                f"sampling rule mismatch at step {step_idx}: "
+                f"expected {expected}, got {batch_indices}"
+            )
+
+    return batch_size
 
 
 def run_command(cmd: List[str]) -> subprocess.CompletedProcess:
@@ -88,6 +153,11 @@ def sync_target_network(in_ckpt_path: str, out_ckpt_path: str):
 def main():
     args = parse_args()
     trace_batches = load_trace_batches(args.trace_batches_json)
+    batch_size = validate_trace_batches_against_sampling_rule(
+        trace_batches=trace_batches,
+        sampling_rule_type=args.sampling_rule_type,
+        start_offset=args.start_offset,
+    )
 
     ensure_dir(args.work_dir)
     out_dir = os.path.dirname(args.out)
@@ -158,6 +228,11 @@ def main():
             {
                 "step_index": step_idx,
                 "batch_indices": batch,
+                "expected_batch_indices": expected_contiguous_batch_indices(
+                    step_idx=step_idx,
+                    batch_size=batch_size,
+                    start_offset=args.start_offset,
+                ),
                 "input_checkpoint_path": current_checkpoint_path,
                 "input_checkpoint_sha256": input_checkpoint_sha256,
                 "one_step_artifact_path": step_artifact_path,
@@ -174,15 +249,18 @@ def main():
 
     final_checkpoint_sha256 = file_sha256(current_checkpoint_path)
 
-    artifact = {
+    artifact: Dict[str, Any] = {
         "public": {
             "dataset_root": steps[0]["one_step_artifact"]["public"]["dataset_root"],
             "trace_batch_indices": trace_batches,
             "num_steps": len(trace_batches),
+            "batch_size": batch_size,
             "loss_type": "smooth_l1",
             "optimizer_type": "sgd",
             "learning_rate_fp": steps[0]["one_step_artifact"]["public"]["learning_rate_fp"],
             "learning_rate_real": args.lr,
+            "sampling_rule_type": args.sampling_rule_type,
+            "start_offset": args.start_offset,
             "target_sync_every": args.target_sync_every,
             "initial_checkpoint_sha256": initial_checkpoint_sha256,
             "final_checkpoint_sha256": final_checkpoint_sha256,
@@ -194,10 +272,10 @@ def main():
             "initial_checkpoint_path": args.checkpoint,
             "final_checkpoint_path": current_checkpoint_path,
             "work_dir": args.work_dir,
-            "statement_scope": "short verified training trace built by chaining one-step SGD update artifacts",
+            "statement_scope": "short verified training trace built by chaining one-step SGD update artifacts with deterministic contiguous sampling-rule enforcement",
             "limitations": [
                 "pre-ZK artifact only",
-                "trace verifier not implemented yet",
+                "sampling rule currently limited to contiguous deterministic schedule",
                 "uses one-step exporter as underlying primitive",
             ],
         },
@@ -210,6 +288,9 @@ def main():
     print("output_path =", args.out)
     print("num_steps =", len(trace_batches))
     print("trace_batch_indices =", trace_batches)
+    print("batch_size =", batch_size)
+    print("sampling_rule_type =", args.sampling_rule_type)
+    print("start_offset =", args.start_offset)
     print("target_sync_every =", args.target_sync_every)
     print("initial_checkpoint_sha256 =", initial_checkpoint_sha256)
     print("final_checkpoint_sha256 =", final_checkpoint_sha256)
@@ -221,6 +302,7 @@ def main():
         print(
             f"step={step['step_index']} "
             f"batch={step['batch_indices']} "
+            f"expected_batch={step['expected_batch_indices']} "
             f"input_sha={step['input_checkpoint_sha256']} "
             f"raw_output_sha={step['raw_output_checkpoint_sha256']} "
             f"next_sha={step['next_checkpoint_sha256']} "

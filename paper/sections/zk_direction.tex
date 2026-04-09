@@ -148,6 +148,7 @@ For a sequence of committed minibatches and checkpoints over multiple SGD steps:
     \item prove each step satisfies the one-step update statement;
     \item prove checkpoint chaining consistency across steps, so that the post-checkpoint of step $t$ matches the pre-checkpoint of step $t+1$;
     \item prove the declared target-network synchronization rule is applied consistently at the specified synchronization steps;
+    \item prove the declared deterministic sampling rule is applied consistently across the trace;
     \item prove the final published checkpoint hash matches the end of the verified trace.
 \end{enumerate}
 
@@ -209,7 +210,8 @@ The verifier sees:
     \item \texttt{batch\_size} and \texttt{batch\_loss\_fp}: for minibatch artifacts;
     \item \texttt{pre\_checkpoint\_sha256} and \texttt{post\_checkpoint\_sha256}: for one-step update artifacts;
     \item \texttt{optimizer\_type} and \texttt{learning\_rate\_fp}: for one-step update artifacts;
-    \item \texttt{initial\_checkpoint\_sha256}, \texttt{final\_checkpoint\_sha256}, \texttt{num\_steps}, and the declared synchronization schedule for short-trace artifacts.
+    \item \texttt{initial\_checkpoint\_sha256}, \texttt{final\_checkpoint\_sha256}, \texttt{num\_steps}, and the declared synchronization schedule for short-trace artifacts;
+    \item \texttt{sampling\_rule\_type}, \texttt{start\_offset}, and \texttt{batch\_size} for deterministic short-trace sampling-rule enforcement.
 \end{itemize}
 
 \paragraph{Private witness.}
@@ -237,12 +239,12 @@ A critical design requirement is that verification statements are tied to specif
 The current prototype is a \emph{pre-ZK artifact/verifier} implemented in Python. It is not yet a full zero-knowledge proof system. In particular, it does not yet prove:
 \begin{itemize}[leftmargin=1.5em]
     \item that a full training run from initialization to the published checkpoint has been verified end-to-end;
-    \item that minibatches were sampled according to a formally specified sampling rule over the entire run;
+    \item that general replay-sampling correctness has been proved over the entire run;
     \item that long-horizon target-network synchronization has been proved over realistic training lengths;
     \item that model-selection procedures such as best-checkpoint selection or early stopping were verified;
     \item any of the above statements inside a true zero-knowledge proving backend.
 \end{itemize}
 
-The system should therefore be described as a \emph{pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, one-step SGD update consistency, and short verified training traces}. The repository now goes beyond isolated one-step verification and already supports successful short-trace verification for 2-step, 4-step, and 8-step SGD update chains with explicit checkpoint chaining and target-network synchronization semantics.
+The system should therefore be described as a \emph{pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, one-step SGD update consistency, short verified training traces, and deterministic short-trace sampling-rule enforcement}. The repository now goes beyond isolated one-step verification and already supports successful short-trace verification for 2-step, 4-step, and 8-step SGD update chains with explicit checkpoint chaining and target-network synchronization semantics. It also now supports a stronger deterministic contiguous sampling rule with public \texttt{sampling\_rule\_type}, \texttt{start\_offset}, and \texttt{batch\_size} in the current short-trace benchmark setting.
 
-This changes the next technical milestone. The project is no longer best described as aiming only for a ``first verified update step.'' Instead, the next natural goal is stronger multi-step verification: longer trace composition, clearer replay-sampling constraints, stronger synchronization semantics, more circuit-friendly witness design, and eventual migration to a real zero-knowledge backend.
+This changes the next technical milestone. The project is no longer best described as aiming only for a ``first verified update step.'' Instead, the next natural goal is stronger multi-step verification: longer trace composition, stronger replay-sampling guarantees beyond the current deterministic contiguous schedule, clearer synchronization semantics, more circuit-friendly witness design, and eventual migration to a real zero-knowledge backend.

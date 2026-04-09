@@ -13,6 +13,8 @@ ARTIFACT_PATH = os.environ.get(
     "artifacts/short_trace_update_artifact.json",
 )
 
+SUPPORTED_SAMPLING_RULE = "contiguous_deterministic"
+
 
 def file_sha256(path: str) -> str:
     h = hashlib.sha256()
@@ -46,6 +48,15 @@ def compare_state_dicts(sd1, sd2):
     return True
 
 
+def expected_contiguous_batch_indices(
+    step_idx: int,
+    batch_size: int,
+    start_offset: int = 0,
+) -> List[int]:
+    start = start_offset + step_idx * batch_size
+    return list(range(start, start + batch_size))
+
+
 def main():
     with open(ARTIFACT_PATH, "r", encoding="utf-8") as f:
         artifact = json.load(f)
@@ -56,12 +67,15 @@ def main():
 
     dataset_root = public["dataset_root"]
     trace_batch_indices = public["trace_batch_indices"]
-    num_steps = public["num_steps"]
+    num_steps = int(public["num_steps"])
+    batch_size = int(public["batch_size"])
     optimizer_type = public["optimizer_type"]
     loss_type = public["loss_type"]
     initial_checkpoint_sha256 = public["initial_checkpoint_sha256"]
     final_checkpoint_sha256 = public["final_checkpoint_sha256"]
     target_sync_every = public["target_sync_every"]
+    sampling_rule_type = public.get("sampling_rule_type", SUPPORTED_SAMPLING_RULE)
+    start_offset = int(public.get("start_offset", 0))
 
     merkle_path = notes["merkle_path"]
     initial_checkpoint_path = notes["initial_checkpoint_path"]
@@ -72,6 +86,9 @@ def main():
     print("dataset_root =", dataset_root)
     print("num_steps =", num_steps)
     print("trace_batch_indices =", trace_batch_indices)
+    print("batch_size =", batch_size)
+    print("sampling_rule_type =", sampling_rule_type)
+    print("start_offset =", start_offset)
     print("optimizer_type =", optimizer_type)
     print("loss_type =", loss_type)
     print("target_sync_every =", target_sync_every)
@@ -80,11 +97,13 @@ def main():
     num_steps_match = (num_steps == len(steps) == len(trace_batch_indices))
     initial_checkpoint_ok = (file_sha256(initial_checkpoint_path) == initial_checkpoint_sha256)
     final_checkpoint_ok = (file_sha256(final_checkpoint_path) == final_checkpoint_sha256)
+    sampling_rule_supported = (sampling_rule_type == SUPPORTED_SAMPLING_RULE)
 
     print("=== GLOBAL CHECKS ===")
     print("num_steps_match =", num_steps_match)
     print("initial_checkpoint_ok =", initial_checkpoint_ok)
     print("final_checkpoint_ok =", final_checkpoint_ok)
+    print("sampling_rule_supported =", sampling_rule_supported)
     print()
 
     all_step_verifications_ok = True
@@ -94,6 +113,7 @@ def main():
     all_batch_indices_ok = True
     all_optimizer_ok = True
     all_loss_type_ok = True
+    all_sampling_rule_ok = True
 
     prev_next_sha = None
 
@@ -109,7 +129,19 @@ def main():
         one_step_artifact = step["one_step_artifact"]
 
         step_index_ok = (step_index == i)
-        batch_indices_ok = (batch_indices == trace_batch_indices[i])
+
+        expected_batch = expected_contiguous_batch_indices(
+            step_idx=i,
+            batch_size=batch_size,
+            start_offset=start_offset,
+        )
+        public_batch = trace_batch_indices[i]
+        step_batch = batch_indices
+
+        sampling_rule_public_ok = (public_batch == expected_batch)
+        sampling_rule_step_ok = (step_batch == expected_batch)
+        batch_indices_ok = (step_batch == public_batch)
+        sampling_rule_ok = sampling_rule_public_ok and sampling_rule_step_ok and batch_indices_ok
 
         dataset_root_ok = (
             one_step_artifact["public"]["dataset_root"] == dataset_root
@@ -145,11 +177,14 @@ def main():
         all_batch_indices_ok = all_batch_indices_ok and batch_indices_ok
         all_optimizer_ok = all_optimizer_ok and optimizer_ok
         all_loss_type_ok = all_loss_type_ok and loss_type_ok
+        all_sampling_rule_ok = all_sampling_rule_ok and sampling_rule_ok
 
         print(
             f"step={step_index} "
             f"step_index_ok={step_index_ok} "
             f"batch_indices_ok={batch_indices_ok} "
+            f"sampling_rule_public_ok={sampling_rule_public_ok} "
+            f"sampling_rule_step_ok={sampling_rule_step_ok} "
             f"dataset_root_ok={dataset_root_ok} "
             f"optimizer_ok={optimizer_ok} "
             f"loss_type_ok={loss_type_ok} "
@@ -157,6 +192,12 @@ def main():
             f"sync_logic_ok={sync_logic_ok} "
             f"one_step_verification_ok={step_verification_ok}"
         )
+
+        if not sampling_rule_ok:
+            print("--- SAMPLING RULE DETAILS ---")
+            print("expected_batch_indices =", expected_batch)
+            print("public_batch_indices =", public_batch)
+            print("step_batch_indices =", step_batch)
 
         if not step_verification_ok:
             print("--- ONE-STEP VERIFY STDOUT ---")
@@ -206,6 +247,7 @@ def main():
         num_steps_match
         and initial_checkpoint_ok
         and final_checkpoint_ok
+        and sampling_rule_supported
         and all_step_verifications_ok
         and all_chain_ok
         and final_chain_ok
@@ -213,6 +255,7 @@ def main():
         and target_sync_state_ok
         and all_dataset_root_ok
         and all_batch_indices_ok
+        and all_sampling_rule_ok
         and all_optimizer_ok
         and all_loss_type_ok
     )
@@ -225,6 +268,7 @@ def main():
     print("target_sync_state_ok =", target_sync_state_ok)
     print("all_dataset_root_ok =", all_dataset_root_ok)
     print("all_batch_indices_ok =", all_batch_indices_ok)
+    print("all_sampling_rule_ok =", all_sampling_rule_ok)
     print("all_optimizer_ok =", all_optimizer_ok)
     print("all_loss_type_ok =", all_loss_type_ok)
     print()

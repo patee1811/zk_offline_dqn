@@ -315,17 +315,19 @@ The current prototype is already faithful to the implemented offline DQN trainin
 
 The current prototype does **not** yet prove:
 
-1. that a full training trace from initialization to final checkpoint was executed correctly,
-2. that minibatches were sampled according to a specific sampler rule across the full run,
-3. that target-network synchronization occurred correctly across many training steps,
-4. that model selection / early stopping / best-checkpoint selection were correct,
-5. that multi-step optimizer dynamics were proved end-to-end,
-6. that the system is backed by an actual zero-knowledge proving backend,
+1. that a full training trace from initialization to final checkpoint was executed correctly;
+2. that general replay-sampling correctness was enforced across a full run;
+3. that target-network synchronization occurred correctly across many training steps at realistic training length;
+4. that model selection / early stopping / best-checkpoint selection were correct;
+5. that multi-step optimizer dynamics were proved end-to-end over long horizons;
+6. that the system is backed by an actual zero-knowledge proving backend;
 7. that proof recursion / proof aggregation has been implemented.
+
+More precisely, the repository now supports a **deterministic contiguous sampling rule** for the current short-trace benchmark setting, including public `batch_size`, `sampling_rule_type`, and optional `start_offset`. However, this should still be distinguished from full replay-sampling correctness for random, seeded pseudorandom, or prioritized replay over a long run.
 
 This is why the current system should be described as:
 
-> a pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, and one-step update consistency,
+> a pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, one-step update consistency, short verified training traces, and deterministic short-trace sampling-rule enforcement,
 
 not yet a full proof-of-training system.
 
@@ -669,3 +671,101 @@ This short-trace milestone would move the project from:
 - to a verified short training process.
 
 That is the most natural next step before attempting either multi-step large-trace verification or a true zero-knowledge proof backend.
+
+---
+
+## 17. Stronger Statement Implemented: Deterministic Sampling-Rule Correctness
+
+Current short-trace verification already checks that committed minibatches are valid, that TD arithmetic is correct, that one-step SGD updates are correct, and that checkpoint chaining is consistent across the trace. The repository now additionally supports a stronger deterministic sampling-rule check for the current short-trace benchmark setting.
+
+### 17.1 Sampling Rule
+
+For batch size `k`, step index `t`, and public `start_offset`, define the minibatch indices as:
+
+`B_t = [start_offset + t*k, start_offset + t*k + 1, ..., start_offset + t*k + (k-1)]`
+
+This is a contiguous, non-overlapping deterministic schedule over the committed dataset.
+
+Examples:
+
+- step 0, `k = 4`, `start_offset = 0` -> `[0, 1, 2, 3]`
+- step 1, `k = 4`, `start_offset = 0` -> `[4, 5, 6, 7]`
+- step 0, `k = 4`, `start_offset = 32` -> `[32, 33, 34, 35]`
+
+### 17.2 Why This Strengthens the Statement
+
+This strengthens the current claim from:
+
+> the provided minibatch is valid and the update is correct
+
+to:
+
+> the provided minibatch is valid, was chosen according to a declared public rule, and the update is correct
+
+This reduces prover freedom and moves the project closer to a process-level proof-of-training statement.
+
+### 17.3 Public Inputs
+
+For this stronger deterministic-sampling statement, the verifier sees:
+
+- `dataset_root`
+- `trace_batch_indices`
+- `num_steps`
+- `batch_size`
+- `sampling_rule_type = contiguous_deterministic`
+- `start_offset`
+- `learning_rate_fp`
+- `target_sync_every`
+- `initial_checkpoint_sha256`
+- `final_checkpoint_sha256`
+
+### 17.4 Private Witness
+
+The prover still keeps private:
+
+- transition contents
+- Merkle membership paths
+- TD witnesses
+- gradients / deltas / checkpoint states
+
+No new private randomness is required for this deterministic rule.
+
+### 17.5 Verifier Checks
+
+For each step `t`, the verifier:
+
+1. recomputes the expected indices from the declared public rule;
+2. checks that the public trace batch indices match the expected indices exactly;
+3. checks that the per-step stored batch indices also match the expected indices exactly;
+4. checks consistency between public trace batches and per-step batch indices;
+5. runs the existing one-step and trace-consistency checks.
+
+This creates a stronger statement without yet introducing probabilistic replay logic.
+
+### 17.6 Scope and Interpretation
+
+This is **not yet** full replay-sampling correctness for:
+
+- random replay,
+- prioritized replay,
+- seeded pseudorandom replay,
+- or general sampler-state transitions.
+
+Instead, it is an intermediate stronger statement designed to:
+
+- reduce statement ambiguity,
+- reduce prover freedom,
+- strengthen short-trace verification,
+- and prepare the artifact design for future circuit-friendly or backend-ready formulations.
+
+### 17.7 Current Status
+
+This deterministic-sampling statement is now implemented in the current short-trace exporter, benchmark, and verifier for the contiguous deterministic schedule with public `start_offset`.
+
+In research terms, it upgrades the current short-trace statement from:
+
+- “verify this declared trace”
+
+to:
+
+- “verify this declared trace, and also verify that its minibatches follow a declared public sampling rule.”

@@ -8,38 +8,51 @@ import time
 from typing import List, Dict, Any
 
 
-DEFAULT_TRACES = [
-    [
-        [0, 1, 2, 3],
-        [4, 5, 6, 7],
-        [8, 9, 10, 11],
-        [12, 13, 14, 15],
-        [16, 17, 18, 19],
-        [20, 21, 22, 23],
-        [24, 25, 26, 27],
-        [28, 29, 30, 31],
-    ],
-    [
-        [32, 33, 34, 35],
-        [36, 37, 38, 39],
-        [40, 41, 42, 43],
-        [44, 45, 46, 47],
-        [48, 49, 50, 51],
-        [52, 53, 54, 55],
-        [56, 57, 58, 59],
-        [60, 61, 62, 63],
-    ],
-    [
-        [0, 1, 2, 3, 4, 5, 6, 7],
-        [8, 9, 10, 11, 12, 13, 14, 15],
-        [16, 17, 18, 19, 20, 21, 22, 23],
-        [24, 25, 26, 27, 28, 29, 30, 31],
-        [32, 33, 34, 35, 36, 37, 38, 39],
-        [40, 41, 42, 43, 44, 45, 46, 47],
-        [48, 49, 50, 51, 52, 53, 54, 55],
-        [56, 57, 58, 59, 60, 61, 62, 63],
-    ],
+DEFAULT_TRACE_CASES = [
+    {
+        "trace_batch_indices": [
+            [0, 1, 2, 3],
+            [4, 5, 6, 7],
+            [8, 9, 10, 11],
+            [12, 13, 14, 15],
+            [16, 17, 18, 19],
+            [20, 21, 22, 23],
+            [24, 25, 26, 27],
+            [28, 29, 30, 31],
+        ],
+        "start_offset": 0,
+    },
+    {
+        "trace_batch_indices": [
+            [32, 33, 34, 35],
+            [36, 37, 38, 39],
+            [40, 41, 42, 43],
+            [44, 45, 46, 47],
+            [48, 49, 50, 51],
+            [52, 53, 54, 55],
+            [56, 57, 58, 59],
+            [60, 61, 62, 63],
+        ],
+        "start_offset": 32,
+    },
+    {
+        "trace_batch_indices": [
+            [0, 1, 2, 3, 4, 5, 6, 7],
+            [8, 9, 10, 11, 12, 13, 14, 15],
+            [16, 17, 18, 19, 20, 21, 22, 23],
+            [24, 25, 26, 27, 28, 29, 30, 31],
+            [32, 33, 34, 35, 36, 37, 38, 39],
+            [40, 41, 42, 43, 44, 45, 46, 47],
+            [48, 49, 50, 51, 52, 53, 54, 55],
+            [56, 57, 58, 59, 60, 61, 62, 63],
+        ],
+        "start_offset": 0,
+    },
 ]
+
+
+DEFAULT_SAMPLING_RULE_TYPE = "contiguous_deterministic"
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -51,10 +64,20 @@ def parse_args():
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--target-sync-every", type=int, default=2)
     parser.add_argument(
+        "--sampling-rule-type",
+        type=str,
+        default=DEFAULT_SAMPLING_RULE_TYPE,
+        help=f"Sampling rule forwarded to the short-trace exporter. Default: {DEFAULT_SAMPLING_RULE_TYPE}",
+    )
+    parser.add_argument(
         "--traces-json",
         type=str,
         default="",
-        help='Optional JSON string for traces, e.g. "[[[0,1],[2,3]],[[4,5],[6,7]]]"',
+        help=(
+            "Optional JSON string for traces. Supports either the old format "
+            "[[[...], [...]], ...] or the new case format "
+            "[{\"trace_batch_indices\": [[...]], \"start_offset\": 0}, ...]."
+        ),
     )
     parser.add_argument(
         "--work-root",
@@ -83,23 +106,51 @@ def ensure_dir(path: str):
     os.makedirs(path, exist_ok=True)
 
 
-def load_traces(traces_json: str) -> List[List[List[int]]]:
+def validate_trace(trace: Any) -> List[List[int]]:
+    if not isinstance(trace, list) or not trace:
+        raise ValueError("Each trace must be a non-empty list of minibatches.")
+
+    trace_out: List[List[int]] = []
+    for batch in trace:
+        if not isinstance(batch, list) or not batch:
+            raise ValueError("Each minibatch inside a trace must be a non-empty list.")
+        trace_out.append([int(x) for x in batch])
+    return trace_out
+
+
+def load_trace_cases(traces_json: str) -> List[Dict[str, Any]]:
     if not traces_json:
-        return DEFAULT_TRACES
+        return DEFAULT_TRACE_CASES
+
     parsed = json.loads(traces_json)
     if not isinstance(parsed, list) or not parsed:
         raise ValueError("traces-json must be a non-empty JSON list.")
-    out = []
-    for trace in parsed:
-        if not isinstance(trace, list) or not trace:
-            raise ValueError("Each trace must be a non-empty list of minibatches.")
-        trace_out = []
-        for batch in trace:
-            if not isinstance(batch, list) or not batch:
-                raise ValueError("Each minibatch inside a trace must be a non-empty list.")
-            trace_out.append([int(x) for x in batch])
-        out.append(trace_out)
-    return out
+
+    cases: List[Dict[str, Any]] = []
+    for item in parsed:
+        if isinstance(item, dict):
+            if "trace_batch_indices" not in item:
+                raise ValueError("Each case dict must contain 'trace_batch_indices'.")
+            trace = validate_trace(item["trace_batch_indices"])
+            start_offset = int(item.get("start_offset", 0))
+            sampling_rule_type = str(item.get("sampling_rule_type", DEFAULT_SAMPLING_RULE_TYPE))
+            cases.append(
+                {
+                    "trace_batch_indices": trace,
+                    "start_offset": start_offset,
+                    "sampling_rule_type": sampling_rule_type,
+                }
+            )
+        else:
+            trace = validate_trace(item)
+            cases.append(
+                {
+                    "trace_batch_indices": trace,
+                    "start_offset": 0,
+                    "sampling_rule_type": DEFAULT_SAMPLING_RULE_TYPE,
+                }
+            )
+    return cases
 
 
 def run_command(cmd: List[str], env: Dict[str, str] = None) -> Dict[str, Any]:
@@ -121,7 +172,7 @@ def run_command(cmd: List[str], env: Dict[str, str] = None) -> Dict[str, Any]:
 
 def main():
     args = parse_args()
-    traces = load_traces(args.traces_json)
+    trace_cases = load_trace_cases(args.traces_json)
 
     ensure_dir(args.out_dir)
     ensure_dir(args.work_root)
@@ -130,7 +181,11 @@ def main():
 
     results = []
 
-    for run_idx, trace in enumerate(traces):
+    for run_idx, case in enumerate(trace_cases):
+        trace = case["trace_batch_indices"]
+        start_offset = int(case.get("start_offset", 0))
+        sampling_rule_type = str(case.get("sampling_rule_type", args.sampling_rule_type))
+
         trace_name_parts = []
         for batch in trace:
             trace_name_parts.append("_".join(str(x) for x in batch))
@@ -148,6 +203,8 @@ def main():
             "--trace-batches-json", json.dumps(trace),
             "--lr", str(args.lr),
             "--target-sync-every", str(args.target_sync_every),
+            "--sampling-rule-type", sampling_rule_type,
+            "--start-offset", str(start_offset),
             "--work-dir", work_dir,
             "--out", artifact_path,
         ]
@@ -163,8 +220,11 @@ def main():
 
         verification_passed = False
         num_steps = None
+        batch_size = None
         initial_checkpoint_sha256 = None
         final_checkpoint_sha256 = None
+        artifact_sampling_rule_type = None
+        artifact_start_offset = None
 
         if export_result["returncode"] == 0:
             env = os.environ.copy()
@@ -182,14 +242,21 @@ def main():
             if os.path.exists(artifact_path):
                 with open(artifact_path, "r", encoding="utf-8") as f:
                     artifact = json.load(f)
-                num_steps = artifact["public"]["num_steps"]
-                initial_checkpoint_sha256 = artifact["public"]["initial_checkpoint_sha256"]
-                final_checkpoint_sha256 = artifact["public"]["final_checkpoint_sha256"]
+                public = artifact["public"]
+                num_steps = public.get("num_steps")
+                batch_size = public.get("batch_size")
+                initial_checkpoint_sha256 = public.get("initial_checkpoint_sha256")
+                final_checkpoint_sha256 = public.get("final_checkpoint_sha256")
+                artifact_sampling_rule_type = public.get("sampling_rule_type")
+                artifact_start_offset = public.get("start_offset")
 
         result = {
             "run_idx": run_idx,
             "trace_batch_indices": trace,
+            "start_offset": start_offset,
+            "sampling_rule_type": sampling_rule_type,
             "num_steps": num_steps,
+            "batch_size": batch_size,
             "artifact_path": artifact_path,
             "work_dir": work_dir,
             "export_returncode": export_result["returncode"],
@@ -199,6 +266,8 @@ def main():
             "verification_passed": verification_passed,
             "initial_checkpoint_sha256": initial_checkpoint_sha256,
             "final_checkpoint_sha256": final_checkpoint_sha256,
+            "artifact_sampling_rule_type": artifact_sampling_rule_type,
+            "artifact_start_offset": artifact_start_offset,
             "export_stdout": export_result["stdout"],
             "export_stderr": export_result["stderr"],
             "verify_stdout": verify_result["stdout"],
@@ -209,7 +278,10 @@ def main():
         print("=" * 80)
         print(f"RUN {run_idx}")
         print("trace_batch_indices =", trace)
+        print("start_offset =", start_offset)
+        print("sampling_rule_type =", sampling_rule_type)
         print("num_steps =", num_steps)
+        print("batch_size =", batch_size)
         print("export_returncode =", export_result["returncode"])
         print("verify_returncode =", verify_result["returncode"])
         print("export_time_sec =", round(export_result["elapsed_sec"], 6))
@@ -240,7 +312,10 @@ def main():
             fieldnames=[
                 "run_idx",
                 "trace_batch_indices",
+                "start_offset",
+                "sampling_rule_type",
                 "num_steps",
+                "batch_size",
                 "artifact_path",
                 "work_dir",
                 "export_returncode",
@@ -250,6 +325,8 @@ def main():
                 "verification_passed",
                 "initial_checkpoint_sha256",
                 "final_checkpoint_sha256",
+                "artifact_sampling_rule_type",
+                "artifact_start_offset",
             ],
         )
         writer.writeheader()
@@ -258,7 +335,10 @@ def main():
                 {
                     "run_idx": row["run_idx"],
                     "trace_batch_indices": json.dumps(row["trace_batch_indices"]),
+                    "start_offset": row["start_offset"],
+                    "sampling_rule_type": row["sampling_rule_type"],
                     "num_steps": row["num_steps"],
+                    "batch_size": row["batch_size"],
                     "artifact_path": row["artifact_path"],
                     "work_dir": row["work_dir"],
                     "export_returncode": row["export_returncode"],
@@ -268,6 +348,8 @@ def main():
                     "verification_passed": row["verification_passed"],
                     "initial_checkpoint_sha256": row["initial_checkpoint_sha256"],
                     "final_checkpoint_sha256": row["final_checkpoint_sha256"],
+                    "artifact_sampling_rule_type": row["artifact_sampling_rule_type"],
+                    "artifact_start_offset": row["artifact_start_offset"],
                 }
             )
 

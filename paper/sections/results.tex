@@ -104,11 +104,19 @@ All five configurations achieved successful verification. Across the tested rang
 
 These results should be interpreted carefully. The current one-step statement still verifies only a single SGD update with explicit minibatch indices and a fixed target network inside that local statement. By itself, it does not establish correctness of a longer training process. The stronger multi-step extension is evaluated in the next subsection, where consecutive one-step updates are composed into short verified training traces.
 
-\subsection{Preliminary Results on Short Verified Training Traces}
+\subsection{Short-Trace Verification with Deterministic Sampling-Rule Enforcement}
 
-We further evaluated a stronger pre-ZK prototype that verifies a short training trace rather than only a single offline DQN update step. In this setting, the artifact exporter chains multiple one-step update artifacts together, enforces checkpoint consistency across steps, and applies an explicit target-network synchronization rule. The corresponding trace verifier then checks step-level verification consistency, checkpoint chaining, and target-network synchronization consistency over the whole trace.
+We further strengthened the pre-ZK short-trace prototype by adding deterministic sampling-rule enforcement to the short verified training trace. Instead of accepting only explicitly provided minibatch indices, the exporter and verifier now both enforce a declared contiguous deterministic schedule with public batch size and start offset. Concretely, for step index $t$, batch size $k$, and start offset $s$, the expected minibatch is defined as:
+\[
+B_t = [s + tk,\; s + tk + 1,\; \dots,\; s + tk + (k-1)].
+\]
 
-Our initial experiments established successful verification for 2-step traces with target synchronization applied every two steps. We then extended the benchmark to 4-step and 8-step traces, again with synchronization applied every two steps. Across all tested runs, artifact export completed successfully, verification completed successfully, and the final result was accepted by the trace verifier.
+This strengthens the statement from
+``the provided minibatch is valid and the update trace is correct''
+to
+``the provided minibatch is valid, was chosen according to a declared public rule, and the update trace is correct.''
+
+Our initial experiments established successful verification for 2-step traces with target synchronization applied every two steps. We then extended the benchmark to 4-step and 8-step traces, again with synchronization applied every two steps. Finally, we added deterministic sampling-rule enforcement to the 8-step benchmark using public start offsets and batch sizes. Across all tested runs, artifact export completed successfully, verification completed successfully, and the final result was accepted by the trace verifier.
 
 \begin{table*}[!t]
 \centering
@@ -134,8 +142,24 @@ Setting & Num. steps & Batch size per step & Export time (s) & Verify time (s) \
 \end{tabular}
 \end{table*}
 
-The progression from 2-step to 4-step and then to 8-step traces shows that the current short-trace pipeline is not limited to a tiny hand-crafted composition. Instead, it already supports longer multi-step verification while preserving checkpoint chaining and target-network synchronization consistency across the trace. This is a meaningful strengthening over isolated one-step verification, because it moves the prototype from local update correctness toward verification of a small but nontrivial training process.
+\begin{table}[!t]
+\centering
+\small
+\caption{Preliminary 8-step short-trace verification results with deterministic sampling-rule enforcement.}
+\label{tab:short_trace_sampling_rule}
+\begin{tabular}{c c c c c}
+\toprule
+Run & Start offset & Batch size & Export time (s) & Verify time (s) \\
+\midrule
+Run 0 & 0  & 4 & 22.9605 & 13.2738 \\
+Run 1 & 32 & 4 & 22.7696 & 13.7361 \\
+Run 2 & 0  & 8 & 21.9691 & 12.9388 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The measured timings also suggest a simple scaling pattern in the current Python prototype. When the number of steps increases from 2 to 4 and then to 8, both export time and verification time increase in an approximately controlled manner. By contrast, for the tested 8-step traces, increasing the per-step minibatch size from 4 to 8 causes only a modest increase in verification time. Within this current range, the cost appears more sensitive to trace length than to this small change in per-step batch size.
+The progression from 2-step to 4-step and then to 8-step traces shows that the current short-trace pipeline is not limited to a tiny hand-crafted composition. Instead, it already supports longer multi-step verification while preserving checkpoint chaining and target-network synchronization consistency across the trace. The deterministic-sampling extension further strengthens this result: the verifier now checks not only that each update step is locally correct and globally chained, but also that the per-step minibatch indices match a declared public contiguous schedule.
 
-These results should still be interpreted as preliminary pre-ZK consistency results rather than cryptographic proving-time measurements. The current short-trace verifier checks only a small number of explicitly specified update steps, with a fixed SGD optimizer and a declared target synchronization schedule. It does not yet verify long training traces beyond the present short-trace scale, replay-sampling correctness over time, checkpoint selection logic, or a true zero-knowledge backend. Nevertheless, the short-trace results provide evidence that the project has already moved beyond isolated update verification toward verification of a small but nontrivial training process.
+The measured timings also suggest a simple scaling pattern in the current Python prototype. When the number of steps increases from 2 to 4 and then to 8, both export time and verification time increase in an approximately controlled manner. By contrast, within the tested 8-step traces, increasing the per-step minibatch size from 4 to 8 causes only a modest change in verification time. In this current range, the cost appears more sensitive to trace length than to this small change in per-step batch size.
+
+These results should still be interpreted as preliminary pre-ZK consistency results rather than cryptographic proving-time measurements. The current short-trace verifier checks only a small number of explicitly specified update steps, with a fixed SGD optimizer, a declared target synchronization schedule, and now a declared deterministic sampling rule. It does not yet verify long training traces beyond the present short-trace scale, general replay-sampling correctness, checkpoint selection logic, or a true zero-knowledge backend. Nevertheless, the short-trace results provide evidence that the project has already moved beyond isolated update verification toward verification of a small but nontrivial training process under a stricter public statement.
