@@ -231,3 +231,5 @@ The current prototype is a \emph{pre-ZK artifact-verifier} implemented in Python
     \item any of the above statements in a true zero-knowledge proving backend.
 \end{itemize}
 The system should therefore be described as a \emph{pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, and one-step update consistency}. As the project progresses, additional verification steps will be implemented toward a complete proof-of-training system.
+
+The current repository now goes beyond one-step update verification and already supports a short verified training trace prototype for two-step SGD update chains with explicit target-network synchronization. This shifts the next technical milestone from ``first verified update step'' to stronger directions such as longer trace composition, richer synchronization schedules, replay-sampling constraints, and eventually a true zero-knowledge backend.

@@ -103,3 +103,28 @@ Batch size & Batch indices & Batch loss (fp) & Export time (s) & Verify time (s)
 All five configurations achieved successful verification. Across the tested range, artifact export time remained between approximately $2.51$ and $2.76$ seconds, while verification time remained between approximately $1.50$ and $1.55$ seconds. Although these timings come from a Python pre-ZK artifact/verifier pipeline rather than a cryptographic proving backend, they show that the current one-step statement is already experimentally stable across multiple committed minibatch sizes.
 
 These results should be interpreted carefully. The current prototype still verifies only a single SGD update step with explicit minibatch indices and a fixed target network during the statement. It does not yet verify multi-step training traces, replay-sampling correctness over time, target-network synchronization across a full run, or a true zero-knowledge proof backend. Nevertheless, the experiment provides useful evidence that the stronger one-step statement is viable as an intermediate research milestone between TD-arithmetic verification and full proof-of-training.
+
+\subsection{Preliminary Results on Short Verified Training Traces}
+
+We further evaluated a stronger pre-ZK prototype that verifies a short training trace rather than only a single offline DQN update step. In this setting, the artifact exporter chains multiple one-step update artifacts together, enforces checkpoint consistency across steps, and applies an explicit target-network synchronization rule. The corresponding trace verifier then checks step-level verification consistency, checkpoint chaining, and target-network synchronization consistency over the whole trace.
+
+Our preliminary experiments focused on two-step traces with target synchronization applied every two steps. Three representative traces were tested: $\bigl[[0,1,2,3],[4,5,6,7]\bigr]$, $\bigl[[10,11,12,13],[14,15,16,17]\bigr]$, and $\bigl[[0,1,2,3,4,5,6,7],[8,9,10,11,12,13,14,15]\bigr]$. In all three cases, artifact export completed successfully, verification completed successfully, and the final result was accepted by the trace verifier.
+
+\begin{table}[t]
+\centering
+\caption{Preliminary short-trace verification results for two-step update traces.}
+\label{tab:short_trace_verification}
+\begin{tabular}{c c c c}
+\hline
+Trace setting & Num. steps & Export time (s) & Verify time (s) \\
+\hline
+$\bigl[[0,1,2,3],[4,5,6,7]\bigr]$ & 2 & 7.1569 & 4.3969 \\
+$\bigl[[10,11,12,13],[14,15,16,17]\bigr]$ & 2 & 6.6204 & 4.1650 \\
+$\bigl[[0,\dots,7],[8,\dots,15]\bigr]$ & 2 & 6.4856 & 4.3233 \\
+\hline
+\end{tabular}
+\end{table}
+
+All tested short traces achieved successful verification. Compared with the one-step verifier, the short-trace prototype naturally incurs additional cost because it composes multiple update steps and checks checkpoint chaining and target-network synchronization across the trace. Even so, the measured export and verification times remain stable across the tested traces, suggesting that the current statement design scales in a controlled way from one-step verification to short process-level verification.
+
+These results should still be interpreted as preliminary pre-ZK consistency results rather than cryptographic proving-time measurements. The current short-trace verifier checks only a small number of explicitly specified update steps, with a fixed SGD optimizer and a declared target synchronization schedule. It does not yet verify long training traces, replay-sampling correctness over time, or a true zero-knowledge backend. Nevertheless, the short-trace results provide evidence that the project can already move beyond isolated update verification toward verification of a small but nontrivial training process.

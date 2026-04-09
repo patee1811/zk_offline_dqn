@@ -521,3 +521,151 @@ This is the current bridge between:
 - RL-specific TD arithmetic,
 - step-level update verification,
 - and a future zero-knowledge proof backend.
+
+## 16. Next Stronger Statement: Short Verified Training Trace
+
+The next research milestone after the current one-step update prototype is a short verified training trace.
+
+Instead of verifying only one offline DQN SGD update step, this stronger statement verifies a small sequence of consecutive update steps, together with checkpoint chaining and an explicit target-network synchronization rule.
+
+### 16.1 Goal
+
+Move from:
+
+- one committed minibatch,
+- one recomputed loss,
+- one gradient-consistent SGD update,
+
+to:
+
+- multiple committed minibatches,
+- multiple consecutive SGD updates,
+- explicit checkpoint chaining across steps,
+- explicit target-network synchronization events.
+
+The purpose of this statement is to bridge the gap between one-step update verification and a future proof of a longer training process.
+
+### 16.2 Scope of the First Short-Trace Prototype
+
+To keep the trace prototype feasible, the first version should use the smallest practical setting:
+
+- `num_steps = 2` or `num_steps = 4`
+- fixed batch indices provided explicitly for each step
+- fixed optimizer: SGD
+- fixed loss type: SmoothL1
+- fixed Bellman target rule: Double DQN target-net-at-online-argmax
+- fixed learning rate
+- fixed target sync schedule, for example `target_sync_every = 2`
+- no replay-sampling randomness inside the statement
+- no early stopping or model-selection logic
+
+This is still narrower than full offline DQN training, but it is substantially stronger than one-step verification.
+
+### 16.3 Public Inputs
+
+The verifier should see:
+
+- `dataset_root`
+- `trace_batch_indices`
+- `num_steps`
+- `loss_type = smooth_l1`
+- `optimizer_type = sgd`
+- `learning_rate_fp`
+- `target_sync_every`
+- `initial_checkpoint_sha256`
+- `final_checkpoint_sha256`
+
+Optionally, the public inputs may also include:
+
+- network metadata
+- fixed architecture identifier
+- dataset name or experiment identifier
+
+### 16.4 Private Witness
+
+The prover keeps private:
+
+- minibatch transitions corresponding to each claimed step
+- Merkle authentication paths for all transitions
+- pre-step online-network weights for each step
+- pre-step target-network weights for each step
+- per-step forward-pass activations
+- per-step Bellman targets
+- per-step SmoothL1 losses
+- per-step gradients
+- per-step parameter deltas
+- post-step online-network weights
+- post-sync target-network weights when synchronization is applied
+
+### 16.5 Statement to Be Proved
+
+There exist:
+
+- committed transitions for each claimed minibatch in the trace,
+- an initial checkpoint consistent with `initial_checkpoint_sha256`,
+- a sequence of correctly computed one-step SGD updates,
+- correctly chained intermediate checkpoints,
+- correctly applied target-network synchronization events,
+- and a final checkpoint consistent with `final_checkpoint_sha256`
+
+such that all steps in the trace satisfy the one-step update relation and the whole trace remains globally consistent.
+
+### 16.6 What Must Be Verified
+
+A verifier for the short trace should be convinced of all of the following:
+
+1. Each minibatch in the trace comes from the committed dataset.
+2. Each step satisfies the TD-arithmetic and SGD-update checks already used in the one-step prototype.
+3. The output checkpoint of step `t` matches the input checkpoint of step `t+1`.
+4. The target network remains unchanged between sync events.
+5. When a sync event is scheduled, the target network is updated according to the declared rule.
+6. The final checkpoint hash matches the claimed public output.
+
+### 16.7 What Is Still Not Yet Verified
+
+Even this stronger short-trace statement would still not verify:
+
+- full end-to-end training from initialization to final best checkpoint
+- replay-sampling correctness across a full long run
+- early stopping or checkpoint selection logic
+- optimizer variants such as Adam
+- proof recursion or proof aggregation
+- a true zero-knowledge backend
+
+### 16.8 Recommended Artifact Structure
+
+A pre-ZK artifact for a short verified trace should contain:
+
+- `public`
+  - `dataset_root`
+  - `trace_batch_indices`
+  - `num_steps`
+  - `loss_type`
+  - `optimizer_type`
+  - `learning_rate_fp`
+  - `target_sync_every`
+  - `initial_checkpoint_sha256`
+  - `final_checkpoint_sha256`
+
+- `steps`
+  - `step_index`
+  - `input_checkpoint_sha256`
+  - `output_checkpoint_sha256`
+  - `target_sync_applied`
+  - `items`
+  - `update_witness`
+
+- `notes`
+  - statement scope
+  - checkpoint path hints for debugging
+  - limitations
+
+### 16.9 Research Interpretation
+
+This short-trace milestone would move the project from:
+
+- verified TD arithmetic,
+- to verified one-step update consistency,
+- to a verified short training process.
+
+That is the most natural next step before attempting either multi-step large-trace verification or a true zero-knowledge proof backend.
