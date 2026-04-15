@@ -1,6 +1,6 @@
 # ZK-Offline-DQN
 
-> **Pre-ZK Verification Prototype for Offline Deep Q-Network Training from Committed Data**
+> **Pre-ZK Verification Prototype for Offline Deep Q-Network Training from Committed Trajectories**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
@@ -10,9 +10,9 @@
 
 ## Overview
 
-This repository contains the source code for our research on combining **Offline Reinforcement Learning** with **verification-oriented proof design** for trustworthy training from committed data.
+This repository contains source code for research on combining **Offline Reinforcement Learning** with **verification-oriented proof design** for trustworthy training from committed data.
 
-The current repository is **not yet a full zero-knowledge proof-of-training system**. Instead, it implements a **pre-ZK artifact-verifier prototype** for concrete offline DQN-style statements over committed data.
+The current repository is **not yet a full zero-knowledge proof-of-training system**. Instead, it implements a **pre-ZK artifact/verifier prototype** for concrete offline DQN-style statements over committed trajectories.
 
 The core idea is:
 
@@ -28,7 +28,9 @@ At the current stage, the repository can verify:
 3. **TD loss correctness** — the per-sample **SmoothL1** temporal-difference loss is computed correctly.
 4. **Batch-level loss integrity** — the reported minibatch average loss matches the actual computation.
 5. **Checkpoint anchoring** — the audited model checkpoint is publicly tied by **SHA-256**.
-6. **One-step SGD update consistency** — for a fixed committed minibatch, the repository can also check gradient recomputation, parameter-delta consistency, and SGD-update consistency for one offline DQN update step.
+6. **One-step SGD update consistency** — for a fixed committed minibatch, the repository can check gradient recomputation, parameter-delta consistency, and SGD-update consistency for one offline DQN update step.
+7. **Short verified training traces** — the repository can chain multiple verified one-step updates into short traces with checkpoint chaining and explicit target-network synchronization semantics.
+8. **Deterministic short-trace sampling-rule enforcement** — for the current short-trace benchmark, the exporter and verifier both enforce a declared contiguous deterministic sampling rule with public `batch_size` and `start_offset`.
 
 All arithmetic used for TD-artifact verification is represented in **fixed-point integer form** to make verification deterministic and compatible with future proof-system backends.
 
@@ -44,7 +46,7 @@ The project is beyond the proposal stage and currently includes:
   - Conservative Q-Learning (CQL-lite),
   - Behavior Cloning (BC),
 - committed-data artifacts based on **Merkle-style membership proofs**,
-- a **pre-ZK artifact-verifier prototype** for:
+- a **pre-ZK artifact/verifier prototype** for:
   - committed transition membership,
   - Double-DQN-style Bellman target correctness,
   - SmoothL1 TD loss correctness,
@@ -55,11 +57,17 @@ The project is beyond the proposal stage and currently includes:
   - pre-update and post-update checkpoint anchoring,
   - gradient recomputation consistency,
   - parameter-delta consistency,
-  - SGD update consistency.
+  - SGD update consistency,
+  - target-network invariance,
+- a stronger **pre-ZK short-trace prototype** for:
+  - multi-step checkpoint chaining,
+  - explicit target-network synchronization semantics,
+  - deterministic contiguous sampling-rule enforcement,
+  - negative rejection under sampling-rule mismatch.
 
 This repository should currently be described as:
 
-> **a pre-ZK artifact-verification prototype for committed-data membership, TD-arithmetic correctness, and one-step update consistency**
+> **a pre-ZK artifact/verifier prototype for committed-data membership, TD-arithmetic correctness, one-step update consistency, short verified training traces, and deterministic short-trace sampling-rule enforcement**
 
 —not yet as a full proof-of-training system.
 
@@ -84,9 +92,9 @@ Concretely, the current artifact pipeline verifies:
 - minibatch average loss,
 - public checkpoint identity through `checkpoint_sha256`.
 
-### Stronger Current Prototype Milestone
+### Stronger One-Step Prototype
 
-The repository now also includes a stronger pre-ZK prototype for:
+The repository also includes a stronger pre-ZK prototype for:
 
 > **one offline DQN SGD update step from a committed minibatch**
 
@@ -104,19 +112,107 @@ For a fixed minibatch drawn from the committed dataset, the current one-step art
 - parameter-delta consistency,
 - SGD update consistency `w' = w - lr * g`.
 
-This stronger milestone is still a **Python pre-ZK artifact/verifier prototype**, not yet a true zero-knowledge proving backend.
+### Stronger Short-Trace Prototype
 
-### Not Yet Verified
+The repository now also includes a stronger pre-ZK prototype for:
 
-The current repository does **not yet** verify:
+> **short verified offline DQN update traces**
 
-- that the checkpoint itself was produced by a full correct training trace,
-- optimizer updates across many steps,
-- target-network synchronization across all training steps,
-- sampling-rule correctness across the full training trace,
+For a sequence of committed minibatches, the current short-trace pipeline checks:
+
+- that each step satisfies the one-step update relation,
+- checkpoint chaining across steps,
+- declared target-network synchronization semantics,
+- final checkpoint anchoring,
+- deterministic contiguous sampling-rule consistency for the current benchmark setting.
+
+The current short-trace benchmark has been run successfully for:
+
+- **2-step traces**
+- **4-step traces**
+- **8-step traces**
+
+### Deterministic Sampling-Rule Enforcement
+
+The current short-trace benchmark additionally enforces:
+
+> **deterministic contiguous sampling with public `batch_size` and `start_offset`**
+
+For step index `t`, batch size `k`, and start offset `s`, the expected batch is:
+
+```text
+B_t = [s + t*k, s + t*k + 1, ..., s + t*k + (k-1)]
+```
+
+This strengthens the statement from:
+
+> “the provided minibatch is valid and the update trace is correct”
+
+to:
+
+> “the provided minibatch is valid, was chosen according to a declared public rule, and the update trace is correct.”
+
+### Negative Sanity Check
+
+The current verifier does not only accept valid artifacts; it also rejects tampered ones.
+
+In particular, starting from a valid short-trace artifact, manually changing the public batch indices so that they no longer match the declared deterministic schedule causes the verifier to reject the artifact even when one-step verification, checkpoint chaining, and target-sync state checks still pass.
+
+This negative sanity check is important because it shows that the verifier independently enforces the declared sampling rule rather than merely trusting the exported artifact structure.
+
+---
+
+## Locked Benchmark Snapshot
+
+The current repository-level benchmark milestone is the locked 8-step short-trace benchmark with deterministic sampling-rule enforcement.
+
+### Run 0
+- `start_offset = 0`
+- `batch_size = 4`
+- `export_time_sec = 22.9605`
+- `verify_time_sec = 13.2738`
+- `verification_passed = True`
+
+### Run 1
+- `start_offset = 32`
+- `batch_size = 4`
+- `export_time_sec = 22.7696`
+- `verify_time_sec = 13.7361`
+- `verification_passed = True`
+
+### Run 2
+- `start_offset = 0`
+- `batch_size = 8`
+- `export_time_sec = 21.9691`
+- `verify_time_sec = 12.9388`
+- `verification_passed = True`
+
+The full locked snapshot is documented in:
+
+```text
+docs/current_benchmark_snapshot.md
+```
+
+---
+
+## What Is Not Yet Verified
+
+The current repository still does **not** verify:
+
+- that the final published checkpoint came from a full correct training trace from initialization,
+- general replay-sampling correctness across a long run,
+- seeded pseudorandom replay correctness,
+- prioritized replay correctness,
+- long-horizon target-network synchronization guarantees,
 - model selection / early stopping / best-checkpoint selection,
+- recursive proof composition,
 - a full end-to-end proof of training,
-- recursive proof composition or a production ZK backend.
+- a production zero-knowledge backend.
+
+More precisely:
+
+- **already enforced now:** deterministic contiguous sampling for the current short-trace benchmark;
+- **not yet enforced generally:** replay-sampling correctness for richer or more realistic sampling rules over a full training run.
 
 ---
 
@@ -127,7 +223,7 @@ zk_offline_dqn/
 ├── zk_offline_dqn/                      # Core Python package
 │   ├── __init__.py
 │   ├── zk_specs.py                      # Fixed-point encoding, TD arithmetic, ZK-friendly constants
-│   └── artifact_export_utils.py         # Shared helpers for artifact export / one-step verification
+│   └── artifact_export_utils.py         # Shared helpers for artifact export / verification
 │
 ├── scripts/
 │   ├── training/                        # Model training scripts
@@ -165,16 +261,25 @@ zk_offline_dqn/
 │   │   ├── export_td_sample_artifact_from_dataset.py
 │   │   ├── export_minibatch_td_artifact_from_dataset.py
 │   │   ├── export_one_step_update_artifact.py
+│   │   ├── export_short_trace_update_artifact.py
 │   │   ├── verify_transition_membership_artifact.py
 │   │   ├── verify_td_sample_artifact.py
 │   │   ├── verify_minibatch_td_artifact.py
-│   │   └── verify_one_step_update_artifact.py
+│   │   ├── verify_one_step_update_artifact.py
+│   │   └── verify_short_trace_update_artifact.py
+│   │
+│   ├── experiments/
+│   │   ├── benchmark_one_step_update.py
+│   │   └── benchmark_short_trace_update.py
 │   │
 │   └── zk_proofs/
 │       ├── build_leaf_hashes.py
 │       ├── build_merkle_root.py
 │       ├── check_merkle_membership.py
 │       └── check_real_transition.py
+│
+├── docs/
+│   └── current_benchmark_snapshot.md    # Locked short-trace benchmark milestone
 │
 ├── paper/                               # LaTeX draft
 ├── data/                                # Datasets (git-ignored)
@@ -183,7 +288,7 @@ zk_offline_dqn/
 ├── artifacts/                           # Exported artifacts (git-ignored)
 ├── plots/                               # Plots (git-ignored)
 │
-├── proof_statement_design.md            # MVP and stronger one-step statement design
+├── proof_statement_design.md            # MVP, one-step, and short-trace statement design
 ├── setup.py
 ├── requirements.txt
 ├── LICENSE
@@ -232,7 +337,8 @@ python scripts/training/train_cartpole_dqn.py
 ```bash
 # Generate ε-greedy dataset from the trained DQN
 python scripts/data_gen/generate_cartpole_dataset_from_dqn.py \
-    --model models/dqn_cartpole_behavior --epsilon 0.10
+    --model models/dqn_cartpole_behavior \
+    --epsilon 0.10
 
 # Flatten episodes into a transition-level dataset
 python scripts/data_gen/flatten_episode_dataset.py \
@@ -251,7 +357,7 @@ python scripts/training/train_offline_dqn.py \
 python scripts/training/train_cql.py \
     --data data/cartpole_dqn_eps010_transitions.pkl
 
-# Behavioral Cloning
+# Behavior Cloning
 python scripts/training/train_bc.py \
     --data data/cartpole_dqn_eps010_transitions.pkl
 ```
@@ -262,7 +368,7 @@ python scripts/training/train_bc.py \
 # Build leaf hashes from the dataset
 python scripts/zk_proofs/build_leaf_hashes.py
 
-# Build Merkle tree
+# Build Merkle tree / root
 python scripts/zk_proofs/build_merkle_root.py
 
 # Export and verify transition membership artifact
@@ -337,11 +443,79 @@ The current one-step verifier checks:
 - delta-tensor consistency,
 - SGD update consistency.
 
-### Stage 8: Analyze results
+### Stage 8: Export and verify short training traces
 
 ```bash
-python scripts/analysis/analyze_offline_log.py --log logs/offline_dqn_cartpole_log_seed42.csv
-python scripts/analysis/analyze_cql_log.py --log logs/cql_cartpole_log_seed42.csv
+python scripts/artifacts_export/export_short_trace_update_artifact.py \
+    --data data/cartpole_dqn_eps010_transitions.pkl \
+    --merkle artifacts/cartpole_dqn_eps010_merkle.json \
+    --checkpoint models/offline_dqn_with_target_seed42_best.pt \
+    --trace-batches-json "[[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]]" \
+    --lr 0.001 \
+    --target-sync-every 2 \
+    --start-offset 0 \
+    --work-dir artifacts/short_trace_work \
+    --out artifacts/short_trace_artifact.json
+```
+
+```bash
+# Uses SHORT_TRACE_ARTIFACT_PATH if set; otherwise uses the default path inside the verifier
+export SHORT_TRACE_ARTIFACT_PATH=artifacts/short_trace_artifact.json
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+```
+
+### Stage 9: Run the locked short-trace benchmark
+
+```bash
+python scripts/experiments/benchmark_short_trace_update.py \
+    --data data/cartpole_dqn_eps010_transitions.pkl \
+    --merkle artifacts/cartpole_dqn_eps010_merkle.json \
+    --checkpoint models/offline_dqn_with_target_seed42_best.pt \
+    --lr 0.001 \
+    --target-sync-every 2
+```
+
+This benchmark currently covers:
+
+- 8-step trace, `batch_size = 4`, `start_offset = 0`
+- 8-step trace, `batch_size = 4`, `start_offset = 32`
+- 8-step trace, `batch_size = 8`, `start_offset = 0`
+
+### Stage 10: Negative sanity check for sampling-rule rejection
+
+```bash
+# Export a valid 4-step short-trace artifact
+python scripts/artifacts_export/export_short_trace_update_artifact.py \
+    --data data/cartpole_dqn_eps010_transitions.pkl \
+    --merkle artifacts/cartpole_dqn_eps010_merkle.json \
+    --checkpoint models/offline_dqn_with_target_seed42_best.pt \
+    --trace-batches-json "[[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]]" \
+    --lr 0.001 \
+    --target-sync-every 2 \
+    --start-offset 0 \
+    --work-dir artifacts/short_trace_negative_test_work \
+    --out artifacts/short_trace_negative_test_valid.json
+```
+
+```bash
+# Create a tampered copy with incorrect public batch indices
+python -c "import json; p='artifacts/short_trace_negative_test_valid.json'; q='artifacts/short_trace_negative_test_tampered.json'; data=json.load(open(p,'r',encoding='utf-8')); data['public']['trace_batch_indices'][1]=[5,6,7,8]; json.dump(data, open(q,'w',encoding='utf-8'), indent=2)"
+```
+
+```bash
+# Verify the tampered artifact; expected outcome: verification_passed = False
+export SHORT_TRACE_ARTIFACT_PATH=artifacts/short_trace_negative_test_tampered.json
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+```
+
+### Stage 11: Analyze results
+
+```bash
+python scripts/analysis/analyze_offline_log.py \
+    --log logs/offline_dqn_cartpole_log_seed42.csv
+
+python scripts/analysis/analyze_cql_log.py \
+    --log logs/cql_cartpole_log_seed42.csv
 ```
 
 ---
@@ -364,6 +538,13 @@ The stronger one-step update prototype additionally checks:
 - consistency between parameter deltas and the actual pre/post online-network states,
 - consistency of the SGD rule `w' = w - lr * g`,
 - invariance of the target network during the one-step statement.
+
+The stronger short-trace prototype additionally checks:
+
+- step-by-step checkpoint chaining,
+- explicit target-network synchronization behavior,
+- deterministic contiguous sampling-rule enforcement with public `sampling_rule_type`, `start_offset`, and `batch_size`,
+- final checkpoint consistency across the full short trace.
 
 This makes the current repository substantially closer to real offline Double DQN training semantics than a purely symbolic arithmetic demo.
 
@@ -392,7 +573,7 @@ The current proof statements are documented in:
 proof_statement_design.md
 ```
 
-In short, the repository currently contains two levels of statement design:
+In short, the repository currently contains four connected statement layers:
 
 1. **MVP TD-arithmetic statement**
    - verify committed transition membership,
@@ -407,6 +588,16 @@ In short, the repository currently contains two levels of statement design:
    - check gradient recomputation consistency,
    - check parameter-delta consistency,
    - check SGD update consistency.
+
+3. **Short verified training trace**
+   - chain consecutive one-step statements,
+   - enforce checkpoint chaining,
+   - enforce target-network synchronization semantics.
+
+4. **Deterministic short-trace sampling-rule enforcement**
+   - enforce a declared contiguous deterministic batch schedule,
+   - expose `sampling_rule_type`, `start_offset`, and `batch_size` as public trace parameters,
+   - reject tampered public trace batches that do not match the declared schedule.
 
 The current implementation is still **pre-ZK**: it formalizes and verifies the statement structure in Python, but does not yet provide a true zero-knowledge proving backend.
 
@@ -426,21 +617,31 @@ Typical generated files include:
 
 ## Recommended Next Technical Milestone
 
-The next milestone after the current stronger pre-ZK prototype is:
+The next milestone after the current locked short-trace sampling-rule milestone is:
 
-> **multi-step verified offline DQN update traces or a more circuit-friendly encoding of the current one-step update statement**
+> **artifact schema cleanup and backend-ready statement design**
 
-Two natural directions are:
+The most natural directions are:
 
-1. **Extend from one verified step to K verified steps**
-   - chain pre/post checkpoint hashes across steps,
-   - keep target-network synchronization explicit,
-   - study proof/verification overhead growth.
+1. **Clean up artifact schema**
+   - separate mandatory public inputs from optional debug fields,
+   - separate private witness fields from audit convenience fields,
+   - define a cleaner short-trace artifact schema,
+   - reduce statement ambiguity before moving to a proving backend.
 
-2. **Make the one-step statement more ZK-friendly**
-   - compress or quantize gradient/delta representations more aggressively,
-   - reduce floating-point dependence,
+2. **Strengthen sampling rules**
+   - move beyond deterministic contiguous scheduling,
+   - study seeded deterministic replay-style schedules,
+   - approach stronger replay-sampling guarantees in a controlled way.
+
+3. **Make the statement more backend-ready**
+   - compress or quantize witness data more aggressively,
+   - reduce floating-point dependence in update-side checks,
    - move toward circuit-compatible witness representations.
+
+4. **Eventually move to a true proving backend**
+   - zkVM or custom circuit/SNARK backend,
+   - real proving time / verification time / proof size measurements.
 
 ---
 

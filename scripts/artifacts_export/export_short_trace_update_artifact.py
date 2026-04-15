@@ -227,15 +227,7 @@ def main():
         steps.append(
             {
                 "step_index": step_idx,
-                "batch_indices": batch,
-                "expected_batch_indices": expected_contiguous_batch_indices(
-                    step_idx=step_idx,
-                    batch_size=batch_size,
-                    start_offset=args.start_offset,
-                ),
-                "input_checkpoint_path": current_checkpoint_path,
                 "input_checkpoint_sha256": input_checkpoint_sha256,
-                "one_step_artifact_path": step_artifact_path,
                 "raw_output_checkpoint_path": step_post_ckpt_path,
                 "raw_output_checkpoint_sha256": output_checkpoint_sha256,
                 "next_checkpoint_path": next_checkpoint_path,
@@ -258,7 +250,6 @@ def main():
             "loss_type": "smooth_l1",
             "optimizer_type": "sgd",
             "learning_rate_fp": steps[0]["one_step_artifact"]["public"]["learning_rate_fp"],
-            "learning_rate_real": args.lr,
             "sampling_rule_type": args.sampling_rule_type,
             "start_offset": args.start_offset,
             "target_sync_every": args.target_sync_every,
@@ -267,17 +258,9 @@ def main():
         },
         "steps": steps,
         "notes": {
-            "data_path": args.data,
             "merkle_path": args.merkle,
             "initial_checkpoint_path": args.checkpoint,
             "final_checkpoint_path": current_checkpoint_path,
-            "work_dir": args.work_dir,
-            "statement_scope": "short verified training trace built by chaining one-step SGD update artifacts with deterministic contiguous sampling-rule enforcement",
-            "limitations": [
-                "pre-ZK artifact only",
-                "sampling rule currently limited to contiguous deterministic schedule",
-                "uses one-step exporter as underlying primitive",
-            ],
         },
     }
 
@@ -301,8 +284,7 @@ def main():
     for step in steps:
         print(
             f"step={step['step_index']} "
-            f"batch={step['batch_indices']} "
-            f"expected_batch={step['expected_batch_indices']} "
+            f"batch={step['one_step_artifact']['public']['batch_indices']} "
             f"input_sha={step['input_checkpoint_sha256']} "
             f"raw_output_sha={step['raw_output_checkpoint_sha256']} "
             f"next_sha={step['next_checkpoint_sha256']} "

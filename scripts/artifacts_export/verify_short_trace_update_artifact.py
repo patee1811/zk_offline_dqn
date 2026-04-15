@@ -3,7 +3,8 @@ import os
 import subprocess
 import sys
 import hashlib
-from typing import Dict, Any, List
+import tempfile
+from typing import List
 
 import torch
 
@@ -24,17 +25,23 @@ def file_sha256(path: str) -> str:
     return h.hexdigest()
 
 
-def run_one_step_verifier(one_step_artifact_path: str, merkle_path: str):
-    env = os.environ.copy()
-    env["ONE_STEP_ARTIFACT_PATH"] = one_step_artifact_path
-    env["ONE_STEP_MERKLE_PATH"] = merkle_path
+def run_one_step_verifier_from_embedded_artifact(one_step_artifact: dict, merkle_path: str):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        temp_artifact_path = os.path.join(tmpdir, "embedded_one_step_artifact.json")
 
-    cmd = [
-        sys.executable,
-        "scripts/artifacts_export/verify_one_step_update_artifact.py",
-    ]
-    proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
-    return proc
+        with open(temp_artifact_path, "w", encoding="utf-8") as f:
+            json.dump(one_step_artifact, f, indent=2)
+
+        env = os.environ.copy()
+        env["ONE_STEP_ARTIFACT_PATH"] = temp_artifact_path
+        env["ONE_STEP_MERKLE_PATH"] = merkle_path
+
+        cmd = [
+            sys.executable,
+            "scripts/artifacts_export/verify_one_step_update_artifact.py",
+        ]
+        proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
+        return proc
 
 
 def compare_state_dicts(sd1, sd2):
@@ -120,12 +127,10 @@ def main():
     print("=== STEP CHECKS ===")
     for i, step in enumerate(steps):
         step_index = step["step_index"]
-        batch_indices = step["batch_indices"]
         input_sha = step["input_checkpoint_sha256"]
         raw_output_sha = step["raw_output_checkpoint_sha256"]
         next_sha = step["next_checkpoint_sha256"]
         target_sync_applied = step["target_sync_applied"]
-        one_step_artifact_path = step["one_step_artifact_path"]
         one_step_artifact = step["one_step_artifact"]
 
         step_index_ok = (step_index == i)
@@ -136,7 +141,7 @@ def main():
             start_offset=start_offset,
         )
         public_batch = trace_batch_indices[i]
-        step_batch = batch_indices
+        step_batch = one_step_artifact["public"]["batch_indices"]
 
         sampling_rule_public_ok = (public_batch == expected_batch)
         sampling_rule_step_ok = (step_batch == expected_batch)
@@ -164,7 +169,7 @@ def main():
         else:
             sync_logic_ok = (raw_output_sha == next_sha)
 
-        one_step_proc = run_one_step_verifier(one_step_artifact_path, merkle_path)
+        one_step_proc = run_one_step_verifier_from_embedded_artifact(one_step_artifact, merkle_path)
         step_verification_ok = (
             one_step_proc.returncode == 0
             and "verification_passed = True" in one_step_proc.stdout
@@ -214,7 +219,6 @@ def main():
     print("final_chain_ok =", final_chain_ok)
     print()
 
-    # kiểm tra sync thật ở mức checkpoint state
     target_sync_state_ok = True
     print("=== TARGET SYNC STATE CHECKS ===")
     for i, step in enumerate(steps):
