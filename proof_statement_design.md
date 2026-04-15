@@ -762,10 +762,14 @@ Instead, it is an intermediate stronger statement designed to:
 
 This deterministic-sampling statement is now implemented in the current short-trace exporter, benchmark, and verifier for the contiguous deterministic schedule with public `start_offset`.
 
-In research terms, it upgrades the current short-trace statement from:
+Current evidence includes both:
+- positive verification results, where valid short traces satisfying the declared deterministic rule are accepted; and
+- a negative sanity check, where a tampered artifact with modified public batch indices is rejected even though the underlying one-step witnesses, checkpoint chaining, and target-sync state checks still pass.
+
+In research terms, this upgrades the current short-trace statement from:
 
 - “verify this declared trace”
 
 to:
 
-- “verify this declared trace, and also verify that its minibatches follow a declared public sampling rule.”
+- “verify this declared trace, and also verify that its minibatches follow a declared public sampling rule, with rejection on mismatch.”
