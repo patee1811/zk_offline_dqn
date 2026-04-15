@@ -145,7 +145,7 @@ Setting & Num. steps & Batch size per step & Export time (s) & Verify time (s) \
 \begin{table}[!t]
 \centering
 \small
-\caption{Preliminary 8-step short-trace verification results with deterministic sampling-rule enforcement.}
+\caption{Locked 8-step short-trace benchmark with deterministic sampling-rule enforcement.}
 \label{tab:short_trace_sampling_rule}
 \begin{tabular}{c c c c c}
 \toprule
@@ -163,6 +163,8 @@ The progression from 2-step to 4-step and then to 8-step traces shows that the c
 The measured timings also suggest a simple scaling pattern in the current Python prototype. When the number of steps increases from 2 to 4 and then to 8, both export time and verification time increase in an approximately controlled manner. By contrast, within the tested 8-step traces, increasing the per-step minibatch size from 4 to 8 causes only a modest change in verification time. In this current range, the cost appears more sensitive to trace length than to this small change in per-step batch size.
 
 These results should still be interpreted as preliminary pre-ZK consistency results rather than cryptographic proving-time measurements. The current short-trace verifier checks only a small number of explicitly specified update steps, with a fixed SGD optimizer, a declared target synchronization schedule, and now a declared deterministic sampling rule. It does not yet verify long training traces beyond the present short-trace scale, general replay-sampling correctness, checkpoint selection logic, or a true zero-knowledge backend. Nevertheless, the short-trace results provide evidence that the project has already moved beyond isolated update verification toward verification of a small but nontrivial training process under a stricter public statement.
+
+For the remainder of this draft, \Cref{tab:short_trace_sampling_rule} is treated as the current locked benchmark snapshot for short-trace verification under deterministic sampling-rule enforcement.
 
 \paragraph{Negative sanity check for sampling-rule enforcement.}
 To confirm that the stronger sampling-rule statement is actually enforced by the verifier rather than only by the exporter, we performed a simple tampering test. Starting from a valid 4-step short-trace artifact, we manually modified the public batch indices of step 1 from $[4,5,6,7]$ to $[5,6,7,8]$ while leaving the underlying per-step witness unchanged. The verifier then rejected the artifact: one-step verification, checkpoint chaining, and target-sync state checks still passed, but the public batch no longer matched the declared deterministic schedule, so the overall result became \texttt{verification\_passed = False}. This negative test provides direct evidence that the current verifier independently checks deterministic sampling-rule consistency rather than merely trusting the exported artifact structure.
