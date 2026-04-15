@@ -114,7 +114,6 @@ For each step:
 
 ### 2.5 Optional Debug / Audit Fields
 
-- convenience checkpoint path hints
 - human-readable notes
 - local execution metadata
 
@@ -400,15 +399,12 @@ These are currently core witness fields for one-step parameter-update consistenc
 - raw_output_checkpoint_sha256
 - next_checkpoint_sha256
 - target_sync_applied
+- sync_state_witness
 - one_step_artifact
 
-#### Likely redundant or debug / audit
-- raw_output_checkpoint_path
-- next_checkpoint_path
-
 Interpretation:
-- all remaining `*_path` fields are local debugging conveniences or operational helpers
 - `one_step_artifact` is the real nested witness
+- `sync_state_witness` is the current witness extension that lets the verifier check target-sync semantics without relying on local checkpoint paths inside each step
 
 ### Cleanup decisions already applied
 - removed `steps[].expected_batch_indices`
@@ -416,10 +412,15 @@ Interpretation:
 - removed `steps[].batch_indices`
 - removed `steps[].one_step_artifact_path`
 - removed `steps[].input_checkpoint_path`
+- removed `steps[].raw_output_checkpoint_path`
+- removed `steps[].next_checkpoint_path`
 - removed `notes.data_path`
 - removed `notes.work_dir`
 - removed `notes.statement_scope`
 - removed `notes.limitations`
+- removed `notes.merkle_path`
+- removed `notes.initial_checkpoint_path`
+- added `steps[].sync_state_witness`
 
 Interpretation:
 - `expected_batch_indices` is recomputable from:
@@ -432,21 +433,36 @@ Interpretation:
   - `steps[].one_step_artifact.public.batch_indices`
 - `one_step_artifact_path` was only a local filesystem convenience;
   verification can materialize the embedded artifact into a temporary file when needed
-- `input_checkpoint_path` and the removed notes fields were only local execution metadata
+- `input_checkpoint_path`, `raw_output_checkpoint_path`, and `next_checkpoint_path` were local path assumptions;
+  sync verification now uses embedded state witnesses instead
+- `notes.merkle_path` and `notes.initial_checkpoint_path` were removed in B2;
+  the verifier/benchmark now supplies them externally through environment variables
+- the other removed notes fields were only local execution metadata
 
 A cleaner schema should prefer one canonical location for public batch identity and avoid storing local-path assumptions in the artifact contract.
+
+---
+
+### sync_state_witness
+
+#### Mandatory witness
+- raw_output_online_state_dict
+- raw_output_target_state_dict
+- next_target_state_dict
+
+Interpretation:
+These fields are the minimal current witness needed for the verifier to check whether target synchronization was applied correctly, without loading per-step checkpoints from local filesystem paths.
 
 ---
 
 ### notes
 
 #### Optional debug / audit
-- merkle_path
-- initial_checkpoint_path
 - final_checkpoint_path
 
 Interpretation:
-These fields are still kept because the current Python verifier uses them operationally, but they should not be treated as long-term core statement fields.
+This field is still kept because the current Python verifier uses it operationally for the final checkpoint hash check.
+The merkle path and initial checkpoint path are no longer part of the artifact schema in B2, because the benchmark/verifier can supply them externally.
 
 ---
 
@@ -472,13 +488,10 @@ These fields are still kept because the current Python verifier uses them operat
 - steps[].raw_output_checkpoint_sha256
 - steps[].next_checkpoint_sha256
 - steps[].target_sync_applied
+- steps[].sync_state_witness
 - steps[].one_step_artifact
 
 ### Audit / debug
-- steps[].raw_output_checkpoint_path
-- steps[].next_checkpoint_path
-- notes.merkle_path
-- notes.initial_checkpoint_path
 - notes.final_checkpoint_path
 
 ### Current recommendation

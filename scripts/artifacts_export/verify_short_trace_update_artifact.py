@@ -4,7 +4,7 @@ import subprocess
 import sys
 import hashlib
 import tempfile
-from typing import List
+from typing import Any, Dict, List
 
 import torch
 
@@ -64,6 +64,26 @@ def expected_contiguous_batch_indices(
     return list(range(start, start + batch_size))
 
 
+def deserialize_tensor(obj: Dict[str, Any]) -> torch.Tensor:
+    dtype_str = obj["dtype"]
+    shape = obj["shape"]
+    values = obj["values"]
+
+    dtype_map = {
+        "torch.float32": torch.float32,
+        "torch.float64": torch.float64,
+        "torch.int64": torch.int64,
+        "torch.int32": torch.int32,
+    }
+    dtype = dtype_map.get(dtype_str, torch.float32)
+    tensor = torch.tensor(values, dtype=dtype)
+    return tensor.reshape(shape)
+
+
+def deserialize_state_dict(obj: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    return {name: deserialize_tensor(tensor_obj) for name, tensor_obj in obj.items()}
+
+
 def main():
     with open(ARTIFACT_PATH, "r", encoding="utf-8") as f:
         artifact = json.load(f)
@@ -84,9 +104,23 @@ def main():
     sampling_rule_type = public.get("sampling_rule_type", SUPPORTED_SAMPLING_RULE)
     start_offset = int(public.get("start_offset", 0))
 
-    merkle_path = notes["merkle_path"]
-    initial_checkpoint_path = notes["initial_checkpoint_path"]
+    merkle_path = os.environ.get("SHORT_TRACE_MERKLE_PATH", notes.get("merkle_path"))
+    initial_checkpoint_path = os.environ.get(
+        "SHORT_TRACE_INITIAL_CHECKPOINT_PATH",
+        notes.get("initial_checkpoint_path"),
+    )
     final_checkpoint_path = notes["final_checkpoint_path"]
+
+    if not merkle_path:
+        raise ValueError(
+            "Missing merkle path: provide SHORT_TRACE_MERKLE_PATH or keep notes['merkle_path']."
+        )
+
+    if not initial_checkpoint_path:
+        raise ValueError(
+            "Missing initial checkpoint path: provide SHORT_TRACE_INITIAL_CHECKPOINT_PATH "
+            "or keep notes['initial_checkpoint_path']."
+        )
 
     print("=== VERIFY SHORT TRACE UPDATE ARTIFACT ===")
     print("artifact_path =", ARTIFACT_PATH)
@@ -222,17 +256,12 @@ def main():
     target_sync_state_ok = True
     print("=== TARGET SYNC STATE CHECKS ===")
     for i, step in enumerate(steps):
-        raw_output_checkpoint_path = step["raw_output_checkpoint_path"]
-        next_checkpoint_path = step["next_checkpoint_path"]
         target_sync_applied = step["target_sync_applied"]
+        sync_state_witness = step["sync_state_witness"]
 
-        raw_ckpt = torch.load(raw_output_checkpoint_path, map_location="cpu")
-        next_ckpt = torch.load(next_checkpoint_path, map_location="cpu")
-
-        raw_online = raw_ckpt["model_state_dict"]
-        raw_target = raw_ckpt["target_net_state_dict"]
-        next_online = next_ckpt["model_state_dict"]
-        next_target = next_ckpt["target_net_state_dict"]
+        raw_online = deserialize_state_dict(sync_state_witness["raw_output_online_state_dict"])
+        raw_target = deserialize_state_dict(sync_state_witness["raw_output_target_state_dict"])
+        next_target = deserialize_state_dict(sync_state_witness["next_target_state_dict"])
 
         if target_sync_applied:
             state_ok = compare_state_dicts(next_target, raw_online)

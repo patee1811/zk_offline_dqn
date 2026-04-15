@@ -170,6 +170,23 @@ def run_command(cmd: List[str], env: Dict[str, str] = None) -> Dict[str, Any]:
     }
 
 
+def run_verify(
+    artifact_path: str,
+    merkle_path: str,
+    initial_checkpoint_path: str,
+) -> Dict[str, Any]:
+    env = os.environ.copy()
+    env["SHORT_TRACE_ARTIFACT_PATH"] = artifact_path
+    env["SHORT_TRACE_MERKLE_PATH"] = merkle_path
+    env["SHORT_TRACE_INITIAL_CHECKPOINT_PATH"] = initial_checkpoint_path
+
+    verify_cmd = [
+        sys.executable,
+        "scripts/artifacts_export/verify_short_trace_update_artifact.py",
+    ]
+    return run_command(verify_cmd, env=env)
+
+
 def main():
     args = parse_args()
     trace_cases = load_trace_cases(args.traces_json)
@@ -227,14 +244,11 @@ def main():
         artifact_start_offset = None
 
         if export_result["returncode"] == 0:
-            env = os.environ.copy()
-            env["SHORT_TRACE_ARTIFACT_PATH"] = artifact_path
-
-            verify_cmd = [
-                sys.executable,
-                "scripts/artifacts_export/verify_short_trace_update_artifact.py",
-            ]
-            verify_result = run_command(verify_cmd, env=env)
+            verify_result = run_verify(
+                artifact_path=artifact_path,
+                merkle_path=args.merkle,
+                initial_checkpoint_path=args.checkpoint,
+            )
 
             if verify_result["stdout"]:
                 verification_passed = "verification_passed = True" in verify_result["stdout"]

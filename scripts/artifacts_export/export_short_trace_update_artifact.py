@@ -150,6 +150,19 @@ def sync_target_network(in_ckpt_path: str, out_ckpt_path: str):
     torch.save(ckpt, out_ckpt_path)
 
 
+def serialize_tensor(t: torch.Tensor) -> Dict[str, Any]:
+    t_cpu = t.detach().cpu()
+    return {
+        "dtype": str(t_cpu.dtype),
+        "shape": list(t_cpu.shape),
+        "values": t_cpu.reshape(-1).tolist(),
+    }
+
+
+def serialize_state_dict(state_dict: Dict[str, torch.Tensor]) -> Dict[str, Any]:
+    return {name: serialize_tensor(tensor) for name, tensor in state_dict.items()}
+
+
 def main():
     args = parse_args()
     trace_batches = load_trace_batches(args.trace_batches_json)
@@ -224,15 +237,23 @@ def main():
 
         next_checkpoint_sha256 = file_sha256(next_checkpoint_path)
 
+        raw_output_ckpt = torch.load(step_post_ckpt_path, map_location="cpu")
+        next_ckpt = torch.load(next_checkpoint_path, map_location="cpu")
+
+        sync_state_witness = {
+            "raw_output_online_state_dict": serialize_state_dict(raw_output_ckpt["model_state_dict"]),
+            "raw_output_target_state_dict": serialize_state_dict(raw_output_ckpt["target_net_state_dict"]),
+            "next_target_state_dict": serialize_state_dict(next_ckpt["target_net_state_dict"]),
+        }
+
         steps.append(
             {
                 "step_index": step_idx,
                 "input_checkpoint_sha256": input_checkpoint_sha256,
-                "raw_output_checkpoint_path": step_post_ckpt_path,
                 "raw_output_checkpoint_sha256": output_checkpoint_sha256,
-                "next_checkpoint_path": next_checkpoint_path,
                 "next_checkpoint_sha256": next_checkpoint_sha256,
                 "target_sync_applied": target_sync_applied,
+                "sync_state_witness": sync_state_witness,
                 "one_step_artifact": step_artifact,
             }
         )
@@ -258,8 +279,6 @@ def main():
         },
         "steps": steps,
         "notes": {
-            "merkle_path": args.merkle,
-            "initial_checkpoint_path": args.checkpoint,
             "final_checkpoint_path": current_checkpoint_path,
         },
     }
