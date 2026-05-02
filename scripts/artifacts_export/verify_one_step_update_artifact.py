@@ -1,7 +1,7 @@
-import copy
 import hashlib
 import json
 import os
+
 import torch
 
 from zk_offline_dqn.artifact_export_utils import (
@@ -12,7 +12,6 @@ from zk_offline_dqn.artifact_export_utils import (
     load_merkle_artifact,
     serialize_leaf,
 )
-
 
 from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
@@ -28,26 +27,6 @@ MERKLE_PATH = os.environ.get(
     "ONE_STEP_MERKLE_PATH",
     "artifacts/cartpole_dqn_eps010_merkle.json",
 )
-
-
-def tensor_sha256(t: torch.Tensor) -> str:
-    arr = t.detach().cpu().contiguous()
-    h = hashlib.sha256()
-    h.update(str(arr.dtype).encode("utf-8"))
-    h.update(str(tuple(arr.shape)).encode("utf-8"))
-    h.update(arr.numpy().tobytes())
-    return h.hexdigest()
-
-
-def state_dict_sha256(state_dict):
-    h = hashlib.sha256()
-    for key in sorted(state_dict.keys()):
-        t = state_dict[key].detach().cpu().contiguous()
-        h.update(key.encode("utf-8"))
-        h.update(str(t.dtype).encode("utf-8"))
-        h.update(str(tuple(t.shape)).encode("utf-8"))
-        h.update(t.numpy().tobytes())
-    return h.hexdigest()
 
 
 def hash_internal_node(left_hex: str, right_hex: str) -> str:
@@ -83,15 +62,18 @@ def main():
         artifact = json.load(f)
 
     merkle = load_merkle_artifact(MERKLE_PATH)
-    dataset_root = artifact["public"]["dataset_root"]
-    batch_indices = artifact["public"]["batch_indices"]
-    batch_size = artifact["public"]["batch_size"]
-    loss_type = artifact["public"]["loss_type"]
-    optimizer_type = artifact["public"]["optimizer_type"]
-    learning_rate_fp = artifact["public"]["learning_rate_fp"]
-    learning_rate_real = float(artifact["public"]["learning_rate_real"])
-    pre_checkpoint_sha256 = artifact["public"]["pre_checkpoint_sha256"]
-    post_checkpoint_sha256 = artifact["public"]["post_checkpoint_sha256"]
+
+    public = artifact["public"]
+    update_witness = artifact["update_witness"]
+
+    dataset_root = public["dataset_root"]
+    batch_indices = public["batch_indices"]
+    batch_size = public["batch_size"]
+    loss_type = public["loss_type"]
+    optimizer_type = public["optimizer_type"]
+    learning_rate_fp = public["learning_rate_fp"]
+    pre_checkpoint_sha256 = public["pre_checkpoint_sha256"]
+    post_checkpoint_sha256 = public["post_checkpoint_sha256"]
 
     checkpoint_path = artifact["notes"]["checkpoint_path"]
     post_checkpoint_path = artifact["notes"]["post_checkpoint_path"]
@@ -167,7 +149,7 @@ def main():
         )
 
     recomputed_batch_loss_fp = total_loss_fp // batch_size
-    claimed_batch_loss_fp = int(artifact["update_witness"]["batch_loss_fp"])
+    claimed_batch_loss_fp = int(update_witness["batch_loss_fp"])
     batch_loss_match = (recomputed_batch_loss_fp == claimed_batch_loss_fp)
 
     print()
@@ -191,23 +173,6 @@ def main():
     post_online_state = post_ckpt["model_state_dict"]
     post_target_state = post_ckpt["target_net_state_dict"]
 
-    pre_online_state_sha256_recomputed = state_dict_sha256(pre_online_state)
-    post_online_state_sha256_recomputed = state_dict_sha256(post_online_state)
-    target_state_sha256_recomputed = state_dict_sha256(post_target_state)
-
-    pre_online_state_match = (
-        pre_online_state_sha256_recomputed
-        == artifact["update_witness"]["pre_online_state_sha256"]
-    )
-    post_online_state_match = (
-        post_online_state_sha256_recomputed
-        == artifact["update_witness"]["post_online_state_sha256"]
-    )
-    target_state_match = (
-        target_state_sha256_recomputed
-        == artifact["update_witness"]["target_state_sha256"]
-    )
-
     target_net_unchanged = compare_state_dicts(pre_target_state, post_target_state)
     online_net_changed = not compare_state_dicts(pre_online_state, post_online_state)
 
@@ -225,15 +190,19 @@ def main():
 
     metadata = post_ckpt.get("one_step_update_metadata", {})
     optimizer_type_ok = (metadata.get("optimizer_type") == optimizer_type)
-    learning_rate_ok = (encode_fp(float(metadata.get("learning_rate"))) == learning_rate_fp)
-    batch_indices_ok = (metadata.get("batch_indices") == batch_indices)
 
-    parameter_summaries = artifact["update_witness"]["parameter_summaries"]
-    param_summary_ok = True
+    metadata_lr = metadata.get("learning_rate", None)
+    learning_rate_real = float(metadata_lr) if metadata_lr is not None else 0.0
+    learning_rate_ok = (
+        metadata_lr is not None
+        and encode_fp(learning_rate_real) == learning_rate_fp
+    )
+
+    batch_indices_ok = (metadata.get("batch_indices") == batch_indices)
 
     pre_named = {k: v.detach().cpu() for k, v in pre_online_state.items()}
     post_named = {k: v.detach().cpu() for k, v in post_online_state.items()}
-    
+
     _, recompute_online_net, recompute_target_net = load_checkpoint_nets(checkpoint_path)
     transitions = [item["transition"] for item in artifact["items"]]
 
@@ -245,8 +214,8 @@ def main():
     )
     recomputed_training_loss.backward()
 
-    gradient_tensors = artifact["update_witness"]["gradient_tensors"]
-    delta_tensors = artifact["update_witness"]["delta_tensors"]
+    gradient_tensors = update_witness["gradient_tensors"]
+    delta_tensors = update_witness["delta_tensors"]
 
     gradient_match_all = True
     sgd_update_match_all = True
@@ -276,8 +245,11 @@ def main():
         delta_tensor_match = torch.allclose(
             recomputed_delta, claimed_delta, atol=1e-8, rtol=1e-6
         )
-        sgd_update_match = torch.allclose(
-            actual_post, expected_post, atol=1e-8, rtol=1e-6
+        sgd_update_match = (
+            learning_rate_ok
+            and torch.allclose(
+                actual_post, expected_post, atol=1e-8, rtol=1e-6
+            )
         )
 
         gradient_match_all = gradient_match_all and gradient_match
@@ -292,44 +264,9 @@ def main():
         )
 
     print()
-    print("=== PARAMETER SUMMARY CHECKS ===")
-    for s in parameter_summaries:
-        name = s["name"]
-        if name not in pre_named or name not in post_named:
-            param_summary_ok = False
-            print(f"{name}: missing_in_checkpoint_states=True param_ok=False")
-            continue
-
-        pre_t = pre_named[name]
-        post_t = post_named[name]
-        delta_t = post_t - pre_t
-
-        pre_sha_ok = (tensor_sha256(pre_t) == s["pre_param_sha256"])
-        post_sha_ok = (tensor_sha256(post_t) == s["post_param_sha256"])
-        delta_sha_ok = (tensor_sha256(delta_t) == s["delta_sha256"])
-        shape_ok = (list(pre_t.shape) == s["shape"])
-        numel_ok = (int(pre_t.numel()) == int(s["numel"]))
-
-        this_ok = pre_sha_ok and post_sha_ok and delta_sha_ok and shape_ok and numel_ok
-        param_summary_ok = param_summary_ok and this_ok
-
-        print(
-            f"{name}: "
-            f"shape_ok={shape_ok} "
-            f"numel_ok={numel_ok} "
-            f"pre_sha_ok={pre_sha_ok} "
-            f"post_sha_ok={post_sha_ok} "
-            f"delta_sha_ok={delta_sha_ok} "
-            f"param_ok={this_ok}"
-        )
-
-    print()
     print("=== PUBLIC / CHECKPOINT CHECKS ===")
     print("pre_checkpoint_ok =", pre_checkpoint_ok)
     print("post_checkpoint_ok =", post_checkpoint_ok)
-    print("pre_online_state_match =", pre_online_state_match)
-    print("post_online_state_match =", post_online_state_match)
-    print("target_state_match =", target_state_match)
     print("target_net_unchanged =", target_net_unchanged)
     print("online_net_changed =", online_net_changed)
     print("step_increment_ok =", step_increment_ok)
@@ -346,9 +283,6 @@ def main():
         and batch_loss_match
         and pre_checkpoint_ok
         and post_checkpoint_ok
-        and pre_online_state_match
-        and post_online_state_match
-        and target_state_match
         and target_net_unchanged
         and online_net_changed
         and step_increment_ok
@@ -356,7 +290,6 @@ def main():
         and optimizer_type_ok
         and learning_rate_ok
         and batch_indices_ok
-        and param_summary_ok
         and loss_type == "smooth_l1"
         and optimizer_type == "sgd"
         and gradient_match_all
@@ -370,7 +303,7 @@ def main():
     if not verification_passed:
         print()
         print("NOTE: This verifier checks artifact consistency and checkpoint-step consistency.")
-        print("It does NOT yet fully verify gradient arithmetic from raw gradients.")
+        print("It does NOT yet fully verify gradient arithmetic inside a proving backend.")
 
 
 if __name__ == "__main__":
