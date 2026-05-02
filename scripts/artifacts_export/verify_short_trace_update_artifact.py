@@ -90,7 +90,7 @@ def main():
 
     public = artifact["public"]
     steps = artifact["steps"]
-    notes = artifact["notes"]
+    notes = artifact.get("notes", {})
 
     dataset_root = public["dataset_root"]
     trace_batch_indices = public["trace_batch_indices"]
@@ -109,7 +109,10 @@ def main():
         "SHORT_TRACE_INITIAL_CHECKPOINT_PATH",
         notes.get("initial_checkpoint_path"),
     )
-    final_checkpoint_path = notes["final_checkpoint_path"]
+    final_checkpoint_path = os.environ.get(
+        "SHORT_TRACE_FINAL_CHECKPOINT_PATH",
+        notes.get("final_checkpoint_path"),
+    )
 
     if not merkle_path:
         raise ValueError(
@@ -120,6 +123,12 @@ def main():
         raise ValueError(
             "Missing initial checkpoint path: provide SHORT_TRACE_INITIAL_CHECKPOINT_PATH "
             "or keep notes['initial_checkpoint_path']."
+        )
+
+    if not final_checkpoint_path:
+        raise ValueError(
+            "Missing final checkpoint path: provide SHORT_TRACE_FINAL_CHECKPOINT_PATH "
+            "or keep notes['final_checkpoint_path']."
         )
 
     print("=== VERIFY SHORT TRACE UPDATE ARTIFACT ===")

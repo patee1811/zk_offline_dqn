@@ -114,8 +114,8 @@ For each step:
 
 ### 2.5 Optional Debug / Audit Fields
 
-- human-readable notes
-- local execution metadata
+At the end of B3, no persistent debug metadata is required inside the artifact itself.
+Operational paths are now supplied externally by the benchmark/verifier when needed.
 
 ---
 
@@ -367,9 +367,10 @@ These are currently core witness fields for one-step parameter-update consistenc
 #### Keep as core structure
 - public
 - steps
-
-#### Optional debug / audit
 - notes
+
+Interpretation:
+`notes` is now kept only as an empty placeholder structure for compatibility. It no longer carries operational metadata after B3.
 
 ---
 
@@ -420,6 +421,7 @@ Interpretation:
 - removed `notes.limitations`
 - removed `notes.merkle_path`
 - removed `notes.initial_checkpoint_path`
+- removed `notes.final_checkpoint_path`
 - added `steps[].sync_state_witness`
 
 Interpretation:
@@ -435,7 +437,7 @@ Interpretation:
   verification can materialize the embedded artifact into a temporary file when needed
 - `input_checkpoint_path`, `raw_output_checkpoint_path`, and `next_checkpoint_path` were local path assumptions;
   sync verification now uses embedded state witnesses instead
-- `notes.merkle_path` and `notes.initial_checkpoint_path` were removed in B2;
+- `notes.merkle_path`, `notes.initial_checkpoint_path`, and `notes.final_checkpoint_path` were removed by the end of B3;
   the verifier/benchmark now supplies them externally through environment variables
 - the other removed notes fields were only local execution metadata
 
@@ -458,11 +460,11 @@ These fields are the minimal current witness needed for the verifier to check wh
 ### notes
 
 #### Optional debug / audit
-- final_checkpoint_path
+- none
 
 Interpretation:
-This field is still kept because the current Python verifier uses it operationally for the final checkpoint hash check.
-The merkle path and initial checkpoint path are no longer part of the artifact schema in B2, because the benchmark/verifier can supply them externally.
+After B3, the artifact no longer requires persistent path metadata inside `notes`.
+The verifier receives operational paths externally from the benchmark/runtime environment.
 
 ---
 
@@ -492,7 +494,7 @@ The merkle path and initial checkpoint path are no longer part of the artifact s
 - steps[].one_step_artifact
 
 ### Audit / debug
-- notes.final_checkpoint_path
+- none stored inside the artifact after B3
 
 ### Current recommendation
 Prefer one canonical public location for trace batch identity:

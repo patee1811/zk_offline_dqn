@@ -278,9 +278,7 @@ def main():
             "final_checkpoint_sha256": final_checkpoint_sha256,
         },
         "steps": steps,
-        "notes": {
-            "final_checkpoint_path": current_checkpoint_path,
-        },
+        "notes": {},
     }
 
     with open(args.out, "w", encoding="utf-8") as f:

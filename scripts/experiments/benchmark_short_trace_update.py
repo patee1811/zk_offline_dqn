@@ -2,10 +2,11 @@ import argparse
 import csv
 import json
 import os
+import re
 import subprocess
 import sys
 import time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 DEFAULT_TRACE_CASES = [
@@ -170,15 +171,24 @@ def run_command(cmd: List[str], env: Dict[str, str] = None) -> Dict[str, Any]:
     }
 
 
+def parse_final_checkpoint_path(stdout: str) -> Optional[str]:
+    match = re.search(r"^final_checkpoint_path = (.+)$", stdout, flags=re.MULTILINE)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
 def run_verify(
     artifact_path: str,
     merkle_path: str,
     initial_checkpoint_path: str,
+    final_checkpoint_path: str,
 ) -> Dict[str, Any]:
     env = os.environ.copy()
     env["SHORT_TRACE_ARTIFACT_PATH"] = artifact_path
     env["SHORT_TRACE_MERKLE_PATH"] = merkle_path
     env["SHORT_TRACE_INITIAL_CHECKPOINT_PATH"] = initial_checkpoint_path
+    env["SHORT_TRACE_FINAL_CHECKPOINT_PATH"] = final_checkpoint_path
 
     verify_cmd = [
         sys.executable,
@@ -242,13 +252,25 @@ def main():
         final_checkpoint_sha256 = None
         artifact_sampling_rule_type = None
         artifact_start_offset = None
+        final_checkpoint_path = None
 
         if export_result["returncode"] == 0:
-            verify_result = run_verify(
-                artifact_path=artifact_path,
-                merkle_path=args.merkle,
-                initial_checkpoint_path=args.checkpoint,
-            )
+            final_checkpoint_path = parse_final_checkpoint_path(export_result["stdout"])
+
+            if final_checkpoint_path:
+                verify_result = run_verify(
+                    artifact_path=artifact_path,
+                    merkle_path=args.merkle,
+                    initial_checkpoint_path=args.checkpoint,
+                    final_checkpoint_path=final_checkpoint_path,
+                )
+            else:
+                verify_result = {
+                    "returncode": 1,
+                    "stdout": "",
+                    "stderr": "Could not parse final_checkpoint_path from exporter stdout.",
+                    "elapsed_sec": 0.0,
+                }
 
             if verify_result["stdout"]:
                 verification_passed = "verification_passed = True" in verify_result["stdout"]
@@ -282,6 +304,7 @@ def main():
             "final_checkpoint_sha256": final_checkpoint_sha256,
             "artifact_sampling_rule_type": artifact_sampling_rule_type,
             "artifact_start_offset": artifact_start_offset,
+            "final_checkpoint_path": final_checkpoint_path,
             "export_stdout": export_result["stdout"],
             "export_stderr": export_result["stderr"],
             "verify_stdout": verify_result["stdout"],
@@ -341,6 +364,7 @@ def main():
                 "final_checkpoint_sha256",
                 "artifact_sampling_rule_type",
                 "artifact_start_offset",
+                "final_checkpoint_path",
             ],
         )
         writer.writeheader()
@@ -364,6 +388,7 @@ def main():
                     "final_checkpoint_sha256": row["final_checkpoint_sha256"],
                     "artifact_sampling_rule_type": row["artifact_sampling_rule_type"],
                     "artifact_start_offset": row["artifact_start_offset"],
+                    "final_checkpoint_path": row["final_checkpoint_path"],
                 }
             )
 
