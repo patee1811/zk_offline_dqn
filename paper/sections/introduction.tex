@@ -19,6 +19,7 @@ The main contributions of this work are as follows:
     \item We implement a pre-ZK artifact/verifier prototype that checks committed-transition membership, Bellman target correctness, SmoothL1 TD-loss correctness, minibatch-loss consistency, and checkpoint anchoring.
     \item We extend the prototype to a stronger one-step offline DQN update statement with gradient recomputation, parameter-delta consistency, SGD update consistency, and target-network invariance.
     \item We further extend the system to short verified training traces with checkpoint chaining, target-network synchronization semantics, deterministic contiguous sampling-rule enforcement, and a negative sanity check demonstrating rejection under sampling-rule mismatch.
+    \item We clean up the short-trace artifact contract so that operational filesystem paths are supplied by the runtime environment rather than stored as persistent artifact metadata.
     \item We provide experimental evidence that the current statement design scales from one-step verification to short process-level trace verification while remaining explicit about its current pre-ZK scope and limitations.
 \end{itemize}
 

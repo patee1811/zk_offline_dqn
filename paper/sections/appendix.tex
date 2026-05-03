@@ -90,19 +90,33 @@ Parameter & Value & Description \\
 \section{Artifact JSON Schema}
 \label{app:artifact-schema}
 
-Each verification artifact is a JSON file with three top-level keys:
+The repository currently uses JSON artifacts as pre-ZK verifier inputs. These artifacts are intended to clarify the statement structure before it is translated to a true proving backend. The current schema separates public inputs, witness data, and prototype-only audit metadata.
 
+\paragraph{TD and minibatch artifacts.}
+The TD artifacts contain:
 \begin{itemize}[leftmargin=1.5em]
-    \item \textbf{\texttt{public}}: values visible to the verifier (\texttt{dataset\_root}, \texttt{checkpoint\_sha256}, \texttt{loss\_type}, \texttt{batch\_size}, \texttt{batch\_loss\_fp}).
-    \item \textbf{\texttt{items}}: per-transition witness entries (transition data, serialized leaf, leaf hash, Merkle path, TD witness).
-    \item \textbf{\texttt{notes}}: metadata including file paths, scope, and limitations.
+    \item \textbf{\texttt{public}}: verifier-visible values such as \texttt{dataset\_root}, \texttt{checkpoint\_sha256}, \texttt{loss\_type}, \texttt{batch\_size}, and \texttt{batch\_loss\_fp};
+    \item \textbf{\texttt{items}}: per-transition witnesses including transition data, serialized leaf values, Merkle authentication paths, and TD witnesses;
+    \item \textbf{\texttt{notes}}: prototype metadata used for debugging and audit convenience.
 \end{itemize}
 
-For the one-step update artifact, the schema additionally includes:
+\paragraph{One-step update artifacts.}
+The one-step update artifact extends the minibatch artifact with:
 \begin{itemize}[leftmargin=1.5em]
-    \item \texttt{public}: \texttt{pre/post\_}\allowbreak\texttt{checkpoint\_}\allowbreak\texttt{sha256}, \texttt{optimizer\_type}, \texttt{learning\_rate\_fp};
-    \item \texttt{update\_witness}: \texttt{batch\_loss\_fp}, state-dict SHA-256 hashes, \texttt{parameter\_summaries}, \texttt{gradient\_tensors}, \texttt{delta\_tensors}.
+    \item \textbf{\texttt{public}}: \texttt{pre\_checkpoint\_sha256}, \texttt{post\_checkpoint\_sha256}, \texttt{optimizer\_type}, and \texttt{learning\_rate\_fp};
+    \item \textbf{\texttt{update\_witness}}: \texttt{batch\_loss\_fp}, pre/post state hashes, parameter summaries, \texttt{gradient\_tensors}, and \texttt{delta\_tensors}.
 \end{itemize}
+Some one-step fields, especially parameter summaries and redundant hashes, are audit-friendly prototype fields rather than finalized circuit-level fields.
+
+\paragraph{Short-trace artifacts.}
+The current B3 short-trace artifact contains:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{\texttt{public}}: \texttt{dataset\_root}, \texttt{trace\_batch\_indices}, \texttt{num\_steps}, \texttt{batch\_size}, \texttt{loss\_type}, \texttt{optimizer\_type}, \texttt{learning\_rate\_fp}, \texttt{sampling\_rule\_type}, \texttt{start\_offset}, \texttt{target\_sync\_every}, \texttt{initial\_checkpoint\_sha256}, and \texttt{final\_checkpoint\_sha256};
+    \item \textbf{\texttt{steps}}: per-step checkpoint hashes, target-sync flags, \texttt{sync\_state\_witness}, and embedded one-step artifacts;
+    \item \textbf{\texttt{notes}}: an empty compatibility object after B3 cleanup.
+\end{itemize}
+
+Operational paths are no longer persistent short-trace artifact metadata. The Python verifier receives paths through runtime environment variables such as \texttt{SHORT\_TRACE\_MERKLE\_PATH}, \texttt{SHORT\_TRACE\_INITIAL\_CHECKPOINT\_PATH}, and \texttt{SHORT\_TRACE\_FINAL\_CHECKPOINT\_PATH}. Benchmark summaries may still record paths such as \texttt{final\_checkpoint\_path} for reproducibility, but those fields are benchmark metadata rather than artifact-schema fields.
 
 \section{File Naming Conventions}
 \label{app:naming}

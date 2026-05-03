@@ -225,6 +225,9 @@ The prover keeps private:
     \item for short traces: the sequence of intermediate checkpoints and synchronization events needed to witness multi-step chaining.
 \end{itemize}
 
+\paragraph{Prototype operational metadata.}
+In the current B3 short-trace artifact format, local filesystem paths are not part of the persistent artifact contract. The Python benchmark and verifier still need paths to load the Merkle tree, the initial checkpoint, and the final checkpoint for hash recomputation, but these are supplied through runtime environment variables rather than stored inside \texttt{notes}. This distinction keeps benchmark reproducibility metadata separate from the statement fields that would eventually become public inputs or private witnesses in a proving backend.
+
 \paragraph{Implicit constants.}
 Some parameters are currently fixed by the implementation rather than exposed as public inputs: the fixed-point scale ($S = 1000$), discount factor ($\gamma_{\mathrm{fp}} = 990$), SmoothL1 beta ($\beta_{\mathrm{fp}} = 1000$), and the network architecture (MLP with layers $4 \to 128 \to 128 \to 2$). In a future proving circuit, these must either be hard-coded or made explicit public parameters.
 

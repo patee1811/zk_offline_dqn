@@ -60,11 +60,19 @@ This protocol serves two purposes. First, it reduces the risk of over-interpreti
 \subsection{Verification Experiments}
 \label{sec:verification-experiments}
 
-Beyond the offline RL baselines, we also evaluate the pre-ZK verification pipeline described in \Cref{sec:system-design}. The verification setup uses the Merkle-committed CartPole transition dataset, a trained offline DQN checkpoint with both online and target-network states, and artifact exporters/verifiers for three statement types: single-sample TD verification, minibatch TD verification, and one-step offline DQN SGD update verification.
+Beyond the offline RL baselines, we also evaluate the pre-ZK verification pipeline described in \Cref{sec:system-design}. The verification setup uses the Merkle-committed CartPole transition dataset, a trained offline DQN checkpoint with both online and target-network states, and artifact exporters/verifiers for four statement types: single-sample TD verification, minibatch TD verification, one-step offline DQN SGD update verification, and short-trace update verification.
 
 For the one-step update experiment, each run takes as input a committed minibatch specified by explicit indices, a fixed pre-update checkpoint, and a learning rate of $0.001$. The exporter constructs an artifact containing committed-minibatch membership data, TD witnesses, pre/post checkpoint hashes, parameter summaries, gradient tensors, and delta tensors. The verifier then checks all components described in \Cref{sec:verification-statements}.
 
 To obtain preliminary scaling behavior, we benchmark the one-step verifier across minibatch sizes $1, 2, 4, 8,$ and $16$, using fixed prefixes of the committed dataset indices. For each batch, we record the fixed-point batch loss, artifact export time, verification time, and the final verification outcome.
+
+For the short-trace experiment, each run composes consecutive one-step update statements over a declared sequence of committed minibatches. The current locked benchmark uses 8 update steps, target-network synchronization every two steps, and the deterministic contiguous sampling rule
+\[
+B_t = [s + tk,\; s + tk + 1,\; \ldots,\; s + tk + (k-1)],
+\]
+where $t$ is the step index, $k$ is the public batch size, and $s$ is the public start offset. The benchmark records artifact export time, verification time, initial and final checkpoint hashes, and the final verification outcome. After the B3 short-trace artifact cleanup, operational filesystem paths such as the Merkle path and checkpoint paths are supplied by the benchmark/runtime environment rather than stored in the persistent artifact.
+
+We also include a negative sanity check for the deterministic sampling rule. Starting from a valid short-trace artifact, we modify the public trace batch indices while leaving the underlying step witnesses unchanged. The expected result is rejection, because the public trace no longer matches the declared contiguous schedule.
 
 \subsection{Why This Setup Matters for Zero-Knowledge Verifiability}
 

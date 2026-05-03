@@ -12,6 +12,12 @@ for the current pre-ZK artifact/verifier prototype.
 
 The goal is to reduce ambiguity and prepare the statement for a future backend-ready design.
 
+Current implementation status:
+- the TD and one-step artifacts remain audit-oriented Python verifier artifacts;
+- the short-trace artifact has completed the B3 cleanup milestone;
+- short-trace local filesystem paths are no longer stored in persistent `notes`;
+- the short-trace verifier receives operational paths from the benchmark/runtime environment.
+
 ---
 
 ## 1. One-Step Update Artifact
@@ -136,7 +142,7 @@ Avoid storing the same semantic value in multiple places unless one copy is clea
 
 ---
 
-## 4. Immediate Cleanup Targets
+## 4. Cleanup Status
 
 ### One-step artifact
 - identify redundant hashes
@@ -144,24 +150,30 @@ Avoid storing the same semantic value in multiple places unless one copy is clea
 - identify duplicated loss-related values
 - identify path fields that are only for debugging
 
+Status:
+The one-step artifact has a working classification, but it still intentionally keeps audit-friendly fields such as parameter summaries, hashes, and debug values. These are useful for the Python prototype and should be revisited before translating the statement to a circuit or zkVM backend.
+
 ### Short-trace artifact
-- identify duplicated batch information
-- identify step-level fields that can be recomputed from public trace parameters
-- identify notes fields that should not be part of the core artifact contract
+- duplicated batch information has been reduced;
+- step-local filesystem paths have been removed;
+- `notes` no longer carries operational metadata;
+- target-sync checking now uses `steps[].sync_state_witness`;
+- final checkpoint path is supplied externally by the benchmark/verifier rather than stored in the artifact.
 
 ---
 
-## 5. Next Action After This Document
+## 5. Current Next Actions
 
-After this schema note is written, the next implementation step is:
+The immediate inspection and short-trace cleanup tasks have already been completed through the B3 milestone. The next schema work should be:
 
-1. inspect one real one-step artifact,
-2. inspect one real short-trace artifact,
-3. classify every field into:
-   - mandatory public,
-   - mandatory witness,
-   - optional debug,
-4. then update exporters so the artifact format becomes cleaner and more stable.
+1. finish the same cleanup pass for the one-step artifact,
+2. define a backend-ready schema that separates:
+   - public inputs,
+   - private witness values,
+   - prototype-only audit/debug fields,
+3. decide whether `notes` should remain as an empty compatibility key or be removed in a future breaking schema version,
+4. reduce raw tensor and floating-point dependence before moving to a proving backend,
+5. document how benchmark metadata differs from artifact metadata.
 
 ---
 
@@ -501,3 +513,26 @@ Prefer one canonical public location for trace batch identity:
 - `public.trace_batch_indices`
 
 Use nested one-step artifacts only when needed for witness composition or one-step consistency checking.
+
+---
+
+## 11. Benchmark Metadata vs Artifact Metadata
+
+The benchmark runner may record fields that are useful for reproducing a local run but are not part of the artifact contract.
+
+Current benchmark-only metadata includes:
+- `artifact_path`
+- `work_dir`
+- `final_checkpoint_path`
+- exporter stdout/stderr
+- verifier stdout/stderr
+- wall-clock export and verification timings
+
+Current short-trace verifier runtime inputs include:
+- `SHORT_TRACE_ARTIFACT_PATH`
+- `SHORT_TRACE_MERKLE_PATH`
+- `SHORT_TRACE_INITIAL_CHECKPOINT_PATH`
+- `SHORT_TRACE_FINAL_CHECKPOINT_PATH`
+
+Interpretation:
+These values are operational handles for the Python prototype. They help the benchmark rerun verification and recompute file hashes, but they should not be treated as persistent public inputs or private witness fields in the backend-ready statement.

@@ -432,11 +432,14 @@ The current implementation verifies:
 - parameter-delta consistency,
 - SGD update consistency.
 
+The repository also now implements short verified training traces in pre-ZK Python form. Those traces compose one-step checks with checkpoint chaining, explicit target-network synchronization semantics, deterministic contiguous sampling-rule enforcement, and rejection under sampling-rule mismatch.
+
 It still does **not** implement:
 
 - a true zero-knowledge backend,
-- multi-step proof composition,
-- full training-trace verification.
+- full training-trace verification from initialization to final selected checkpoint,
+- general replay-sampling correctness over a long run,
+- proof recursion or proof aggregation.
 
 ---
 
@@ -501,13 +504,13 @@ It still does **not** implement:
 
 Recommended wording for the current stage:
 
-> Our current system does not yet implement a full zero-knowledge proving backend. Instead, it realizes a pre-ZK artifact/verifier prototype for offline DQN training from committed data. The implemented prototype verifies committed-transition membership, Double-DQN-style Bellman target correctness, SmoothL1 TD loss correctness, batch-loss aggregation, and checkpoint anchoring, and further includes a stronger one-step SGD update prototype with gradient recomputation, parameter-delta, and update-consistency checks.
+> Our current system does not yet implement a full zero-knowledge proving backend. Instead, it realizes a pre-ZK artifact/verifier prototype for offline DQN training from committed data. The implemented prototype verifies committed-transition membership, Double-DQN-style Bellman target correctness, SmoothL1 TD loss correctness, batch-loss aggregation, and checkpoint anchoring. It further includes one-step SGD update verification with gradient recomputation, parameter-delta, and update-consistency checks, plus short-trace verification with checkpoint chaining, target-network synchronization semantics, deterministic contiguous sampling-rule enforcement, and rejection under sampling-rule mismatch.
 
 ---
 
 ## 15. Summary
 
-The repository currently realizes two connected statement layers.
+The repository currently realizes four connected statement layers.
 
 ### 15.1 MVP Layer
 
@@ -524,9 +527,19 @@ This is the current bridge between:
 - step-level update verification,
 - and a future zero-knowledge proof backend.
 
-## 16. Next Stronger Statement: Short Verified Training Trace
+### 15.3 Short-Trace Layer
 
-The next research milestone after the current one-step update prototype is a short verified training trace.
+> From a committed offline transition dataset, declared trace minibatches, and an initial checkpoint hash, verify a short sequence of offline DQN SGD update steps, including nested one-step correctness, checkpoint chaining, target-network synchronization semantics, and final checkpoint anchoring.
+
+### 15.4 Deterministic Sampling-Rule Layer
+
+> For the current locked benchmark, verify that the declared trace minibatches follow a public contiguous deterministic schedule parameterized by `sampling_rule_type`, `batch_size`, and `start_offset`, with rejection when the public trace batches are tampered.
+
+The current B3 short-trace artifact cleanup also separates persistent artifact data from benchmark/runtime metadata: operational Merkle and checkpoint paths are no longer stored in short-trace `notes`.
+
+## 16. Implemented Stronger Statement: Short Verified Training Trace
+
+The short verified training trace is now implemented in pre-ZK Python form.
 
 Instead of verifying only one offline DQN SGD update step, this stronger statement verifies a small sequence of consecutive update steps, together with checkpoint chaining and an explicit target-network synchronization rule.
 
@@ -547,12 +560,13 @@ to:
 
 The purpose of this statement is to bridge the gap between one-step update verification and a future proof of a longer training process.
 
-### 16.2 Scope of the First Short-Trace Prototype
+### 16.2 Current Scope of the Short-Trace Prototype
 
-To keep the trace prototype feasible, the first version should use the smallest practical setting:
+To keep the trace prototype feasible, the current implemented version uses:
 
-- `num_steps = 2` or `num_steps = 4`
-- fixed batch indices provided explicitly for each step
+- `num_steps = 2`, `num_steps = 4`, and the locked `num_steps = 8` benchmark setting
+- trace batch indices declared publicly
+- deterministic contiguous schedule checks for the current locked benchmark
 - fixed optimizer: SGD
 - fixed loss type: SmoothL1
 - fixed Bellman target rule: Double DQN target-net-at-online-argmax
@@ -634,17 +648,20 @@ Even this stronger short-trace statement would still not verify:
 - proof recursion or proof aggregation
 - a true zero-knowledge backend
 
-### 16.8 Recommended Artifact Structure
+### 16.8 Current Artifact Structure
 
-A pre-ZK artifact for a short verified trace should contain:
+A pre-ZK artifact for a short verified trace currently contains:
 
 - `public`
   - `dataset_root`
   - `trace_batch_indices`
   - `num_steps`
+  - `batch_size`
   - `loss_type`
   - `optimizer_type`
   - `learning_rate_fp`
+  - `sampling_rule_type`
+  - `start_offset`
   - `target_sync_every`
   - `initial_checkpoint_sha256`
   - `final_checkpoint_sha256`
@@ -652,25 +669,26 @@ A pre-ZK artifact for a short verified trace should contain:
 - `steps`
   - `step_index`
   - `input_checkpoint_sha256`
-  - `output_checkpoint_sha256`
+  - `raw_output_checkpoint_sha256`
+  - `next_checkpoint_sha256`
   - `target_sync_applied`
-  - `items`
-  - `update_witness`
+  - `sync_state_witness`
+  - `one_step_artifact`
 
 - `notes`
-  - statement scope
-  - checkpoint path hints for debugging
-  - limitations
+  - empty compatibility object after B3 cleanup
+
+Operational paths such as the Merkle path, initial checkpoint path, and final checkpoint path are supplied externally by the benchmark/runtime environment rather than stored in persistent `notes`.
 
 ### 16.9 Research Interpretation
 
-This short-trace milestone would move the project from:
+This short-trace milestone moves the project from:
 
 - verified TD arithmetic,
 - to verified one-step update consistency,
 - to a verified short training process.
 
-That is the most natural next step before attempting either multi-step large-trace verification or a true zero-knowledge proof backend.
+The next step is no longer the first short trace. It is longer trace composition, stronger sampling rules, backend-ready witness design, and eventually a true zero-knowledge proof backend.
 
 ---
 
@@ -768,8 +786,8 @@ Current evidence includes both:
 
 In research terms, this upgrades the current short-trace statement from:
 
-- “verify this declared trace”
+- "verify this declared trace"
 
 to:
 
-- “verify this declared trace, and also verify that its minibatches follow a declared public sampling rule, with rejection on mismatch.”
+- "verify this declared trace, and also verify that its minibatches follow a declared public sampling rule, with rejection on mismatch."

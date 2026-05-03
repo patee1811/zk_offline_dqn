@@ -64,10 +64,14 @@ The project is beyond the proposal stage and currently includes:
   - explicit target-network synchronization semantics,
   - deterministic contiguous sampling-rule enforcement,
   - negative rejection under sampling-rule mismatch.
+- the B3 short-trace artifact cleanup milestone:
+  - persistent `notes` no longer stores local operational paths,
+  - the verifier receives Merkle/checkpoint paths from the benchmark/runtime environment,
+  - benchmark-only metadata is kept separate from the artifact schema.
 
 This repository should currently be described as:
 
-> **a pre-ZK artifact/verifier prototype for committed-data membership, TD-arithmetic correctness, one-step update consistency, short verified training traces, and deterministic short-trace sampling-rule enforcement**
+> **a pre-ZK artifact/verifier prototype for committed-data membership, TD-arithmetic correctness, one-step update consistency, short verified training traces, deterministic short-trace sampling-rule enforcement, and backend-oriented short-trace artifact cleanup**
 
 —not yet as a full proof-of-training system.
 
@@ -166,25 +170,27 @@ This negative sanity check is important because it shows that the verifier indep
 
 The current repository-level benchmark milestone is the locked 8-step short-trace benchmark with deterministic sampling-rule enforcement.
 
+Snapshot refreshed on 2026-05-02 from `artifacts/benchmarks/short_trace_update/summary.json`.
+
 ### Run 0
 - `start_offset = 0`
 - `batch_size = 4`
-- `export_time_sec = 22.9605`
-- `verify_time_sec = 13.2738`
+- `export_time_sec = 21.9907`
+- `verify_time_sec = 13.4818`
 - `verification_passed = True`
 
 ### Run 1
 - `start_offset = 32`
 - `batch_size = 4`
-- `export_time_sec = 22.7696`
-- `verify_time_sec = 13.7361`
+- `export_time_sec = 23.2580`
+- `verify_time_sec = 13.6440`
 - `verification_passed = True`
 
 ### Run 2
 - `start_offset = 0`
 - `batch_size = 8`
-- `export_time_sec = 21.9691`
-- `verify_time_sec = 12.9388`
+- `export_time_sec = 22.4650`
+- `verify_time_sec = 14.0169`
 - `verification_passed = True`
 
 The full locked snapshot is documented in:
@@ -279,7 +285,9 @@ zk_offline_dqn/
 │       └── check_real_transition.py
 │
 ├── docs/
-│   └── current_benchmark_snapshot.md    # Locked short-trace benchmark milestone
+│   ├── artifact_schema.md               # Current artifact field classification and B3 cleanup notes
+│   ├── current_benchmark_snapshot.md    # Locked short-trace benchmark milestone
+│   └── one_step_field_classification.md # One-step artifact field classification
 │
 ├── paper/                               # LaTeX draft
 ├── data/                                # Datasets (git-ignored)
@@ -459,10 +467,16 @@ python scripts/artifacts_export/export_short_trace_update_artifact.py \
 ```
 
 ```bash
-# Uses SHORT_TRACE_ARTIFACT_PATH if set; otherwise uses the default path inside the verifier
+# Current B3 short-trace artifacts do not store local paths in notes.
+# Use the final_checkpoint_path printed by the exporter.
 export SHORT_TRACE_ARTIFACT_PATH=artifacts/short_trace_artifact.json
+export SHORT_TRACE_MERKLE_PATH=artifacts/cartpole_dqn_eps010_merkle.json
+export SHORT_TRACE_INITIAL_CHECKPOINT_PATH=models/offline_dqn_with_target_seed42_best.pt
+export SHORT_TRACE_FINAL_CHECKPOINT_PATH=artifacts/short_trace_work/<printed-final-checkpoint>.pt
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 ```
+
+The benchmark runner performs this wiring automatically: it parses the exporter output, sets the verifier environment variables, and records the final checkpoint path in benchmark metadata rather than inside the artifact.
 
 ### Stage 9: Run the locked short-trace benchmark
 
@@ -480,6 +494,8 @@ This benchmark currently covers:
 - 8-step trace, `batch_size = 4`, `start_offset = 0`
 - 8-step trace, `batch_size = 4`, `start_offset = 32`
 - 8-step trace, `batch_size = 8`, `start_offset = 0`
+
+The benchmark summary includes `final_checkpoint_path` for reproducibility. That field is benchmark metadata only; the short-trace artifact itself keeps `notes` empty after B3 cleanup.
 
 ### Stage 10: Negative sanity check for sampling-rule rejection
 
@@ -505,6 +521,9 @@ python -c "import json; p='artifacts/short_trace_negative_test_valid.json'; q='a
 ```bash
 # Verify the tampered artifact; expected outcome: verification_passed = False
 export SHORT_TRACE_ARTIFACT_PATH=artifacts/short_trace_negative_test_tampered.json
+export SHORT_TRACE_MERKLE_PATH=artifacts/cartpole_dqn_eps010_merkle.json
+export SHORT_TRACE_INITIAL_CHECKPOINT_PATH=models/offline_dqn_with_target_seed42_best.pt
+export SHORT_TRACE_FINAL_CHECKPOINT_PATH=artifacts/short_trace_negative_test_work/<printed-final-checkpoint>.pt
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 ```
 
@@ -545,6 +564,8 @@ The stronger short-trace prototype additionally checks:
 - explicit target-network synchronization behavior,
 - deterministic contiguous sampling-rule enforcement with public `sampling_rule_type`, `start_offset`, and `batch_size`,
 - final checkpoint consistency across the full short trace.
+
+After B3 cleanup, the short-trace artifact no longer stores operational paths such as the Merkle file path, initial checkpoint path, or final checkpoint path in `notes`. The Python verifier receives those paths through environment variables, while the persistent artifact keeps only the statement data and witness structure.
 
 This makes the current repository substantially closer to real offline Double DQN training semantics than a purely symbolic arithmetic demo.
 
@@ -617,16 +638,17 @@ Typical generated files include:
 
 ## Recommended Next Technical Milestone
 
-The next milestone after the current locked short-trace sampling-rule milestone is:
+The next milestone after the current locked short-trace sampling-rule and B3 cleanup milestones is:
 
-> **artifact schema cleanup and backend-ready statement design**
+> **one-step schema cleanup plus backend-ready statement design**
 
 The most natural directions are:
 
-1. **Clean up artifact schema**
+1. **Finish artifact schema cleanup**
+   - apply the same cleanup discipline to the one-step artifact,
    - separate mandatory public inputs from optional debug fields,
    - separate private witness fields from audit convenience fields,
-   - define a cleaner short-trace artifact schema,
+   - keep benchmark metadata distinct from persistent artifact metadata,
    - reduce statement ambiguity before moving to a proving backend.
 
 2. **Strengthen sampling rules**

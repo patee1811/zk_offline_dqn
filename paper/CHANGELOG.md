@@ -1,5 +1,18 @@
 # Paper Restructuring Walkthrough
 
+## Current Documentation Sync - 2026-05-02
+
+The manuscript has been synchronized with the current repository state:
+
+- short verified traces are now described as implemented for 2-step, 4-step, and 8-step settings;
+- the locked 8-step short-trace benchmark numbers match `docs/current_benchmark_snapshot.md`;
+- deterministic contiguous sampling-rule enforcement is described as implemented and tested;
+- the negative sampling-rule tamper check is described as a current verifier rejection test;
+- the B3 short-trace artifact cleanup is documented: operational Merkle/checkpoint paths are supplied by the runtime/benchmark rather than stored in persistent `notes`;
+- export/verify timings are explicitly framed as Python pre-ZK artifact/verifier timings, not cryptographic proving times.
+
+The older notes below are historical restructuring notes. They are not the canonical source for the current technical milestone; use `paper/README.md`, `docs/current_benchmark_snapshot.md`, and `docs/artifact_schema.md` for current status.
+
 ## Summary of Changes
 
 The paper `main.tex` and all section files were restructured and enhanced to conform to academic journal standards for computer science / engineering venues.
