@@ -33,7 +33,7 @@ At the current stage, the repository verifies:
 7. **One-step SGD update consistency** — for a fixed committed minibatch, the verifier checks gradient recomputation, parameter-delta consistency, and the SGD update rule.
 8. **Short verified training traces** — multiple verified one-step updates can be chained into short traces with checkpoint chaining and explicit target-network synchronization semantics.
 9. **Short-trace boundary anchoring** — initial/final trace checkpoints are anchored by both file SHA-256 hashes and canonical model-state commitments.
-10. **Deterministic short-trace sampling-rule enforcement** — the short-trace benchmark enforces a declared contiguous deterministic sampling rule with public `batch_size` and `start_offset`.
+10. **Deterministic short-trace sampling-rule enforcement** — the short-trace verifier supports both contiguous deterministic sampling and seeded-permutation sampling with public replay metadata.
 11. **Artifact schema-version checks** — main artifacts include explicit `schema_version` fields, and verifiers reject stale or incompatible artifacts before reading statement fields.
 12. **Negative verification tests** — the repository includes tamper tests showing that invalid artifacts are rejected.
 
@@ -77,6 +77,7 @@ The project is beyond the proposal stage and currently includes:
   - initial/final trace-boundary canonical model-state commitment checking;
   - explicit target-network synchronization semantics;
   - deterministic contiguous sampling-rule enforcement;
+  - seeded-permutation sampling-rule enforcement;
   - rejection under sampling-rule mismatch;
 - negative verification tests for:
   - tampered TD loss;
@@ -207,14 +208,39 @@ Because the short-trace verifier calls the one-step verifier internally, strengt
 
 ### 5. Deterministic Sampling-Rule Enforcement
 
-The current short-trace benchmark enforces:
+The current short-trace verifier supports two deterministic sampling rules.
 
-> **deterministic contiguous sampling with public `batch_size` and `start_offset`**
+#### Contiguous deterministic sampling
+
+```text
+sampling_rule_type = contiguous_deterministic
+```
 
 For step index `t`, batch size `k`, and start offset `s`, the expected batch is:
 
 ```text
 B_t = [s + t*k, s + t*k + 1, ..., s + t*k + (k-1)]
+```
+
+#### Seeded permutation sampling
+
+```text
+sampling_rule_type = seeded_permutation
+```
+
+For seeded permutation sampling, the public sampling metadata includes:
+
+```text
+sampling_seed
+dataset_size
+batch_size
+num_steps
+```
+
+The verifier reconstructs the same pseudorandom permutation from `sampling_seed`, slices it into minibatches, and checks that:
+
+```text
+trace_batch_indices == expected_batches_from_seed
 ```
 
 This strengthens the statement from:
@@ -223,7 +249,7 @@ This strengthens the statement from:
 
 to:
 
-> “the provided minibatch is valid, was chosen according to a declared public rule, and the update trace is correct.”
+> “the provided minibatch is valid, was chosen according to a declared reproducible sampling rule, and the update trace is correct.”
 
 ---
 
@@ -440,8 +466,8 @@ The current repository still does **not** verify:
 
 More precisely:
 
-- **already enforced now:** deterministic contiguous sampling for the current short-trace benchmark;
-- **not yet enforced generally:** replay-sampling correctness for richer or more realistic sampling rules over a full training run;
+- **already enforced now:** deterministic contiguous sampling and seeded-permutation sampling for short traces;
+- **not yet enforced generally:** prioritized replay, stochastic replay with full RNG-state modeling, or replay correctness over a full long training run;
 - **already checked in Python:** TD arithmetic, canonical model-state anchoring, forward TD consistency, one-step SGD update consistency, short-trace boundary commitment checking, and short-trace chaining;
 - **not yet proven in ZK:** the same relations inside a zkVM, SNARK, or custom circuit.
 
@@ -727,6 +753,15 @@ verification_passed = True
 
 ### Stage 9: Export and Verify Short Training Traces
 
+The short-trace exporter currently supports two deterministic sampling rules:
+
+```text
+contiguous_deterministic
+seeded_permutation
+```
+
+#### Option A: Contiguous deterministic sampling
+
 ```bash
 python scripts/artifacts_export/export_short_trace_update_artifact.py \
     --data data/cartpole_dqn_eps010_transitions.pkl \
@@ -741,7 +776,41 @@ python scripts/artifacts_export/export_short_trace_update_artifact.py \
     --out artifacts/short_trace_artifact.json
 ```
 
-The exporter prints a `final_checkpoint_path`. Use it in the verifier:
+#### Option B: Seeded-permutation sampling
+
+```bash
+python scripts/artifacts_export/export_short_trace_update_artifact.py \
+    --data data/cartpole_dqn_eps010_transitions.pkl \
+    --merkle artifacts/cartpole_dqn_eps010_merkle.json \
+    --checkpoint models/offline_dqn_with_target_seed42_best.pt \
+    --trace-batches-json "[[19,5,14,4],[9,13,15,18]]" \
+    --lr 0.001 \
+    --target-sync-every 2 \
+    --sampling-rule-type seeded_permutation \
+    --sampling-seed 42 \
+    --dataset-size 20 \
+    --work-dir artifacts/short_trace_seeded_work \
+    --out artifacts/short_trace_seeded_artifact.json
+```
+
+For `seeded_permutation`, the verifier reconstructs the deterministic permutation from:
+
+```text
+sampling_seed
+dataset_size
+batch_size
+num_steps
+```
+
+and checks that the public `trace_batch_indices` match the expected batches.
+
+---
+
+#### Verify the exported short trace
+
+The exporter prints a `final_checkpoint_path`. Use that path in the verifier.
+
+For Linux/macOS:
 
 ```bash
 export SHORT_TRACE_ARTIFACT_PATH=artifacts/short_trace_artifact.json
@@ -752,14 +821,7 @@ export SHORT_TRACE_FINAL_CHECKPOINT_PATH=artifacts/short_trace_work/<printed-fin
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 ```
 
-Expected output includes:
-
-```text
-short_trace_canonical_boundary_commitments_ok = True
-verification_passed = True
-```
-
-PowerShell equivalent:
+For PowerShell:
 
 ```powershell
 $env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_artifact.json"
@@ -768,6 +830,25 @@ $env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_
 $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/<printed-final-checkpoint>.pt"
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
+```
+
+For the seeded example, use the seeded artifact and its printed final checkpoint path:
+
+```powershell
+$env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_seeded_artifact.json"
+$env:SHORT_TRACE_MERKLE_PATH="artifacts/cartpole_dqn_eps010_merkle.json"
+$env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_best.pt"
+$env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+```
+
+Expected output includes:
+
+```text
+all_sampling_rule_ok = True
+short_trace_canonical_boundary_commitments_ok = True
+verification_passed = True
 ```
 
 ---
@@ -1069,24 +1150,19 @@ To reproduce the experiments, run the dataset generation and training scripts ab
 
 The strongest next milestones are:
 
-### 1. Seeded Deterministic Sampling
+### 1. Short-Trace Negative Test Runner
 
-The current short-trace sampling rule is contiguous deterministic sampling. A stronger next step is to support:
+The next useful engineering milestone is to formalize short-trace negative tests in a script, similar to the minibatch TD negative-test runner.
 
-```text
-sampling_rule_type = seeded_permutation
-```
+The short-trace negative-test runner should include cases such as:
 
-with public:
-
-```text
-sampling_seed
-dataset_size
-batch_size
-num_steps
-```
-
-This would make the sampling rule more realistic while still keeping the sampled minibatches reproducible and verifier-checkable.
+- valid contiguous trace is accepted;
+- valid seeded-permutation trace is accepted;
+- tampered contiguous public batch is rejected;
+- tampered seeded public batch is rejected;
+- tampered sampling seed is rejected;
+- tampered dataset size is rejected;
+- tampered final checkpoint commitment is rejected.
 
 ### 2. One-Step Artifact Schema Cleanup
 
