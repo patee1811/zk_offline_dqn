@@ -258,6 +258,7 @@ def compute_td_witness(
     return {
         "td_witness": {
             "q_online_fp": q_online_fp,
+            "next_action_online": next_action_online,
             "q_target_max_fp": q_target_max_fp,
             "target_fp": target_fp,
             "loss_fp": loss_fp,
