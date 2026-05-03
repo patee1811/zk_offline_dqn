@@ -30,12 +30,13 @@ At the current stage, the repository verifies:
 4. **Batch-level loss integrity** — the reported minibatch average loss matches the recomputed value.
 5. **Checkpoint and model-state anchoring** — checkpoint files are tied to public file SHA-256 hashes, and online/target network state dictionaries are tied to canonical tensor-content SHA-256 commitments.
 6. **Forward TD consistency** — TD witness values are checked against actual neural-network forward semantics from the checkpoint.
-7. **One-step SGD update consistency** — for a fixed committed minibatch, the verifier checks gradient recomputation, parameter-delta consistency, and the SGD update rule.
-8. **Short verified training traces** — multiple verified one-step updates can be chained into short traces with checkpoint chaining and explicit target-network synchronization semantics.
-9. **Short-trace boundary anchoring** — initial/final trace checkpoints are anchored by both file SHA-256 hashes and canonical model-state commitments.
-10. **Deterministic short-trace sampling-rule enforcement** — the short-trace verifier supports both contiguous deterministic sampling and seeded-permutation sampling with public replay metadata.
-11. **Artifact schema-version checks** — main artifacts include explicit `schema_version` fields, and verifiers reject stale or incompatible artifacts before reading statement fields.
-12. **Negative verification tests** — the repository includes tamper tests showing that invalid artifacts are rejected.
+7. **One-step SGD update consistency** — for a fixed committed minibatch, the verifier checks TD forward semantics, gradient recomputation, parameter-delta consistency, and the SGD update rule.
+8. **One-step Double-DQN action/value selection** — one-step TD witnesses include `next_action_online`, and the verifier recomputes both `argmax_a Q_online(s')` and `Q_target(s')[next_action_online]` from the pre-update checkpoint.
+9. **Short verified training traces** — multiple verified one-step updates can be chained into short traces with checkpoint chaining and explicit target-network synchronization semantics.
+10. **Short-trace boundary anchoring** — initial/final trace checkpoints are anchored by both file SHA-256 hashes and canonical model-state commitments.
+11. **Deterministic short-trace sampling-rule enforcement** — the short-trace verifier supports both contiguous deterministic sampling and seeded-permutation sampling with public replay metadata.
+12. **Artifact schema-version checks** — main artifacts include explicit `schema_version` fields, and verifiers reject stale or incompatible artifacts before reading statement fields.
+13. **Negative verification tests** — the repository includes tamper tests showing that invalid artifacts are rejected.
 
 All TD-artifact arithmetic is represented in **fixed-point integer form** to make verification deterministic and more compatible with future proof-system backends.
 
@@ -66,6 +67,9 @@ The project is beyond the proposal stage and currently includes:
   - pre-update and post-update checkpoint anchoring;
   - canonical pre/post online-network state-dict commitment checking;
   - canonical pre/post target-network state-dict commitment checking;
+  - one-step TD witness checking for `next_action_online`;
+  - one-step checking of `argmax_a Q_online(s')`;
+  - one-step checking of `Q_target(s')[next_action_online]`;
   - gradient recomputation consistency;
   - parameter-delta consistency;
   - SGD update consistency;
@@ -85,11 +89,17 @@ The project is beyond the proposal stage and currently includes:
   - tampered checkpoint hash;
   - tampered online state-dict commitment;
   - tampered leaf hash;
-  - tampered Merkle path.
+  - tampered Merkle path;
+  - tampered contiguous trace batches;
+  - tampered seeded trace batches;
+  - tampered sampling seed;
+  - tampered dataset size;
+  - tampered final checkpoint hash;
+  - tampered final online state-dict commitment.
 
 This repository should currently be described as:
 
-> **a pre-ZK artifact/verifier prototype for committed-data membership, TD-arithmetic correctness, canonical model-state anchoring, forward TD consistency, one-step update consistency, short verified training traces, trace-boundary commitment checking, deterministic short-trace sampling-rule enforcement, artifact schema-version checks, and negative tamper tests**
+> **a pre-ZK artifact/verifier prototype for committed-data membership, TD-arithmetic correctness, canonical model-state anchoring, forward TD consistency, one-step update consistency, one-step Double-DQN action/value-selection checking, short verified training traces, trace-boundary commitment checking, deterministic short-trace sampling-rule enforcement, artifact schema-version checks, and negative tamper tests**
 
 It should **not** yet be described as a full zero-knowledge proof-of-training system.
 
@@ -165,6 +175,17 @@ For a fixed minibatch drawn from the committed dataset, the one-step artifact/ve
 - consistency of canonical pre/post online-network state-dict commitments;
 - consistency of canonical pre/post target-network state-dict commitments;
 - consistency of the pre-update and post-update online-network states;
+- one-step TD witness consistency for:
+  - `next_action_online`;
+  - `q_target_max_fp`;
+- recomputation of:
+
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
+
+from the pre-update checkpoint;
 - invariance of the target network during the one-step statement;
 - gradient recomputation consistency;
 - parameter-delta consistency;
@@ -172,6 +193,15 @@ For a fixed minibatch drawn from the committed dataset, the one-step artifact/ve
 
 ```text
 w' = w - lr * g
+```
+
+Expected one-step verifier output includes:
+
+```text
+next_action_match=True
+q_target_max_match=True
+one_step_canonical_commitments_ok = True
+verification_passed = True
 ```
 
 Important limitation:
@@ -194,7 +224,8 @@ For a sequence of committed minibatches, the short-trace pipeline checks:
 - declared target-network synchronization semantics;
 - initial/final checkpoint anchoring;
 - initial/final canonical model-state commitment checking;
-- deterministic contiguous sampling-rule consistency.
+- deterministic contiguous sampling-rule consistency;
+- seeded-permutation sampling-rule consistency.
 
 The current short-trace benchmark has been run successfully for:
 
@@ -257,11 +288,24 @@ to:
 
 The verifier does not only accept valid artifacts. It also rejects tampered artifacts.
 
-The repository contains a negative-test runner:
+The repository includes a minibatch TD negative-test runner:
 
 ```text
 scripts/experiments/run_negative_verification_tests.py
 ```
+
+It starts from a valid minibatch TD artifact and checks that the verifier accepts the valid artifact while rejecting tampered variants.
+
+| Case | Expected Result | Reason |
+|---|---:|---|
+| `valid_control` | accept | unchanged valid minibatch TD artifact |
+| `tamper_loss_fp` | reject | recomputed SmoothL1 TD loss no longer matches the witness |
+| `tamper_reward` | reject | Bellman target and TD loss no longer match the transition |
+| `tamper_checkpoint_sha256` | reject | public checkpoint hash no longer matches the checkpoint file |
+| `tamper_online_state_dict_sha256` | reject | public online-network state-dict commitment no longer matches the canonical checkpoint tensor contents |
+| `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
+| `tamper_merkle_path` | reject | Merkle membership proof no longer reconstructs the public dataset root |
+
 The repository also includes a short-trace negative-test runner:
 
 ```text
@@ -280,25 +324,14 @@ It checks both valid and tampered short-trace artifacts.
 | `tamper_dataset_size` | reject | public dataset size no longer reconstructs the declared seeded batches |
 | `tamper_final_checkpoint_sha256` | reject | public final checkpoint file hash no longer matches the final checkpoint |
 | `tamper_final_online_state_dict_sha256` | reject | final online-network state-dict commitment no longer matches the final checkpoint tensor contents |
-```
-
-It starts from a valid minibatch TD artifact and checks that the verifier accepts the valid artifact while rejecting tampered variants.
-
-| Case | Expected Result | Reason |
-|---|---:|---|
-| `valid_control` | accept | unchanged valid artifact |
-| `tamper_loss_fp` | reject | recomputed SmoothL1 TD loss no longer matches the witness |
-| `tamper_reward` | reject | Bellman target and TD loss no longer match the transition |
-| `tamper_checkpoint_sha256` | reject | public checkpoint hash no longer matches the checkpoint file |
-| `tamper_online_state_dict_sha256` | reject | public online-network state-dict commitment no longer matches the canonical checkpoint tensor contents |
-| `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
-| `tamper_merkle_path` | reject | Merkle membership proof no longer reconstructs the public dataset root |
 
 These tests are important because they show that the verifier rejects:
 
 - arithmetic tampering;
 - checkpoint/model-state anchoring tampering;
-- committed-data membership tampering.
+- committed-data membership tampering;
+- short-trace sampling-rule tampering;
+- short-trace boundary-commitment tampering.
 
 ---
 
@@ -473,8 +506,8 @@ The current repository still does **not** verify:
 
 - that the final published checkpoint came from a full correct training trace from initialization;
 - general replay-sampling correctness across a long run;
-- seeded pseudorandom replay correctness;
 - prioritized replay correctness;
+- stochastic replay with full RNG-state modeling;
 - long-horizon target-network synchronization guarantees;
 - model selection;
 - early stopping;
@@ -487,7 +520,7 @@ More precisely:
 
 - **already enforced now:** deterministic contiguous sampling and seeded-permutation sampling for short traces;
 - **not yet enforced generally:** prioritized replay, stochastic replay with full RNG-state modeling, or replay correctness over a full long training run;
-- **already checked in Python:** TD arithmetic, canonical model-state anchoring, forward TD consistency, one-step SGD update consistency, short-trace boundary commitment checking, and short-trace chaining;
+- **already checked in Python:** TD arithmetic, canonical model-state anchoring, forward TD consistency, one-step SGD update consistency, one-step next-action/value-selection checking, short-trace boundary commitment checking, and short-trace chaining;
 - **not yet proven in ZK:** the same relations inside a zkVM, SNARK, or custom circuit.
 
 ---
@@ -501,7 +534,8 @@ zk_offline_dqn/
 │   ├── zk_specs.py
 │   ├── artifact_export_utils.py
 │   ├── artifact_schema_versions.py
-│   └── commitments.py
+│   ├── commitments.py
+│   └── sampling_rules.py
 │
 ├── scripts/
 │   ├── training/
@@ -550,7 +584,8 @@ zk_offline_dqn/
 │   ├── experiments/
 │   │   ├── benchmark_one_step_update.py
 │   │   ├── benchmark_short_trace_update.py
-│   │   └── run_negative_verification_tests.py
+│   │   ├── run_negative_verification_tests.py
+│   │   └── run_short_trace_negative_tests.py
 │   │
 │   └── zk_proofs/
 │       ├── build_leaf_hashes.py
@@ -764,6 +799,8 @@ python scripts/artifacts_export/verify_one_step_update_artifact.py
 Expected output includes:
 
 ```text
+next_action_match=True
+q_target_max_match=True
 one_step_canonical_commitments_ok = True
 verification_passed = True
 ```
@@ -959,6 +996,8 @@ The summary is written to:
 artifacts/short_trace_negative_tests/summary.csv
 ```
 
+---
+
 ### Stage 13: Manual Short-Trace Sampling-Rule Tamper Check
 
 Export a valid short-trace artifact:
@@ -1038,7 +1077,13 @@ $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/step_1_post_s
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
+$env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_seeded_artifact.json"
+$env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+
 python scripts/experiments/run_negative_verification_tests.py
+python scripts/experiments/run_short_trace_negative_tests.py
 ```
 
 Expected key outputs:
@@ -1046,8 +1091,11 @@ Expected key outputs:
 ```text
 verification_passed = True
 all_forward_ok = True
+next_action_match=True
+q_target_max_match=True
 one_step_canonical_commitments_ok = True
 short_trace_canonical_boundary_commitments_ok = True
+all_sampling_rule_ok = True
 all_tests_passed = True
 ```
 
@@ -1072,6 +1120,9 @@ The one-step update prototype additionally checks:
 - consistency between the committed minibatch and the recomputed training loss;
 - consistency between pre/post checkpoint file hashes and checkpoint files;
 - consistency between pre/post canonical model-state commitments and checkpoint tensor contents;
+- one-step TD forward consistency:
+  - `next_action_online` matches `argmax_a Q_online(s')`;
+  - `q_target_max_fp` matches `Q_target(s')[next_action_online]`;
 - consistency between recomputed gradients and stored gradient tensors;
 - consistency between parameter deltas and actual pre/post online-network states;
 - consistency of the SGD rule:
@@ -1090,6 +1141,7 @@ The short-trace prototype additionally checks:
 - initial/final canonical model-state commitment checking;
 - explicit target-network synchronization behavior;
 - deterministic contiguous sampling-rule enforcement with public `sampling_rule_type`, `start_offset`, and `batch_size`;
+- seeded-permutation sampling-rule enforcement with public `sampling_seed`, `dataset_size`, `batch_size`, and `num_steps`;
 - final checkpoint consistency across the full short trace.
 
 The current implementation is a Python-level pre-ZK verifier. In a future true ZK backend, the same public inputs and private witness relations would be represented inside a zkVM, SNARK, or custom circuit.
@@ -1150,6 +1202,8 @@ This layer verifies:
 - one offline DQN SGD update step from a committed minibatch;
 - pre/post checkpoint consistency;
 - pre/post canonical model-state commitment consistency;
+- one-step `next_action_online` consistency;
+- one-step `q_target_max_fp` consistency;
 - gradient recomputation consistency;
 - parameter-delta consistency;
 - SGD update consistency.
@@ -1168,8 +1222,9 @@ This layer verifies:
 This layer verifies:
 
 - a declared contiguous deterministic batch schedule;
-- public `sampling_rule_type`, `start_offset`, and `batch_size`;
-- rejection of tampered public trace batches.
+- a declared seeded-permutation batch schedule;
+- public `sampling_rule_type`, `start_offset`, `sampling_seed`, `dataset_size`, and `batch_size`;
+- rejection of tampered public trace batches or sampling metadata.
 
 ---
 
@@ -1234,10 +1289,13 @@ Private witness:
 - transition
 - Merkle path
 - q_online_fp
+- next_action_online
 - q_target_max_fp
 
 Relation:
 - transition belongs to committed dataset
+- next_action_online is selected by the online network
+- target value is selected from the target network using next_action_online
 - Bellman target is computed correctly
 - SmoothL1 TD loss is computed correctly
 ```
@@ -1261,10 +1319,11 @@ The strongest current claims are:
 3. checkpoint and canonical model-state anchoring;
 4. forward consistency between artifacts and neural-network checkpoints;
 5. one-step SGD update consistency;
-6. short verified update traces;
-7. trace-boundary commitment verification;
-8. sampling-rule enforcement;
-9. systematic rejection of tampered artifacts.
+6. one-step Double-DQN action/value-selection consistency;
+7. short verified update traces;
+8. trace-boundary commitment verification;
+9. deterministic sampling-rule enforcement;
+10. systematic rejection of tampered artifacts.
 
 ---
 

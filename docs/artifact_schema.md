@@ -80,7 +80,31 @@ post_online_state_dict_sha256
 post_target_state_dict_sha256
 ```
 
-The one-step verifier recomputes these commitments from the pre/post checkpoints and checks:
+The one-step TD witness now includes:
+
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+target_fp
+loss_fp
+```
+
+The one-step verifier recomputes `next_action_online` and `q_target_max_fp` from the pre-update checkpoint:
+
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
+
+Expected one-step verifier output includes:
+
+```text
+next_action_match=True
+q_target_max_match=True
+```
+
+The one-step verifier also recomputes these commitments from the pre/post checkpoints and checks:
 
 ```text
 pre_online_state_dict_sha256
@@ -89,7 +113,7 @@ post_online_state_dict_sha256
 post_target_state_dict_sha256
 ```
 
-This makes the one-step statement more explicit: the verifier anchors both the checkpoint files and the canonical tensor contents of the online/target networks before and after the SGD update.
+This makes the one-step statement more explicit: the verifier anchors both the checkpoint files and the canonical tensor contents of the online/target networks before and after the SGD update, while also checking the Double-DQN action-selection/value-selection relation inside the one-step TD witness.
 
 Because the short-trace verifier calls the one-step verifier for each nested step, this also strengthens each one-step relation inside the current short-trace verifier.
 
@@ -245,7 +269,13 @@ $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/step_1_post_s
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
+$env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_seeded_artifact.json"
+$env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+
 python scripts/experiments/run_negative_verification_tests.py
+python scripts/experiments/run_short_trace_negative_tests.py
 ```
 
 Expected key outputs:
@@ -253,7 +283,11 @@ Expected key outputs:
 ```text
 verification_passed = True
 all_forward_ok = True
+next_action_match=True
+q_target_max_match=True
 one_step_canonical_commitments_ok = True
+short_trace_canonical_boundary_commitments_ok = True
+all_sampling_rule_ok = True
 all_tests_passed = True
 ```
 
@@ -276,6 +310,8 @@ Current implementation status:
 - the TD and one-step artifacts remain audit-oriented Python verifier artifacts;
 - the minibatch TD artifact now includes canonical checkpoint/model-state commitments;
 - the one-step artifact now includes canonical pre/post model-state commitments;
+- the one-step artifact now includes `next_action_online` as a core TD witness field;
+- the one-step verifier now checks both `next_action_online` and `q_target_max_fp` against the pre-update checkpoint networks;
 - the short-trace artifact has completed the B3 cleanup milestone;
 - short-trace local filesystem paths are no longer stored in persistent `notes`;
 - the short-trace verifier receives operational paths from the benchmark/runtime environment;
@@ -349,7 +385,31 @@ post_online_state_dict_sha256
 post_target_state_dict_sha256
 ```
 
-The one-step verifier recomputes these commitments from the pre/post checkpoints and checks:
+The current `one_step_update_v1` TD witness includes:
+
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+target_fp
+loss_fp
+```
+
+The one-step verifier recomputes the following values from the pre-update checkpoint networks:
+
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
+
+and checks:
+
+```text
+next_action_match=True
+q_target_max_match=True
+```
+
+The one-step verifier also recomputes canonical model-state commitments from the pre/post checkpoints and checks:
 
 ```text
 pre_online_state_dict_sha256
@@ -358,7 +418,7 @@ post_online_state_dict_sha256
 post_target_state_dict_sha256
 ```
 
-This makes the one-step statement more explicit: the verifier anchors both the checkpoint files and the canonical tensor contents of the online/target networks before and after the SGD update.
+This makes the one-step statement more explicit: the verifier anchors both the checkpoint files and the canonical tensor contents of the online/target networks before and after the SGD update, while also checking the Double-DQN action-selection/value-selection relation inside the one-step TD witness.
 
 Because the short-trace verifier calls the one-step verifier for each nested step, this also strengthens each one-step relation inside the current short-trace verifier.
 
@@ -374,7 +434,12 @@ These are values required to witness correctness but should conceptually remain 
 - serialized leaf representation;
 - leaf hash;
 - Merkle authentication path;
-- per-sample TD witness values.
+- per-sample TD witness values:
+  - `q_online_fp`;
+  - `next_action_online`;
+  - `q_target_max_fp`;
+  - `target_fp`;
+  - `loss_fp`.
 
 #### Update witness
 
@@ -420,7 +485,8 @@ The short-trace artifact currently embeds nested one-step artifacts and checks:
 - each one-step update relation;
 - checkpoint chaining;
 - target-network synchronization semantics;
-- deterministic contiguous sampling-rule enforcement.
+- deterministic contiguous sampling-rule enforcement;
+- seeded-permutation sampling-rule enforcement.
 
 ---
 
@@ -478,6 +544,8 @@ Therefore, the short-trace verifier currently inherits the following one-step ch
 
 - committed minibatch membership;
 - TD target and TD loss checking;
+- `next_action_online` checking;
+- `q_target_max_fp` checking;
 - batch-loss checking;
 - pre/post checkpoint file-hash checking;
 - pre/post canonical model-state commitment checking;
@@ -542,6 +610,9 @@ Completed improvements:
 - `schema_version` added;
 - canonical pre/post online state-dict commitments added;
 - canonical pre/post target state-dict commitments added;
+- `next_action_online` added to one-step `td_witness`;
+- one-step verifier checks `next_action_online`;
+- one-step verifier checks `q_target_max_fp` by recomputing the Double-DQN selected target value from the pre-update checkpoint;
 - verifier checks canonical commitments;
 - short-trace verifier inherits stronger nested one-step checks.
 
@@ -567,11 +638,13 @@ Completed improvements:
 - step-local filesystem paths have been removed;
 - `notes` no longer carries operational metadata;
 - target-sync checking now uses `steps[].sync_state_witness`;
-- final checkpoint path is supplied externally by the benchmark/verifier rather than stored in the artifact.
+- final checkpoint path is supplied externally by the benchmark/verifier rather than stored in the artifact;
+- trace-boundary canonical model-state commitments are explicit public fields;
+- seeded-permutation sampling metadata is explicit in public fields;
+- short-trace negative tests cover both contiguous and seeded sampling failures.
 
 Still to revisit:
 
-- expose trace-boundary canonical model-state commitments explicitly;
 - reduce embedded nested artifact size;
 - decide whether nested one-step artifacts should be embedded fully or represented by commitments plus external witnesses;
 - clarify whether `notes` should remain as an empty compatibility key or be removed in a future breaking schema version.
@@ -706,6 +779,20 @@ These are the core TD-side witness values for the current one-step statement.
 
 `next_action_online` is part of the Double-DQN target semantics and should remain in `td_witness`, not only in a debug field.
 
+The one-step verifier recomputes:
+
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
+
+from the pre-update checkpoint and checks:
+
+```text
+next_action_match=True
+q_target_max_match=True
+```
+
 ---
 
 ### debug
@@ -820,6 +907,11 @@ These are currently core witness fields for one-step parameter-update consistenc
 - `items[].leaf`
 - `items[].merkle_path`
 - `items[].td_witness`
+- `items[].td_witness.q_online_fp`
+- `items[].td_witness.next_action_online`
+- `items[].td_witness.q_target_max_fp`
+- `items[].td_witness.target_fp`
+- `items[].td_witness.loss_fp`
 - `update_witness.batch_loss_fp`
 - `update_witness.gradient_tensors`
 - `update_witness.delta_tensors`
@@ -869,6 +961,8 @@ Interpretation:
 - `learning_rate_fp`
 - `sampling_rule_type`
 - `start_offset`
+- `sampling_seed`
+- `dataset_size`
 - `target_sync_every`
 - `initial_checkpoint_sha256`
 - `final_checkpoint_sha256`
@@ -884,6 +978,7 @@ Canonical boundary commitment public fields:
 - `final_target_state_dict_sha256`
 
 These fields are now part of the current `short_trace_update_v2` public schema. The verifier recomputes them from the externally supplied initial/final checkpoint paths and checks that the trace-boundary model states match the public commitments.
+
 ---
 
 ### steps[0]
@@ -936,8 +1031,9 @@ Interpretation:
 For `contiguous_deterministic`, `start_offset`, `batch_size`, and `step_index` determine the expected batch.
 
 For `seeded_permutation`, `sampling_seed`, `dataset_size`, `batch_size`, and `step_index` determine the expected batch.
+
 - batch identity is already available in:
-  - `public.trace_batch_indices`,
+  - `public.trace_batch_indices`;
   - `steps[].one_step_artifact.public.batch_indices`;
 - `one_step_artifact_path` was only a local filesystem convenience;
 - `input_checkpoint_path`, `raw_output_checkpoint_path`, and `next_checkpoint_path` were local path assumptions;
