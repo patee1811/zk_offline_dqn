@@ -2,7 +2,7 @@ import argparse
 import copy
 import json
 import os
-from typing import List
+from typing import Any, Dict, List
 
 import torch
 
@@ -17,13 +17,13 @@ from zk_offline_dqn.artifact_export_utils import (
     parse_indices,
     prepare_checked_transition_membership,
 )
-
 from zk_offline_dqn.artifact_schema_versions import SCHEMA_ONE_STEP_UPDATE_V1
+from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
 
 encode_fp = zk_specs.encode_fp
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Export a pre-ZK artifact for one offline DQN SGD update step."
     )
@@ -37,24 +37,32 @@ def parse_args():
     return parser.parse_args()
 
 
-def grad_and_delta_summary(pre_params, grad_params, post_params) -> List[str]:
+def grad_and_delta_summary(
+    pre_params: Dict[str, torch.Tensor],
+    grad_params: Dict[str, torch.Tensor],
+    post_params: Dict[str, torch.Tensor],
+) -> List[str]:
     lines = []
+
     for name in pre_params.keys():
         grad_t = grad_params[name]
         delta_t = post_params[name] - pre_params[name]
+
         lines.append(
             f"{name}: "
             f"shape={tuple(pre_params[name].shape)} "
             f"grad_norm={float(grad_t.norm().item()):.8f} "
             f"delta_norm={float(delta_t.norm().item()):.8f}"
         )
+
     return lines
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     indices = parse_indices(args.indices)
+
     data = load_transition_dataset(args.data)
     merkle = load_merkle_artifact(args.merkle)
     dataset_root = merkle["merkle_root"]
@@ -62,6 +70,7 @@ def main():
     ckpt, online_net, target_net = load_checkpoint_nets(args.checkpoint)
 
     pre_checkpoint_sha256 = file_sha256(args.checkpoint)
+    pre_state_commitments = canonical_checkpoint_state_commitments(ckpt)
 
     items = []
     transitions = []
@@ -88,6 +97,7 @@ def main():
             "merkle_path": membership["merkle_path"],
             "td_witness": witness_pack["td_witness"],
         }
+
         items.append(item)
         transitions.append(membership["transition"])
         total_loss_fp += witness_pack["td_witness"]["loss_fp"]
@@ -103,11 +113,13 @@ def main():
     }
 
     optimizer.zero_grad()
+
     training_loss = compute_training_loss(
         online_net=online_net,
         target_net=target_net,
         transitions=transitions,
     )
+
     training_loss.backward()
 
     grad_params = {
@@ -149,6 +161,8 @@ def main():
         "artifact_path_hint": args.out,
     }
 
+    post_state_commitments = canonical_checkpoint_state_commitments(post_ckpt)
+
     post_ckpt_dir = os.path.dirname(args.post_checkpoint_out)
     if post_ckpt_dir:
         os.makedirs(post_ckpt_dir, exist_ok=True)
@@ -167,6 +181,21 @@ def main():
             "learning_rate_fp": encode_fp(args.lr),
             "pre_checkpoint_sha256": pre_checkpoint_sha256,
             "post_checkpoint_sha256": post_checkpoint_sha256,
+            "checkpoint_commitment_type": "sha256_file_and_canonical_state_dicts",
+            "pre_online_state_dict_key": pre_state_commitments["online_state_dict_key"],
+            "pre_online_state_dict_sha256": pre_state_commitments[
+                "online_state_dict_sha256"
+            ],
+            "pre_target_state_dict_sha256": pre_state_commitments[
+                "target_state_dict_sha256"
+            ],
+            "post_online_state_dict_key": post_state_commitments["online_state_dict_key"],
+            "post_online_state_dict_sha256": post_state_commitments[
+                "online_state_dict_sha256"
+            ],
+            "post_target_state_dict_sha256": post_state_commitments[
+                "target_state_dict_sha256"
+            ],
         },
         "items": items,
         "update_witness": {
@@ -181,6 +210,11 @@ def main():
             "merkle_path_source": args.merkle,
             "q_target_source": "double_dqn_target_net_at_online_argmax",
             "statement_scope": "one offline DQN SGD update step from committed minibatch",
+            "commitment_note": (
+                "pre/post checkpoint hashes anchor checkpoint files; "
+                "pre/post online and target state-dict hashes anchor canonical "
+                "sorted tensor contents."
+            ),
             "limitations": [
                 "pre-ZK artifact only",
                 "target network kept fixed during this one-step statement",
@@ -209,7 +243,27 @@ def main():
     print("training_loss_real_for_log =", float(training_loss.item()))
     print("pre_checkpoint_sha256 =", pre_checkpoint_sha256)
     print("post_checkpoint_sha256 =", post_checkpoint_sha256)
+    print("checkpoint_commitment_type =", artifact["public"]["checkpoint_commitment_type"])
+    print("pre_online_state_dict_key =", artifact["public"]["pre_online_state_dict_key"])
+    print(
+        "pre_online_state_dict_sha256 =",
+        artifact["public"]["pre_online_state_dict_sha256"],
+    )
+    print(
+        "pre_target_state_dict_sha256 =",
+        artifact["public"]["pre_target_state_dict_sha256"],
+    )
+    print("post_online_state_dict_key =", artifact["public"]["post_online_state_dict_key"])
+    print(
+        "post_online_state_dict_sha256 =",
+        artifact["public"]["post_online_state_dict_sha256"],
+    )
+    print(
+        "post_target_state_dict_sha256 =",
+        artifact["public"]["post_target_state_dict_sha256"],
+    )
     print()
+
     print("=== PARAMETER UPDATE SUMMARY FOR LOG ONLY ===")
     for line in grad_and_delta_summary(
         pre_params=pre_params,
