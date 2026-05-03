@@ -512,18 +512,24 @@ Still to revisit:
 
 The immediate inspection and short-trace cleanup tasks have already been completed through the B3 milestone.
 
+Canonical model-state commitments have now been propagated to:
+
+- minibatch TD artifacts;
+- one-step update artifacts;
+- short-trace boundary checkpoints.
+
 The next schema work should be:
 
-1. propagate canonical model-state commitment discipline explicitly to short-trace boundary commitments;
-2. finish the cleanup pass for the one-step artifact;
-3. define a backend-ready schema that separates:
+1. finish the cleanup pass for the one-step artifact;
+2. define a backend-ready schema that separates:
    - public inputs,
    - private witness values,
    - prototype-only audit/debug fields;
-4. decide whether `notes` should remain as an empty compatibility key or be removed in a future breaking schema version;
-5. reduce raw tensor and floating-point dependence before moving to a proving backend;
-6. document how benchmark metadata differs from artifact metadata;
-7. define whether nested one-step artifacts should remain embedded or be replaced by commitment references.
+3. decide whether `notes` should remain as an empty compatibility key or be removed in a future breaking schema version;
+4. reduce raw tensor and floating-point dependence before moving to a proving backend;
+5. document how benchmark metadata differs from artifact metadata;
+6. define whether nested one-step artifacts should remain embedded or be replaced by commitment references;
+7. add a stronger replay-sampling schema, such as seeded deterministic permutation sampling.
 
 ---
 
@@ -797,14 +803,17 @@ Interpretation:
 - `initial_checkpoint_sha256`
 - `final_checkpoint_sha256`
 
-Potential future public fields:
+Canonical boundary commitment public fields:
 
 - `checkpoint_commitment_type`
+- `initial_online_state_dict_key`
 - `initial_online_state_dict_sha256`
 - `initial_target_state_dict_sha256`
+- `final_online_state_dict_key`
 - `final_online_state_dict_sha256`
 - `final_target_state_dict_sha256`
 
+These fields are now part of the current `short_trace_update_v2` public schema. The verifier recomputes them from the externally supplied initial/final checkpoint paths and checks that the trace-boundary model states match the public commitments.
 ---
 
 ### steps[0]
@@ -910,12 +919,11 @@ The verifier receives operational paths externally from the benchmark/runtime en
 - `public.target_sync_every`
 - `public.initial_checkpoint_sha256`
 - `public.final_checkpoint_sha256`
-
-### Potential future core public
-
 - `public.checkpoint_commitment_type`
+- `public.initial_online_state_dict_key`
 - `public.initial_online_state_dict_sha256`
 - `public.initial_target_state_dict_sha256`
+- `public.final_online_state_dict_key`
 - `public.final_online_state_dict_sha256`
 - `public.final_target_state_dict_sha256`
 
