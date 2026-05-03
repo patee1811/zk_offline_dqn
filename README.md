@@ -28,7 +28,7 @@ At the current stage, the repository verifies:
 2. **Bellman target correctness** — the Double-DQN-style Bellman backup is computed correctly.
 3. **TD loss correctness** — the per-sample **SmoothL1** temporal-difference loss is computed correctly.
 4. **Batch-level loss integrity** — the reported minibatch average loss matches the recomputed value.
-5. **Checkpoint anchoring** — the audited checkpoint is tied to a public **SHA-256** hash.
+5. **Checkpoint and model-state anchoring** — the audited checkpoint is tied to a public file **SHA-256** hash, and the online/target network state dictionaries are additionally tied to canonical tensor-content SHA-256 commitments.
 6. **Forward TD consistency** — TD witness values are checked against actual neural-network forward semantics from the checkpoint.
 7. **One-step SGD update consistency** — for a fixed committed minibatch, the verifier checks gradient recomputation, parameter-delta consistency, and the SGD update rule.
 8. **Short verified training traces** — multiple verified one-step updates can be chained into short traces with checkpoint chaining and explicit target-network synchronization semantics.
@@ -217,6 +217,7 @@ It starts from a valid minibatch TD artifact and checks that the verifier accept
 | `tamper_loss_fp` | reject | recomputed SmoothL1 TD loss no longer matches the witness |
 | `tamper_reward` | reject | Bellman target and TD loss no longer match the transition |
 | `tamper_checkpoint_sha256` | reject | public checkpoint hash no longer matches the checkpoint file |
+| `tamper_online_state_dict_sha256` | reject | public online-network state-dict commitment no longer matches the canonical checkpoint tensor contents |
 | `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
 | `tamper_merkle_path` | reject | Merkle membership proof no longer reconstructs the public dataset root |
 
@@ -238,6 +239,23 @@ Current schema versions:
 | Minibatch TD artifact | `minibatch_td_v1` |
 | One-step update artifact | `one_step_update_v1` |
 | Short-trace update artifact | `short_trace_update_v2` |
+
+### Canonical Model-State Commitments
+
+For `minibatch_td_v1`, the public artifact now includes both file-level and tensor-content-level checkpoint commitments:
+
+```text
+checkpoint_sha256
+checkpoint_commitment_type
+online_state_dict_key
+online_state_dict_sha256
+target_state_dict_sha256
+```
+
+`checkpoint_sha256` anchors the checkpoint file.  
+`online_state_dict_sha256` and `target_state_dict_sha256` anchor the canonical sorted tensor contents of the online and target networks.
+
+This is stronger than relying only on the raw `.pt` file hash because it separates the model-state commitment from PyTorch checkpoint serialization details.
 
 Verifiers reject artifacts if:
 
@@ -677,6 +695,7 @@ valid_control_accept = True
 tamper_loss_fp_accept = False
 tamper_reward_accept = False
 tamper_checkpoint_sha256_accept = False
+tamper_online_state_dict_sha256_accept = False
 tamper_leaf_hash_accept = False
 tamper_merkle_path_accept = False
 all_tests_passed = True
@@ -905,7 +924,7 @@ The one-step artifact should be cleaned further by separating:
 
 ### 2. Canonical Model Commitment
 
-The current prototype uses checkpoint file SHA-256. A stronger design should add canonical model-state commitments by hashing sorted state-dict tensors deterministically.
+The current minibatch TD artifact already includes canonical online/target state-dict commitments. The next improvement is to propagate the same commitment discipline to one-step and short-trace artifacts, so that every update statement is anchored by both file-level checkpoint hashes and canonical model-state commitments.
 
 ### 3. Seeded Deterministic Sampling
 
@@ -994,7 +1013,7 @@ If you find this work useful, please cite:
 @misc{zk_offline_dqn_2026,
   title        = {Zero-Knowledge Verifiable Offline DQN Training from Committed Trajectories},
   author       = {Ngoc Duy},
-  year         = {2026},
+  year         = {2026},f
   howpublished = {\url{https://github.com/patee1811/zk_offline_dqn}}
 }
 ```

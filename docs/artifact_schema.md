@@ -29,6 +29,25 @@ target_fp
 loss_fp
 ```
 
+The public section of `minibatch_td_v1` also includes model-state commitments:
+
+```text
+checkpoint_sha256
+checkpoint_commitment_type
+online_state_dict_key
+online_state_dict_sha256
+target_state_dict_sha256
+```
+
+`checkpoint_sha256` anchors the checkpoint file.  
+`online_state_dict_sha256` and `target_state_dict_sha256` anchor the canonical sorted tensor contents of the online and target networks.
+
+The canonical commitment helper is implemented in:
+
+```text
+zk_offline_dqn/commitments.py
+```
+
 The `next_action_online` field was promoted into `td_witness` because it is part of the Double-DQN TD statement:
 
 ```text
@@ -82,6 +101,7 @@ The current negative tests check that the minibatch TD verifier accepts a valid 
 | `tamper_loss_fp` | reject | TD loss witness no longer matches recomputed SmoothL1 loss |
 | `tamper_reward` | reject | Bellman target and loss no longer match the transition |
 | `tamper_checkpoint_sha256` | reject | public checkpoint hash no longer matches the checkpoint file |
+| `tamper_online_state_dict_sha256` | reject | online-network state-dict commitment no longer matches the canonical checkpoint tensor contents |
 | `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
 | `tamper_merkle_path` | reject | Merkle path no longer reconstructs the public dataset root |
 
