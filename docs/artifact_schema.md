@@ -1,5 +1,127 @@
 # Artifact Schema Cleanup Notes
 
+## 0. Current Schema Versions and Verifier Extensions
+
+The repository currently uses explicit artifact schema versions for the main verification artifacts.
+
+| Artifact | Current schema version | Main verifier |
+|---|---|---|
+| Minibatch TD artifact | `minibatch_td_v1` | `scripts/artifacts_export/verify_minibatch_td_artifact.py` |
+| One-step update artifact | `one_step_update_v1` | `scripts/artifacts_export/verify_one_step_update_artifact.py` |
+| Short-trace update artifact | `short_trace_update_v2` | `scripts/artifacts_export/verify_short_trace_update_artifact.py` |
+
+All schema-aware verifiers reject artifacts when:
+
+- `schema_version` is missing;
+- `schema_version` does not match the expected version.
+
+This prevents stale or incompatible artifacts from being silently accepted.
+
+### Minibatch TD v1 Extension
+
+The current `minibatch_td_v1` artifact includes the following core TD witness fields:
+
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+target_fp
+loss_fp
+```
+
+The `next_action_online` field was promoted into `td_witness` because it is part of the Double-DQN TD statement:
+
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
+
+This avoids relying on debug-only fields for statement-level verification.
+
+### Forward TD Consistency Verifier
+
+The repository includes an additional verifier:
+
+```text
+scripts/artifacts_export/verify_forward_td_consistency.py
+```
+
+This verifier checks that the TD witness values in a minibatch artifact are consistent with the actual checkpoint forward pass.
+
+For each item, it recomputes:
+
+```text
+Q_online(s)[a]
+argmax_a Q_online(s')
+Q_target(s')[argmax_a Q_online(s')]
+```
+
+and compares the fixed-point values against:
+
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+```
+
+This strengthens the TD artifact from pure TD arithmetic checking to checkpoint-grounded TD witness checking.
+
+### Negative Verification Tests
+
+The repository includes a negative-test runner:
+
+```text
+scripts/experiments/run_negative_verification_tests.py
+```
+
+The current negative tests check that the minibatch TD verifier accepts a valid artifact and rejects the following tampered artifacts:
+
+| Case | Expected result | Failure mode |
+|---|---:|---|
+| `valid_control` | accept | unchanged valid artifact |
+| `tamper_loss_fp` | reject | TD loss witness no longer matches recomputed SmoothL1 loss |
+| `tamper_reward` | reject | Bellman target and loss no longer match the transition |
+| `tamper_checkpoint_sha256` | reject | public checkpoint hash no longer matches the checkpoint file |
+| `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
+| `tamper_merkle_path` | reject | Merkle path no longer reconstructs the public dataset root |
+
+These tests cover both arithmetic tampering and committed-data membership tampering.
+
+### Regression Commands
+
+After updating the schema documentation, the current regression checklist is:
+
+```powershell
+$env:PYTHONPATH="."
+
+python -m compileall zk_offline_dqn scripts
+
+python scripts/artifacts_export/verify_minibatch_td_artifact.py
+
+python scripts/artifacts_export/verify_forward_td_consistency.py `
+  --artifact artifacts/minibatch_td_from_dataset.json `
+  --checkpoint models/offline_dqn_with_target_seed42_best.pt
+
+python scripts/artifacts_export/verify_one_step_update_artifact.py
+
+$env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_update_artifact.json"
+$env:SHORT_TRACE_MERKLE_PATH="artifacts/cartpole_dqn_eps010_merkle.json"
+$env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_best.pt"
+$env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt"
+
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+
+python scripts/experiments/run_negative_verification_tests.py
+```
+
+Expected key outputs:
+
+```text
+verification_passed = True
+all_forward_ok = True
+all_tests_passed = True
+```
+
 ## Purpose
 
 This document separates:
