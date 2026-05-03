@@ -3,20 +3,21 @@ import hashlib
 import json
 import os
 import pickle
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import torch
 import torch.nn as nn
 
 from zk_offline_dqn import zk_specs
 from zk_offline_dqn.artifact_schema_versions import SCHEMA_MINIBATCH_TD_V1
+from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
 
 encode_fp = zk_specs.encode_fp
 compute_td_target_fp = zk_specs.compute_td_target_fp
 compute_smooth_l1_loss_fp = zk_specs.compute_smooth_l1_loss_fp
 
-# Ưu tiên dùng đúng hàm serialize của project nếu đã có.
-# Nếu chưa có thì fallback sang bản local để giữ script vẫn chạy được.
+# Prefer the project-level serializer if available.
+# Fall back to a local serializer to keep this script runnable.
 serialize_transition_leaf = getattr(zk_specs, "serialize_transition_leaf", None)
 
 
@@ -31,14 +32,15 @@ class QNetwork(nn.Module):
             nn.Linear(128, n_actions),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Export minibatch TD artifact directly from dataset + Merkle + checkpoint."
     )
+
     parser.add_argument(
         "--data",
         type=str,
@@ -69,48 +71,57 @@ def parse_args():
         required=True,
         help="Output artifact JSON path",
     )
+
     return parser.parse_args()
 
 
 def file_sha256(path: str) -> str:
     h = hashlib.sha256()
+
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
+
     return h.hexdigest()
 
 
 def parse_indices(indices_str: str) -> List[int]:
     indices = [int(x.strip()) for x in indices_str.split(",") if x.strip()]
+
     if not indices:
         raise ValueError("No indices provided.")
+
     if len(set(indices)) != len(indices):
         raise ValueError(f"Duplicate indices detected: {indices}")
+
     return indices
 
 
-def load_transition_dataset(path: str):
+def load_transition_dataset(path: str) -> Dict[str, Any]:
     with open(path, "rb") as f:
         data = pickle.load(f)
 
     required_keys = {"obs", "actions", "rewards", "next_obs", "dones"}
+
     if not isinstance(data, dict) or not required_keys.issubset(set(data.keys())):
+        got = list(data.keys()) if isinstance(data, dict) else type(data)
         raise ValueError(
             f"Dataset at {path} must be a dict with keys {sorted(required_keys)}. "
-            f"Got keys={list(data.keys()) if isinstance(data, dict) else type(data)}"
+            f"Got keys={got}"
         )
+
     return data
 
 
-def get_dataset_size(data) -> int:
+def get_dataset_size(data: Dict[str, Any]) -> int:
     return len(data["actions"])
 
 
-def to_py_float_list(x) -> List[float]:
+def to_py_float_list(x: Any) -> List[float]:
     return [float(v) for v in x.tolist()]
 
 
-def get_transition_at(data, idx: int) -> Dict[str, Any]:
+def get_transition_at(data: Dict[str, Any], idx: int) -> Dict[str, Any]:
     return {
         "obs": to_py_float_list(data["obs"][idx]),
         "action": int(data["actions"][idx]),
@@ -126,18 +137,20 @@ def local_serialize_transition_leaf(transition: Dict[str, Any]) -> List[int]:
     reward_fp = encode_fp(float(transition["reward"]))
     next_obs_fp = [encode_fp(float(x)) for x in transition["next_obs"]]
     done = int(transition["done"])
+
     return obs_fp + [action, reward_fp] + next_obs_fp + [done]
 
 
 def serialize_leaf(transition: Dict[str, Any]) -> List[int]:
     if serialize_transition_leaf is not None:
         return serialize_transition_leaf(transition)
+
     return local_serialize_transition_leaf(transition)
 
 
 def hash_leaf_serialized(leaf: List[int]) -> str:
-    s = ",".join(str(x) for x in leaf).encode("utf-8")
-    return hashlib.sha256(s).hexdigest()
+    serialized = ",".join(str(x) for x in leaf).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest()
 
 
 def load_merkle_artifact(path: str) -> Dict[str, Any]:
@@ -145,6 +158,7 @@ def load_merkle_artifact(path: str) -> Dict[str, Any]:
         merkle = json.load(f)
 
     required_keys = {"merkle_root", "levels"}
+
     if not required_keys.issubset(set(merkle.keys())):
         raise ValueError(
             f"Merkle JSON at {path} must contain keys {sorted(required_keys)}. "
@@ -158,23 +172,14 @@ def load_merkle_artifact(path: str) -> Dict[str, Any]:
 
 
 def build_merkle_path(levels: List[List[str]], leaf_index: int) -> List[Dict[str, Any]]:
-    """
-    Sinh path cùng format gần với artifact mẫu:
-    {
-      "level": ...,
-      "current_index": ...,
-      "sibling_index": ...,
-      "sibling_hash": ...,
-      "current_is_left": ...
-    }
-    """
     path = []
     idx = leaf_index
 
     for level_idx, level_hashes in enumerate(levels[:-1]):
         if idx < 0 or idx >= len(level_hashes):
             raise IndexError(
-                f"Leaf index {idx} out of range for level {level_idx} of size {len(level_hashes)}"
+                f"Leaf index {idx} out of range for level {level_idx} "
+                f"of size {len(level_hashes)}"
             )
 
         if idx % 2 == 0:
@@ -193,30 +198,63 @@ def build_merkle_path(levels: List[List[str]], leaf_index: int) -> List[Dict[str
                 "current_is_left": current_is_left,
             }
         )
+
         idx //= 2
 
     return path
 
 
-def load_checkpoint_nets(checkpoint_path: str):
-    ckpt = torch.load(checkpoint_path, map_location="cpu")
+def get_online_state_dict_key(checkpoint: Dict[str, Any]) -> str:
+    if "online_net_state_dict" in checkpoint:
+        return "online_net_state_dict"
 
-    required_keys = {"obs_dim", "n_actions", "model_state_dict", "target_net_state_dict"}
-    missing = required_keys - set(ckpt.keys())
-    if missing:
+    if "model_state_dict" in checkpoint:
+        return "model_state_dict"
+
+    raise KeyError(
+        "Checkpoint missing online network state dict. "
+        "Expected either 'online_net_state_dict' or 'model_state_dict'. "
+        f"Available keys: {sorted(checkpoint.keys())}"
+    )
+
+
+def load_checkpoint_nets(
+    checkpoint_path: str,
+) -> Tuple[Dict[str, Any], nn.Module, nn.Module, str]:
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location="cpu",
+        weights_only=False,
+    )
+
+    if "obs_dim" not in checkpoint:
+        raise KeyError(f"Checkpoint at {checkpoint_path} is missing key: obs_dim")
+
+    if "n_actions" not in checkpoint:
+        raise KeyError(f"Checkpoint at {checkpoint_path} is missing key: n_actions")
+
+    if "target_net_state_dict" not in checkpoint:
         raise KeyError(
-            f"Checkpoint at {checkpoint_path} is missing required keys: {sorted(missing)}"
+            f"Checkpoint at {checkpoint_path} is missing key: target_net_state_dict"
         )
 
-    online_net = QNetwork(ckpt["obs_dim"], ckpt["n_actions"])
-    online_net.load_state_dict(ckpt["model_state_dict"])
+    online_state_dict_key = get_online_state_dict_key(checkpoint)
+
+    online_net = QNetwork(
+        obs_dim=int(checkpoint["obs_dim"]),
+        n_actions=int(checkpoint["n_actions"]),
+    )
+    online_net.load_state_dict(checkpoint[online_state_dict_key])
     online_net.eval()
 
-    target_net = QNetwork(ckpt["obs_dim"], ckpt["n_actions"])
-    target_net.load_state_dict(ckpt["target_net_state_dict"])
+    target_net = QNetwork(
+        obs_dim=int(checkpoint["obs_dim"]),
+        n_actions=int(checkpoint["n_actions"]),
+    )
+    target_net.load_state_dict(checkpoint["target_net_state_dict"])
     target_net.eval()
 
-    return ckpt, online_net, target_net
+    return checkpoint, online_net, target_net, online_state_dict_key
 
 
 def compute_td_witness(
@@ -273,18 +311,17 @@ def compute_td_witness(
     }
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     indices = parse_indices(args.indices)
+
     data = load_transition_dataset(args.data)
     dataset_size = get_dataset_size(data)
 
     for idx in indices:
         if idx < 0 or idx >= dataset_size:
-            raise IndexError(
-                f"Index {idx} out of range for dataset size {dataset_size}"
-            )
+            raise IndexError(f"Index {idx} out of range for dataset size {dataset_size}")
 
     merkle = load_merkle_artifact(args.merkle)
     levels = merkle["levels"]
@@ -292,11 +329,24 @@ def main():
 
     if len(levels[0]) != dataset_size:
         raise ValueError(
-            f"Mismatch between dataset size ({dataset_size}) and Merkle leaf count ({len(levels[0])})"
+            f"Mismatch between dataset size ({dataset_size}) and Merkle leaf count "
+            f"({len(levels[0])})"
         )
 
-    _, online_net, target_net = load_checkpoint_nets(args.checkpoint)
+    checkpoint, online_net, target_net, online_state_dict_key = load_checkpoint_nets(
+        args.checkpoint
+    )
+
     checkpoint_sha256 = file_sha256(args.checkpoint)
+    state_commitments = canonical_checkpoint_state_commitments(checkpoint)
+
+    if state_commitments["online_state_dict_key"] != online_state_dict_key:
+        raise ValueError(
+            "Inconsistent online state-dict key between checkpoint loader and "
+            "canonical commitment helper. "
+            f"loader={online_state_dict_key}, "
+            f"commitment={state_commitments['online_state_dict_key']}"
+        )
 
     items = []
     total_loss_fp = 0
@@ -307,6 +357,7 @@ def main():
         leaf_hash = hash_leaf_serialized(leaf)
 
         expected_leaf_hash = levels[0][idx]
+
         if leaf_hash != expected_leaf_hash:
             raise ValueError(
                 f"Leaf hash mismatch at index {idx}.\n"
@@ -315,6 +366,7 @@ def main():
             )
 
         merkle_path = build_merkle_path(levels, idx)
+
         witness_pack = compute_td_witness(
             transition=transition,
             online_net=online_net,
@@ -330,6 +382,7 @@ def main():
             "td_witness": witness_pack["td_witness"],
             "debug": witness_pack["debug"],
         }
+
         items.append(item)
         total_loss_fp += witness_pack["td_witness"]["loss_fp"]
 
@@ -344,6 +397,10 @@ def main():
             "loss_type": "smooth_l1",
             "batch_loss_fp": batch_loss_fp,
             "checkpoint_sha256": checkpoint_sha256,
+            "checkpoint_commitment_type": "sha256_file_and_canonical_state_dicts",
+            "online_state_dict_key": state_commitments["online_state_dict_key"],
+            "online_state_dict_sha256": state_commitments["online_state_dict_sha256"],
+            "target_state_dict_sha256": state_commitments["target_state_dict_sha256"],
         },
         "items": items,
         "notes": {
@@ -352,10 +409,16 @@ def main():
             "merkle_path_source": args.merkle,
             "q_target_source": "double_dqn_target_net_at_online_argmax",
             "purpose": "minibatch TD artifact built directly from dataset + merkle + checkpoint",
+            "commitment_note": (
+                "checkpoint_sha256 anchors the checkpoint file; "
+                "online_state_dict_sha256 and target_state_dict_sha256 anchor "
+                "canonical sorted state_dict tensor contents."
+            ),
         },
     }
 
     out_dir = os.path.dirname(args.out)
+
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
 
@@ -369,6 +432,10 @@ def main():
     print("dataset_root =", dataset_root)
     print("checkpoint_path =", args.checkpoint)
     print("checkpoint_sha256 =", checkpoint_sha256)
+    print("checkpoint_commitment_type =", artifact["public"]["checkpoint_commitment_type"])
+    print("online_state_dict_key =", artifact["public"]["online_state_dict_key"])
+    print("online_state_dict_sha256 =", artifact["public"]["online_state_dict_sha256"])
+    print("target_state_dict_sha256 =", artifact["public"]["target_state_dict_sha256"])
     print("batch_size =", batch_size)
     print("batch_loss_fp =", batch_loss_fp)
     print()
@@ -376,10 +443,9 @@ def main():
     print("=== PER-ITEM SUMMARY ===")
     for i, item in enumerate(items):
         w = item["td_witness"]
-        d = item["debug"]
         print(
             f"item[{i}] index={item['index']} "
-            f"next_action_online={d['next_action_online_for_debug']} "
+            f"next_action_online={w['next_action_online']} "
             f"q_online_fp={w['q_online_fp']} "
             f"q_target_max_fp={w['q_target_max_fp']} "
             f"target_fp={w['target_fp']} "

@@ -1,7 +1,9 @@
 import hashlib
 import json
 import os
+import torch
 
+from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
 from zk_offline_dqn.zk_specs import (
     serialize_transition_leaf,
     compute_td_target_fp,
@@ -57,7 +59,71 @@ def file_sha256(path: str) -> str:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+def verify_canonical_state_commitments(public, checkpoint_path: str):
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location="cpu",
+        weights_only=False,
+    )
 
+    recomputed = canonical_checkpoint_state_commitments(checkpoint)
+
+    expected_commitment_type = public.get("checkpoint_commitment_type")
+    expected_online_key = public.get("online_state_dict_key")
+    expected_online_sha = public.get("online_state_dict_sha256")
+    expected_target_sha = public.get("target_state_dict_sha256")
+
+    # Backward compatibility: older artifacts may not contain canonical commitments.
+    has_canonical_fields = all(
+        value is not None
+        for value in [
+            expected_commitment_type,
+            expected_online_key,
+            expected_online_sha,
+            expected_target_sha,
+        ]
+    )
+
+    if not has_canonical_fields:
+        return {
+            "canonical_commitments_present": False,
+            "checkpoint_commitment_type_ok": True,
+            "online_state_dict_key_ok": True,
+            "online_state_dict_sha256_ok": True,
+            "target_state_dict_sha256_ok": True,
+            "canonical_state_commitments_ok": True,
+            "recomputed": recomputed,
+        }
+
+    checkpoint_commitment_type_ok = (
+        expected_commitment_type == "sha256_file_and_canonical_state_dicts"
+    )
+    online_state_dict_key_ok = (
+        expected_online_key == recomputed["online_state_dict_key"]
+    )
+    online_state_dict_sha256_ok = (
+        expected_online_sha == recomputed["online_state_dict_sha256"]
+    )
+    target_state_dict_sha256_ok = (
+        expected_target_sha == recomputed["target_state_dict_sha256"]
+    )
+
+    canonical_state_commitments_ok = (
+        checkpoint_commitment_type_ok
+        and online_state_dict_key_ok
+        and online_state_dict_sha256_ok
+        and target_state_dict_sha256_ok
+    )
+
+    return {
+        "canonical_commitments_present": True,
+        "checkpoint_commitment_type_ok": checkpoint_commitment_type_ok,
+        "online_state_dict_key_ok": online_state_dict_key_ok,
+        "online_state_dict_sha256_ok": online_state_dict_sha256_ok,
+        "target_state_dict_sha256_ok": target_state_dict_sha256_ok,
+        "canonical_state_commitments_ok": canonical_state_commitments_ok,
+        "recomputed": recomputed,
+    }
 
 def main():
     with open(ARTIFACT_PATH, "r", encoding="utf-8") as f:
@@ -159,6 +225,11 @@ def main():
     recomputed_checkpoint_sha256 = file_sha256(CHECKPOINT_PATH)
     checkpoint_sha256_ok = expected_checkpoint_sha256 == recomputed_checkpoint_sha256
 
+    canonical_checks = verify_canonical_state_commitments(
+        public=public,
+        checkpoint_path=CHECKPOINT_PATH,
+    )
+
     print("\n=== BATCH CHECK ===")
     print("total_loss_fp =", total_loss_fp)
     print("claimed_batch_loss_fp =", claimed_batch_loss_fp)
@@ -170,7 +241,37 @@ def main():
     print("recomputed_checkpoint_sha256 =", recomputed_checkpoint_sha256)
     print("checkpoint_sha256_ok =", checkpoint_sha256_ok)
 
-    verification_passed = all_items_ok and batch_loss_match and checkpoint_sha256_ok
+    print(
+        "canonical_commitments_present =",
+        canonical_checks["canonical_commitments_present"],
+    )
+    print(
+        "checkpoint_commitment_type_ok =",
+        canonical_checks["checkpoint_commitment_type_ok"],
+    )
+    print(
+        "online_state_dict_key_ok =",
+        canonical_checks["online_state_dict_key_ok"],
+    )
+    print(
+        "online_state_dict_sha256_ok =",
+        canonical_checks["online_state_dict_sha256_ok"],
+    )
+    print(
+        "target_state_dict_sha256_ok =",
+        canonical_checks["target_state_dict_sha256_ok"],
+    )
+    print(
+        "canonical_state_commitments_ok =",
+        canonical_checks["canonical_state_commitments_ok"],
+    )
+
+    verification_passed = (
+        all_items_ok
+        and batch_loss_match
+        and checkpoint_sha256_ok
+        and canonical_checks["canonical_state_commitments_ok"]
+    )
     print("\nverification_passed =", verification_passed)
 
 

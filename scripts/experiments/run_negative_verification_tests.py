@@ -82,6 +82,12 @@ def make_tamper_merkle_path(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
 
     path[0]["sibling_hash"] = "0" * 64
     return artifact
+def make_tamper_online_state_dict_sha256(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+    artifact["public"]["online_state_dict_sha256"] = "0" * 64
+    return artifact
+
+
 
 def run_minibatch_verifier(
     artifact_path: Path,
@@ -148,6 +154,7 @@ def main() -> None:
         "tamper_reward",
         "tamper_loss_fp",
         "tamper_checkpoint_sha256",
+        "tamper_online_state_dict_sha256",
         "tamper_leaf_hash",
         "tamper_merkle_path",
     ]
@@ -286,6 +293,26 @@ def main() -> None:
 
     rows.append(tamper_merkle_path_row)
 
+    tamper_online_state_path = out_dir / "tamper_online_state_dict_sha256.json"
+    tamper_online_state_artifact = make_tamper_online_state_dict_sha256(base_artifact)
+    save_json(tamper_online_state_artifact, tamper_online_state_path)
+
+    tamper_online_state_result = run_minibatch_verifier(
+        artifact_path=tamper_online_state_path,
+        checkpoint_path=args.checkpoint,
+    )
+
+    tamper_online_state_row = {
+        "case_name": "tamper_online_state_dict_sha256",
+        "expected_accept": False,
+        "actual_accept": tamper_online_state_result["accepted"],
+        "passed": tamper_online_state_result["accepted"] is False,
+        "artifact_path": tamper_online_state_path.as_posix(),
+        "returncode": tamper_online_state_result["returncode"],
+    }
+
+    rows.append(tamper_online_state_row)
+
     summary_csv_path = out_dir / "summary.csv"
     write_summary_csv(rows, summary_csv_path)
 
@@ -298,6 +325,8 @@ def main() -> None:
     print("tamper_reward_passed =", tamper_reward_row["passed"])
     print("tamper_checkpoint_sha256_accept =", tamper_checkpoint_result["accepted"])
     print("tamper_checkpoint_sha256_passed =", tamper_checkpoint_row["passed"])
+    print("tamper_online_state_dict_sha256_accept =", tamper_online_state_result["accepted"])
+    print("tamper_online_state_dict_sha256_passed =", tamper_online_state_row["passed"])
     print("tamper_leaf_hash_accept =", tamper_leaf_hash_result["accepted"])
     print("tamper_leaf_hash_passed =", tamper_leaf_hash_row["passed"])
     print("tamper_merkle_path_accept =", tamper_merkle_path_result["accepted"])
