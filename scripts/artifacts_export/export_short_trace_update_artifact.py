@@ -8,15 +8,18 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-from zk_offline_dqn.artifact_schema_versions import SCHEMA_SHORT_TRACE_UPDATE_V2
-
 import torch
+
+from zk_offline_dqn.artifact_schema_versions import SCHEMA_SHORT_TRACE_UPDATE_V2
+from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
 
 
 SUPPORTED_SAMPLING_RULE = "contiguous_deterministic"
 
+
 def to_posix_path(path: str) -> str:
     return Path(path).as_posix()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -67,26 +70,40 @@ def parse_args():
 
 def file_sha256(path: str) -> str:
     h = hashlib.sha256()
+
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
+
     return h.hexdigest()
 
 
-def ensure_dir(path: str):
+def ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
+
+
+def load_checkpoint(path: str) -> Dict[str, Any]:
+    return torch.load(
+        path,
+        map_location="cpu",
+        weights_only=False,
+    )
 
 
 def load_trace_batches(trace_batches_json: str) -> List[List[int]]:
     batches = json.loads(trace_batches_json)
+
     if not isinstance(batches, list) or not batches:
         raise ValueError("trace-batches-json must be a non-empty JSON list.")
 
     parsed: List[List[int]] = []
+
     for batch in batches:
         if not isinstance(batch, list) or not batch:
             raise ValueError("Each trace batch must be a non-empty list.")
+
         parsed.append([int(x) for x in batch])
+
     return parsed
 
 
@@ -114,6 +131,7 @@ def validate_trace_batches_against_sampling_rule(
         raise ValueError("trace_batches must not be empty")
 
     batch_size = len(trace_batches[0])
+
     if batch_size <= 0:
         raise ValueError("batch_size must be > 0")
 
@@ -130,6 +148,7 @@ def validate_trace_batches_against_sampling_rule(
             batch_size=batch_size,
             start_offset=start_offset,
         )
+
         if batch_indices != expected:
             raise ValueError(
                 f"sampling rule mismatch at step {step_idx}: "
@@ -143,8 +162,8 @@ def run_command(cmd: List[str]) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, capture_output=True, text=True)
 
 
-def sync_target_network(in_ckpt_path: str, out_ckpt_path: str):
-    ckpt = torch.load(in_ckpt_path, map_location="cpu")
+def sync_target_network(in_ckpt_path: str, out_ckpt_path: str) -> None:
+    ckpt = load_checkpoint(in_ckpt_path)
     ckpt = copy.deepcopy(ckpt)
     ckpt["target_net_state_dict"] = copy.deepcopy(ckpt["model_state_dict"])
 
@@ -157,6 +176,7 @@ def sync_target_network(in_ckpt_path: str, out_ckpt_path: str):
 
 def serialize_tensor(t: torch.Tensor) -> Dict[str, Any]:
     t_cpu = t.detach().cpu()
+
     return {
         "dtype": str(t_cpu.dtype),
         "shape": list(t_cpu.shape),
@@ -165,11 +185,15 @@ def serialize_tensor(t: torch.Tensor) -> Dict[str, Any]:
 
 
 def serialize_state_dict(state_dict: Dict[str, torch.Tensor]) -> Dict[str, Any]:
-    return {name: serialize_tensor(tensor) for name, tensor in state_dict.items()}
+    return {
+        name: serialize_tensor(tensor)
+        for name, tensor in state_dict.items()
+    }
 
 
-def main():
+def main() -> None:
     args = parse_args()
+
     trace_batches = load_trace_batches(args.trace_batches_json)
     batch_size = validate_trace_batches_against_sampling_rule(
         trace_batches=trace_batches,
@@ -178,11 +202,17 @@ def main():
     )
 
     ensure_dir(args.work_dir)
+
     out_dir = os.path.dirname(args.out)
     if out_dir:
         ensure_dir(out_dir)
 
     initial_checkpoint_sha256 = file_sha256(args.checkpoint)
+    initial_checkpoint = load_checkpoint(args.checkpoint)
+    initial_state_commitments = canonical_checkpoint_state_commitments(
+        initial_checkpoint
+    )
+
     current_checkpoint_path = args.checkpoint
 
     steps = []
@@ -202,16 +232,24 @@ def main():
         cmd = [
             sys.executable,
             "scripts/artifacts_export/export_one_step_update_artifact.py",
-            "--data", args.data,
-            "--merkle", args.merkle,
-            "--checkpoint", current_checkpoint_path,
-            "--indices", ",".join(str(x) for x in batch),
-            "--lr", str(args.lr),
-            "--post-checkpoint-out", step_post_ckpt_path,
-            "--out", step_artifact_path,
+            "--data",
+            args.data,
+            "--merkle",
+            args.merkle,
+            "--checkpoint",
+            current_checkpoint_path,
+            "--indices",
+            ",".join(str(x) for x in batch),
+            "--lr",
+            str(args.lr),
+            "--post-checkpoint-out",
+            step_post_ckpt_path,
+            "--out",
+            step_artifact_path,
         ]
 
         result = run_command(cmd)
+
         if result.returncode != 0:
             print("=== STEP EXPORT FAILED ===")
             print("step_idx =", step_idx)
@@ -242,13 +280,19 @@ def main():
 
         next_checkpoint_sha256 = file_sha256(next_checkpoint_path)
 
-        raw_output_ckpt = torch.load(step_post_ckpt_path, map_location="cpu")
-        next_ckpt = torch.load(next_checkpoint_path, map_location="cpu")
+        raw_output_ckpt = load_checkpoint(step_post_ckpt_path)
+        next_ckpt = load_checkpoint(next_checkpoint_path)
 
         sync_state_witness = {
-            "raw_output_online_state_dict": serialize_state_dict(raw_output_ckpt["model_state_dict"]),
-            "raw_output_target_state_dict": serialize_state_dict(raw_output_ckpt["target_net_state_dict"]),
-            "next_target_state_dict": serialize_state_dict(next_ckpt["target_net_state_dict"]),
+            "raw_output_online_state_dict": serialize_state_dict(
+                raw_output_ckpt["model_state_dict"]
+            ),
+            "raw_output_target_state_dict": serialize_state_dict(
+                raw_output_ckpt["target_net_state_dict"]
+            ),
+            "next_target_state_dict": serialize_state_dict(
+                next_ckpt["target_net_state_dict"]
+            ),
         }
 
         steps.append(
@@ -266,6 +310,10 @@ def main():
         current_checkpoint_path = next_checkpoint_path
 
     final_checkpoint_sha256 = file_sha256(current_checkpoint_path)
+    final_checkpoint = load_checkpoint(current_checkpoint_path)
+    final_state_commitments = canonical_checkpoint_state_commitments(
+        final_checkpoint
+    )
 
     artifact: Dict[str, Any] = {
         "schema_version": SCHEMA_SHORT_TRACE_UPDATE_V2,
@@ -276,12 +324,33 @@ def main():
             "batch_size": batch_size,
             "loss_type": "smooth_l1",
             "optimizer_type": "sgd",
-            "learning_rate_fp": steps[0]["one_step_artifact"]["public"]["learning_rate_fp"],
+            "learning_rate_fp": steps[0]["one_step_artifact"]["public"][
+                "learning_rate_fp"
+            ],
             "sampling_rule_type": args.sampling_rule_type,
             "start_offset": args.start_offset,
             "target_sync_every": args.target_sync_every,
             "initial_checkpoint_sha256": initial_checkpoint_sha256,
             "final_checkpoint_sha256": final_checkpoint_sha256,
+            "checkpoint_commitment_type": "sha256_file_and_canonical_state_dicts",
+            "initial_online_state_dict_key": initial_state_commitments[
+                "online_state_dict_key"
+            ],
+            "initial_online_state_dict_sha256": initial_state_commitments[
+                "online_state_dict_sha256"
+            ],
+            "initial_target_state_dict_sha256": initial_state_commitments[
+                "target_state_dict_sha256"
+            ],
+            "final_online_state_dict_key": final_state_commitments[
+                "online_state_dict_key"
+            ],
+            "final_online_state_dict_sha256": final_state_commitments[
+                "online_state_dict_sha256"
+            ],
+            "final_target_state_dict_sha256": final_state_commitments[
+                "target_state_dict_sha256"
+            ],
         },
         "steps": steps,
         "notes": {},
@@ -301,6 +370,31 @@ def main():
     print("initial_checkpoint_sha256 =", initial_checkpoint_sha256)
     print("final_checkpoint_sha256 =", final_checkpoint_sha256)
     print("final_checkpoint_path =", to_posix_path(current_checkpoint_path))
+    print("checkpoint_commitment_type =", artifact["public"]["checkpoint_commitment_type"])
+    print(
+        "initial_online_state_dict_key =",
+        artifact["public"]["initial_online_state_dict_key"],
+    )
+    print(
+        "initial_online_state_dict_sha256 =",
+        artifact["public"]["initial_online_state_dict_sha256"],
+    )
+    print(
+        "initial_target_state_dict_sha256 =",
+        artifact["public"]["initial_target_state_dict_sha256"],
+    )
+    print(
+        "final_online_state_dict_key =",
+        artifact["public"]["final_online_state_dict_key"],
+    )
+    print(
+        "final_online_state_dict_sha256 =",
+        artifact["public"]["final_online_state_dict_sha256"],
+    )
+    print(
+        "final_target_state_dict_sha256 =",
+        artifact["public"]["final_target_state_dict_sha256"],
+    )
     print()
 
     print("=== STEP SUMMARY ===")

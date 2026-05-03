@@ -1,17 +1,18 @@
+import hashlib
 import json
 import os
 import subprocess
 import sys
-import hashlib
 import tempfile
 from typing import Any, Dict, List
+
+import torch
 
 from zk_offline_dqn.artifact_schema_versions import (
     SCHEMA_SHORT_TRACE_UPDATE_V2,
     require_schema_version,
 )
-
-import torch
+from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
 
 
 ARTIFACT_PATH = os.environ.get(
@@ -24,13 +25,26 @@ SUPPORTED_SAMPLING_RULE = "contiguous_deterministic"
 
 def file_sha256(path: str) -> str:
     h = hashlib.sha256()
+
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
+
     return h.hexdigest()
 
 
-def run_one_step_verifier_from_embedded_artifact(one_step_artifact: dict, merkle_path: str):
+def load_checkpoint(path: str) -> Dict[str, Any]:
+    return torch.load(
+        path,
+        map_location="cpu",
+        weights_only=False,
+    )
+
+
+def run_one_step_verifier_from_embedded_artifact(
+    one_step_artifact: dict,
+    merkle_path: str,
+):
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_artifact_path = os.path.join(tmpdir, "embedded_one_step_artifact.json")
 
@@ -45,18 +59,28 @@ def run_one_step_verifier_from_embedded_artifact(one_step_artifact: dict, merkle
             sys.executable,
             "scripts/artifacts_export/verify_one_step_update_artifact.py",
         ]
-        proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
+
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
         return proc
 
 
-def compare_state_dicts(sd1, sd2):
+def compare_state_dicts(sd1, sd2) -> bool:
     keys1 = set(sd1.keys())
     keys2 = set(sd2.keys())
+
     if keys1 != keys2:
         return False
-    for k in keys1:
-        if not torch.equal(sd1[k].detach().cpu(), sd2[k].detach().cpu()):
+
+    for key in keys1:
+        if not torch.equal(sd1[key].detach().cpu(), sd2[key].detach().cpu()):
             return False
+
     return True
 
 
@@ -80,16 +104,118 @@ def deserialize_tensor(obj: Dict[str, Any]) -> torch.Tensor:
         "torch.int64": torch.int64,
         "torch.int32": torch.int32,
     }
+
     dtype = dtype_map.get(dtype_str, torch.float32)
     tensor = torch.tensor(values, dtype=dtype)
+
     return tensor.reshape(shape)
 
 
 def deserialize_state_dict(obj: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-    return {name: deserialize_tensor(tensor_obj) for name, tensor_obj in obj.items()}
+    return {
+        name: deserialize_tensor(tensor_obj)
+        for name, tensor_obj in obj.items()
+    }
 
 
-def main():
+def verify_short_trace_canonical_boundary_commitments(
+    public: Dict[str, Any],
+    initial_checkpoint_path: str,
+    final_checkpoint_path: str,
+) -> Dict[str, Any]:
+    initial_checkpoint = load_checkpoint(initial_checkpoint_path)
+    final_checkpoint = load_checkpoint(final_checkpoint_path)
+
+    initial_recomputed = canonical_checkpoint_state_commitments(initial_checkpoint)
+    final_recomputed = canonical_checkpoint_state_commitments(final_checkpoint)
+
+    expected_commitment_type = public.get("checkpoint_commitment_type")
+
+    expected_initial_online_key = public.get("initial_online_state_dict_key")
+    expected_initial_online_sha = public.get("initial_online_state_dict_sha256")
+    expected_initial_target_sha = public.get("initial_target_state_dict_sha256")
+
+    expected_final_online_key = public.get("final_online_state_dict_key")
+    expected_final_online_sha = public.get("final_online_state_dict_sha256")
+    expected_final_target_sha = public.get("final_target_state_dict_sha256")
+
+    has_boundary_fields = all(
+        value is not None
+        for value in [
+            expected_commitment_type,
+            expected_initial_online_key,
+            expected_initial_online_sha,
+            expected_initial_target_sha,
+            expected_final_online_key,
+            expected_final_online_sha,
+            expected_final_target_sha,
+        ]
+    )
+
+    # Backward compatibility for older short-trace artifacts.
+    if not has_boundary_fields:
+        return {
+            "canonical_boundary_commitments_present": False,
+            "checkpoint_commitment_type_ok": True,
+            "initial_online_state_dict_key_ok": True,
+            "initial_online_state_dict_sha256_ok": True,
+            "initial_target_state_dict_sha256_ok": True,
+            "final_online_state_dict_key_ok": True,
+            "final_online_state_dict_sha256_ok": True,
+            "final_target_state_dict_sha256_ok": True,
+            "short_trace_canonical_boundary_commitments_ok": True,
+        }
+
+    checkpoint_commitment_type_ok = (
+        expected_commitment_type == "sha256_file_and_canonical_state_dicts"
+    )
+
+    initial_online_state_dict_key_ok = (
+        expected_initial_online_key == initial_recomputed["online_state_dict_key"]
+    )
+    initial_online_state_dict_sha256_ok = (
+        expected_initial_online_sha == initial_recomputed["online_state_dict_sha256"]
+    )
+    initial_target_state_dict_sha256_ok = (
+        expected_initial_target_sha == initial_recomputed["target_state_dict_sha256"]
+    )
+
+    final_online_state_dict_key_ok = (
+        expected_final_online_key == final_recomputed["online_state_dict_key"]
+    )
+    final_online_state_dict_sha256_ok = (
+        expected_final_online_sha == final_recomputed["online_state_dict_sha256"]
+    )
+    final_target_state_dict_sha256_ok = (
+        expected_final_target_sha == final_recomputed["target_state_dict_sha256"]
+    )
+
+    short_trace_canonical_boundary_commitments_ok = (
+        checkpoint_commitment_type_ok
+        and initial_online_state_dict_key_ok
+        and initial_online_state_dict_sha256_ok
+        and initial_target_state_dict_sha256_ok
+        and final_online_state_dict_key_ok
+        and final_online_state_dict_sha256_ok
+        and final_target_state_dict_sha256_ok
+    )
+
+    return {
+        "canonical_boundary_commitments_present": True,
+        "checkpoint_commitment_type_ok": checkpoint_commitment_type_ok,
+        "initial_online_state_dict_key_ok": initial_online_state_dict_key_ok,
+        "initial_online_state_dict_sha256_ok": initial_online_state_dict_sha256_ok,
+        "initial_target_state_dict_sha256_ok": initial_target_state_dict_sha256_ok,
+        "final_online_state_dict_key_ok": final_online_state_dict_key_ok,
+        "final_online_state_dict_sha256_ok": final_online_state_dict_sha256_ok,
+        "final_target_state_dict_sha256_ok": final_target_state_dict_sha256_ok,
+        "short_trace_canonical_boundary_commitments_ok": (
+            short_trace_canonical_boundary_commitments_ok
+        ),
+    }
+
+
+def main() -> None:
     with open(ARTIFACT_PATH, "r", encoding="utf-8") as f:
         artifact = json.load(f)
 
@@ -115,7 +241,10 @@ def main():
     sampling_rule_type = public.get("sampling_rule_type", SUPPORTED_SAMPLING_RULE)
     start_offset = int(public.get("start_offset", 0))
 
-    merkle_path = os.environ.get("SHORT_TRACE_MERKLE_PATH", notes.get("merkle_path"))
+    merkle_path = os.environ.get(
+        "SHORT_TRACE_MERKLE_PATH",
+        notes.get("merkle_path"),
+    )
     initial_checkpoint_path = os.environ.get(
         "SHORT_TRACE_INITIAL_CHECKPOINT_PATH",
         notes.get("initial_checkpoint_path"),
@@ -127,7 +256,8 @@ def main():
 
     if not merkle_path:
         raise ValueError(
-            "Missing merkle path: provide SHORT_TRACE_MERKLE_PATH or keep notes['merkle_path']."
+            "Missing merkle path: provide SHORT_TRACE_MERKLE_PATH "
+            "or keep notes['merkle_path']."
         )
 
     if not initial_checkpoint_path:
@@ -155,15 +285,62 @@ def main():
     print("target_sync_every =", target_sync_every)
     print()
 
-    num_steps_match = (num_steps == len(steps) == len(trace_batch_indices))
-    initial_checkpoint_ok = (file_sha256(initial_checkpoint_path) == initial_checkpoint_sha256)
-    final_checkpoint_ok = (file_sha256(final_checkpoint_path) == final_checkpoint_sha256)
-    sampling_rule_supported = (sampling_rule_type == SUPPORTED_SAMPLING_RULE)
+    num_steps_match = num_steps == len(steps) == len(trace_batch_indices)
+    initial_checkpoint_ok = (
+        file_sha256(initial_checkpoint_path) == initial_checkpoint_sha256
+    )
+    final_checkpoint_ok = (
+        file_sha256(final_checkpoint_path) == final_checkpoint_sha256
+    )
+
+    canonical_boundary_checks = verify_short_trace_canonical_boundary_commitments(
+        public=public,
+        initial_checkpoint_path=initial_checkpoint_path,
+        final_checkpoint_path=final_checkpoint_path,
+    )
+
+    sampling_rule_supported = sampling_rule_type == SUPPORTED_SAMPLING_RULE
 
     print("=== GLOBAL CHECKS ===")
     print("num_steps_match =", num_steps_match)
     print("initial_checkpoint_ok =", initial_checkpoint_ok)
     print("final_checkpoint_ok =", final_checkpoint_ok)
+    print(
+        "canonical_boundary_commitments_present =",
+        canonical_boundary_checks["canonical_boundary_commitments_present"],
+    )
+    print(
+        "checkpoint_commitment_type_ok =",
+        canonical_boundary_checks["checkpoint_commitment_type_ok"],
+    )
+    print(
+        "initial_online_state_dict_key_ok =",
+        canonical_boundary_checks["initial_online_state_dict_key_ok"],
+    )
+    print(
+        "initial_online_state_dict_sha256_ok =",
+        canonical_boundary_checks["initial_online_state_dict_sha256_ok"],
+    )
+    print(
+        "initial_target_state_dict_sha256_ok =",
+        canonical_boundary_checks["initial_target_state_dict_sha256_ok"],
+    )
+    print(
+        "final_online_state_dict_key_ok =",
+        canonical_boundary_checks["final_online_state_dict_key_ok"],
+    )
+    print(
+        "final_online_state_dict_sha256_ok =",
+        canonical_boundary_checks["final_online_state_dict_sha256_ok"],
+    )
+    print(
+        "final_target_state_dict_sha256_ok =",
+        canonical_boundary_checks["final_target_state_dict_sha256_ok"],
+    )
+    print(
+        "short_trace_canonical_boundary_commitments_ok =",
+        canonical_boundary_checks["short_trace_canonical_boundary_commitments_ok"],
+    )
     print("sampling_rule_supported =", sampling_rule_supported)
     print()
 
@@ -187,20 +364,25 @@ def main():
         target_sync_applied = step["target_sync_applied"]
         one_step_artifact = step["one_step_artifact"]
 
-        step_index_ok = (step_index == i)
+        step_index_ok = step_index == i
 
         expected_batch = expected_contiguous_batch_indices(
             step_idx=i,
             batch_size=batch_size,
             start_offset=start_offset,
         )
+
         public_batch = trace_batch_indices[i]
         step_batch = one_step_artifact["public"]["batch_indices"]
 
-        sampling_rule_public_ok = (public_batch == expected_batch)
-        sampling_rule_step_ok = (step_batch == expected_batch)
-        batch_indices_ok = (step_batch == public_batch)
-        sampling_rule_ok = sampling_rule_public_ok and sampling_rule_step_ok and batch_indices_ok
+        sampling_rule_public_ok = public_batch == expected_batch
+        sampling_rule_step_ok = step_batch == expected_batch
+        batch_indices_ok = step_batch == public_batch
+        sampling_rule_ok = (
+            sampling_rule_public_ok
+            and sampling_rule_step_ok
+            and batch_indices_ok
+        )
 
         dataset_root_ok = (
             one_step_artifact["public"]["dataset_root"] == dataset_root
@@ -209,21 +391,22 @@ def main():
         optimizer_ok = (
             one_step_artifact["public"]["optimizer_type"] == optimizer_type
         )
-        loss_type_ok = (
-            one_step_artifact["public"]["loss_type"] == loss_type
-        )
+        loss_type_ok = one_step_artifact["public"]["loss_type"] == loss_type
 
         if i == 0:
-            chain_ok = (input_sha == initial_checkpoint_sha256)
+            chain_ok = input_sha == initial_checkpoint_sha256
         else:
-            chain_ok = (input_sha == prev_next_sha)
+            chain_ok = input_sha == prev_next_sha
 
         if target_sync_applied:
-            sync_logic_ok = (raw_output_sha != next_sha)
+            sync_logic_ok = raw_output_sha != next_sha
         else:
-            sync_logic_ok = (raw_output_sha == next_sha)
+            sync_logic_ok = raw_output_sha == next_sha
 
-        one_step_proc = run_one_step_verifier_from_embedded_artifact(one_step_artifact, merkle_path)
+        one_step_proc = run_one_step_verifier_from_embedded_artifact(
+            one_step_artifact,
+            merkle_path,
+        )
         step_verification_ok = (
             one_step_proc.returncode == 0
             and "verification_passed = True" in one_step_proc.stdout
@@ -266,7 +449,7 @@ def main():
 
         prev_next_sha = next_sha
 
-    final_chain_ok = (prev_next_sha == final_checkpoint_sha256)
+    final_chain_ok = prev_next_sha == final_checkpoint_sha256
 
     print()
     print("=== FINAL CHAIN CHECK ===")
@@ -274,14 +457,21 @@ def main():
     print()
 
     target_sync_state_ok = True
+
     print("=== TARGET SYNC STATE CHECKS ===")
     for i, step in enumerate(steps):
         target_sync_applied = step["target_sync_applied"]
         sync_state_witness = step["sync_state_witness"]
 
-        raw_online = deserialize_state_dict(sync_state_witness["raw_output_online_state_dict"])
-        raw_target = deserialize_state_dict(sync_state_witness["raw_output_target_state_dict"])
-        next_target = deserialize_state_dict(sync_state_witness["next_target_state_dict"])
+        raw_online = deserialize_state_dict(
+            sync_state_witness["raw_output_online_state_dict"]
+        )
+        raw_target = deserialize_state_dict(
+            sync_state_witness["raw_output_target_state_dict"]
+        )
+        next_target = deserialize_state_dict(
+            sync_state_witness["next_target_state_dict"]
+        )
 
         if target_sync_applied:
             state_ok = compare_state_dicts(next_target, raw_online)
@@ -300,6 +490,7 @@ def main():
         num_steps_match
         and initial_checkpoint_ok
         and final_checkpoint_ok
+        and canonical_boundary_checks["short_trace_canonical_boundary_commitments_ok"]
         and sampling_rule_supported
         and all_step_verifications_ok
         and all_chain_ok
@@ -324,6 +515,10 @@ def main():
     print("all_sampling_rule_ok =", all_sampling_rule_ok)
     print("all_optimizer_ok =", all_optimizer_ok)
     print("all_loss_type_ok =", all_loss_type_ok)
+    print(
+        "short_trace_canonical_boundary_commitments_ok =",
+        canonical_boundary_checks["short_trace_canonical_boundary_commitments_ok"],
+    )
     print()
     print("verification_passed =", verification_passed)
 
