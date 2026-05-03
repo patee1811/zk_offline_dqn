@@ -127,17 +127,17 @@ This strengthens the TD artifact from pure TD arithmetic checking to checkpoint-
 
 ### 0.4 Negative Verification Tests
 
-The repository includes a negative-test runner:
+The repository includes a minibatch TD negative-test runner:
 
 ```text
 scripts/experiments/run_negative_verification_tests.py
 ```
 
-The current negative tests check that the minibatch TD verifier accepts a valid artifact and rejects the following tampered artifacts:
+The minibatch TD negative tests check that the minibatch TD verifier accepts a valid artifact and rejects the following tampered artifacts:
 
 | Case | Expected result | Failure mode |
 |---|---:|---|
-| `valid_control` | accept | unchanged valid artifact |
+| `valid_control` | accept | unchanged valid minibatch TD artifact |
 | `tamper_loss_fp` | reject | TD loss witness no longer matches recomputed SmoothL1 loss |
 | `tamper_reward` | reject | Bellman target and loss no longer match the transition |
 | `tamper_checkpoint_sha256` | reject | public checkpoint hash no longer matches the checkpoint file |
@@ -145,11 +145,79 @@ The current negative tests check that the minibatch TD verifier accepts a valid 
 | `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
 | `tamper_merkle_path` | reject | Merkle path no longer reconstructs the public dataset root |
 
-These tests cover:
+The repository also includes a short-trace negative-test runner:
 
-- arithmetic tampering;
-- checkpoint/model-state anchoring tampering;
-- committed-data membership tampering.
+```text
+scripts/experiments/run_short_trace_negative_tests.py
+```
+
+The short-trace negative tests check that the short-trace verifier accepts valid contiguous and seeded traces while rejecting the following tampered artifacts:
+
+| Case | Expected result | Failure mode |
+|---|---:|---|
+| `valid_contiguous` | accept | unchanged valid contiguous short-trace artifact |
+| `valid_seeded` | accept | unchanged valid seeded-permutation short-trace artifact |
+| `tamper_contiguous_public_batch` | reject | public contiguous trace batch no longer matches the declared contiguous rule |
+| `tamper_seeded_public_batch` | reject | public seeded trace batch no longer matches the seeded permutation |
+| `tamper_sampling_seed` | reject | public seed no longer reconstructs the declared trace batches |
+| `tamper_dataset_size` | reject | public dataset size no longer reconstructs the declared seeded batches |
+| `tamper_final_checkpoint_sha256` | reject | public final checkpoint file hash no longer matches the final checkpoint |
+| `tamper_final_online_state_dict_sha256` | reject | final online-network state-dict commitment no longer matches the final checkpoint tensor contents |
+
+Together, these negative tests cover:
+
+- TD arithmetic tampering;
+- checkpoint file-hash tampering;
+- canonical model-state commitment tampering;
+- committed-data membership tampering;
+- short-trace sampling-rule tampering;
+- short-trace boundary-checkpoint tampering.
+
+Run the minibatch TD negative tests:
+
+```bash
+python scripts/experiments/run_negative_verification_tests.py
+```
+
+Expected minibatch TD output includes:
+
+```text
+valid_control_accept = True
+tamper_loss_fp_accept = False
+tamper_reward_accept = False
+tamper_checkpoint_sha256_accept = False
+tamper_online_state_dict_sha256_accept = False
+tamper_leaf_hash_accept = False
+tamper_merkle_path_accept = False
+all_tests_passed = True
+```
+
+Run the short-trace negative tests:
+
+```bash
+python scripts/experiments/run_short_trace_negative_tests.py
+```
+
+Expected short-trace output includes:
+
+```text
+valid_contiguous_accept = True
+valid_seeded_accept = True
+tamper_contiguous_public_batch_accept = False
+tamper_seeded_public_batch_accept = False
+tamper_sampling_seed_accept = False
+tamper_dataset_size_accept = False
+tamper_final_checkpoint_sha256_accept = False
+tamper_final_online_state_dict_sha256_accept = False
+all_tests_passed = True
+```
+
+The negative-test summaries are written to:
+
+```text
+artifacts/negative_tests/summary.csv
+artifacts/short_trace_negative_tests/summary.csv
+```
 
 ---
 
@@ -531,7 +599,7 @@ The next schema work should be:
 4. reduce raw tensor and floating-point dependence before moving to a proving backend;
 5. document how benchmark metadata differs from artifact metadata;
 6. define whether nested one-step artifacts should remain embedded or be replaced by commitment references;
-7. add a short-trace negative-test runner covering contiguous and seeded-permutation sampling failures.
+7. add negative-test coverage for one-step schema-cleanup edge cases once the one-step artifact is simplified.
 
 ---
 
