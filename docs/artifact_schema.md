@@ -376,6 +376,8 @@ The short-trace artifact currently embeds nested one-step artifacts and checks:
 - `learning_rate_fp`
 - `sampling_rule_type`
 - `start_offset`
+- `sampling_seed`
+- `dataset_size`
 - `target_sync_every`
 - `initial_checkpoint_sha256`
 - `final_checkpoint_sha256`
@@ -529,7 +531,7 @@ The next schema work should be:
 4. reduce raw tensor and floating-point dependence before moving to a proving backend;
 5. document how benchmark metadata differs from artifact metadata;
 6. define whether nested one-step artifacts should remain embedded or be replaced by commitment references;
-7. add a stronger replay-sampling schema, such as seeded deterministic permutation sampling.
+7. add a short-trace negative-test runner covering contiguous and seeded-permutation sampling failures.
 
 ---
 
@@ -858,8 +860,14 @@ Interpretation:
 - `expected_batch_indices` is recomputable from:
   - `sampling_rule_type`,
   - `start_offset`,
+  - `sampling_seed`,
+  - `dataset_size`,
   - `batch_size`,
   - `step_index`;
+
+For `contiguous_deterministic`, `start_offset`, `batch_size`, and `step_index` determine the expected batch.
+
+For `seeded_permutation`, `sampling_seed`, `dataset_size`, `batch_size`, and `step_index` determine the expected batch.
 - batch identity is already available in:
   - `public.trace_batch_indices`,
   - `steps[].one_step_artifact.public.batch_indices`;
@@ -916,6 +924,8 @@ The verifier receives operational paths externally from the benchmark/runtime en
 - `public.learning_rate_fp`
 - `public.sampling_rule_type`
 - `public.start_offset`
+- `public.sampling_seed`
+- `public.dataset_size`
 - `public.target_sync_every`
 - `public.initial_checkpoint_sha256`
 - `public.final_checkpoint_sha256`
