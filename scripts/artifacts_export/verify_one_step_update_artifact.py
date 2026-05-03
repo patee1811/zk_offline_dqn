@@ -6,6 +6,7 @@ from typing import Any, Dict
 import torch
 
 from zk_offline_dqn.artifact_export_utils import (
+    compute_td_witness,
     compute_training_loss,
     file_sha256,
     hash_leaf_serialized,
@@ -197,6 +198,7 @@ def main() -> None:
     print("learning_rate_fp =", learning_rate_fp)
     print()
 
+    _, verifier_online_net, verifier_target_net = load_checkpoint_nets(checkpoint_path)
     all_items_ok = True
     total_loss_fp = 0
 
@@ -209,6 +211,14 @@ def main() -> None:
         merkle_path = item["merkle_path"]
         w = item["td_witness"]
 
+        recomputed_witness_pack = compute_td_witness(
+            transition=transition,
+            online_net=verifier_online_net,
+            target_net=verifier_target_net,
+        )
+
+        recomputed_w = recomputed_witness_pack["td_witness"]
+
         recomputed_leaf = serialize_leaf(transition)
         leaf_match = recomputed_leaf == leaf
 
@@ -217,6 +227,14 @@ def main() -> None:
 
         recomputed_root = recompute_root_from_path(claimed_leaf_hash, merkle_path)
         merkle_ok = recomputed_root == dataset_root
+
+        next_action_match = (
+            int(w["next_action_online"]) == int(recomputed_w["next_action_online"])
+        )
+
+        q_target_max_match = (
+            int(w["q_target_max_fp"]) == int(recomputed_w["q_target_max_fp"])
+        )
 
         reward_fp = encode_fp(float(transition["reward"]))
         done = int(transition["done"])
@@ -240,6 +258,8 @@ def main() -> None:
             leaf_match
             and leaf_hash_match
             and merkle_ok
+            and next_action_match
+            and q_target_max_match
             and target_match
             and loss_match
             and index_match
@@ -254,6 +274,8 @@ def main() -> None:
             f"leaf_match={leaf_match} "
             f"leaf_hash_match={leaf_hash_match} "
             f"merkle_ok={merkle_ok} "
+            f"next_action_match={next_action_match} "
+            f"q_target_max_match={q_target_max_match} "
             f"target_match={target_match} "
             f"loss_match={loss_match} "
             f"item_ok={item_ok}"
