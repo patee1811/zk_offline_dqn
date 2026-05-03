@@ -262,6 +262,25 @@ The repository contains a negative-test runner:
 ```text
 scripts/experiments/run_negative_verification_tests.py
 ```
+The repository also includes a short-trace negative-test runner:
+
+```text
+scripts/experiments/run_short_trace_negative_tests.py
+```
+
+It checks both valid and tampered short-trace artifacts.
+
+| Case | Expected Result | Reason |
+|---|---:|---|
+| `valid_contiguous` | accept | unchanged valid contiguous short-trace artifact |
+| `valid_seeded` | accept | unchanged valid seeded-permutation short-trace artifact |
+| `tamper_contiguous_public_batch` | reject | public contiguous trace batch no longer matches the declared contiguous rule |
+| `tamper_seeded_public_batch` | reject | public seeded trace batch no longer matches the seeded permutation |
+| `tamper_sampling_seed` | reject | public seed no longer reconstructs the declared trace batches |
+| `tamper_dataset_size` | reject | public dataset size no longer reconstructs the declared seeded batches |
+| `tamper_final_checkpoint_sha256` | reject | public final checkpoint file hash no longer matches the final checkpoint |
+| `tamper_final_online_state_dict_sha256` | reject | final online-network state-dict commitment no longer matches the final checkpoint tensor contents |
+```
 
 It starts from a valid minibatch TD artifact and checks that the verifier accepts the valid artifact while rejecting tampered variants.
 
@@ -914,7 +933,33 @@ tamper_merkle_path,False,False,True,artifacts/negative_tests/tamper_merkle_path.
 
 ---
 
-### Stage 12: Short-Trace Negative Sampling-Rule Check
+### Stage 12: Run Short-Trace Negative Tests
+
+```bash
+python scripts/experiments/run_short_trace_negative_tests.py
+```
+
+Expected output includes:
+
+```text
+valid_contiguous_accept = True
+valid_seeded_accept = True
+tamper_contiguous_public_batch_accept = False
+tamper_seeded_public_batch_accept = False
+tamper_sampling_seed_accept = False
+tamper_dataset_size_accept = False
+tamper_final_checkpoint_sha256_accept = False
+tamper_final_online_state_dict_sha256_accept = False
+all_tests_passed = True
+```
+
+The summary is written to:
+
+```text
+artifacts/short_trace_negative_tests/summary.csv
+```
+
+### Stage 13: Manual Short-Trace Sampling-Rule Tamper Check
 
 Export a valid short-trace artifact:
 
@@ -957,7 +1002,7 @@ verification_passed = False
 
 ---
 
-### Stage 13: Analyze Results
+### Stage 14: Analyze Results
 
 ```bash
 python scripts/analysis/analyze_offline_log.py \
@@ -971,7 +1016,7 @@ python scripts/analysis/analyze_cql_log.py \
 
 ---
 
-### Stage 14: Regression Checklist
+### Stage 15: Regression Checklist
 
 ```powershell
 $env:PYTHONPATH="."
@@ -1150,21 +1195,7 @@ To reproduce the experiments, run the dataset generation and training scripts ab
 
 The strongest next milestones are:
 
-### 1. Short-Trace Negative Test Runner
-
-The next useful engineering milestone is to formalize short-trace negative tests in a script, similar to the minibatch TD negative-test runner.
-
-The short-trace negative-test runner should include cases such as:
-
-- valid contiguous trace is accepted;
-- valid seeded-permutation trace is accepted;
-- tampered contiguous public batch is rejected;
-- tampered seeded public batch is rejected;
-- tampered sampling seed is rejected;
-- tampered dataset size is rejected;
-- tampered final checkpoint commitment is rejected.
-
-### 2. One-Step Artifact Schema Cleanup
+### 1. One-Step Artifact Schema Cleanup
 
 The one-step artifact should be cleaned further by separating:
 
@@ -1174,7 +1205,7 @@ The one-step artifact should be cleaned further by separating:
 - runtime metadata;
 - benchmark metadata.
 
-### 3. True ZK Backend
+### 2. True ZK Backend
 
 The most important future research step is to instantiate a real proving backend, such as:
 
@@ -1186,7 +1217,7 @@ The recommended first ZK target is not the full DQN update. A more feasible firs
 
 > committed transition membership + Bellman target + SmoothL1 TD loss over a tiny quantized TD statement.
 
-### 4. ZK Backend MVP Statement
+### 3. ZK Backend MVP Statement
 
 A realistic first ZK backend could prove:
 
