@@ -7,6 +7,11 @@ from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
 )
 
+from zk_offline_dqn.artifact_schema_versions import (
+    SCHEMA_MINIBATCH_TD_V1,
+    require_schema_version,
+)
+
 ARTIFACT_PATH = "artifacts/minibatch_td_from_dataset.json"
 CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 
@@ -49,6 +54,12 @@ def file_sha256(path: str) -> str:
 def main():
     with open(ARTIFACT_PATH, "r", encoding="utf-8") as f:
         artifact = json.load(f)
+
+    require_schema_version(
+        artifact,
+        SCHEMA_MINIBATCH_TD_V1,
+        artifact_path=ARTIFACT_PATH,
+    )
 
     public = artifact["public"]
     items = artifact["items"]

@@ -6,6 +6,11 @@ import hashlib
 import tempfile
 from typing import Any, Dict, List
 
+from zk_offline_dqn.artifact_schema_versions import (
+    SCHEMA_SHORT_TRACE_UPDATE_V2,
+    require_schema_version,
+)
+
 import torch
 
 
@@ -87,6 +92,12 @@ def deserialize_state_dict(obj: Dict[str, Any]) -> Dict[str, torch.Tensor]:
 def main():
     with open(ARTIFACT_PATH, "r", encoding="utf-8") as f:
         artifact = json.load(f)
+
+    require_schema_version(
+        artifact,
+        SCHEMA_SHORT_TRACE_UPDATE_V2,
+        artifact_path=ARTIFACT_PATH,
+    )
 
     public = artifact["public"]
     steps = artifact["steps"]

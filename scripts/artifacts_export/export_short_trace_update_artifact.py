@@ -5,13 +5,18 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any, Dict, List
+
+from zk_offline_dqn.artifact_schema_versions import SCHEMA_SHORT_TRACE_UPDATE_V2
 
 import torch
 
 
 SUPPORTED_SAMPLING_RULE = "contiguous_deterministic"
 
+def to_posix_path(path: str) -> str:
+    return Path(path).as_posix()
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -263,6 +268,7 @@ def main():
     final_checkpoint_sha256 = file_sha256(current_checkpoint_path)
 
     artifact: Dict[str, Any] = {
+        "schema_version": SCHEMA_SHORT_TRACE_UPDATE_V2,
         "public": {
             "dataset_root": steps[0]["one_step_artifact"]["public"]["dataset_root"],
             "trace_batch_indices": trace_batches,
@@ -285,7 +291,7 @@ def main():
         json.dump(artifact, f, indent=2)
 
     print("=== SHORT TRACE UPDATE ARTIFACT EXPORTED ===")
-    print("output_path =", args.out)
+    print("output_path =", to_posix_path(args.out))
     print("num_steps =", len(trace_batches))
     print("trace_batch_indices =", trace_batches)
     print("batch_size =", batch_size)
@@ -294,7 +300,7 @@ def main():
     print("target_sync_every =", args.target_sync_every)
     print("initial_checkpoint_sha256 =", initial_checkpoint_sha256)
     print("final_checkpoint_sha256 =", final_checkpoint_sha256)
-    print("final_checkpoint_path =", current_checkpoint_path)
+    print("final_checkpoint_path =", to_posix_path(current_checkpoint_path))
     print()
 
     print("=== STEP SUMMARY ===")

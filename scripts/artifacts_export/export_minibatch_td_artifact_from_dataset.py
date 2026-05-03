@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 
 from zk_offline_dqn import zk_specs
+from zk_offline_dqn.artifact_schema_versions import SCHEMA_MINIBATCH_TD_V1
 
 encode_fp = zk_specs.encode_fp
 compute_td_target_fp = zk_specs.compute_td_target_fp
@@ -335,6 +336,7 @@ def main():
     batch_loss_fp = total_loss_fp // batch_size
 
     artifact = {
+        "schema_version": SCHEMA_MINIBATCH_TD_V1,
         "public": {
             "dataset_root": dataset_root,
             "batch_size": batch_size,

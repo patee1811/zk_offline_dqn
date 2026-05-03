@@ -19,6 +19,11 @@ from zk_offline_dqn.zk_specs import (
     encode_fp,
 )
 
+from zk_offline_dqn.artifact_schema_versions import (
+    SCHEMA_ONE_STEP_UPDATE_V1,
+    require_schema_version,
+)
+
 ARTIFACT_PATH = os.environ.get(
     "ONE_STEP_ARTIFACT_PATH",
     "artifacts/one_step_update_artifact.json",
@@ -60,6 +65,12 @@ def compare_state_dicts(sd1, sd2):
 def main():
     with open(ARTIFACT_PATH, "r", encoding="utf-8") as f:
         artifact = json.load(f)
+
+    require_schema_version(
+        artifact,
+        SCHEMA_ONE_STEP_UPDATE_V1,
+        artifact_path=ARTIFACT_PATH,
+    )
 
     merkle = load_merkle_artifact(MERKLE_PATH)
 

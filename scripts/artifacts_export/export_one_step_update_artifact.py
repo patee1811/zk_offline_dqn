@@ -18,6 +18,8 @@ from zk_offline_dqn.artifact_export_utils import (
     prepare_checked_transition_membership,
 )
 
+from zk_offline_dqn.artifact_schema_versions import SCHEMA_ONE_STEP_UPDATE_V1
+
 encode_fp = zk_specs.encode_fp
 
 
@@ -155,6 +157,7 @@ def main():
     post_checkpoint_sha256 = file_sha256(args.post_checkpoint_out)
 
     artifact = {
+        "schema_version": SCHEMA_ONE_STEP_UPDATE_V1,
         "public": {
             "dataset_root": dataset_root,
             "batch_indices": indices,
