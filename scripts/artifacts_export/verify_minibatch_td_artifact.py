@@ -1,5 +1,6 @@
-import json
 import hashlib
+import json
+import os
 
 from zk_offline_dqn.zk_specs import (
     serialize_transition_leaf,
@@ -12,8 +13,15 @@ from zk_offline_dqn.artifact_schema_versions import (
     require_schema_version,
 )
 
-ARTIFACT_PATH = "artifacts/minibatch_td_from_dataset.json"
-CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
+ARTIFACT_PATH = os.environ.get(
+    "MINIBATCH_TD_ARTIFACT_PATH",
+    "artifacts/minibatch_td_from_dataset.json",
+)
+
+CHECKPOINT_PATH = os.environ.get(
+    "MINIBATCH_TD_CHECKPOINT_PATH",
+    "models/offline_dqn_with_target_seed42_best.pt",
+)
 
 
 def encode_leaf_for_hash(leaf):
