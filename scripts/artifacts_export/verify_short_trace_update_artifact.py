@@ -13,6 +13,11 @@ from zk_offline_dqn.artifact_schema_versions import (
     require_schema_version,
 )
 from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
+from zk_offline_dqn.sampling_rules import (
+    SAMPLING_RULE_CONTIGUOUS_DETERMINISTIC,
+    SUPPORTED_SAMPLING_RULES,
+    expected_batch_indices_for_rule,
+)
 
 
 ARTIFACT_PATH = os.environ.get(
@@ -20,7 +25,7 @@ ARTIFACT_PATH = os.environ.get(
     "artifacts/short_trace_update_artifact.json",
 )
 
-SUPPORTED_SAMPLING_RULE = "contiguous_deterministic"
+DEFAULT_SAMPLING_RULE = SAMPLING_RULE_CONTIGUOUS_DETERMINISTIC
 
 
 def file_sha256(path: str) -> str:
@@ -83,14 +88,6 @@ def compare_state_dicts(sd1, sd2) -> bool:
 
     return True
 
-
-def expected_contiguous_batch_indices(
-    step_idx: int,
-    batch_size: int,
-    start_offset: int = 0,
-) -> List[int]:
-    start = start_offset + step_idx * batch_size
-    return list(range(start, start + batch_size))
 
 
 def deserialize_tensor(obj: Dict[str, Any]) -> torch.Tensor:
@@ -238,8 +235,16 @@ def main() -> None:
     initial_checkpoint_sha256 = public["initial_checkpoint_sha256"]
     final_checkpoint_sha256 = public["final_checkpoint_sha256"]
     target_sync_every = public["target_sync_every"]
-    sampling_rule_type = public.get("sampling_rule_type", SUPPORTED_SAMPLING_RULE)
+    sampling_rule_type = public.get("sampling_rule_type", DEFAULT_SAMPLING_RULE)
     start_offset = int(public.get("start_offset", 0))
+    sampling_seed = public.get("sampling_seed")
+    dataset_size = public.get("dataset_size")
+
+    if sampling_seed is not None:
+        sampling_seed = int(sampling_seed)
+
+    if dataset_size is not None:
+        dataset_size = int(dataset_size)
 
     merkle_path = os.environ.get(
         "SHORT_TRACE_MERKLE_PATH",
@@ -280,6 +285,8 @@ def main() -> None:
     print("batch_size =", batch_size)
     print("sampling_rule_type =", sampling_rule_type)
     print("start_offset =", start_offset)
+    print("sampling_seed =", sampling_seed)
+    print("dataset_size =", dataset_size)
     print("optimizer_type =", optimizer_type)
     print("loss_type =", loss_type)
     print("target_sync_every =", target_sync_every)
@@ -299,7 +306,7 @@ def main() -> None:
         final_checkpoint_path=final_checkpoint_path,
     )
 
-    sampling_rule_supported = sampling_rule_type == SUPPORTED_SAMPLING_RULE
+    sampling_rule_supported = sampling_rule_type in SUPPORTED_SAMPLING_RULES
 
     print("=== GLOBAL CHECKS ===")
     print("num_steps_match =", num_steps_match)
@@ -366,10 +373,13 @@ def main() -> None:
 
         step_index_ok = step_index == i
 
-        expected_batch = expected_contiguous_batch_indices(
+        expected_batch = expected_batch_indices_for_rule(
+            sampling_rule_type=sampling_rule_type,
             step_idx=i,
             batch_size=batch_size,
             start_offset=start_offset,
+            dataset_size=dataset_size,
+            sampling_seed=sampling_seed,
         )
 
         public_batch = trace_batch_indices[i]

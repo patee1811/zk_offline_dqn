@@ -12,10 +12,15 @@ import torch
 
 from zk_offline_dqn.artifact_schema_versions import SCHEMA_SHORT_TRACE_UPDATE_V2
 from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
+from zk_offline_dqn.sampling_rules import (
+    SAMPLING_RULE_CONTIGUOUS_DETERMINISTIC,
+    SAMPLING_RULE_SEEDED_PERMUTATION,
+    SUPPORTED_SAMPLING_RULES,
+    expected_batch_indices_for_rule,
+)
 
 
-SUPPORTED_SAMPLING_RULE = "contiguous_deterministic"
-
+DEFAULT_SAMPLING_RULE = SAMPLING_RULE_CONTIGUOUS_DETERMINISTIC
 
 def to_posix_path(path: str) -> str:
     return Path(path).as_posix()
@@ -44,14 +49,32 @@ def parse_args():
     parser.add_argument(
         "--sampling-rule-type",
         type=str,
-        default=SUPPORTED_SAMPLING_RULE,
-        help=f"Sampling rule enforced by the exporter. Currently supported: {SUPPORTED_SAMPLING_RULE}",
+        default=DEFAULT_SAMPLING_RULE,
+        help=(
+            "Sampling rule enforced by the exporter. "
+            f"Supported: {sorted(SUPPORTED_SAMPLING_RULES)}"
+        ),
     )
     parser.add_argument(
         "--start-offset",
         type=int,
         default=0,
         help="Optional start offset for deterministic contiguous sampling.",
+    )
+    parser.add_argument(
+        "--sampling-seed",
+        type=int,
+        default=None,
+        help="Seed for seeded_permutation sampling.",
+    )
+    parser.add_argument(
+        "--dataset-size",
+        type=int,
+        default=None,
+        help=(
+            "Dataset size for seeded_permutation sampling. "
+            "If omitted, it is inferred from the Merkle artifact leaf count."
+        ),
     )
     parser.add_argument(
         "--work-dir",
@@ -105,26 +128,33 @@ def load_trace_batches(trace_batches_json: str) -> List[List[int]]:
         parsed.append([int(x) for x in batch])
 
     return parsed
+def infer_dataset_size_from_merkle(merkle_path: str) -> int:
+    with open(merkle_path, "r", encoding="utf-8") as f:
+        merkle = json.load(f)
 
+    levels = merkle.get("levels")
 
-def expected_contiguous_batch_indices(
-    step_idx: int,
-    batch_size: int,
-    start_offset: int = 0,
-) -> List[int]:
-    start = start_offset + step_idx * batch_size
-    return list(range(start, start + batch_size))
+    if not isinstance(levels, list) or not levels:
+        raise ValueError("Merkle artifact must contain a non-empty 'levels' list.")
 
+    leaf_level = levels[0]
+
+    if not isinstance(leaf_level, list) or not leaf_level:
+        raise ValueError("Merkle artifact leaf level must be a non-empty list.")
+
+    return len(leaf_level)
 
 def validate_trace_batches_against_sampling_rule(
     trace_batches: List[List[int]],
     sampling_rule_type: str,
     start_offset: int,
+    dataset_size: int | None = None,
+    sampling_seed: int | None = None,
 ) -> int:
-    if sampling_rule_type != SUPPORTED_SAMPLING_RULE:
+    if sampling_rule_type not in SUPPORTED_SAMPLING_RULES:
         raise ValueError(
             f"Unsupported sampling_rule_type={sampling_rule_type!r}. "
-            f"Currently supported: {SUPPORTED_SAMPLING_RULE!r}"
+            f"Supported rules: {sorted(SUPPORTED_SAMPLING_RULES)}"
         )
 
     if not trace_batches:
@@ -143,10 +173,13 @@ def validate_trace_batches_against_sampling_rule(
                 f"batch_size={len(batch_indices)}"
             )
 
-        expected = expected_contiguous_batch_indices(
+        expected = expected_batch_indices_for_rule(
+            sampling_rule_type=sampling_rule_type,
             step_idx=step_idx,
             batch_size=batch_size,
             start_offset=start_offset,
+            dataset_size=dataset_size,
+            sampling_seed=sampling_seed,
         )
 
         if batch_indices != expected:
@@ -195,10 +228,22 @@ def main() -> None:
     args = parse_args()
 
     trace_batches = load_trace_batches(args.trace_batches_json)
+
+    dataset_size = args.dataset_size
+
+    if args.sampling_rule_type == SAMPLING_RULE_SEEDED_PERMUTATION:
+        if args.sampling_seed is None:
+            raise ValueError("--sampling-seed is required for seeded_permutation")
+
+        if dataset_size is None:
+            dataset_size = infer_dataset_size_from_merkle(args.merkle)
+
     batch_size = validate_trace_batches_against_sampling_rule(
         trace_batches=trace_batches,
         sampling_rule_type=args.sampling_rule_type,
         start_offset=args.start_offset,
+        dataset_size=dataset_size,
+        sampling_seed=args.sampling_seed,
     )
 
     ensure_dir(args.work_dir)
@@ -329,6 +374,8 @@ def main() -> None:
             ],
             "sampling_rule_type": args.sampling_rule_type,
             "start_offset": args.start_offset,
+            "sampling_seed": args.sampling_seed,
+            "dataset_size": dataset_size,
             "target_sync_every": args.target_sync_every,
             "initial_checkpoint_sha256": initial_checkpoint_sha256,
             "final_checkpoint_sha256": final_checkpoint_sha256,
@@ -366,6 +413,8 @@ def main() -> None:
     print("batch_size =", batch_size)
     print("sampling_rule_type =", args.sampling_rule_type)
     print("start_offset =", args.start_offset)
+    print("sampling_seed =", args.sampling_seed)
+    print("dataset_size =", dataset_size)
     print("target_sync_every =", args.target_sync_every)
     print("initial_checkpoint_sha256 =", initial_checkpoint_sha256)
     print("final_checkpoint_sha256 =", final_checkpoint_sha256)
