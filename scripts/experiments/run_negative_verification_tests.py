@@ -69,6 +69,19 @@ def make_tamper_checkpoint_sha256(base_artifact: Dict[str, Any]) -> Dict[str, An
     artifact = copy.deepcopy(base_artifact)
     artifact["public"]["checkpoint_sha256"] = "0" * 64
     return artifact
+def make_tamper_leaf_hash(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+    artifact["items"][0]["leaf_hash"] = "0" * 64
+    return artifact
+def make_tamper_merkle_path(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+
+    path = artifact["items"][0]["merkle_path"]
+    if not path:
+        raise ValueError("Cannot tamper empty merkle_path")
+
+    path[0]["sibling_hash"] = "0" * 64
+    return artifact
 
 def run_minibatch_verifier(
     artifact_path: Path,
@@ -135,6 +148,8 @@ def main() -> None:
         "tamper_reward",
         "tamper_loss_fp",
         "tamper_checkpoint_sha256",
+        "tamper_leaf_hash",
+        "tamper_merkle_path",
     ]
 
     print("=== NEGATIVE VERIFICATION TEST RUNNER ===")
@@ -231,6 +246,46 @@ def main() -> None:
 
     rows.append(tamper_checkpoint_row)
 
+    tamper_leaf_hash_path = out_dir / "tamper_leaf_hash.json"
+    tamper_leaf_hash_artifact = make_tamper_leaf_hash(base_artifact)
+    save_json(tamper_leaf_hash_artifact, tamper_leaf_hash_path)
+
+    tamper_leaf_hash_result = run_minibatch_verifier(
+        artifact_path=tamper_leaf_hash_path,
+        checkpoint_path=args.checkpoint,
+    )
+
+    tamper_leaf_hash_row = {
+        "case_name": "tamper_leaf_hash",
+        "expected_accept": False,
+        "actual_accept": tamper_leaf_hash_result["accepted"],
+        "passed": tamper_leaf_hash_result["accepted"] is False,
+        "artifact_path": tamper_leaf_hash_path.as_posix(),
+        "returncode": tamper_leaf_hash_result["returncode"],
+    }
+
+    rows.append(tamper_leaf_hash_row)
+
+    tamper_merkle_path_path = out_dir / "tamper_merkle_path.json"
+    tamper_merkle_path_artifact = make_tamper_merkle_path(base_artifact)
+    save_json(tamper_merkle_path_artifact, tamper_merkle_path_path)
+
+    tamper_merkle_path_result = run_minibatch_verifier(
+        artifact_path=tamper_merkle_path_path,
+        checkpoint_path=args.checkpoint,
+    )
+
+    tamper_merkle_path_row = {
+        "case_name": "tamper_merkle_path",
+        "expected_accept": False,
+        "actual_accept": tamper_merkle_path_result["accepted"],
+        "passed": tamper_merkle_path_result["accepted"] is False,
+        "artifact_path": tamper_merkle_path_path.as_posix(),
+        "returncode": tamper_merkle_path_result["returncode"],
+    }
+
+    rows.append(tamper_merkle_path_row)
+
     summary_csv_path = out_dir / "summary.csv"
     write_summary_csv(rows, summary_csv_path)
 
@@ -243,6 +298,10 @@ def main() -> None:
     print("tamper_reward_passed =", tamper_reward_row["passed"])
     print("tamper_checkpoint_sha256_accept =", tamper_checkpoint_result["accepted"])
     print("tamper_checkpoint_sha256_passed =", tamper_checkpoint_row["passed"])
+    print("tamper_leaf_hash_accept =", tamper_leaf_hash_result["accepted"])
+    print("tamper_leaf_hash_passed =", tamper_leaf_hash_row["passed"])
+    print("tamper_merkle_path_accept =", tamper_merkle_path_result["accepted"])
+    print("tamper_merkle_path_passed =", tamper_merkle_path_row["passed"])
     print("summary_csv_path =", summary_csv_path.as_posix())
     print("all_tests_passed =", all(row["passed"] for row in rows))
 
