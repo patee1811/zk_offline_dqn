@@ -1,481 +1,701 @@
-# Proof Statement Design
+# Artifact Schema Cleanup Notes
 
-## 1. Purpose of This Document
+## 0. Current Schema Versions and Verifier Extensions
 
-This document defines the current proof-statement scope for the repository and clarifies what is already implemented versus what remains future work.
+The repository currently uses explicit artifact schema versions for the main verification artifacts.
 
-The repository currently contains a **pre-ZK artifact-verifier prototype** for offline DQN training from committed data. It is **not yet** a full zero-knowledge proof-of-training system.
+| Artifact | Current schema version | Main verifier |
+|---|---|---|
+| Minibatch TD artifact | `minibatch_td_v1` | `scripts/artifacts_export/verify_minibatch_td_artifact.py` |
+| One-step update artifact | `one_step_update_v1` | `scripts/artifacts_export/verify_one_step_update_artifact.py` |
+| Short-trace update artifact | `short_trace_update_v2` | `scripts/artifacts_export/verify_short_trace_update_artifact.py` |
 
-The design is organized into two levels:
+All schema-aware verifiers reject artifacts when:
 
-1. an **MVP TD-arithmetic statement**, which is already implemented and verified in Python;
-2. a **stronger one-step update statement**, for which a stronger pre-ZK artifact/verifier prototype is also now implemented in Python.
+- `schema_version` is missing;
+- `schema_version` does not match the expected version.
 
----
-
-## 2. MVP Statement
-
-We consider the following MVP statement:
-
-> Given a public commitment to an offline transition dataset and a public hash of a model checkpoint, the prover shows that a minibatch of transitions belongs to the committed dataset, and that the Double-DQN-style Bellman targets and SmoothL1 TD losses for that minibatch are computed correctly.
-
-This MVP does **not** yet prove a gradient update.
-It proves correctness of:
-
-1. membership of sampled transitions in committed data,
-2. Bellman target computation,
-3. TD loss computation,
-4. batch-average loss computation,
-5. checkpoint anchoring via SHA-256.
+This prevents stale or incompatible artifacts from being silently accepted.
 
 ---
 
-## 3. Current Scope in This Repository
+### 0.1 Minibatch TD v1 Extension
 
-The current implementation proves/verifies the following in a Python artifact-verifier prototype:
+The current `minibatch_td_v1` artifact includes the following core TD witness fields:
 
-- transition membership in a committed dataset via Merkle proofs,
-- fixed-point Bellman target computation,
-- fixed-point SmoothL1 TD loss computation,
-- batch-average TD loss,
-- model anchoring through `checkpoint_sha256`,
-- Double DQN target selection using:
-  - the **online network** for `argmax_a Q_online(s', a)`,
-  - the **target network** for evaluating that selected action.
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+target_fp
+loss_fp
+```
 
-The repository now also includes a stronger pre-ZK prototype for **one offline DQN SGD update step**, including:
+The `next_action_online` field was promoted into `td_witness` because it is part of the Double-DQN TD statement:
 
-- pre-update checkpoint anchoring,
-- post-update checkpoint anchoring,
-- gradient recomputation consistency,
-- parameter-delta consistency,
-- SGD update consistency,
-- invariance of the target network during the one-step statement.
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
 
-The current implementation is therefore still **not yet a true zero-knowledge proof system**.
-It is a **pre-ZK artifact design and verifier prototype**.
+This avoids relying on debug-only fields for statement-level verification.
 
----
+The public section of `minibatch_td_v1` also includes model-state commitments:
 
-## 4. Statement Variants Implemented
+```text
+checkpoint_sha256
+checkpoint_commitment_type
+online_state_dict_key
+online_state_dict_sha256
+target_state_dict_sha256
+```
 
-### 4.1 Single-Sample TD Statement
+`checkpoint_sha256` anchors the checkpoint file.
 
-For one transition `(s, a, r, s', done)`:
+`online_state_dict_sha256` and `target_state_dict_sha256` anchor the canonical sorted tensor contents of the online and target networks.
 
-- prove the transition is included in the committed dataset,
-- prove `q_online = Q_online(s)[a]`,
-- prove `next_action = argmax_a' Q_online(s')[a']`,
-- prove `q_target = Q_target(s')[next_action]`,
-- prove `target = r + (1 - done) * gamma * q_target`,
-- prove `loss = SmoothL1(q_online, target)`.
+The canonical commitment helper is implemented in:
 
-### 4.2 Minibatch TD Statement
-
-For a minibatch of transitions:
-
-- prove each transition is included in the committed dataset,
-- prove each per-sample target and loss is correct,
-- prove `batch_loss = floor(sum(loss_i) / batch_size)` in fixed-point form.
-
-### 4.3 One-Step Offline DQN SGD Update Statement
-
-For one fixed minibatch of committed transitions:
-
-- prove all transitions in the minibatch belong to the committed dataset,
-- prove all Double-DQN Bellman targets are correct,
-- prove all SmoothL1 TD losses are correct,
-- prove the minibatch-average loss is correct,
-- prove gradients are recomputed consistently from the pre-update checkpoint and that minibatch,
-- prove the parameter deltas are consistent with the pre-update and post-update online-network states,
-- prove the SGD update rule `w' = w - lr * g` is applied consistently,
-- prove the target network remains unchanged during this one-step statement,
-- prove the claimed post-update checkpoint matches the updated model state.
+```text
+zk_offline_dqn/commitments.py
+```
 
 ---
 
-## 5. Public Inputs
+### 0.2 One-Step Update v1 Extension
 
-### 5.1 Dataset-Related Public Inputs
+The current `one_step_update_v1` artifact includes both file-level checkpoint hashes and canonical model-state commitments.
 
-- `dataset_root`: Merkle root of the committed transition dataset
+The public section includes:
 
-### 5.2 Model-Related Public Inputs
+```text
+pre_checkpoint_sha256
+post_checkpoint_sha256
+checkpoint_commitment_type
+pre_online_state_dict_key
+pre_online_state_dict_sha256
+pre_target_state_dict_sha256
+post_online_state_dict_key
+post_online_state_dict_sha256
+post_target_state_dict_sha256
+```
 
-For the MVP TD statement:
+The one-step TD witness now includes:
 
-- `checkpoint_sha256`: SHA-256 hash of the checkpoint file used to derive online/target Q-values
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+target_fp
+loss_fp
+```
 
-For the one-step update statement:
+The one-step verifier recomputes `next_action_online` and `q_target_max_fp` from the pre-update checkpoint:
 
-- `pre_checkpoint_sha256`
-- `post_checkpoint_sha256`
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
 
-### 5.3 Arithmetic / Configuration Public Inputs
+Expected one-step verifier output includes:
 
-For TD artifacts:
+```text
+next_action_match=True
+q_target_max_match=True
+```
 
-- `loss_type = "smooth_l1"`
-- `batch_size` for minibatch artifact
-- `batch_loss_fp` for minibatch artifact
+The one-step verifier also recomputes these commitments from the pre/post checkpoints and checks:
 
-For one-step update artifacts:
+```text
+pre_online_state_dict_sha256
+pre_target_state_dict_sha256
+post_online_state_dict_sha256
+post_target_state_dict_sha256
+```
 
-- `batch_indices`
-- `batch_size`
-- `loss_type = "smooth_l1"`
-- `optimizer_type = "sgd"`
-- `learning_rate_fp`
-- optionally `learning_rate_real` for debugging / audit convenience
+This makes the one-step statement more explicit: the verifier anchors both the checkpoint files and the canonical tensor contents of the online/target networks before and after the SGD update, while also checking the Double-DQN action-selection/value-selection relation inside the one-step TD witness.
 
-### 5.4 Implicit Public Constants in the Current Prototype
-
-These are currently fixed by code/config rather than explicitly published as circuit inputs:
-
-- fixed-point scale `FP_SCALE = 1000`
-- `gamma = 0.99` encoded as `GAMMA_FP = 990`
-- SmoothL1 beta `= 1.0` encoded as `SMOOTH_L1_BETA_FP = 1000`
-- network architecture:
-  - Linear(4,128) -> ReLU
-  - Linear(128,128) -> ReLU
-  - Linear(128,2)
-
-In a future ZK circuit, these should be either:
-
-- hard-coded into the circuit/specification, or
-- made explicit public parameters.
-
----
-
-## 6. Private Witness
-
-### 6.1 Data Witness
-
-For each sampled transition:
-
-- transition contents:
-  - `obs`
-  - `action`
-  - `reward`
-  - `next_obs`
-  - `done`
-- serialized fixed-point leaf
-- leaf hash
-- Merkle authentication path
-
-### 6.2 Model Witness / Derived Witness for TD Statements
-
-For each sample:
-
-- `q_online_fp`
-- `q_target_max_fp`
-- `target_fp`
-- `loss_fp`
-
-For Double DQN semantics, the witness also conceptually includes:
-
-- online forward values on `obs`
-- online forward values on `next_obs`
-- target forward values on `next_obs`
-- selected `next_action_online = argmax_a Q_online(next_obs)[a]`
-
-In the current Python artifact prototype, some of these are stored only as debug fields rather than as formal public values.
-
-### 6.3 Additional Witness for One-Step Update Statements
-
-For the one-step update prototype, the witness additionally includes:
-
-- pre-update online-network weights
-- pre-update target-network weights
-- recomputed batch training loss
-- per-parameter gradients
-- per-parameter deltas
-- post-update online-network weights
-
-The current implementation stores gradient tensors and delta tensors explicitly inside the one-step artifact for auditability and consistency checking.
+Because the short-trace verifier calls the one-step verifier for each nested step, this also strengthens each one-step relation inside the current short-trace verifier.
 
 ---
 
-## 7. Relation to Be Verified
+### 0.3 Forward TD Consistency Verifier
 
-### 7.1 Membership Relation
+The repository includes an additional verifier:
 
-For each transition:
+```text
+scripts/artifacts_export/verify_forward_td_consistency.py
+```
 
-1. serialize transition into fixed-point leaf format,
-2. hash the leaf,
-3. verify the Merkle path against the public `dataset_root`.
+This verifier checks that the TD witness values in a minibatch artifact are consistent with the actual checkpoint forward pass.
 
-This establishes that the sample comes from the committed dataset.
+For each item, it recomputes:
 
-### 7.2 Double DQN Target Relation
+```text
+Q_online(s)[a]
+argmax_a Q_online(s')
+Q_target(s')[argmax_a Q_online(s')]
+```
 
-For each transition:
+and compares the fixed-point values against:
 
-1. compute:
-   - `q_online = Q_online(s)[a]`
-2. compute:
-   - `next_action_online = argmax_a' Q_online(s')[a']`
-3. compute:
-   - `q_target = Q_target(s')[next_action_online]`
-4. compute Bellman target:
-   - `target = reward + (1 - done) * gamma * q_target`
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+```
 
-All arithmetic is represented in fixed-point form in the current prototype.
-
-### 7.3 TD Loss Relation
-
-For each transition:
-
-- `loss = SmoothL1(q_online, target)`
-
-with beta = 1.0.
-
-In fixed-point form:
-
-- if `|delta| < beta`, then
-  - `loss = delta^2 / (2 * beta)`
-- else
-  - `loss = |delta| - beta / 2`
-
-where `delta = q_online - target`.
-
-### 7.4 Batch Loss Relation
-
-For minibatch artifact:
-
-- `batch_loss_fp = floor(sum(loss_i) / batch_size)`
-
-### 7.5 One-Step SGD Update Relation
-
-For the stronger one-step prototype:
-
-1. start from a publicly anchored pre-update checkpoint,
-2. use a fixed committed minibatch,
-3. recompute the training loss for that minibatch,
-4. recompute gradients with respect to the online-network parameters,
-5. apply one SGD update:
-   - `w' = w - lr * g`
-6. obtain post-update online-network parameters,
-7. serialize/store the resulting post-update checkpoint,
-8. verify consistency between:
-   - the recomputed gradients and stored gradients,
-   - the recomputed parameter deltas and stored deltas,
-   - the actual post-update parameters and the SGD rule,
-   - the post-update checkpoint hash and the resulting checkpoint file.
-
-The target network is held fixed during this one-step statement.
+This strengthens the TD artifact from pure TD arithmetic checking to checkpoint-grounded TD witness checking.
 
 ---
 
-## 8. Fixed-Point Encoding
+### 0.4 Negative Verification Tests
 
-The TD-artifact portion of the prototype uses fixed-point encoding to make arithmetic explicit and ZK-friendly.
+The repository includes a minibatch TD negative-test runner:
 
-- real value `x` is encoded as:
-  - `x_fp = round(x * FP_SCALE)`
-- current scale:
-  - `FP_SCALE = 1000`
+```text
+scripts/experiments/run_negative_verification_tests.py
+```
 
-Examples:
+The minibatch TD negative tests check that the minibatch TD verifier accepts a valid artifact and rejects the following tampered artifacts:
 
-- reward `1.0` -> `1000`
-- gamma `0.99` -> `990`
+| Case | Expected result | Failure mode |
+|---|---:|---|
+| `valid_control` | accept | unchanged valid minibatch TD artifact |
+| `tamper_loss_fp` | reject | TD loss witness no longer matches recomputed SmoothL1 loss |
+| `tamper_reward` | reject | Bellman target and loss no longer match the transition |
+| `tamper_checkpoint_sha256` | reject | public checkpoint hash no longer matches the checkpoint file |
+| `tamper_online_state_dict_sha256` | reject | online-network state-dict commitment no longer matches the canonical checkpoint tensor contents |
+| `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
+| `tamper_merkle_path` | reject | Merkle path no longer reconstructs the public dataset root |
 
-This keeps arithmetic simple and deterministic for artifact verification.
+The repository also includes a short-trace negative-test runner:
 
-The one-step update prototype currently uses:
+```text
+scripts/experiments/run_short_trace_negative_tests.py
+```
 
-- fixed-point arithmetic for TD-side artifact fields, and
-- PyTorch floating-point tensors for gradient / parameter-update consistency checking.
+The short-trace negative tests check that the short-trace verifier accepts valid contiguous and seeded traces while rejecting the following tampered artifacts:
 
-This is acceptable for the current pre-ZK prototype, but a future circuit-oriented version should likely quantize or compress the update witness more aggressively.
+| Case | Expected result | Failure mode |
+|---|---:|---|
+| `valid_contiguous` | accept | unchanged valid contiguous short-trace artifact |
+| `valid_seeded` | accept | unchanged valid seeded-permutation short-trace artifact |
+| `tamper_contiguous_public_batch` | reject | public contiguous trace batch no longer matches the declared contiguous rule |
+| `tamper_seeded_public_batch` | reject | public seeded trace batch no longer matches the seeded permutation |
+| `tamper_sampling_seed` | reject | public seed no longer reconstructs the declared trace batches |
+| `tamper_dataset_size` | reject | public dataset size no longer reconstructs the declared seeded batches |
+| `tamper_final_checkpoint_sha256` | reject | public final checkpoint file hash no longer matches the final checkpoint |
+| `tamper_final_online_state_dict_sha256` | reject | final online-network state-dict commitment no longer matches the final checkpoint tensor contents |
+
+Together, these negative tests cover:
+
+- TD arithmetic tampering;
+- checkpoint file-hash tampering;
+- canonical model-state commitment tampering;
+- committed-data membership tampering;
+- short-trace sampling-rule tampering;
+- short-trace boundary-checkpoint tampering.
+
+Run the minibatch TD negative tests:
+
+```bash
+python scripts/experiments/run_negative_verification_tests.py
+```
+
+Expected minibatch TD output includes:
+
+```text
+valid_control_accept = True
+tamper_loss_fp_accept = False
+tamper_reward_accept = False
+tamper_checkpoint_sha256_accept = False
+tamper_online_state_dict_sha256_accept = False
+tamper_leaf_hash_accept = False
+tamper_merkle_path_accept = False
+all_tests_passed = True
+```
+
+Run the short-trace negative tests:
+
+```bash
+python scripts/experiments/run_short_trace_negative_tests.py
+```
+
+Expected short-trace output includes:
+
+```text
+valid_contiguous_accept = True
+valid_seeded_accept = True
+tamper_contiguous_public_batch_accept = False
+tamper_seeded_public_batch_accept = False
+tamper_sampling_seed_accept = False
+tamper_dataset_size_accept = False
+tamper_final_checkpoint_sha256_accept = False
+tamper_final_online_state_dict_sha256_accept = False
+all_tests_passed = True
+```
+
+The negative-test summaries are written to:
+
+```text
+artifacts/negative_tests/summary.csv
+artifacts/short_trace_negative_tests/summary.csv
+```
 
 ---
 
-## 9. What Is Already Faithful to Training
+### 0.5 Regression Commands
 
-The current prototype is already faithful to the implemented offline DQN training in these aspects:
+After updating schema-related code or documentation, the current regression checklist is:
 
-- SmoothL1 loss matches the trainer,
-- checkpoint is tied publicly by SHA-256,
-- online network outputs are derived from the checkpoint,
-- target network outputs are derived from the checkpoint,
-- Double DQN target semantics are respected:
-  - argmax from online net,
-  - value from target net,
-- one-step update checking now uses:
-  - recomputed gradients from the pre-update checkpoint,
-  - actual parameter deltas between pre-update and post-update states,
-  - explicit SGD consistency checks.
+```powershell
+$env:PYTHONPATH="."
+
+python -m compileall zk_offline_dqn scripts
+
+python scripts/artifacts_export/verify_minibatch_td_artifact.py
+
+python scripts/artifacts_export/verify_forward_td_consistency.py `
+  --artifact artifacts/minibatch_td_from_dataset.json `
+  --checkpoint models/offline_dqn_with_target_seed42_best.pt
+
+python scripts/artifacts_export/verify_one_step_update_artifact.py
+
+$env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_update_artifact.json"
+$env:SHORT_TRACE_MERKLE_PATH="artifacts/cartpole_dqn_eps010_merkle.json"
+$env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_best.pt"
+$env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt"
+
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+
+$env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_seeded_artifact.json"
+$env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+
+python scripts/artifacts_export/verify_short_trace_update_artifact.py
+
+python scripts/experiments/run_negative_verification_tests.py
+python scripts/experiments/run_short_trace_negative_tests.py
+```
+
+Expected key outputs:
+
+```text
+verification_passed = True
+all_forward_ok = True
+next_action_match=True
+q_target_max_match=True
+one_step_canonical_commitments_ok = True
+short_trace_canonical_boundary_commitments_ok = True
+all_sampling_rule_ok = True
+all_tests_passed = True
+```
 
 ---
 
-## 10. What Is Not Yet Fully Proved
+## Purpose
 
-The current prototype does **not** yet prove:
+This document separates:
 
-1. that a full training trace from initialization to final checkpoint was executed correctly;
-2. that general replay-sampling correctness was enforced across a full run;
-3. that target-network synchronization occurred correctly across many training steps at realistic training length;
-4. that model selection / early stopping / best-checkpoint selection were correct;
-5. that multi-step optimizer dynamics were proved end-to-end over long horizons;
-6. that the system is backed by an actual zero-knowledge proving backend;
-7. that proof recursion / proof aggregation has been implemented.
+1. mandatory public inputs,
+2. mandatory private witness fields,
+3. optional debug / audit fields,
 
-More precisely, the repository now supports a **deterministic contiguous sampling rule** for the current short-trace benchmark setting, including public `batch_size`, `sampling_rule_type`, and optional `start_offset`. However, this should still be distinguished from full replay-sampling correctness for random, seeded pseudorandom, or prioritized replay over a long run.
+for the current pre-ZK artifact/verifier prototype.
 
-This is why the current system should be described as:
+The goal is to reduce ambiguity and prepare the statement for a future backend-ready design.
 
-> a pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, one-step update consistency, short verified training traces, and deterministic short-trace sampling-rule enforcement,
+Current implementation status:
 
-not yet a full proof-of-training system.
+- the TD and one-step artifacts remain audit-oriented Python verifier artifacts;
+- the minibatch TD artifact now includes canonical checkpoint/model-state commitments;
+- the one-step artifact now includes canonical pre/post model-state commitments;
+- the one-step artifact now includes `next_action_online` as a core TD witness field;
+- the one-step verifier now checks both `next_action_online` and `q_target_max_fp` against the pre-update checkpoint networks;
+- the short-trace artifact has completed the B3 cleanup milestone;
+- short-trace local filesystem paths are no longer stored in persistent `notes`;
+- the short-trace verifier receives operational paths from the benchmark/runtime environment;
+- the short-trace verifier calls the one-step verifier internally, so one-step verifier strengthening also strengthens nested short-trace update checks.
 
 ---
 
-## 11. Stronger Statement: One Verified Offline DQN Update Step
+## 1. One-Step Update Artifact
 
-The stronger current statement is:
+### 1.1 Statement Role
 
-> Given a committed dataset, explicit minibatch indices, a public pre-update checkpoint hash, and a claimed public post-update checkpoint hash, prove that one offline DQN SGD update step was computed correctly, including Bellman target computation, SmoothL1 TD loss computation, gradient recomputation, parameter-delta consistency, SGD update consistency, and resulting checkpoint anchoring.
+This artifact proves one offline DQN SGD update step from a committed minibatch.
 
-### 11.1 Scope Choice for the Current Version
+The current statement is still a **pre-ZK Python verifier statement**, not a production proving backend. It is useful because it makes the update relation explicit before translating the relation into a zkVM, SNARK, or circuit-compatible backend.
 
-To keep the statement feasible, the current stronger prototype uses the smallest practical setting:
+---
 
-- one minibatch only,
-- fixed batch indices provided explicitly,
-- fixed network architecture,
-- fixed loss type: SmoothL1,
-- fixed Bellman target rule: Double DQN target-net-at-online-argmax,
-- fixed optimizer: SGD,
-- no momentum,
-- no weight decay,
-- no target-network sync inside this statement,
-- no replay-sampling randomness inside this statement.
+### 1.2 Mandatory Top-Level Keys
 
-This is intentionally narrower than full offline DQN training.
-Its purpose is to verify one update step cleanly before extending to multiple steps or full training traces.
+- `schema_version`
+- `public`
+- `items`
+- `update_witness`
+- `notes`
 
-### 11.2 Public Inputs
+---
 
-The verifier sees:
+### 1.3 Mandatory Public Inputs
+
+These are values the verifier must be allowed to see and check directly.
+
+#### Core public inputs
 
 - `dataset_root`
 - `batch_indices`
 - `batch_size`
-- `loss_type = smooth_l1`
-- `optimizer_type = sgd`
+- `loss_type`
+- `optimizer_type`
 - `learning_rate_fp`
+
+#### File-level checkpoint commitments
+
 - `pre_checkpoint_sha256`
 - `post_checkpoint_sha256`
-- optionally:
-  - `learning_rate_real`
-  - network metadata (`obs_dim`, `n_actions`, hidden sizes)
 
-### 11.3 Private Witness
+#### Canonical model-state commitments
 
-The prover keeps private:
-
-- minibatch transitions corresponding to the committed indices
-- Merkle authentication paths for those transitions
-- pre-update online-network weights
-- pre-update target-network weights
-- per-sample forward-pass activations
-- q-values for the update computation
-- Bellman targets
-- SmoothL1 per-item losses
-- aggregated batch loss
-- gradients of all trainable parameters
-- post-update online-network weights
-
-### 11.4 What Is Verified in This Statement
-
-The verifier is meant to be convinced of all of the following:
-
-1. the minibatch really comes from the committed dataset,
-2. the Bellman targets are computed correctly,
-3. the batch-average SmoothL1 loss is computed correctly,
-4. the gradients are computed from that exact loss and that exact pre-update online network,
-5. the parameter update follows the specified SGD rule,
-6. the claimed post-update checkpoint hash corresponds to the updated parameters,
-7. the target network remains unchanged during the one-step statement.
-
-### 11.5 What Is Not Yet Verified in This Statement
-
-The current one-step version still does not verify:
-
-- full multi-step training,
-- target-network synchronization across training,
-- replay-sampling randomness across a full run,
-- early stopping / model selection,
-- selection of the final best checkpoint across many evaluations,
-- optimizer variants such as Adam,
-- proof recursion / proof aggregation,
-- a true ZK backend.
+- `checkpoint_commitment_type`
+- `pre_online_state_dict_key`
+- `pre_online_state_dict_sha256`
+- `pre_target_state_dict_sha256`
+- `post_online_state_dict_key`
+- `post_online_state_dict_sha256`
+- `post_target_state_dict_sha256`
 
 ---
 
-## 12. Current Status of the Stronger Statement
+### 1.4 One-Step Canonical Model-State Commitments
 
-A pre-ZK Python artifact/verifier prototype for **one offline DQN SGD update step** is now implemented in the repository.
+The current `one_step_update_v1` public section includes both file-level checkpoint hashes and canonical model-state commitments:
 
-The current implementation verifies:
+```text
+pre_checkpoint_sha256
+post_checkpoint_sha256
+checkpoint_commitment_type
+pre_online_state_dict_key
+pre_online_state_dict_sha256
+pre_target_state_dict_sha256
+post_online_state_dict_key
+post_online_state_dict_sha256
+post_target_state_dict_sha256
+```
 
-- committed-minibatch membership,
-- Double-DQN Bellman target correctness,
-- SmoothL1 TD loss correctness,
-- batch-loss consistency,
-- pre/post checkpoint anchoring,
-- target-network invariance for the one-step statement,
-- gradient recomputation consistency,
-- parameter-delta consistency,
-- SGD update consistency.
+The current `one_step_update_v1` TD witness includes:
 
-The repository also now implements short verified training traces in pre-ZK Python form. Those traces compose one-step checks with checkpoint chaining, explicit target-network synchronization semantics, deterministic contiguous sampling-rule enforcement, and rejection under sampling-rule mismatch.
+```text
+q_online_fp
+next_action_online
+q_target_max_fp
+target_fp
+loss_fp
+```
 
-It still does **not** implement:
+The one-step verifier recomputes the following values from the pre-update checkpoint networks:
 
-- a true zero-knowledge backend,
-- full training-trace verification from initialization to final selected checkpoint,
-- general replay-sampling correctness over a long run,
-- proof recursion or proof aggregation.
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
+
+and checks:
+
+```text
+next_action_match=True
+q_target_max_match=True
+```
+
+The one-step verifier also recomputes canonical model-state commitments from the pre/post checkpoints and checks:
+
+```text
+pre_online_state_dict_sha256
+pre_target_state_dict_sha256
+post_online_state_dict_sha256
+post_target_state_dict_sha256
+```
+
+This makes the one-step statement more explicit: the verifier anchors both the checkpoint files and the canonical tensor contents of the online/target networks before and after the SGD update, while also checking the Double-DQN action-selection/value-selection relation inside the one-step TD witness.
+
+Because the short-trace verifier calls the one-step verifier for each nested step, this also strengthens each one-step relation inside the current short-trace verifier.
 
 ---
 
-## 13. Recommended Artifact Structure
+### 1.5 Mandatory Private Witness
 
-### 13.1 Single-Sample TD Artifact Public Fields
+These are values required to witness correctness but should conceptually remain private in a true ZK system.
+
+#### Per-item witness
+
+- transition contents;
+- serialized leaf representation;
+- leaf hash;
+- Merkle authentication path;
+- per-sample TD witness values:
+  - `q_online_fp`;
+  - `next_action_online`;
+  - `q_target_max_fp`;
+  - `target_fp`;
+  - `loss_fp`.
+
+#### Update witness
+
+- recomputed batch loss witness;
+- gradients;
+- parameter deltas.
+
+#### Conceptual checkpoint witness
+
+The current Python verifier loads checkpoints from paths stored in `notes`, but conceptually the statement depends on:
+
+- pre-update online-network state;
+- pre-update target-network state;
+- post-update online-network state;
+- post-update target-network state.
+
+In a future backend-ready artifact, these should be represented more cleanly as witness or committed state objects, not as local file paths.
+
+---
+
+### 1.6 Optional Debug / Audit Fields
+
+These fields are useful now in the Python prototype, but should not automatically be treated as essential long-term statement fields.
+
+- file paths in `notes`;
+- human-readable notes;
+- raw tensor summaries;
+- redundant hashes that can be recomputed;
+- any duplicated TD-side values already derivable from other fields;
+- floating-point training loss logs;
+- parameter norm or mean summaries.
+
+---
+
+## 2. Short-Trace Update Artifact
+
+### 2.1 Statement Role
+
+This artifact proves a short sequence of chained one-step updates.
+
+The short-trace artifact currently embeds nested one-step artifacts and checks:
+
+- each one-step update relation;
+- checkpoint chaining;
+- target-network synchronization semantics;
+- deterministic contiguous sampling-rule enforcement;
+- seeded-permutation sampling-rule enforcement.
+
+---
+
+### 2.2 Mandatory Top-Level Keys
+
+- `schema_version`
+- `public`
+- `steps`
+- `notes`
+
+---
+
+### 2.3 Mandatory Public Inputs
 
 - `dataset_root`
-- `loss_type`
-- `checkpoint_sha256`
-
-### 13.2 Single-Sample TD Witness Fields
-
-- `q_online_fp`
-- `q_target_max_fp`
-- `target_fp`
-- `loss_fp`
-
-### 13.3 Minibatch TD Artifact Public Fields
-
-- `dataset_root`
-- `loss_type`
+- `trace_batch_indices`
+- `num_steps`
 - `batch_size`
-- `batch_loss_fp`
-- `checkpoint_sha256`
+- `loss_type`
+- `optimizer_type`
+- `learning_rate_fp`
+- `sampling_rule_type`
+- `start_offset`
+- `sampling_seed`
+- `dataset_size`
+- `target_sync_every`
+- `initial_checkpoint_sha256`
+- `final_checkpoint_sha256`
 
-### 13.4 Minibatch TD Per-Item Witness Fields
+---
 
-- transition
-- Merkle membership data
-- `q_online_fp`
-- `q_target_max_fp`
-- `target_fp`
-- `loss_fp`
+### 2.4 Mandatory Private Witness
 
-### 13.5 One-Step Update Artifact Public Fields
+For each step:
+
+- committed minibatch witness;
+- per-step TD witness;
+- per-step update witness;
+- intermediate checkpoint states;
+- synchronization-relevant witness data.
+
+---
+
+### 2.5 Nested One-Step Verification
+
+Each short-trace step contains a nested one-step artifact:
+
+```text
+steps[].one_step_artifact
+```
+
+The short-trace verifier delegates each nested update relation to the one-step verifier.
+
+Therefore, the short-trace verifier currently inherits the following one-step checks for each step:
+
+- committed minibatch membership;
+- TD target and TD loss checking;
+- `next_action_online` checking;
+- `q_target_max_fp` checking;
+- batch-loss checking;
+- pre/post checkpoint file-hash checking;
+- pre/post canonical model-state commitment checking;
+- gradient recomputation checking;
+- delta-tensor checking;
+- SGD update checking;
+- target-network invariance for the one-step update.
+
+---
+
+### 2.6 Optional Debug / Audit Fields
+
+At the end of B3, no persistent debug metadata is required inside the artifact itself.
+
+Operational paths are now supplied externally by the benchmark/verifier when needed.
+
+---
+
+## 3. Cleanup Rules
+
+### Rule 1
+
+If a field is always recomputable from public inputs, do not keep it as a mandatory stored field unless it is needed for audit convenience.
+
+### Rule 2
+
+If a field is needed only for debugging failed runs, classify it as debug / audit rather than part of the core statement.
+
+### Rule 3
+
+If a field is required for the verifier to check correctness, keep it in the mandatory public or witness set.
+
+### Rule 4
+
+Prefer one canonical location for each piece of information.
+
+Avoid storing the same semantic value in multiple places unless one copy is clearly labeled as redundant debug output.
+
+### Rule 5
+
+Separate persistent artifact semantics from local runtime handles.
+
+For example, local filesystem paths should not be treated as durable public inputs in the long-term backend-ready schema.
+
+### Rule 6
+
+When a checkpoint is used as a statement anchor, prefer both:
+
+- file-level checkpoint hash; and
+- canonical model-state tensor-content hash.
+
+This reduces dependence on framework-specific serialization details.
+
+---
+
+## 4. Cleanup Status
+
+### One-step artifact
+
+Completed improvements:
+
+- `schema_version` added;
+- canonical pre/post online state-dict commitments added;
+- canonical pre/post target state-dict commitments added;
+- `next_action_online` added to one-step `td_witness`;
+- one-step verifier checks `next_action_online`;
+- one-step verifier checks `q_target_max_fp` by recomputing the Double-DQN selected target value from the pre-update checkpoint;
+- verifier checks canonical commitments;
+- short-trace verifier inherits stronger nested one-step checks.
+
+Still to revisit:
+
+- identify redundant tensor summaries;
+- identify duplicated loss-related values;
+- identify path fields that are only for runtime convenience;
+- separate runtime `notes` from durable artifact contract;
+- reduce raw tensor and floating-point dependence before translating to a proving backend.
+
+Status:
+
+The one-step artifact has a working classification, but it still intentionally keeps audit-friendly fields such as raw gradients, delta tensors, checkpoint paths, and notes. These are useful for the Python prototype and should be revisited before translating the statement to a circuit or zkVM backend.
+
+---
+
+### Short-trace artifact
+
+Completed improvements:
+
+- duplicated batch information has been reduced;
+- step-local filesystem paths have been removed;
+- `notes` no longer carries operational metadata;
+- target-sync checking now uses `steps[].sync_state_witness`;
+- final checkpoint path is supplied externally by the benchmark/verifier rather than stored in the artifact;
+- trace-boundary canonical model-state commitments are explicit public fields;
+- seeded-permutation sampling metadata is explicit in public fields;
+- short-trace negative tests cover both contiguous and seeded sampling failures.
+
+Still to revisit:
+
+- reduce embedded nested artifact size;
+- decide whether nested one-step artifacts should be embedded fully or represented by commitments plus external witnesses;
+- clarify whether `notes` should remain as an empty compatibility key or be removed in a future breaking schema version.
+
+---
+
+## 5. Current Next Actions
+
+The immediate inspection and short-trace cleanup tasks have already been completed through the B3 milestone.
+
+Canonical model-state commitments have now been propagated to:
+
+- minibatch TD artifacts;
+- one-step update artifacts;
+- short-trace boundary checkpoints.
+
+The next schema work should be:
+
+1. finish the cleanup pass for the one-step artifact;
+2. define a backend-ready schema that separates:
+   - public inputs,
+   - private witness values,
+   - prototype-only audit/debug fields;
+3. decide whether `notes` should remain as an empty compatibility key or be removed in a future breaking schema version;
+4. reduce raw tensor and floating-point dependence before moving to a proving backend;
+5. document how benchmark metadata differs from artifact metadata;
+6. define whether nested one-step artifacts should remain embedded or be replaced by commitment references;
+7. add negative-test coverage for one-step schema-cleanup edge cases once the one-step artifact is simplified.
+
+---
+
+## 6. One-Step Artifact Inspection Result
+
+### Top-level
+
+#### Keep as core structure
+
+- `schema_version`
+- `public`
+- `items`
+- `update_witness`
+
+#### Optional debug / audit
+
+- `notes`
+
+---
+
+### Public
+
+#### Mandatory public
 
 - `dataset_root`
 - `batch_indices`
@@ -485,309 +705,476 @@ It still does **not** implement:
 - `learning_rate_fp`
 - `pre_checkpoint_sha256`
 - `post_checkpoint_sha256`
+- `checkpoint_commitment_type`
+- `pre_online_state_dict_key`
+- `pre_online_state_dict_sha256`
+- `pre_target_state_dict_sha256`
+- `post_online_state_dict_key`
+- `post_online_state_dict_sha256`
+- `post_target_state_dict_sha256`
 
-### 13.6 One-Step Update Witness Fields
+#### Optional debug / audit
 
-- per-item transition / membership / TD witness data
+- none currently required in `public`.
+
+---
+
+### items[0]
+
+#### Mandatory witness
+
+- `transition`
+- `leaf`
+- `merkle_path`
+- `td_witness`
+
+#### Likely redundant or debug / audit
+
+- `index`
+- `leaf_hash`
+- `debug`
+
+Notes:
+
+- `leaf_hash` is recomputable from `leaf`;
+- `index` may be redundant if batch order is already fixed by `batch_indices`;
+- `debug` is useful for human inspection but not part of the long-term core statement.
+
+---
+
+### update_witness
+
+#### Mandatory witness
+
 - `batch_loss_fp`
+- `gradient_tensors`
+- `delta_tensors`
+
+#### Likely debug / audit
+
 - `batch_loss_real_for_training`
 - `pre_online_state_sha256`
 - `post_online_state_sha256`
 - `target_state_sha256`
+- `parameter_count`
 - `parameter_summaries`
+
+---
+
+## 7. Nested One-Step Field Inspection Result
+
+### td_witness
+
+#### Mandatory witness
+
+- `q_online_fp`
+- `next_action_online`
+- `q_target_max_fp`
+- `target_fp`
+- `loss_fp`
+
+Interpretation:
+
+These are the core TD-side witness values for the current one-step statement.
+
+`next_action_online` is part of the Double-DQN target semantics and should remain in `td_witness`, not only in a debug field.
+
+The one-step verifier recomputes:
+
+```text
+next_action_online = argmax_a Q_online(s')
+q_target_max_fp = Q_target(s')[next_action_online]
+```
+
+from the pre-update checkpoint and checks:
+
+```text
+next_action_match=True
+q_target_max_match=True
+```
+
+---
+
+### debug
+
+#### Optional debug / audit
+
+- `q_online_real_for_debug`
+- `q_next_online_for_debug`
+- `q_next_target_for_debug`
+- `next_action_online_for_debug`
+- `q_target_max_real_for_debug`
+
+Interpretation:
+
+These values are useful for human inspection and debugging, but they should not be treated as part of the long-term core artifact contract.
+
+---
+
+### parameter_summaries
+
+Current keys:
+
+- `name`
+- `shape`
+- `numel`
+- `pre_param_sha256`
+- `grad_sha256`
+- `post_param_sha256`
+- `delta_sha256`
+- `pre_norm`
+- `grad_norm`
+- `post_norm`
+- `delta_norm`
+- `pre_mean`
+- `grad_mean`
+- `post_mean`
+- `delta_mean`
+
+#### Current classification
+
+Likely optional debug / audit.
+
+Interpretation:
+
+These summaries are useful for sanity checking and manual inspection, but the core statement already has the stronger tensor-level witness through:
+
 - `gradient_tensors`
 - `delta_tensors`
 
----
-
-## 14. Recommended Wording for Paper / Proposal
-
-Recommended wording for the current stage:
-
-> Our current system does not yet implement a full zero-knowledge proving backend. Instead, it realizes a pre-ZK artifact/verifier prototype for offline DQN training from committed data. The implemented prototype verifies committed-transition membership, Double-DQN-style Bellman target correctness, SmoothL1 TD loss correctness, batch-loss aggregation, and checkpoint anchoring. It further includes one-step SGD update verification with gradient recomputation, parameter-delta, and update-consistency checks, plus short-trace verification with checkpoint chaining, target-network synchronization semantics, deterministic contiguous sampling-rule enforcement, and rejection under sampling-rule mismatch.
+So parameter summaries should not automatically be treated as mandatory long-term artifact fields.
 
 ---
 
-## 15. Summary
+### gradient_tensors
 
-The repository currently realizes four connected statement layers.
+#### Mandatory witness
 
-### 15.1 MVP Layer
+- `net.0.weight`
+- `net.0.bias`
+- `net.2.weight`
+- `net.2.bias`
+- `net.4.weight`
+- `net.4.bias`
 
-> From a committed offline transition dataset and a publicly anchored checkpoint hash, verify that the sampled transitions belong to the dataset and that their Double-DQN Bellman targets and SmoothL1 TD losses are computed correctly, including minibatch-average loss.
+Interpretation:
 
-### 15.2 Stronger One-Step Layer
+These are currently core witness fields for one-step gradient consistency in the Python prototype.
 
-> From a committed offline transition dataset, explicit minibatch indices, and a publicly anchored pre-update checkpoint hash, verify that one offline DQN SGD update step is computed consistently, including TD arithmetic, gradient recomputation, parameter-delta consistency, SGD update consistency, and post-update checkpoint anchoring.
+---
 
-This is the current bridge between:
+### delta_tensors
 
-- committed offline data,
-- RL-specific TD arithmetic,
-- step-level update verification,
-- and a future zero-knowledge proof backend.
+#### Mandatory witness
 
-### 15.3 Short-Trace Layer
+- `net.0.weight`
+- `net.0.bias`
+- `net.2.weight`
+- `net.2.bias`
+- `net.4.weight`
+- `net.4.bias`
 
-> From a committed offline transition dataset, declared trace minibatches, and an initial checkpoint hash, verify a short sequence of offline DQN SGD update steps, including nested one-step correctness, checkpoint chaining, target-network synchronization semantics, and final checkpoint anchoring.
+Interpretation:
 
-### 15.4 Deterministic Sampling-Rule Layer
+These are currently core witness fields for one-step parameter-update consistency in the Python prototype.
 
-> For the current locked benchmark, verify that the declared trace minibatches follow a public contiguous deterministic schedule parameterized by `sampling_rule_type`, `batch_size`, and `start_offset`, with rejection when the public trace batches are tampered.
+---
 
-The current B3 short-trace artifact cleanup also separates persistent artifact data from benchmark/runtime metadata: operational Merkle and checkpoint paths are no longer stored in short-trace `notes`.
+## 8. One-Step Artifact Schema v1 Working Classification
 
-## 16. Implemented Stronger Statement: Short Verified Training Trace
+### Core public
 
-The short verified training trace is now implemented in pre-ZK Python form.
+- `schema_version`
+- `public.dataset_root`
+- `public.batch_indices`
+- `public.batch_size`
+- `public.loss_type`
+- `public.optimizer_type`
+- `public.learning_rate_fp`
+- `public.pre_checkpoint_sha256`
+- `public.post_checkpoint_sha256`
+- `public.checkpoint_commitment_type`
+- `public.pre_online_state_dict_key`
+- `public.pre_online_state_dict_sha256`
+- `public.pre_target_state_dict_sha256`
+- `public.post_online_state_dict_key`
+- `public.post_online_state_dict_sha256`
+- `public.post_target_state_dict_sha256`
 
-Instead of verifying only one offline DQN SGD update step, this stronger statement verifies a small sequence of consecutive update steps, together with checkpoint chaining and an explicit target-network synchronization rule.
+### Core witness
 
-### 16.1 Goal
+- `items[].transition`
+- `items[].leaf`
+- `items[].merkle_path`
+- `items[].td_witness`
+- `items[].td_witness.q_online_fp`
+- `items[].td_witness.next_action_online`
+- `items[].td_witness.q_target_max_fp`
+- `items[].td_witness.target_fp`
+- `items[].td_witness.loss_fp`
+- `update_witness.batch_loss_fp`
+- `update_witness.gradient_tensors`
+- `update_witness.delta_tensors`
 
-Move from:
+### Audit / debug
 
-- one committed minibatch,
-- one recomputed loss,
-- one gradient-consistent SGD update,
-
-to:
-
-- multiple committed minibatches,
-- multiple consecutive SGD updates,
-- explicit checkpoint chaining across steps,
-- explicit target-network synchronization events.
-
-The purpose of this statement is to bridge the gap between one-step update verification and a future proof of a longer training process.
-
-### 16.2 Current Scope of the Short-Trace Prototype
-
-To keep the trace prototype feasible, the current implemented version uses:
-
-- `num_steps = 2`, `num_steps = 4`, and the locked `num_steps = 8` benchmark setting
-- trace batch indices declared publicly
-- deterministic contiguous schedule checks for the current locked benchmark
-- fixed optimizer: SGD
-- fixed loss type: SmoothL1
-- fixed Bellman target rule: Double DQN target-net-at-online-argmax
-- fixed learning rate
-- fixed target sync schedule, for example `target_sync_every = 2`
-- no replay-sampling randomness inside the statement
-- no early stopping or model-selection logic
-
-This is still narrower than full offline DQN training, but it is substantially stronger than one-step verification.
-
-### 16.3 Public Inputs
-
-The verifier should see:
-
-- `dataset_root`
-- `trace_batch_indices`
-- `num_steps`
-- `loss_type = smooth_l1`
-- `optimizer_type = sgd`
-- `learning_rate_fp`
-- `target_sync_every`
-- `initial_checkpoint_sha256`
-- `final_checkpoint_sha256`
-
-Optionally, the public inputs may also include:
-
-- network metadata
-- fixed architecture identifier
-- dataset name or experiment identifier
-
-### 16.4 Private Witness
-
-The prover keeps private:
-
-- minibatch transitions corresponding to each claimed step
-- Merkle authentication paths for all transitions
-- pre-step online-network weights for each step
-- pre-step target-network weights for each step
-- per-step forward-pass activations
-- per-step Bellman targets
-- per-step SmoothL1 losses
-- per-step gradients
-- per-step parameter deltas
-- post-step online-network weights
-- post-sync target-network weights when synchronization is applied
-
-### 16.5 Statement to Be Proved
-
-There exist:
-
-- committed transitions for each claimed minibatch in the trace,
-- an initial checkpoint consistent with `initial_checkpoint_sha256`,
-- a sequence of correctly computed one-step SGD updates,
-- correctly chained intermediate checkpoints,
-- correctly applied target-network synchronization events,
-- and a final checkpoint consistent with `final_checkpoint_sha256`
-
-such that all steps in the trace satisfy the one-step update relation and the whole trace remains globally consistent.
-
-### 16.6 What Must Be Verified
-
-A verifier for the short trace should be convinced of all of the following:
-
-1. Each minibatch in the trace comes from the committed dataset.
-2. Each step satisfies the TD-arithmetic and SGD-update checks already used in the one-step prototype.
-3. The output checkpoint of step `t` matches the input checkpoint of step `t+1`.
-4. The target network remains unchanged between sync events.
-5. When a sync event is scheduled, the target network is updated according to the declared rule.
-6. The final checkpoint hash matches the claimed public output.
-
-### 16.7 What Is Still Not Yet Verified
-
-Even this stronger short-trace statement would still not verify:
-
-- full end-to-end training from initialization to final best checkpoint
-- replay-sampling correctness across a full long run
-- early stopping or checkpoint selection logic
-- optimizer variants such as Adam
-- proof recursion or proof aggregation
-- a true zero-knowledge backend
-
-### 16.8 Current Artifact Structure
-
-A pre-ZK artifact for a short verified trace currently contains:
-
-- `public`
-  - `dataset_root`
-  - `trace_batch_indices`
-  - `num_steps`
-  - `batch_size`
-  - `loss_type`
-  - `optimizer_type`
-  - `learning_rate_fp`
-  - `sampling_rule_type`
-  - `start_offset`
-  - `target_sync_every`
-  - `initial_checkpoint_sha256`
-  - `final_checkpoint_sha256`
-
-- `steps`
-  - `step_index`
-  - `input_checkpoint_sha256`
-  - `raw_output_checkpoint_sha256`
-  - `next_checkpoint_sha256`
-  - `target_sync_applied`
-  - `sync_state_witness`
-  - `one_step_artifact`
-
+- `items[].index`
+- `items[].leaf_hash`
+- `items[].debug`
+- `update_witness.batch_loss_real_for_training`
+- `update_witness.pre_online_state_sha256`
+- `update_witness.post_online_state_sha256`
+- `update_witness.target_state_sha256`
+- `update_witness.parameter_count`
+- `update_witness.parameter_summaries`
 - `notes`
-  - empty compatibility object after B3 cleanup
-
-Operational paths such as the Merkle path, initial checkpoint path, and final checkpoint path are supplied externally by the benchmark/runtime environment rather than stored in persistent `notes`.
-
-### 16.9 Research Interpretation
-
-This short-trace milestone moves the project from:
-
-- verified TD arithmetic,
-- to verified one-step update consistency,
-- to a verified short training process.
-
-The next step is no longer the first short trace. It is longer trace composition, stronger sampling rules, backend-ready witness design, and eventually a true zero-knowledge proof backend.
 
 ---
 
-## 17. Stronger Statement Implemented: Deterministic Sampling-Rule Correctness
+## 9. Short-Trace Artifact Inspection Result
 
-Current short-trace verification already checks that committed minibatches are valid, that TD arithmetic is correct, that one-step SGD updates are correct, and that checkpoint chaining is consistent across the trace. The repository now additionally supports a stronger deterministic sampling-rule check for the current short-trace benchmark setting.
+### Top-level
 
-### 17.1 Sampling Rule
+#### Keep as core structure
 
-For batch size `k`, step index `t`, and public `start_offset`, define the minibatch indices as:
+- `schema_version`
+- `public`
+- `steps`
+- `notes`
 
-`B_t = [start_offset + t*k, start_offset + t*k + 1, ..., start_offset + t*k + (k-1)]`
+Interpretation:
 
-This is a contiguous, non-overlapping deterministic schedule over the committed dataset.
+`notes` is now kept only as an empty placeholder structure for compatibility. It no longer carries operational metadata after B3.
 
-Examples:
+---
 
-- step 0, `k = 4`, `start_offset = 0` -> `[0, 1, 2, 3]`
-- step 1, `k = 4`, `start_offset = 0` -> `[4, 5, 6, 7]`
-- step 0, `k = 4`, `start_offset = 32` -> `[32, 33, 34, 35]`
+### Public
 
-### 17.2 Why This Strengthens the Statement
-
-This strengthens the current claim from:
-
-> the provided minibatch is valid and the update is correct
-
-to:
-
-> the provided minibatch is valid, was chosen according to a declared public rule, and the update is correct
-
-This reduces prover freedom and moves the project closer to a process-level proof-of-training statement.
-
-### 17.3 Public Inputs
-
-For this stronger deterministic-sampling statement, the verifier sees:
+#### Mandatory public
 
 - `dataset_root`
 - `trace_batch_indices`
 - `num_steps`
 - `batch_size`
-- `sampling_rule_type = contiguous_deterministic`
-- `start_offset`
+- `loss_type`
+- `optimizer_type`
 - `learning_rate_fp`
+- `sampling_rule_type`
+- `start_offset`
+- `sampling_seed`
+- `dataset_size`
 - `target_sync_every`
 - `initial_checkpoint_sha256`
 - `final_checkpoint_sha256`
 
-### 17.4 Private Witness
+Canonical boundary commitment public fields:
 
-The prover still keeps private:
+- `checkpoint_commitment_type`
+- `initial_online_state_dict_key`
+- `initial_online_state_dict_sha256`
+- `initial_target_state_dict_sha256`
+- `final_online_state_dict_key`
+- `final_online_state_dict_sha256`
+- `final_target_state_dict_sha256`
 
-- transition contents
-- Merkle membership paths
-- TD witnesses
-- gradients / deltas / checkpoint states
+These fields are now part of the current `short_trace_update_v2` public schema. The verifier recomputes them from the externally supplied initial/final checkpoint paths and checks that the trace-boundary model states match the public commitments.
 
-No new private randomness is required for this deterministic rule.
+---
 
-### 17.5 Verifier Checks
+### steps[0]
 
-For each step `t`, the verifier:
+#### Core per-step structure
 
-1. recomputes the expected indices from the declared public rule;
-2. checks that the public trace batch indices match the expected indices exactly;
-3. checks that the per-step stored batch indices also match the expected indices exactly;
-4. checks consistency between public trace batches and per-step batch indices;
-5. runs the existing one-step and trace-consistency checks.
+- `step_index`
+- `input_checkpoint_sha256`
+- `raw_output_checkpoint_sha256`
+- `next_checkpoint_sha256`
+- `target_sync_applied`
+- `sync_state_witness`
+- `one_step_artifact`
 
-This creates a stronger statement without yet introducing probabilistic replay logic.
+Interpretation:
 
-### 17.6 Scope and Interpretation
+- `one_step_artifact` is the real nested witness;
+- `sync_state_witness` is the current witness extension that lets the verifier check target-sync semantics without relying on local checkpoint paths inside each step.
 
-This is **not yet** full replay-sampling correctness for:
+---
 
-- random replay,
-- prioritized replay,
-- seeded pseudorandom replay,
-- or general sampler-state transitions.
+### Cleanup decisions already applied
 
-Instead, it is an intermediate stronger statement designed to:
+- removed `steps[].expected_batch_indices`;
+- removed `public.learning_rate_real`;
+- removed `steps[].batch_indices`;
+- removed `steps[].one_step_artifact_path`;
+- removed `steps[].input_checkpoint_path`;
+- removed `steps[].raw_output_checkpoint_path`;
+- removed `steps[].next_checkpoint_path`;
+- removed `notes.data_path`;
+- removed `notes.work_dir`;
+- removed `notes.statement_scope`;
+- removed `notes.limitations`;
+- removed `notes.merkle_path`;
+- removed `notes.initial_checkpoint_path`;
+- removed `notes.final_checkpoint_path`;
+- added `steps[].sync_state_witness`.
 
-- reduce statement ambiguity,
-- reduce prover freedom,
-- strengthen short-trace verification,
-- and prepare the artifact design for future circuit-friendly or backend-ready formulations.
+Interpretation:
 
-### 17.7 Current Status
+- `expected_batch_indices` is recomputable from:
+  - `sampling_rule_type`,
+  - `start_offset`,
+  - `sampling_seed`,
+  - `dataset_size`,
+  - `batch_size`,
+  - `step_index`;
 
-This deterministic-sampling statement is now implemented in the current short-trace exporter, benchmark, and verifier for the contiguous deterministic schedule with public `start_offset`.
+For `contiguous_deterministic`, `start_offset`, `batch_size`, and `step_index` determine the expected batch.
 
-Current evidence includes both:
-- positive verification results, where valid short traces satisfying the declared deterministic rule are accepted; and
-- a negative sanity check, where a tampered artifact with modified public batch indices is rejected even though the underlying one-step witnesses, checkpoint chaining, and target-sync state checks still pass.
+For `seeded_permutation`, `sampling_seed`, `dataset_size`, `batch_size`, and `step_index` determine the expected batch.
 
-In research terms, this upgrades the current short-trace statement from:
+- batch identity is already available in:
+  - `public.trace_batch_indices`;
+  - `steps[].one_step_artifact.public.batch_indices`;
+- `one_step_artifact_path` was only a local filesystem convenience;
+- `input_checkpoint_path`, `raw_output_checkpoint_path`, and `next_checkpoint_path` were local path assumptions;
+- sync verification now uses embedded state witnesses instead;
+- `notes.merkle_path`, `notes.initial_checkpoint_path`, and `notes.final_checkpoint_path` were removed by the end of B3;
+- the verifier/benchmark now supplies those paths externally through environment variables;
+- the other removed notes fields were only local execution metadata.
 
-- "verify this declared trace"
+A cleaner schema should prefer one canonical location for public batch identity and avoid storing local-path assumptions in the artifact contract.
 
-to:
+---
 
-- "verify this declared trace, and also verify that its minibatches follow a declared public sampling rule, with rejection on mismatch."
+### sync_state_witness
+
+#### Mandatory witness
+
+- `raw_output_online_state_dict`
+- `raw_output_target_state_dict`
+- `next_target_state_dict`
+
+Interpretation:
+
+These fields are the minimal current witness needed for the verifier to check whether target synchronization was applied correctly, without loading per-step checkpoints from local filesystem paths.
+
+---
+
+### notes
+
+#### Optional debug / audit
+
+- none
+
+Interpretation:
+
+After B3, the artifact no longer requires persistent path metadata inside `notes`.
+
+The verifier receives operational paths externally from the benchmark/runtime environment.
+
+---
+
+## 10. Short-Trace Artifact Schema v2 Working Classification
+
+### Core public
+
+- `schema_version`
+- `public.dataset_root`
+- `public.trace_batch_indices`
+- `public.num_steps`
+- `public.batch_size`
+- `public.loss_type`
+- `public.optimizer_type`
+- `public.learning_rate_fp`
+- `public.sampling_rule_type`
+- `public.start_offset`
+- `public.sampling_seed`
+- `public.dataset_size`
+- `public.target_sync_every`
+- `public.initial_checkpoint_sha256`
+- `public.final_checkpoint_sha256`
+- `public.checkpoint_commitment_type`
+- `public.initial_online_state_dict_key`
+- `public.initial_online_state_dict_sha256`
+- `public.initial_target_state_dict_sha256`
+- `public.final_online_state_dict_key`
+- `public.final_online_state_dict_sha256`
+- `public.final_target_state_dict_sha256`
+
+### Core witness / trace structure
+
+- `steps[].step_index`
+- `steps[].input_checkpoint_sha256`
+- `steps[].raw_output_checkpoint_sha256`
+- `steps[].next_checkpoint_sha256`
+- `steps[].target_sync_applied`
+- `steps[].sync_state_witness`
+- `steps[].one_step_artifact`
+
+### Audit / debug
+
+- none stored inside the artifact after B3.
+
+### Current recommendation
+
+Prefer one canonical public location for trace batch identity:
+
+- `public.trace_batch_indices`
+
+Use nested one-step artifacts only when needed for witness composition or one-step consistency checking.
+
+---
+
+## 11. Benchmark Metadata vs Artifact Metadata
+
+The benchmark runner may record fields that are useful for reproducing a local run but are not part of the artifact contract.
+
+Current benchmark-only metadata includes:
+
+- `artifact_path`
+- `work_dir`
+- `final_checkpoint_path`
+- exporter stdout/stderr
+- verifier stdout/stderr
+- wall-clock export and verification timings
+
+Current short-trace verifier runtime inputs include:
+
+- `SHORT_TRACE_ARTIFACT_PATH`
+- `SHORT_TRACE_MERKLE_PATH`
+- `SHORT_TRACE_INITIAL_CHECKPOINT_PATH`
+- `SHORT_TRACE_FINAL_CHECKPOINT_PATH`
+
+Interpretation:
+
+These values are operational handles for the Python prototype. They help the benchmark rerun verification and recompute file hashes, but they should not be treated as persistent public inputs or private witness fields in the backend-ready statement.
+
+---
+
+## 12. Suggested Backend-Ready Direction
+
+The current Python artifact schema is intentionally audit-friendly. A future backend-ready schema should be smaller and stricter.
+
+Recommended direction:
+
+1. keep public inputs minimal;
+2. move large tensors into private witnesses or committed witness blobs;
+3. avoid local filesystem paths in persistent artifacts;
+4. avoid duplicated semantic values;
+5. replace Python-only debug fields with optional audit sidecars;
+6. expose canonical model-state commitments at all statement boundaries;
+7. define a compact representation for:
+   - Merkle paths,
+   - fixed-point TD arithmetic,
+   - gradient/update witnesses,
+   - target-sync witnesses.
+
+A practical first ZK backend target should likely be the TD statement, not the full one-step update:
+
+```text
+committed transition membership
++ Bellman target correctness
++ SmoothL1 TD loss correctness
+```
+
+The one-step and short-trace statements can remain Python-level verification prototypes until the TD-level relation is implemented in a proving backend.
