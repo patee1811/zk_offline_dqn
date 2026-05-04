@@ -203,24 +203,7 @@ def main() -> None:
             "gradient_tensors": gradient_tensors,
             "delta_tensors": delta_tensors,
         },
-        "notes": {
-            "checkpoint_path": args.checkpoint,
-            "post_checkpoint_path": args.post_checkpoint_out,
-            "data_path": args.data,
-            "merkle_path_source": args.merkle,
-            "q_target_source": "double_dqn_target_net_at_online_argmax",
-            "statement_scope": "one offline DQN SGD update step from committed minibatch",
-            "commitment_note": (
-                "pre/post checkpoint hashes anchor checkpoint files; "
-                "pre/post online and target state-dict hashes anchor canonical "
-                "sorted tensor contents."
-            ),
-            "limitations": [
-                "pre-ZK artifact only",
-                "target network kept fixed during this one-step statement",
-                "no sampler-rule verification beyond explicit batch indices",
-            ],
-        },
+        "notes": {},
     }
 
     out_dir = os.path.dirname(args.out)

@@ -22,6 +22,9 @@ DEFAULT_SEEDED_FINAL_CHECKPOINT_PATH = (
     "artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
 )
 
+DEFAULT_CONTIGUOUS_WORK_DIR = "artifacts/short_trace_work"
+DEFAULT_SEEDED_WORK_DIR = "artifacts/short_trace_seeded_work"
+
 DEFAULT_OUT_DIR = "artifacts/short_trace_negative_tests"
 
 
@@ -56,9 +59,19 @@ def parse_args() -> argparse.Namespace:
         help="Final checkpoint path for the contiguous trace.",
     )
     parser.add_argument(
+        "--contiguous-work-dir",
+        default=DEFAULT_CONTIGUOUS_WORK_DIR,
+        help="Work directory containing per-step checkpoints for the contiguous trace.",
+    )
+    parser.add_argument(
         "--seeded-final-checkpoint",
         default=DEFAULT_SEEDED_FINAL_CHECKPOINT_PATH,
         help="Final checkpoint path for the seeded trace.",
+    )
+    parser.add_argument(
+        "--seeded-work-dir",
+        default=DEFAULT_SEEDED_WORK_DIR,
+        help="Work directory containing per-step checkpoints for the seeded trace.",
     )
     parser.add_argument(
         "--out-dir",
@@ -86,6 +99,7 @@ def run_short_trace_verifier(
     merkle_path: str,
     initial_checkpoint_path: str,
     final_checkpoint_path: str,
+    work_dir: str,
 ) -> Dict[str, Any]:
     env = os.environ.copy()
     env["PYTHONPATH"] = "."
@@ -93,6 +107,7 @@ def run_short_trace_verifier(
     env["SHORT_TRACE_MERKLE_PATH"] = merkle_path
     env["SHORT_TRACE_INITIAL_CHECKPOINT_PATH"] = initial_checkpoint_path
     env["SHORT_TRACE_FINAL_CHECKPOINT_PATH"] = final_checkpoint_path
+    env["SHORT_TRACE_WORK_DIR"] = work_dir
 
     cmd = [
         sys.executable,
@@ -196,6 +211,7 @@ def add_case(
     merkle_path: str,
     initial_checkpoint_path: str,
     final_checkpoint_path: str,
+    work_dir: str,
 ) -> Dict[str, Any]:
     save_json(artifact, artifact_path)
 
@@ -204,6 +220,7 @@ def add_case(
         merkle_path=merkle_path,
         initial_checkpoint_path=initial_checkpoint_path,
         final_checkpoint_path=final_checkpoint_path,
+        work_dir=work_dir,
     )
 
     row = {
@@ -255,6 +272,8 @@ def main() -> None:
     print("initial_checkpoint =", args.initial_checkpoint)
     print("contiguous_final_checkpoint =", args.contiguous_final_checkpoint)
     print("seeded_final_checkpoint =", args.seeded_final_checkpoint)
+    print("contiguous_work_dir =", args.contiguous_work_dir)
+    print("seeded_work_dir =", args.seeded_work_dir)
     print("out_dir =", out_dir.as_posix())
     print("num_planned_cases =", len(planned_cases))
     print()
@@ -275,6 +294,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.contiguous_final_checkpoint,
+        work_dir=args.contiguous_work_dir,
     )
 
     add_case(
@@ -286,6 +306,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.seeded_final_checkpoint,
+        work_dir=args.seeded_work_dir,
     )
 
     add_case(
@@ -297,6 +318,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.contiguous_final_checkpoint,
+        work_dir=args.contiguous_work_dir,
     )
 
     add_case(
@@ -308,6 +330,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.seeded_final_checkpoint,
+        work_dir=args.seeded_work_dir,
     )
 
     add_case(
@@ -319,6 +342,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.seeded_final_checkpoint,
+        work_dir=args.seeded_work_dir,
     )
 
     add_case(
@@ -330,6 +354,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.seeded_final_checkpoint,
+        work_dir=args.seeded_work_dir,
     )
 
     add_case(
@@ -341,6 +366,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.seeded_final_checkpoint,
+        work_dir=args.seeded_work_dir,
     )
 
     add_case(
@@ -352,6 +378,7 @@ def main() -> None:
         merkle_path=args.merkle,
         initial_checkpoint_path=args.initial_checkpoint,
         final_checkpoint_path=args.seeded_final_checkpoint,
+        work_dir=args.seeded_work_dir,
     )
 
     summary_csv_path = out_dir / "summary.csv"
