@@ -195,6 +195,17 @@ from the pre-update checkpoint;
 w' = w - lr * g
 ```
 
+The one-step artifact no longer stores local runtime paths in `notes`. Checkpoint paths are provided to the verifier as runtime inputs through environment variables or default local benchmark paths:
+
+```text
+ONE_STEP_ARTIFACT_PATH
+ONE_STEP_MERKLE_PATH
+ONE_STEP_CHECKPOINT_PATH
+ONE_STEP_POST_CHECKPOINT_PATH
+```
+
+This keeps the persistent artifact contract separate from local filesystem execution details.
+
 Expected one-step verifier output includes:
 
 ```text
@@ -873,6 +884,7 @@ export SHORT_TRACE_ARTIFACT_PATH=artifacts/short_trace_artifact.json
 export SHORT_TRACE_MERKLE_PATH=artifacts/cartpole_dqn_eps010_merkle.json
 export SHORT_TRACE_INITIAL_CHECKPOINT_PATH=models/offline_dqn_with_target_seed42_best.pt
 export SHORT_TRACE_FINAL_CHECKPOINT_PATH=artifacts/short_trace_work/<printed-final-checkpoint>.pt
+export SHORT_TRACE_WORK_DIR=artifacts/short_trace_work
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 ```
@@ -884,6 +896,7 @@ $env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_artifact.json"
 $env:SHORT_TRACE_MERKLE_PATH="artifacts/cartpole_dqn_eps010_merkle.json"
 $env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_best.pt"
 $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/<printed-final-checkpoint>.pt"
+$env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_work"
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 ```
@@ -895,6 +908,7 @@ $env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_seeded_artifact.json"
 $env:SHORT_TRACE_MERKLE_PATH="artifacts/cartpole_dqn_eps010_merkle.json"
 $env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_best.pt"
 $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+$env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_seeded_work"
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 ```
@@ -1074,11 +1088,13 @@ $env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_update_artifact.json"
 $env:SHORT_TRACE_MERKLE_PATH="artifacts/cartpole_dqn_eps010_merkle.json"
 $env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_best.pt"
 $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt"
+$env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_work"
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
 $env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_seeded_artifact.json"
 $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+$env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_seeded_work"
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
