@@ -266,11 +266,13 @@ $env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_update_artifact.json"
 $env:SHORT_TRACE_MERKLE_PATH="artifacts/cartpole_dqn_eps010_merkle.json"
 $env:SHORT_TRACE_INITIAL_CHECKPOINT_PATH="models/offline_dqn_with_target_seed42_best.pt"
 $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt"
+$env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_work"
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
 $env:SHORT_TRACE_ARTIFACT_PATH="artifacts/short_trace_seeded_artifact.json"
 $env:SHORT_TRACE_FINAL_CHECKPOINT_PATH="artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+$env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_seeded_work"
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
@@ -312,6 +314,8 @@ Current implementation status:
 - the one-step artifact now includes canonical pre/post model-state commitments;
 - the one-step artifact now includes `next_action_online` as a core TD witness field;
 - the one-step verifier now checks both `next_action_online` and `q_target_max_fp` against the pre-update checkpoint networks;
+- one-step artifacts no longer store local runtime paths in persistent `notes`;
+- the one-step verifier receives checkpoint paths from runtime inputs such as `ONE_STEP_CHECKPOINT_PATH` and `ONE_STEP_POST_CHECKPOINT_PATH`;
 - the short-trace artifact has completed the B3 cleanup milestone;
 - short-trace local filesystem paths are no longer stored in persistent `notes`;
 - the short-trace verifier receives operational paths from the benchmark/runtime environment;
@@ -324,6 +328,8 @@ Current implementation status:
 ### 1.1 Statement Role
 
 This artifact proves one offline DQN SGD update step from a committed minibatch.
+
+One-step artifacts do not store local runtime paths in `notes`. The verifier receives the required checkpoint paths through runtime inputs such as `ONE_STEP_CHECKPOINT_PATH` and `ONE_STEP_POST_CHECKPOINT_PATH`.
 
 The current statement is still a **pre-ZK Python verifier statement**, not a production proving backend. It is useful because it makes the update relation explicit before translating the relation into a zkVM, SNARK, or circuit-compatible backend.
 
@@ -449,7 +455,7 @@ These are values required to witness correctness but should conceptually remain 
 
 #### Conceptual checkpoint witness
 
-The current Python verifier loads checkpoints from paths stored in `notes`, but conceptually the statement depends on:
+The current Python verifier loads checkpoints from runtime inputs, not from persistent artifact `notes`. Conceptually, the statement depends on:
 
 - pre-update online-network state;
 - pre-update target-network state;
@@ -464,8 +470,8 @@ In a future backend-ready artifact, these should be represented more cleanly as 
 
 These fields are useful now in the Python prototype, but should not automatically be treated as essential long-term statement fields.
 
-- file paths in `notes`;
-- human-readable notes;
+- optional audit sidecars outside the durable artifact;
+- human-readable documentation outside the durable artifact;
 - raw tensor summaries;
 - redundant hashes that can be recomputed;
 - any duplicated TD-side values already derivable from other fields;
@@ -479,6 +485,8 @@ These fields are useful now in the Python prototype, but should not automaticall
 ### 2.1 Statement Role
 
 This artifact proves a short sequence of chained one-step updates.
+
+For nested one-step verification, the short-trace verifier reconstructs per-step checkpoint paths from `SHORT_TRACE_WORK_DIR` and passes them to the one-step verifier through runtime environment variables. These paths are operational handles, not persistent artifact fields.
 
 The short-trace artifact currently embeds nested one-step artifacts and checks:
 
@@ -614,19 +622,22 @@ Completed improvements:
 - one-step verifier checks `next_action_online`;
 - one-step verifier checks `q_target_max_fp` by recomputing the Double-DQN selected target value from the pre-update checkpoint;
 - verifier checks canonical commitments;
+- runtime checkpoint/data/Merkle paths have been removed from one-step `notes`;
+- one-step `notes` is now an empty compatibility object;
+- one-step verification receives checkpoint paths through runtime inputs or defaults;
+- short-trace verification passes per-step checkpoint paths to nested one-step verification;
 - short-trace verifier inherits stronger nested one-step checks.
 
 Still to revisit:
 
 - identify redundant tensor summaries;
 - identify duplicated loss-related values;
-- identify path fields that are only for runtime convenience;
-- separate runtime `notes` from durable artifact contract;
+- decide whether empty `notes` should remain as a compatibility key or be removed in a future breaking schema version;
 - reduce raw tensor and floating-point dependence before translating to a proving backend.
 
 Status:
 
-The one-step artifact has a working classification, but it still intentionally keeps audit-friendly fields such as raw gradients, delta tensors, checkpoint paths, and notes. These are useful for the Python prototype and should be revisited before translating the statement to a circuit or zkVM backend.
+The one-step artifact has a working classification and no longer stores local checkpoint/data/Merkle paths in `notes`. It still intentionally keeps audit-friendly witness-heavy fields such as raw gradients and delta tensors. These are useful for the Python prototype and should be revisited before translating the statement to a circuit or zkVM backend.
 
 ---
 
@@ -687,9 +698,11 @@ The next schema work should be:
 - `items`
 - `update_witness`
 
-#### Optional debug / audit
+#### Empty compatibility key
 
 - `notes`
+
+`notes` is currently kept as `{}` for schema compatibility. It should not contain local checkpoint paths, dataset paths, Merkle paths, or human-readable statement metadata.
 
 ---
 
@@ -927,7 +940,12 @@ These are currently core witness fields for one-step parameter-update consistenc
 - `update_witness.target_state_sha256`
 - `update_witness.parameter_count`
 - `update_witness.parameter_summaries`
+
+### Empty compatibility
+
 - `notes`
+
+`notes` is currently `{}` and does not carry runtime paths.
 
 ---
 
@@ -1144,6 +1162,14 @@ Current short-trace verifier runtime inputs include:
 - `SHORT_TRACE_MERKLE_PATH`
 - `SHORT_TRACE_INITIAL_CHECKPOINT_PATH`
 - `SHORT_TRACE_FINAL_CHECKPOINT_PATH`
+- `SHORT_TRACE_WORK_DIR`
+
+Nested one-step verifier runtime inputs:
+
+- `ONE_STEP_ARTIFACT_PATH`
+- `ONE_STEP_MERKLE_PATH`
+- `ONE_STEP_CHECKPOINT_PATH`
+- `ONE_STEP_POST_CHECKPOINT_PATH`
 
 Interpretation:
 

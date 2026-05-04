@@ -49,6 +49,8 @@ def load_checkpoint(path: str) -> Dict[str, Any]:
 def run_one_step_verifier_from_embedded_artifact(
     one_step_artifact: dict,
     merkle_path: str,
+    checkpoint_path: str,
+    post_checkpoint_path: str,
 ):
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_artifact_path = os.path.join(tmpdir, "embedded_one_step_artifact.json")
@@ -59,6 +61,8 @@ def run_one_step_verifier_from_embedded_artifact(
         env = os.environ.copy()
         env["ONE_STEP_ARTIFACT_PATH"] = temp_artifact_path
         env["ONE_STEP_MERKLE_PATH"] = merkle_path
+        env["ONE_STEP_CHECKPOINT_PATH"] = checkpoint_path
+        env["ONE_STEP_POST_CHECKPOINT_PATH"] = post_checkpoint_path
 
         cmd = [
             sys.executable,
@@ -258,6 +262,10 @@ def main() -> None:
         "SHORT_TRACE_FINAL_CHECKPOINT_PATH",
         notes.get("final_checkpoint_path"),
     )
+    work_dir = os.environ.get(
+        "SHORT_TRACE_WORK_DIR",
+        os.path.dirname(final_checkpoint_path) if final_checkpoint_path else "",
+    )
 
     if not merkle_path:
         raise ValueError(
@@ -275,6 +283,11 @@ def main() -> None:
         raise ValueError(
             "Missing final checkpoint path: provide SHORT_TRACE_FINAL_CHECKPOINT_PATH "
             "or keep notes['final_checkpoint_path']."
+        )
+    if not work_dir:
+        raise ValueError(
+            "Missing short-trace work dir: provide SHORT_TRACE_WORK_DIR "
+            "or use a final checkpoint path located inside the trace work directory."
         )
 
     print("=== VERIFY SHORT TRACE UPDATE ARTIFACT ===")
@@ -362,6 +375,8 @@ def main() -> None:
 
     prev_next_sha = None
 
+    current_step_checkpoint_path = initial_checkpoint_path
+
     print("=== STEP CHECKS ===")
     for i, step in enumerate(steps):
         step_index = step["step_index"]
@@ -403,6 +418,18 @@ def main() -> None:
         )
         loss_type_ok = one_step_artifact["public"]["loss_type"] == loss_type
 
+        batch_name = "_".join(str(x) for x in one_step_artifact["public"]["batch_indices"])
+
+        step_post_checkpoint_path = os.path.join(
+            work_dir,
+            f"step_{i}_post_{batch_name}.pt",
+        )
+
+        step_synced_checkpoint_path = os.path.join(
+            work_dir,
+            f"step_{i}_post_synced_{batch_name}.pt",
+        )
+
         if i == 0:
             chain_ok = input_sha == initial_checkpoint_sha256
         else:
@@ -414,8 +441,10 @@ def main() -> None:
             sync_logic_ok = raw_output_sha == next_sha
 
         one_step_proc = run_one_step_verifier_from_embedded_artifact(
-            one_step_artifact,
-            merkle_path,
+            one_step_artifact=one_step_artifact,
+            merkle_path=merkle_path,
+            checkpoint_path=current_step_checkpoint_path,
+            post_checkpoint_path=step_post_checkpoint_path,
         )
         step_verification_ok = (
             one_step_proc.returncode == 0
@@ -456,6 +485,11 @@ def main() -> None:
             print(one_step_proc.stdout)
             print("--- ONE-STEP VERIFY STDERR ---")
             print(one_step_proc.stderr)
+        
+        if target_sync_applied:
+            current_step_checkpoint_path = step_synced_checkpoint_path
+        else:
+            current_step_checkpoint_path = step_post_checkpoint_path
 
         prev_next_sha = next_sha
 

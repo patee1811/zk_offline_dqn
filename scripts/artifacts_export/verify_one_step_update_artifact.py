@@ -34,6 +34,16 @@ MERKLE_PATH = os.environ.get(
     "artifacts/cartpole_dqn_eps010_merkle.json",
 )
 
+CHECKPOINT_PATH = os.environ.get(
+    "ONE_STEP_CHECKPOINT_PATH",
+    "models/offline_dqn_with_target_seed42_best.pt",
+)
+
+POST_CHECKPOINT_PATH = os.environ.get(
+    "ONE_STEP_POST_CHECKPOINT_PATH",
+    "artifacts/one_step_post_checkpoint.pt",
+)
+
 
 def hash_internal_node(left_hex: str, right_hex: str) -> str:
     left_bytes = bytes.fromhex(left_hex)
@@ -185,8 +195,17 @@ def main() -> None:
     pre_checkpoint_sha256 = public["pre_checkpoint_sha256"]
     post_checkpoint_sha256 = public["post_checkpoint_sha256"]
 
-    checkpoint_path = artifact["notes"]["checkpoint_path"]
-    post_checkpoint_path = artifact["notes"]["post_checkpoint_path"]
+    notes = artifact.get("notes", {})
+
+    checkpoint_path = os.environ.get(
+        "ONE_STEP_CHECKPOINT_PATH",
+        notes.get("checkpoint_path", CHECKPOINT_PATH),
+    )
+
+    post_checkpoint_path = os.environ.get(
+        "ONE_STEP_POST_CHECKPOINT_PATH",
+        notes.get("post_checkpoint_path", POST_CHECKPOINT_PATH),
+    )
 
     print("=== VERIFY ONE-STEP UPDATE ARTIFACT ===")
     print("artifact_path =", ARTIFACT_PATH)
