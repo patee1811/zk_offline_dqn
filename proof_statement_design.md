@@ -169,6 +169,31 @@ The minibatch TD negative tests check that the minibatch TD verifier accepts a v
 | `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
 | `tamper_merkle_path` | reject | Merkle path no longer reconstructs the public dataset root |
 
+#### One-Step Negative Tests
+
+The repository includes:
+
+```text
+scripts/experiments/run_one_step_negative_tests.py
+```
+
+It verifies that a valid one-step update artifact is accepted and that tampered one-step artifacts are rejected.
+
+| Case | Expected result | Failure mode |
+|---|---:|---|
+| `valid_one_step` | accept | unchanged valid one-step update artifact |
+| `tamper_next_action_online` | reject | Double-DQN action selection witness is inconsistent with the pre-update online network |
+| `tamper_q_target_max_fp` | reject | target-network value selection is inconsistent with the selected online action |
+| `tamper_loss_fp` | reject | TD loss witness is inconsistent with recomputed SmoothL1 loss |
+| `tamper_gradient_tensor` | reject | gradient witness is inconsistent with recomputed gradients |
+| `tamper_delta_tensor` | reject | delta witness is inconsistent with actual pre/post parameter differences |
+| `tamper_post_checkpoint_sha256` | reject | post checkpoint file hash is inconsistent with the supplied post checkpoint |
+| `tamper_post_online_state_dict_sha256` | reject | post online-network canonical state commitment is inconsistent with the post checkpoint |
+| `tamper_learning_rate_fp` | reject | public learning-rate field is inconsistent with the SGD update relation |
+| `tamper_batch_indices` | reject | public batch identity is inconsistent with embedded item indices |
+
+These tests strengthen the one-step statement by checking rejection under TD-witness tampering, gradient/update-witness tampering, checkpoint-commitment tampering, learning-rate tampering, and batch-identity tampering.
+
 The repository also includes a short-trace negative-test runner:
 
 ```text
@@ -191,6 +216,7 @@ The short-trace negative tests check that the short-trace verifier accepts valid
 Together, these negative tests cover:
 
 - TD arithmetic tampering;
+- one-step TD/update witness tampering;
 - checkpoint file-hash tampering;
 - canonical model-state commitment tampering;
 - committed-data membership tampering;
@@ -240,6 +266,7 @@ The negative-test summaries are written to:
 
 ```text
 artifacts/negative_tests/summary.csv
+artifacts/one_step_negative_tests/summary.csv
 artifacts/short_trace_negative_tests/summary.csv
 ```
 
@@ -277,6 +304,7 @@ $env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_seeded_work"
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
 python scripts/experiments/run_negative_verification_tests.py
+python scripts/experiments/run_one_step_negative_tests.py
 python scripts/experiments/run_short_trace_negative_tests.py
 ```
 
@@ -683,7 +711,7 @@ The next schema work should be:
 4. reduce raw tensor and floating-point dependence before moving to a proving backend;
 5. document how benchmark metadata differs from artifact metadata;
 6. define whether nested one-step artifacts should remain embedded or be replaced by commitment references;
-7. add negative-test coverage for one-step schema-cleanup edge cases once the one-step artifact is simplified.
+7. extend one-step negative-test coverage if future schema cleanup removes or restructures additional witness fields.
 
 ---
 

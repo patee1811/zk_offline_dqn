@@ -317,6 +317,27 @@ It starts from a valid minibatch TD artifact and checks that the verifier accept
 | `tamper_leaf_hash` | reject | serialized transition leaf no longer matches the claimed leaf hash |
 | `tamper_merkle_path` | reject | Merkle membership proof no longer reconstructs the public dataset root |
 
+The repository also includes a one-step negative-test runner:
+
+```text
+scripts/experiments/run_one_step_negative_tests.py
+```
+
+It checks that the verifier accepts a valid one-step artifact and rejects tampered variants.
+
+| Case | Expected Result | Reason |
+|---|---:|---|
+| `valid_one_step` | accept | unchanged valid one-step update artifact |
+| `tamper_next_action_online` | reject | claimed Double-DQN online argmax action no longer matches the pre-update online network |
+| `tamper_q_target_max_fp` | reject | claimed target-network value no longer matches `Q_target(s')[next_action_online]` |
+| `tamper_loss_fp` | reject | per-item SmoothL1 TD loss no longer matches the recomputed value |
+| `tamper_gradient_tensor` | reject | claimed gradient tensor no longer matches recomputed gradients |
+| `tamper_delta_tensor` | reject | claimed parameter delta no longer matches the pre/post online-network difference |
+| `tamper_post_checkpoint_sha256` | reject | public post-update checkpoint hash no longer matches the post checkpoint file |
+| `tamper_post_online_state_dict_sha256` | reject | public post-update online state-dict commitment no longer matches canonical checkpoint tensor contents |
+| `tamper_learning_rate_fp` | reject | public learning-rate field no longer matches the expected update relation |
+| `tamper_batch_indices` | reject | public minibatch indices no longer match the embedded one-step item indices |
+
 The repository also includes a short-trace negative-test runner:
 
 ```text
@@ -339,6 +360,7 @@ It checks both valid and tampered short-trace artifacts.
 These tests are important because they show that the verifier rejects:
 
 - arithmetic tampering;
+- one-step TD/update witness tampering;
 - checkpoint/model-state anchoring tampering;
 - committed-data membership tampering;
 - short-trace sampling-rule tampering;
@@ -596,6 +618,7 @@ zk_offline_dqn/
 │   │   ├── benchmark_one_step_update.py
 │   │   ├── benchmark_short_trace_update.py
 │   │   ├── run_negative_verification_tests.py
+│   │   ├── run_one_step_negative_tests.py
 │   │   └── run_short_trace_negative_tests.py
 │   │
 │   └── zk_proofs/
@@ -984,7 +1007,52 @@ tamper_merkle_path,False,False,True,artifacts/negative_tests/tamper_merkle_path.
 
 ---
 
-### Stage 12: Run Short-Trace Negative Tests
+### Stage 12: Run One-Step Negative Tests
+
+```bash
+python scripts/experiments/run_one_step_negative_tests.py
+```
+
+Expected output includes:
+
+```text
+valid_one_step_accept = True
+tamper_next_action_online_accept = False
+tamper_q_target_max_fp_accept = False
+tamper_loss_fp_accept = False
+tamper_gradient_tensor_accept = False
+tamper_delta_tensor_accept = False
+tamper_post_checkpoint_sha256_accept = False
+tamper_post_online_state_dict_sha256_accept = False
+tamper_learning_rate_fp_accept = False
+tamper_batch_indices_accept = False
+all_tests_passed = True
+```
+
+The summary is written to:
+
+```text
+artifacts/one_step_negative_tests/summary.csv
+```
+
+The one-step negative-test runner checks that the verifier accepts a valid one-step artifact and rejects tampered variants.
+
+| Case | Expected Result | Reason |
+|---|---:|---|
+| `valid_one_step` | accept | unchanged valid one-step update artifact |
+| `tamper_next_action_online` | reject | claimed Double-DQN online argmax action no longer matches the pre-update online network |
+| `tamper_q_target_max_fp` | reject | claimed target-network value no longer matches `Q_target(s')[next_action_online]` |
+| `tamper_loss_fp` | reject | per-item SmoothL1 TD loss no longer matches the recomputed value |
+| `tamper_gradient_tensor` | reject | claimed gradient tensor no longer matches recomputed gradients |
+| `tamper_delta_tensor` | reject | claimed parameter delta no longer matches the pre/post online-network difference |
+| `tamper_post_checkpoint_sha256` | reject | public post-update checkpoint hash no longer matches the post checkpoint file |
+| `tamper_post_online_state_dict_sha256` | reject | public post-update online state-dict commitment no longer matches canonical checkpoint tensor contents |
+| `tamper_learning_rate_fp` | reject | public learning-rate field no longer matches the expected update relation |
+| `tamper_batch_indices` | reject | public minibatch indices no longer match the embedded one-step item indices |
+
+---
+
+### Stage 13: Run Short-Trace Negative Tests
 
 ```bash
 python scripts/experiments/run_short_trace_negative_tests.py
@@ -1012,7 +1080,7 @@ artifacts/short_trace_negative_tests/summary.csv
 
 ---
 
-### Stage 13: Manual Short-Trace Sampling-Rule Tamper Check
+### Stage 14: Manual Short-Trace Sampling-Rule Tamper Check
 
 Export a valid short-trace artifact:
 
@@ -1055,7 +1123,7 @@ verification_passed = False
 
 ---
 
-### Stage 14: Analyze Results
+### Stage 15: Analyze Results
 
 ```bash
 python scripts/analysis/analyze_offline_log.py \
@@ -1069,7 +1137,7 @@ python scripts/analysis/analyze_cql_log.py \
 
 ---
 
-### Stage 15: Regression Checklist
+### Stage 16: Regression Checklist
 
 ```powershell
 $env:PYTHONPATH="."
@@ -1099,6 +1167,7 @@ $env:SHORT_TRACE_WORK_DIR="artifacts/short_trace_seeded_work"
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 
 python scripts/experiments/run_negative_verification_tests.py
+python scripts/experiments/run_one_step_negative_tests.py
 python scripts/experiments/run_short_trace_negative_tests.py
 ```
 
