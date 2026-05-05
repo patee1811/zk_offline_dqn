@@ -1,0 +1,102 @@
+﻿name: Regression
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      PYTHONPATH: "."
+      MPLBACKEND: "Agg"
+      OMP_NUM_THREADS: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Check required regression fixtures
+        run: |
+          test -f data/cartpole_dqn_eps010_transitions.pkl
+          test -f artifacts/cartpole_dqn_eps010_merkle.json
+          test -f artifacts/minibatch_td_from_dataset.json
+          test -f artifacts/one_step_update_artifact.json
+          test -f artifacts/short_trace_update_artifact.json
+          test -f artifacts/short_trace_seeded_artifact.json
+          test -f models/offline_dqn_with_target_seed42_best.pt
+          test -f artifacts/one_step_post_checkpoint.pt
+          test -f artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt
+          test -f artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt
+
+      - name: Compile Python files
+        run: |
+          python -m compileall zk_offline_dqn scripts
+
+      - name: Verify minibatch TD artifact
+        run: |
+          python scripts/artifacts_export/verify_minibatch_td_artifact.py
+
+      - name: Verify forward TD consistency
+        run: |
+          python scripts/artifacts_export/verify_forward_td_consistency.py \
+            --artifact artifacts/minibatch_td_from_dataset.json \
+            --checkpoint models/offline_dqn_with_target_seed42_best.pt
+
+      - name: Verify one-step update artifact
+        run: |
+          python scripts/artifacts_export/verify_one_step_update_artifact.py
+
+      - name: Verify short-trace contiguous artifact
+        env:
+          SHORT_TRACE_ARTIFACT_PATH: artifacts/short_trace_update_artifact.json
+          SHORT_TRACE_MERKLE_PATH: artifacts/cartpole_dqn_eps010_merkle.json
+          SHORT_TRACE_INITIAL_CHECKPOINT_PATH: models/offline_dqn_with_target_seed42_best.pt
+          SHORT_TRACE_FINAL_CHECKPOINT_PATH: artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt
+          SHORT_TRACE_WORK_DIR: artifacts/short_trace_work
+        run: |
+          python scripts/artifacts_export/verify_short_trace_update_artifact.py
+
+      - name: Verify short-trace seeded artifact
+        env:
+          SHORT_TRACE_ARTIFACT_PATH: artifacts/short_trace_seeded_artifact.json
+          SHORT_TRACE_MERKLE_PATH: artifacts/cartpole_dqn_eps010_merkle.json
+          SHORT_TRACE_INITIAL_CHECKPOINT_PATH: models/offline_dqn_with_target_seed42_best.pt
+          SHORT_TRACE_FINAL_CHECKPOINT_PATH: artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt
+          SHORT_TRACE_WORK_DIR: artifacts/short_trace_seeded_work
+        run: |
+          python scripts/artifacts_export/verify_short_trace_update_artifact.py
+
+      - name: Run one-step negative tests
+        run: |
+          python scripts/experiments/run_one_step_negative_tests.py
+
+      - name: Run short-trace negative tests
+        run: |
+          python scripts/experiments/run_short_trace_negative_tests.py
+
+      - name: Run minibatch TD negative tests
+        run: |
+          python scripts/experiments/run_negative_verification_tests.py
