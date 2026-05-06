@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/Framework-PyTorch-EE4C2C.svg)](https://pytorch.org/)
+[![Regression](https://github.com/patee1811/zk_offline_dqn/actions/workflows/regression.yml/badge.svg?branch=master)](https://github.com/patee1811/zk_offline_dqn/actions/workflows/regression.yml)
 
 ---
 
@@ -37,6 +38,7 @@ At the current stage, the repository verifies:
 11. **Deterministic short-trace sampling-rule enforcement** — the short-trace verifier supports both contiguous deterministic sampling and seeded-permutation sampling with public replay metadata.
 12. **Artifact schema-version checks** — main artifacts include explicit `schema_version` fields, and verifiers reject stale or incompatible artifacts before reading statement fields.
 13. **Negative verification tests** — the repository includes tamper tests showing that invalid artifacts are rejected.
+14. **Regression CI** — GitHub Actions runs the full verification and negative-test suite on pull requests, master pushes, and version tags.
 
 All TD-artifact arithmetic is represented in **fixed-point integer form** to make verification deterministic and more compatible with future proof-system backends.
 
@@ -90,16 +92,31 @@ The project is beyond the proposal stage and currently includes:
   - tampered online state-dict commitment;
   - tampered leaf hash;
   - tampered Merkle path;
+  - tampered one-step next-action witness;
+  - tampered one-step target value witness;
+  - tampered one-step loss witness;
+  - tampered one-step gradient tensor;
+  - tampered one-step delta tensor;
+  - tampered one-step learning rate;
+  - tampered one-step batch indices;
   - tampered contiguous trace batches;
   - tampered seeded trace batches;
   - tampered sampling seed;
   - tampered dataset size;
   - tampered final checkpoint hash;
-  - tampered final online state-dict commitment.
+  - tampered final online state-dict commitment;
+- GitHub Actions regression CI for:
+  - Python compile checks;
+  - artifact verifier checks;
+  - forward TD consistency;
+  - one-step verification;
+  - short-trace verification;
+  - minibatch, one-step, and short-trace negative tests;
+  - regression summary report upload.
 
 This repository should currently be described as:
 
-> **a pre-ZK artifact/verifier prototype for committed-data membership, TD-arithmetic correctness, canonical model-state anchoring, forward TD consistency, one-step update consistency, one-step Double-DQN action/value-selection checking, short verified training traces, trace-boundary commitment checking, deterministic short-trace sampling-rule enforcement, artifact schema-version checks, and negative tamper tests**
+> **a pre-ZK artifact/verifier prototype for committed-data membership, TD-arithmetic correctness, canonical model-state anchoring, forward TD consistency, one-step update consistency, one-step Double-DQN action/value-selection checking, short verified training traces, trace-boundary commitment checking, deterministic short-trace sampling-rule enforcement, artifact schema-version checks, negative tamper tests, and regression CI**
 
 It should **not** yet be described as a full zero-knowledge proof-of-training system.
 
@@ -368,6 +385,95 @@ These tests are important because they show that the verifier rejects:
 
 ---
 
+## Regression and CI
+
+This repository includes a GitHub Actions regression workflow:
+
+```text
+.github/workflows/regression.yml
+```
+
+The workflow runs on:
+
+```text
+pull_request -> master
+push -> master
+push -> v* tags
+```
+
+The workflow calls the full regression runner:
+
+```bash
+python scripts/experiments/run_full_regression.py
+```
+
+The full regression runner performs 9 checks:
+
+1. Python compile check;
+2. minibatch TD artifact verification;
+3. forward TD consistency verification;
+4. one-step update artifact verification;
+5. short-trace contiguous verification;
+6. short-trace seeded verification;
+7. one-step negative tests;
+8. short-trace negative tests;
+9. minibatch TD negative tests.
+
+Expected final output:
+
+```text
+all_regression_passed = True
+```
+
+The runner writes summary reports to:
+
+```text
+artifacts/regression_summary.json
+artifacts/regression_summary.md
+```
+
+It also writes per-check stdout/stderr logs to:
+
+```text
+artifacts/full_regression/*.stdout.txt
+artifacts/full_regression/*.stderr.txt
+```
+
+In GitHub Actions, these files are uploaded as workflow artifacts under:
+
+```text
+regression-reports
+```
+
+To run the same regression locally:
+
+```powershell
+$env:PYTHONPATH="."
+
+python scripts/experiments/run_full_regression.py
+```
+
+Expected local output includes:
+
+```text
+num_checks = 9
+all_regression_passed = True
+summary_json_path = artifacts/regression_summary.json
+summary_md_path = artifacts/regression_summary.md
+```
+
+The current CI uses committed regression fixtures under:
+
+```text
+data/
+models/
+artifacts/
+```
+
+These fixtures are intentionally small enough for CI regression and are separate from larger experimental datasets or long-run benchmark outputs.
+
+---
+
 ## Artifact Schema Versions
 
 Newly exported artifacts include a top-level `schema_version` field.
@@ -562,6 +668,10 @@ More precisely:
 
 ```text
 zk_offline_dqn/
+├── .github/
+│   └── workflows/
+│       └── regression.yml
+│
 ├── zk_offline_dqn/
 │   ├── __init__.py
 │   ├── zk_specs.py
@@ -617,6 +727,7 @@ zk_offline_dqn/
 │   ├── experiments/
 │   │   ├── benchmark_one_step_update.py
 │   │   ├── benchmark_short_trace_update.py
+│   │   ├── run_full_regression.py
 │   │   ├── run_negative_verification_tests.py
 │   │   ├── run_one_step_negative_tests.py
 │   │   └── run_short_trace_negative_tests.py
@@ -1080,7 +1191,35 @@ artifacts/short_trace_negative_tests/summary.csv
 
 ---
 
-### Stage 14: Manual Short-Trace Sampling-Rule Tamper Check
+### Stage 14: Full Regression Summary
+
+```bash
+python scripts/experiments/run_full_regression.py
+```
+
+Expected output includes:
+
+```text
+num_checks = 9
+all_regression_passed = True
+summary_json_path = artifacts/regression_summary.json
+summary_md_path = artifacts/regression_summary.md
+```
+
+Generated outputs:
+
+```text
+artifacts/regression_summary.json
+artifacts/regression_summary.md
+artifacts/full_regression/*.stdout.txt
+artifacts/full_regression/*.stderr.txt
+```
+
+This is the same regression runner used by GitHub Actions.
+
+---
+
+### Stage 15: Manual Short-Trace Sampling-Rule Tamper Check
 
 Export a valid short-trace artifact:
 
@@ -1111,6 +1250,7 @@ export SHORT_TRACE_ARTIFACT_PATH=artifacts/short_trace_negative_test_tampered.js
 export SHORT_TRACE_MERKLE_PATH=artifacts/cartpole_dqn_eps010_merkle.json
 export SHORT_TRACE_INITIAL_CHECKPOINT_PATH=models/offline_dqn_with_target_seed42_best.pt
 export SHORT_TRACE_FINAL_CHECKPOINT_PATH=artifacts/short_trace_negative_test_work/<printed-final-checkpoint>.pt
+export SHORT_TRACE_WORK_DIR=artifacts/short_trace_negative_test_work
 
 python scripts/artifacts_export/verify_short_trace_update_artifact.py
 ```
@@ -1123,7 +1263,7 @@ verification_passed = False
 
 ---
 
-### Stage 15: Analyze Results
+### Stage 16: Analyze Results
 
 ```bash
 python scripts/analysis/analyze_offline_log.py \
@@ -1137,7 +1277,7 @@ python scripts/analysis/analyze_cql_log.py \
 
 ---
 
-### Stage 16: Regression Checklist
+### Stage 17: Regression Checklist
 
 ```powershell
 $env:PYTHONPATH="."
@@ -1169,6 +1309,7 @@ python scripts/artifacts_export/verify_short_trace_update_artifact.py
 python scripts/experiments/run_negative_verification_tests.py
 python scripts/experiments/run_one_step_negative_tests.py
 python scripts/experiments/run_short_trace_negative_tests.py
+python scripts/experiments/run_full_regression.py
 ```
 
 Expected key outputs:
@@ -1182,6 +1323,7 @@ one_step_canonical_commitments_ok = True
 short_trace_canonical_boundary_commitments_ok = True
 all_sampling_rule_ok = True
 all_tests_passed = True
+all_regression_passed = True
 ```
 
 ---
@@ -1315,7 +1457,24 @@ This layer verifies:
 
 ## Data
 
-Datasets are **not included** in this repository because of their size.
+The repository includes a small set of committed regression fixtures required by GitHub Actions:
+
+```text
+data/cartpole_dqn_eps010_transitions.pkl
+models/offline_dqn_with_target_seed42_best.pt
+artifacts/cartpole_dqn_eps010_merkle.json
+artifacts/minibatch_td_from_dataset.json
+artifacts/one_step_update_artifact.json
+artifacts/one_step_post_checkpoint.pt
+artifacts/short_trace_update_artifact.json
+artifacts/short_trace_seeded_artifact.json
+artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt
+artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt
+```
+
+These are lightweight fixtures for regression verification.
+
+Larger generated datasets, long-run benchmark outputs, logs, checkpoints, and plots should still be treated as generated artifacts and may be excluded from version control depending on size and reproducibility needs.
 
 Typical generated files include:
 
@@ -1335,15 +1494,25 @@ To reproduce the experiments, run the dataset generation and training scripts ab
 
 The strongest next milestones are:
 
-### 1. One-Step Artifact Schema Cleanup
+### 1. Branch Protection for Master
 
-The one-step artifact should be cleaned further by separating:
+Enable branch protection on GitHub:
 
-- mandatory public inputs;
-- private witness fields;
-- debug-only fields;
-- runtime metadata;
-- benchmark metadata.
+```text
+Settings -> Branches -> Add branch protection rule
+```
+
+Recommended rule:
+
+```text
+Branch name pattern: master
+Require a pull request before merging
+Require status checks to pass before merging
+Require branches to be up to date before merging
+Required status check: Regression
+```
+
+This ensures that future PRs cannot be merged unless the regression CI passes.
 
 ### 2. True ZK Backend
 
@@ -1408,7 +1577,8 @@ The strongest current claims are:
 7. short verified update traces;
 8. trace-boundary commitment verification;
 9. deterministic sampling-rule enforcement;
-10. systematic rejection of tampered artifacts.
+10. systematic rejection of tampered artifacts;
+11. automated regression CI and regression report generation.
 
 ---
 
