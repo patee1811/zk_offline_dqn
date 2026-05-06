@@ -48,7 +48,11 @@ jobs:
           test -f artifacts/short_trace_seeded_artifact.json
           test -f models/offline_dqn_with_target_seed42_best.pt
           test -f artifacts/one_step_post_checkpoint.pt
+          test -f artifacts/short_trace_work/step_0_post_0_1_2_3.pt
+          test -f artifacts/short_trace_work/step_1_post_4_5_6_7.pt
           test -f artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt
+          test -f artifacts/short_trace_seeded_work/step_0_post_19_5_14_4.pt
+          test -f artifacts/short_trace_seeded_work/step_1_post_9_13_15_18.pt
           test -f artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt
 
       - name: Run full regression summary
