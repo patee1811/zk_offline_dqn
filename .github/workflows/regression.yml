@@ -51,52 +51,17 @@ jobs:
           test -f artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt
           test -f artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt
 
-      - name: Compile Python files
+      - name: Run full regression summary
         run: |
-          python -m compileall zk_offline_dqn scripts
+          python scripts/experiments/run_full_regression.py
 
-      - name: Verify minibatch TD artifact
-        run: |
-          python scripts/artifacts_export/verify_minibatch_td_artifact.py
-
-      - name: Verify forward TD consistency
-        run: |
-          python scripts/artifacts_export/verify_forward_td_consistency.py \
-            --artifact artifacts/minibatch_td_from_dataset.json \
-            --checkpoint models/offline_dqn_with_target_seed42_best.pt
-
-      - name: Verify one-step update artifact
-        run: |
-          python scripts/artifacts_export/verify_one_step_update_artifact.py
-
-      - name: Verify short-trace contiguous artifact
-        env:
-          SHORT_TRACE_ARTIFACT_PATH: artifacts/short_trace_update_artifact.json
-          SHORT_TRACE_MERKLE_PATH: artifacts/cartpole_dqn_eps010_merkle.json
-          SHORT_TRACE_INITIAL_CHECKPOINT_PATH: models/offline_dqn_with_target_seed42_best.pt
-          SHORT_TRACE_FINAL_CHECKPOINT_PATH: artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt
-          SHORT_TRACE_WORK_DIR: artifacts/short_trace_work
-        run: |
-          python scripts/artifacts_export/verify_short_trace_update_artifact.py
-
-      - name: Verify short-trace seeded artifact
-        env:
-          SHORT_TRACE_ARTIFACT_PATH: artifacts/short_trace_seeded_artifact.json
-          SHORT_TRACE_MERKLE_PATH: artifacts/cartpole_dqn_eps010_merkle.json
-          SHORT_TRACE_INITIAL_CHECKPOINT_PATH: models/offline_dqn_with_target_seed42_best.pt
-          SHORT_TRACE_FINAL_CHECKPOINT_PATH: artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt
-          SHORT_TRACE_WORK_DIR: artifacts/short_trace_seeded_work
-        run: |
-          python scripts/artifacts_export/verify_short_trace_update_artifact.py
-
-      - name: Run one-step negative tests
-        run: |
-          python scripts/experiments/run_one_step_negative_tests.py
-
-      - name: Run short-trace negative tests
-        run: |
-          python scripts/experiments/run_short_trace_negative_tests.py
-
-      - name: Run minibatch TD negative tests
-        run: |
-          python scripts/experiments/run_negative_verification_tests.py
+      - name: Upload regression reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-reports
+          path: |
+            artifacts/regression_summary.json
+            artifacts/regression_summary.md
+            artifacts/full_regression/*.stdout.txt
+            artifacts/full_regression/*.stderr.txt
