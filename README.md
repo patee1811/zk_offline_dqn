@@ -664,6 +664,35 @@ More precisely:
 
 ---
 
+## ZK Backend MVP Roadmap
+
+The current repository is a pre-ZK artifact/verifier framework. It verifies committed-data offline DQN training artifacts in Python, but it is not yet a full zero-knowledge proof-of-training system.
+
+The next research milestone is to move the smallest backend-ready relation into a real proving backend:
+
+> Merkle membership + Bellman target + SmoothL1 TD loss over a committed offline DQN transition.
+
+The documentation for this milestone is split into:
+
+- [`docs/zk_backend_mvp.md`](docs/zk_backend_mvp.md): defines the smallest ZK backend statement, public inputs, private witness, relation, fixed-point arithmetic, and non-goals.
+- [`docs/threat_model.md`](docs/threat_model.md): defines prover/verifier roles, adversarial tampering cases, security goals, privacy goals, and out-of-scope claims.
+- [`docs/backend_choice.md`](docs/backend_choice.md): compares RISC Zero, SP1, Noir, Circom, and Halo2, and explains why the first MVP should start with a zkVM backend.
+
+The intended progression is:
+
+```text
+Python artifact verification
+→ backend-ready TD relation
+→ real ZK proof for TD arithmetic
+→ verified one-step update
+→ short-trace proof
+→ chunked or recursive full-training certificate
+```
+
+The first backend MVP intentionally does not prove full DQN training, full neural-network forward passes, backpropagation, Adam optimizer semantics, long traces, or recursive proof aggregation.
+
+---
+
 ## Repository Structure
 
 ```text
