@@ -160,6 +160,19 @@ It should start from the existing test vector:
 zk_backend/test_vectors/td_mvp_case_0.json
 ```
 
+## SP1 Skeleton
+
+The initial SP1 backend skeleton is documented in:
+
+```text
+zk_backend/td_mvp/sp1/README.md
+zk_backend/td_mvp/sp1/host/README.md
+zk_backend/td_mvp/sp1/guest/README.md
+zk_backend/td_mvp/sp1/shared/README.md
+```
+
+This skeleton does not yet install SP1 or generate a proof.
+
 ## Acceptance Criteria for the First SP1 Implementation
 
 The first SP1 implementation milestone should be considered successful if:
@@ -193,6 +206,7 @@ recursive proof aggregation
 ## Related Files
 
 ```text
+zk_backend/td_mvp/sp1/README.md
 docs/zk_backend_mvp.md
 docs/threat_model.md
 docs/backend_choice.md
