@@ -16,6 +16,12 @@ zk_backend/
   test_vectors/
     README.md
     td_mvp_case_0.json
+  td_mvp/
+    README.md
+    host/
+      README.md
+    guest/
+      README.md
 ```
 
 ## First MVP Relation
@@ -31,6 +37,29 @@ loss_fp == SmoothL1(td_error_fp)
 target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
+
+## TD MVP zkVM Skeleton
+
+The initial host/guest skeleton is documented in:
+
+```text
+zk_backend/td_mvp/README.md
+zk_backend/td_mvp/host/README.md
+zk_backend/td_mvp/guest/README.md
+```
+
+This skeleton defines the intended split between:
+
+```text
+host:
+  load test vector, prepare inputs, invoke prover, verify proof or receipt, record metrics
+
+guest:
+  verify leaf hash, Merkle path, Bellman target, TD error, SmoothL1 loss, and claimed outputs
+```
+
+No real zkVM proof is generated yet.
+
 
 ## Non-Goals
 
