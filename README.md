@@ -676,9 +676,10 @@ The documentation for this milestone is split into:
 
 - [`docs/zk_backend_mvp.md`](docs/zk_backend_mvp.md): defines the smallest ZK backend statement, public inputs, private witness, relation, fixed-point arithmetic, and non-goals.
 - [`docs/threat_model.md`](docs/threat_model.md): defines prover/verifier roles, adversarial tampering cases, security goals, privacy goals, and out-of-scope claims.
-- [`docs/backend_choice.md`](docs/backend_choice.md): compares RISC Zero, SP1, Noir, Circom, and Halo2, and explains why the first MVP should start with a zkVM backend.
+- [`docs/backend_choice.md`](docs/backend_choice.md): compares RISC Zero, SP1, Noir, Circom, and Halo2.
+- [`docs/backend_selection_v0_12.md`](docs/backend_selection_v0_12.md): records the v0.12 decision to use SP1 as the first concrete backend target.
 
-The first backend-facing test vector is now available under:
+The first backend-facing test vector is available under:
 
 ```text
 zk_backend/test_vectors/td_mvp_case_0.json
@@ -705,32 +706,48 @@ Merkle membership
 + SmoothL1 TD loss
 + claimed target/loss consistency
 ```
+
+The standalone verifier and negative-test runner for this test vector are:
+
+```text
+scripts/artifacts_export/verify_td_mvp_test_vector.py
+scripts/experiments/run_td_mvp_test_vector_negative_tests.py
+```
+
 The first concrete backend implementation target selected in v0.12 is:
 
 ```text
 SP1
 ```
 
-RISC Zero remains the main alternative backend for a later comparison milestone. The decision rationale is documented in:
+RISC Zero remains the main alternative backend for a later comparison milestone.
+
+The SP1 backend skeleton is documented under:
 
 ```text
-docs/backend_selection_v0_12.md
+zk_backend/td_mvp/sp1/
 ```
+
+The SP1 toolchain setup notes are documented in:
+
+```text
+zk_backend/td_mvp/sp1/toolchain.md
+```
+
+The first SP1 proof milestone should be developed on Linux/macOS or WSL2 Ubuntu rather than native Windows PowerShell.
 
 The intended progression is:
 
 ```text
 Python artifact verification
 → backend-ready TD relation
-→ real ZK proof for TD arithmetic
+→ SP1-backed proof for TD arithmetic
 → verified one-step update
 → short-trace proof
 → chunked or recursive full-training certificate
 ```
 
 The first backend MVP intentionally does not prove full DQN training, full neural-network forward passes, backpropagation, Adam optimizer semantics, long traces, or recursive proof aggregation.
-
----
 
 ## Repository Structure
 
