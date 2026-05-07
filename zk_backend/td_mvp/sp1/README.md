@@ -146,9 +146,20 @@ verification time is recorded
 proof size is recorded
 ```
 
+## Toolchain Notes
+
+The planned SP1 setup notes are documented in:
+
+```text
+zk_backend/td_mvp/sp1/toolchain.md
+```
+
+The first SP1 implementation should be developed on Linux/macOS or WSL2 Ubuntu rather than native Windows PowerShell.
+
 ## Related Files
 
 ```text
+zk_backend/td_mvp/sp1/toolchain.md
 docs/backend_selection_v0_12.md
 docs/backend_choice.md
 docs/zk_backend_mvp.md
