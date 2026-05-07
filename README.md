@@ -678,6 +678,34 @@ The documentation for this milestone is split into:
 - [`docs/threat_model.md`](docs/threat_model.md): defines prover/verifier roles, adversarial tampering cases, security goals, privacy goals, and out-of-scope claims.
 - [`docs/backend_choice.md`](docs/backend_choice.md): compares RISC Zero, SP1, Noir, Circom, and Halo2, and explains why the first MVP should start with a zkVM backend.
 
+The first backend-facing test vector is now available under:
+
+```text
+zk_backend/test_vectors/td_mvp_case_0.json
+```
+
+It can be regenerated from the existing minibatch TD artifact with:
+
+```bash
+python scripts/artifacts_export/export_td_mvp_test_vector.py
+```
+
+The test vector is exported from:
+
+```text
+artifacts/minibatch_td_from_dataset.json
+```
+
+and contains a single-transition statement for:
+
+```text
+Merkle membership
++ Bellman target
++ TD error
++ SmoothL1 TD loss
++ claimed target/loss consistency
+```
+
 The intended progression is:
 
 ```text
