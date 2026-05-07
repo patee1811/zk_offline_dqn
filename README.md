@@ -705,6 +705,17 @@ Merkle membership
 + SmoothL1 TD loss
 + claimed target/loss consistency
 ```
+The first concrete backend implementation target selected in v0.12 is:
+
+```text
+SP1
+```
+
+RISC Zero remains the main alternative backend for a later comparison milestone. The decision rationale is documented in:
+
+```text
+docs/backend_selection_v0_12.md
+```
 
 The intended progression is:
 

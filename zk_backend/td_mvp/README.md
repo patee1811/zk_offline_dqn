@@ -1,5 +1,23 @@
 # TD MVP zkVM Backend Skeleton
 
+## v0.12 Backend Decision
+
+The first concrete backend implementation target is:
+
+```text
+SP1
+```
+
+RISC Zero remains the main alternative backend for a later comparison milestone.
+
+The decision rationale is documented in:
+
+```text
+docs/backend_selection_v0_12.md
+```
+
+## Purpose
+
 This directory is reserved for the first zkVM backend implementation of the TD MVP relation.
 
 The current repository already contains:
@@ -10,7 +28,7 @@ scripts/artifacts_export/verify_td_mvp_test_vector.py
 scripts/experiments/run_td_mvp_test_vector_negative_tests.py
 ```
 
-The goal of this directory is to define the future host/guest split before implementing a concrete proving backend such as RISC Zero or SP1.
+The goal of this directory is to define the future host/guest split before implementing a concrete proving backend with SP1.
 
 This skeleton does not yet generate a zero-knowledge proof.
 
@@ -70,6 +88,17 @@ merkle_path
 td_witness
 ```
 
+The `td_witness` contains:
+
+```text
+q_online_action_fp
+next_action_online
+q_target_max_fp
+target_fp
+td_error_fp
+loss_fp
+```
+
 ## Host / Guest Split
 
 The intended zkVM structure is:
@@ -77,11 +106,13 @@ The intended zkVM structure is:
 ```text
 host:
   - load JSON test vector
+  - validate schema_version
   - split public inputs and private witness
-  - pass inputs to guest
+  - serialize inputs into the SP1-compatible input format
+  - pass inputs to the guest
   - run prover
-  - receive proof/receipt
-  - verify proof/receipt
+  - receive proof
+  - verify proof
   - report proving time, verification time, and proof size
 
 guest:
@@ -92,19 +123,58 @@ guest:
   - recompute TD error
   - recompute SmoothL1 loss
   - assert claimed target/loss consistency
-  - commit public outputs if required by backend
+  - commit public outputs if required by SP1
 ```
 
 ## Backend Candidates
 
-The current recommended first backend is one of:
+The selected first backend is:
 
 ```text
-RISC Zero
 SP1
 ```
 
+The main alternative backend is:
+
+```text
+RISC Zero
+```
+
 A circuit backend such as Noir, Circom, or Halo2 may be considered later after the relation is stable.
+
+## Initial SP1 Scope
+
+The first SP1 implementation should prove only the standalone TD MVP relation:
+
+```text
+Merkle membership
+Bellman target
+TD error
+SmoothL1 TD loss
+claimed target/loss consistency
+```
+
+It should start from the existing test vector:
+
+```text
+zk_backend/test_vectors/td_mvp_case_0.json
+```
+
+## Acceptance Criteria for the First SP1 Implementation
+
+The first SP1 implementation milestone should be considered successful if:
+
+```text
+SP1 project skeleton builds locally
+host can load or embed the TD MVP test vector
+guest can verify the TD MVP relation
+valid test vector produces a proof
+proof verifies successfully
+tampered input is rejected or fails proving
+proving time is recorded
+verification time is recorded
+proof size is recorded
+```
 
 ## Non-Goals
 
@@ -126,6 +196,7 @@ recursive proof aggregation
 docs/zk_backend_mvp.md
 docs/threat_model.md
 docs/backend_choice.md
+docs/backend_selection_v0_12.md
 zk_backend/test_vectors/td_mvp_case_0.json
 scripts/artifacts_export/verify_td_mvp_test_vector.py
 scripts/experiments/run_td_mvp_test_vector_negative_tests.py

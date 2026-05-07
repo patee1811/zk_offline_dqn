@@ -1,5 +1,21 @@
 # Backend Choice
 
+## v0.12 Decision Update
+
+As of `v0.12-backend-selection-sp1`, the first concrete backend implementation target is:
+
+```text
+SP1
+```
+
+RISC Zero remains the main alternative backend for later comparison, but the next implementation milestone should focus on SP1 first.
+
+The detailed decision rationale is documented in:
+
+```text
+docs/backend_selection_v0_12.md
+```
+
 ## 1. Purpose
 
 This document records the backend choice for the first zero-knowledge MVP of the ZK-Offline-DQN project.
@@ -257,8 +273,9 @@ Halo2 should be treated as a future research direction, not the first backend ta
 The first backend should be:
 
 ```text
-Primary recommendation: RISC Zero or SP1
-Secondary recommendation: Noir
+Selected first backend: SP1
+Main alternative backend: RISC Zero
+Secondary future option: Noir
 Later optimization path: Circom or Halo2
 ```
 
@@ -334,19 +351,19 @@ limitations are documented
 
 ## 12. Decision
 
-For the first implementation attempt, use a zkVM backend.
-
-The implementation should start with either:
-
-```text
-RISC Zero
-```
-
-or:
+For the first implementation attempt, use:
 
 ```text
 SP1
 ```
+
+This decision is recorded in:
+
+```text
+docs/backend_selection_v0_12.md
+```
+
+RISC Zero remains the main alternative backend for a later comparison milestone.
 
 The final choice can be made after checking local installation complexity and the smallest working example on the development machine.
 
