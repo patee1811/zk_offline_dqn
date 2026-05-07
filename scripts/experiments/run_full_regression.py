@@ -203,6 +203,10 @@ def main() -> None:
             "name": "run_minibatch_td_negative_tests",
             "command": [py, "scripts/experiments/run_negative_verification_tests.py"],
         },
+        {
+            "name": "run_td_mvp_test_vector_negative_tests",
+            "command": [py, "scripts/experiments/run_td_mvp_test_vector_negative_tests.py"],
+        },
     ]
 
     results: List[Dict[str, Any]] = []
