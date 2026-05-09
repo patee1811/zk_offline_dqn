@@ -1,9 +1,12 @@
-import hashlib
 import json
 import os
+from pathlib import Path
+import sys
 from typing import Any, Dict
 
 import torch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from zk_offline_dqn.artifact_export_utils import (
     compute_td_witness,
@@ -19,6 +22,7 @@ from zk_offline_dqn.artifact_schema_versions import (
     require_schema_version,
 )
 from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
+from zk_offline_dqn.merkle import recompute_root_from_path
 from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
     compute_td_target_fp,
@@ -43,26 +47,6 @@ POST_CHECKPOINT_PATH = os.environ.get(
     "ONE_STEP_POST_CHECKPOINT_PATH",
     "artifacts/one_step_post_checkpoint.pt",
 )
-
-
-def hash_internal_node(left_hex: str, right_hex: str) -> str:
-    left_bytes = bytes.fromhex(left_hex)
-    right_bytes = bytes.fromhex(right_hex)
-    return hashlib.sha256(left_bytes + right_bytes).hexdigest()
-
-
-def recompute_root_from_path(leaf_hash: str, merkle_path):
-    cur = leaf_hash
-
-    for step in merkle_path:
-        sibling = step["sibling_hash"]
-
-        if step["current_is_left"]:
-            cur = hash_internal_node(cur, sibling)
-        else:
-            cur = hash_internal_node(sibling, cur)
-
-    return cur
 
 
 def compare_state_dicts(sd1, sd2) -> bool:

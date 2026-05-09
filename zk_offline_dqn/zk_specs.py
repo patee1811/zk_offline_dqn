@@ -14,10 +14,10 @@ class ZKSpecs:
     # gamma = 0.99 -> 990 in fixed point
     GAMMA_FP: int = 990
 
-    # Đổi mặc định từ mse sang smooth_l1 để khớp trainer
+    # Default to SmoothL1 to match the current offline DQN trainer.
     LOSS_TYPE: str = "smooth_l1"
 
-    # beta = 1.0 là mặc định của torch.nn.SmoothL1Loss()
+    # beta = 1.0 is the default for torch.nn.SmoothL1Loss().
     SMOOTH_L1_BETA_FP: int = 1000
 
 
@@ -42,7 +42,9 @@ def serialize_transition_leaf(transition: Dict) -> List[int]:
     if len(obs) != SPECS.OBS_DIM:
         raise ValueError(f"obs must have length {SPECS.OBS_DIM}, got {len(obs)}")
     if len(next_obs) != SPECS.OBS_DIM:
-        raise ValueError(f"next_obs must have length {SPECS.OBS_DIM}, got {len(next_obs)}")
+        raise ValueError(
+            f"next_obs must have length {SPECS.OBS_DIM}, got {len(next_obs)}"
+        )
     if action < 0 or action >= SPECS.ACTION_DIM:
         raise ValueError(f"action must be in [0, {SPECS.ACTION_DIM - 1}], got {action}")
     if done not in (0, 1, False, True):
@@ -64,11 +66,12 @@ def compute_td_target_fp(reward_fp: int, done: int, q_target_max_fp: int) -> int
     done_int = int(done)
     if done_int not in (0, 1):
         raise ValueError(f"done must be 0 or 1, got {done}")
+
     bootstrapped_fp = compute_bootstrapped_fp(q_target_max_fp)
     return reward_fp + (1 - done_int) * bootstrapped_fp
 
 
-# Giữ lại MSE để tương thích tạm thời với code cũ
+# Keep MSE for temporary backward compatibility with older scripts.
 def compute_mse_loss_fp(q_online_fp: int, target_fp: int) -> int:
     diff = q_online_fp - target_fp
     return diff * diff
@@ -76,14 +79,14 @@ def compute_mse_loss_fp(q_online_fp: int, target_fp: int) -> int:
 
 def compute_smooth_l1_loss_fp(q_online_fp: int, target_fp: int) -> int:
     """
-    Fixed-point SmoothL1Loss với beta = 1.0.
+    Fixed-point SmoothL1Loss with beta = 1.0.
 
-    Nếu |delta| < beta:
+    If |delta| < beta:
         loss = 0.5 * delta^2 / beta
-    Ngược lại:
+    Otherwise:
         loss = |delta| - 0.5 * beta
 
-    Đầu vào và đầu ra đều ở fixed-point.
+    Inputs and outputs are fixed-point integers.
     """
     delta_fp = q_online_fp - target_fp
     abs_delta_fp = abs(delta_fp)
@@ -91,4 +94,5 @@ def compute_smooth_l1_loss_fp(q_online_fp: int, target_fp: int) -> int:
 
     if abs_delta_fp < beta_fp:
         return (abs_delta_fp * abs_delta_fp) // (2 * beta_fp)
+
     return abs_delta_fp - (beta_fp // 2)

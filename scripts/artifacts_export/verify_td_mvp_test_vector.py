@@ -1,56 +1,16 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+import sys
+from typing import Any, Dict
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.merkle import hash_leaf, verify_merkle_path
 
 DEFAULT_INPUT = Path("zk_backend/test_vectors/td_mvp_case_0.json")
-
-
-def sha256_hex(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def encode_leaf_for_hash(leaf: List[int]) -> bytes:
-    """
-    Canonical byte encoding for a leaf.
-
-    This must match scripts/zk_proofs/build_leaf_hashes.py:
-        [18, -45, -28] -> b"18,-45,-28"
-    """
-    return ",".join(str(int(x)) for x in leaf).encode("utf-8")
-
-
-def hash_leaf(leaf: List[int]) -> str:
-    return sha256_hex(encode_leaf_for_hash(leaf))
-
-
-def hash_internal_node(left_hex: str, right_hex: str) -> str:
-    left_bytes = bytes.fromhex(left_hex)
-    right_bytes = bytes.fromhex(right_hex)
-    return sha256_hex(left_bytes + right_bytes)
-
-
-def verify_merkle_path(
-    leaf_hash: str,
-    path: List[Dict[str, Any]],
-    expected_root: str,
-) -> Tuple[bool, str]:
-    current = leaf_hash
-
-    for step in path:
-        sibling_hash = step["sibling_hash"]
-        current_is_left = bool(step["current_is_left"])
-
-        if current_is_left:
-            current = hash_internal_node(current, sibling_hash)
-        else:
-            current = hash_internal_node(sibling_hash, current)
-
-    return current == expected_root, current
 
 
 def fixed_point_mul(a_fp: int, b_fp: int, fp_scale: int) -> int:
@@ -138,7 +98,7 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
 
     merkle_ok, recomputed_root = verify_merkle_path(
         leaf_hash=claimed_leaf_hash,
-        path=merkle_path,
+        merkle_path=merkle_path,
         expected_root=dataset_root,
     )
 

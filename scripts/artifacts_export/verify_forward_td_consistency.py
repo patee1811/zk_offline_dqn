@@ -2,16 +2,20 @@
 
 import argparse
 import json
+from pathlib import Path
+import sys
 from typing import Any, Dict, Tuple
 
 import torch
-import torch.nn as nn
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from zk_offline_dqn import zk_specs
 from zk_offline_dqn.artifact_schema_versions import (
     SCHEMA_MINIBATCH_TD_V1,
     require_schema_version,
 )
+from zk_offline_dqn.models import QNetwork
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,21 +44,8 @@ def parse_args() -> argparse.Namespace:
 def load_json(path: str) -> Dict[str, Any]:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-    
-class QNetwork(nn.Module):
-    def __init__(self, obs_dim: int = 4, hidden_dim: int = 128, n_actions: int = 2):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(obs_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, n_actions),
-        )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.net(x)
-    
+
 def load_networks_from_checkpoint(
     checkpoint_path: str,
 ) -> Tuple[QNetwork, QNetwork, Dict[str, Any]]:
@@ -83,8 +74,10 @@ def load_networks_from_checkpoint(
             f"Available keys: {sorted(checkpoint.keys())}"
         )
 
-    online_net = QNetwork()
-    target_net = QNetwork()
+    obs_dim = int(checkpoint.get("obs_dim", 4))
+    n_actions = int(checkpoint.get("n_actions", 2))
+    online_net = QNetwork(obs_dim, n_actions)
+    target_net = QNetwork(obs_dim, n_actions)
 
     online_net.load_state_dict(checkpoint[online_state_dict_key])
     target_net.load_state_dict(checkpoint["target_net_state_dict"])

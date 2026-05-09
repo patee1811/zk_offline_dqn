@@ -1,8 +1,12 @@
-import hashlib
 import json
 import pickle
+from pathlib import Path
+import sys
 from typing import Dict, Iterator, List
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.merkle import hash_leaf
 from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
@@ -36,20 +40,6 @@ def iter_transitions(data) -> Iterator[Dict]:
             "next_obs": data["next_obs"][i],
             "done": data["dones"][i],
         }
-
-
-def encode_leaf_for_hash(leaf: List[int]) -> bytes:
-    """
-    Canonical byte encoding for a leaf.
-    Example: [18, -45, -28] -> b"18,-45,-28"
-    """
-    s = ",".join(str(x) for x in leaf)
-    return s.encode("utf-8")
-
-
-def hash_leaf(leaf: List[int]) -> str:
-    payload = encode_leaf_for_hash(leaf)
-    return hashlib.sha256(payload).hexdigest()
 
 
 def main():

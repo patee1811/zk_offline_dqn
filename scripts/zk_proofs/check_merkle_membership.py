@@ -1,78 +1,14 @@
-import hashlib
 import json
+from pathlib import Path
+import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.merkle import build_merkle_path, verify_merkle_path
 
 MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
 LEAF_HASHES_PATH = "artifacts/cartpole_dqn_eps010_leaf_hashes.json"
 TARGET_INDEX = 0
-
-
-def sha256_hex(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def hash_internal_node(left_hex: str, right_hex: str) -> str:
-    left_bytes = bytes.fromhex(left_hex)
-    right_bytes = bytes.fromhex(right_hex)
-    return sha256_hex(left_bytes + right_bytes)
-
-
-def get_merkle_path(levels, leaf_index):
-    """
-    Return Merkle path for one leaf index.
-    Each element contains:
-      - level
-      - current_index
-      - sibling_index
-      - sibling_hash
-      - current_is_left
-    """
-    path = []
-    idx = leaf_index
-
-    for level_id in range(len(levels) - 1):
-        level = levels[level_id]
-
-        if idx < 0 or idx >= len(level):
-            raise ValueError(f"Invalid index {idx} at level {level_id}")
-
-        if idx % 2 == 0:
-            current_is_left = True
-            sibling_index = idx + 1 if idx + 1 < len(level) else idx
-        else:
-            current_is_left = False
-            sibling_index = idx - 1
-
-        sibling_hash = level[sibling_index]
-
-        path.append(
-            {
-                "level": level_id,
-                "current_index": idx,
-                "sibling_index": sibling_index,
-                "sibling_hash": sibling_hash,
-                "current_is_left": current_is_left,
-            }
-        )
-
-        idx = idx // 2
-
-    return path
-
-
-def verify_merkle_path(leaf_hash, path, expected_root):
-    current = leaf_hash
-
-    for step in path:
-        sibling_hash = step["sibling_hash"]
-        current_is_left = step["current_is_left"]
-
-        if current_is_left:
-            current = hash_internal_node(current, sibling_hash)
-        else:
-            current = hash_internal_node(sibling_hash, current)
-
-    return current == expected_root, current
 
 
 def main():
@@ -92,7 +28,7 @@ def main():
         )
 
     leaf_hash = leaf_hashes[TARGET_INDEX]
-    path = get_merkle_path(levels, TARGET_INDEX)
+    path = build_merkle_path(levels, TARGET_INDEX)
     ok, recomputed_root = verify_merkle_path(leaf_hash, path, merkle_root)
 
     print("=== MERKLE MEMBERSHIP CHECK ===")
