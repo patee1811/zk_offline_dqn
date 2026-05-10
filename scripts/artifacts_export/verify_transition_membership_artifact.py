@@ -1,40 +1,14 @@
-import hashlib
 import json
+from pathlib import Path
+import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.merkle import hash_leaf, verify_merkle_path
 from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
 ARTIFACT_PATH = "artifacts/sample_transition_membership.json"
-
-
-def encode_leaf_for_hash(leaf):
-    s = ",".join(str(x) for x in leaf)
-    return s.encode("utf-8")
-
-
-def hash_leaf(leaf):
-    return hashlib.sha256(encode_leaf_for_hash(leaf)).hexdigest()
-
-
-def hash_internal_node(left_hex: str, right_hex: str) -> str:
-    left_bytes = bytes.fromhex(left_hex)
-    right_bytes = bytes.fromhex(right_hex)
-    return hashlib.sha256(left_bytes + right_bytes).hexdigest()
-
-
-def verify_merkle_path(leaf_hash, merkle_path, expected_root):
-    current = leaf_hash
-
-    for step in merkle_path:
-        sibling_hash = step["sibling_hash"]
-        current_is_left = step["current_is_left"]
-
-        if current_is_left:
-            current = hash_internal_node(current, sibling_hash)
-        else:
-            current = hash_internal_node(sibling_hash, current)
-
-    return current == expected_root, current
 
 
 def main():

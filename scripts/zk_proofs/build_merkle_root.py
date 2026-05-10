@@ -1,57 +1,13 @@
-import hashlib
 import json
-from typing import List
+from pathlib import Path
+import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.merkle import build_merkle_levels
 
 INPUT_PATH = "artifacts/cartpole_dqn_eps010_leaf_hashes.json"
 OUTPUT_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
-
-
-def sha256_hex(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def hash_internal_node(left_hex: str, right_hex: str) -> str:
-    left_bytes = bytes.fromhex(left_hex)
-    right_bytes = bytes.fromhex(right_hex)
-    return sha256_hex(left_bytes + right_bytes)
-
-
-def build_next_level(current_level: List[str]) -> List[str]:
-    if len(current_level) == 0:
-        raise ValueError("Current Merkle level is empty.")
-
-    next_level = []
-
-    i = 0
-    while i < len(current_level):
-        left = current_level[i]
-
-        if i + 1 < len(current_level):
-            right = current_level[i + 1]
-        else:
-            # odd number of nodes -> duplicate last
-            right = left
-
-        parent = hash_internal_node(left, right)
-        next_level.append(parent)
-        i += 2
-
-    return next_level
-
-
-def build_merkle_levels(leaf_hashes: List[str]) -> List[List[str]]:
-    if len(leaf_hashes) == 0:
-        raise ValueError("leaf_hashes is empty.")
-
-    levels = [leaf_hashes]
-    current = leaf_hashes
-
-    while len(current) > 1:
-        current = build_next_level(current)
-        levels.append(current)
-
-    return levels
 
 
 def main():

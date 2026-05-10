@@ -1,7 +1,13 @@
 import json
-import hashlib
+from pathlib import Path
+import sys
+
 import torch
-import torch.nn as nn
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.io_utils import file_sha256
+from zk_offline_dqn.models import QNetwork
 
 from zk_offline_dqn.zk_specs import (
     encode_fp,
@@ -12,29 +18,6 @@ from zk_offline_dqn.zk_specs import (
 TEMPLATE_ARTIFACT_PATH = "artifacts/sample_minibatch_td_artifact.json"
 CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 OUTPUT_PATH = "artifacts/sample_minibatch_td_artifact.json"
-
-
-class QNetwork(nn.Module):
-    def __init__(self, obs_dim: int, n_actions: int):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(obs_dim, 128),
-            nn.ReLU(),
-            nn.Linear(128, 128),
-            nn.ReLU(),
-            nn.Linear(128, n_actions),
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
-
-def file_sha256(path: str) -> str:
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def main():

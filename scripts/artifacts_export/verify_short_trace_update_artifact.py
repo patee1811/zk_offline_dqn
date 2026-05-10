@@ -1,6 +1,6 @@
-import hashlib
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
@@ -8,11 +8,14 @@ from typing import Any, Dict, List
 
 import torch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from zk_offline_dqn.artifact_schema_versions import (
     SCHEMA_SHORT_TRACE_UPDATE_V2,
     require_schema_version,
 )
 from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
+from zk_offline_dqn.io_utils import file_sha256
 from zk_offline_dqn.sampling_rules import (
     SAMPLING_RULE_CONTIGUOUS_DETERMINISTIC,
     SUPPORTED_SAMPLING_RULES,
@@ -26,16 +29,6 @@ ARTIFACT_PATH = os.environ.get(
 )
 
 DEFAULT_SAMPLING_RULE = SAMPLING_RULE_CONTIGUOUS_DETERMINISTIC
-
-
-def file_sha256(path: str) -> str:
-    h = hashlib.sha256()
-
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-
-    return h.hexdigest()
 
 
 def load_checkpoint(path: str) -> Dict[str, Any]:

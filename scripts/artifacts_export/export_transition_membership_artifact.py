@@ -1,7 +1,11 @@
 import json
 import pickle
-import hashlib
+from pathlib import Path
+import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.merkle import build_merkle_path, hash_leaf
 from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
@@ -11,15 +15,6 @@ MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
 OUTPUT_PATH = "artifacts/sample_transition_membership.json"
 
 TARGET_INDEX = 0
-
-
-def encode_leaf_for_hash(leaf):
-    s = ",".join(str(x) for x in leaf)
-    return s.encode("utf-8")
-
-
-def hash_leaf(leaf):
-    return hashlib.sha256(encode_leaf_for_hash(leaf)).hexdigest()
 
 
 def load_dataset(path):
@@ -49,35 +44,6 @@ def get_transition_at_index(data, idx):
     }
 
 
-def get_merkle_path(levels, leaf_index):
-    path = []
-    idx = leaf_index
-
-    for level_id in range(len(levels) - 1):
-        level = levels[level_id]
-
-        if idx % 2 == 0:
-            current_is_left = True
-            sibling_index = idx + 1 if idx + 1 < len(level) else idx
-        else:
-            current_is_left = False
-            sibling_index = idx - 1
-
-        path.append(
-            {
-                "level": level_id,
-                "current_index": idx,
-                "sibling_index": sibling_index,
-                "sibling_hash": level[sibling_index],
-                "current_is_left": current_is_left,
-            }
-        )
-
-        idx = idx // 2
-
-    return path
-
-
 def main():
     data = load_dataset(DATASET_PATH)
 
@@ -99,7 +65,7 @@ def main():
             f"stored={stored_leaf_hash}"
         )
 
-    merkle_path = get_merkle_path(merkle_data["levels"], TARGET_INDEX)
+    merkle_path = build_merkle_path(merkle_data["levels"], TARGET_INDEX)
 
     artifact = {
         "dataset_name": merkle_data["dataset_name"],

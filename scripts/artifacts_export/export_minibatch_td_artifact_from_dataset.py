@@ -1,16 +1,21 @@
 import argparse
-import hashlib
 import json
 import os
 import pickle
+from pathlib import Path
+import sys
 from typing import Any, Dict, List, Tuple
 
 import torch
-import torch.nn as nn
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from zk_offline_dqn import zk_specs
 from zk_offline_dqn.artifact_schema_versions import SCHEMA_MINIBATCH_TD_V1
 from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
+from zk_offline_dqn.io_utils import file_sha256
+from zk_offline_dqn.merkle import build_merkle_path, hash_leaf as hash_leaf_serialized
+from zk_offline_dqn.models import QNetwork
 
 encode_fp = zk_specs.encode_fp
 compute_td_target_fp = zk_specs.compute_td_target_fp
@@ -19,21 +24,6 @@ compute_smooth_l1_loss_fp = zk_specs.compute_smooth_l1_loss_fp
 # Prefer the project-level serializer if available.
 # Fall back to a local serializer to keep this script runnable.
 serialize_transition_leaf = getattr(zk_specs, "serialize_transition_leaf", None)
-
-
-class QNetwork(nn.Module):
-    def __init__(self, obs_dim: int, n_actions: int):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(obs_dim, 128),
-            nn.ReLU(),
-            nn.Linear(128, 128),
-            nn.ReLU(),
-            nn.Linear(128, n_actions),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.net(x)
 
 
 def parse_args() -> argparse.Namespace:
@@ -73,16 +63,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     return parser.parse_args()
-
-
-def file_sha256(path: str) -> str:
-    h = hashlib.sha256()
-
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-
-    return h.hexdigest()
 
 
 def parse_indices(indices_str: str) -> List[int]:
@@ -148,11 +128,6 @@ def serialize_leaf(transition: Dict[str, Any]) -> List[int]:
     return local_serialize_transition_leaf(transition)
 
 
-def hash_leaf_serialized(leaf: List[int]) -> str:
-    serialized = ",".join(str(x) for x in leaf).encode("utf-8")
-    return hashlib.sha256(serialized).hexdigest()
-
-
 def load_merkle_artifact(path: str) -> Dict[str, Any]:
     with open(path, "r", encoding="utf-8") as f:
         merkle = json.load(f)
@@ -171,39 +146,6 @@ def load_merkle_artifact(path: str) -> Dict[str, Any]:
     return merkle
 
 
-def build_merkle_path(levels: List[List[str]], leaf_index: int) -> List[Dict[str, Any]]:
-    path = []
-    idx = leaf_index
-
-    for level_idx, level_hashes in enumerate(levels[:-1]):
-        if idx < 0 or idx >= len(level_hashes):
-            raise IndexError(
-                f"Leaf index {idx} out of range for level {level_idx} "
-                f"of size {len(level_hashes)}"
-            )
-
-        if idx % 2 == 0:
-            sibling_idx = idx + 1 if idx + 1 < len(level_hashes) else idx
-            current_is_left = True
-        else:
-            sibling_idx = idx - 1
-            current_is_left = False
-
-        path.append(
-            {
-                "level": level_idx,
-                "current_index": idx,
-                "sibling_index": sibling_idx,
-                "sibling_hash": level_hashes[sibling_idx],
-                "current_is_left": current_is_left,
-            }
-        )
-
-        idx //= 2
-
-    return path
-
-
 def get_online_state_dict_key(checkpoint: Dict[str, Any]) -> str:
     if "online_net_state_dict" in checkpoint:
         return "online_net_state_dict"
@@ -220,7 +162,7 @@ def get_online_state_dict_key(checkpoint: Dict[str, Any]) -> str:
 
 def load_checkpoint_nets(
     checkpoint_path: str,
-) -> Tuple[Dict[str, Any], nn.Module, nn.Module, str]:
+) -> Tuple[Dict[str, Any], torch.nn.Module, torch.nn.Module, str]:
     checkpoint = torch.load(
         checkpoint_path,
         map_location="cpu",

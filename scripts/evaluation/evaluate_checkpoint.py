@@ -1,25 +1,13 @@
 import argparse
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import gymnasium as gym
 import numpy as np
 import torch
-import torch.nn as nn
-
-
-class QNetwork(nn.Module):
-    def __init__(self, obs_dim: int, n_actions: int):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(obs_dim, 128),
-            nn.ReLU(),
-            nn.Linear(128, 128),
-            nn.ReLU(),
-            nn.Linear(128, n_actions),
-        )
-
-    def forward(self, x):
-        return self.net(x)
+from zk_offline_dqn.models import QNetwork
 
 
 @torch.no_grad()

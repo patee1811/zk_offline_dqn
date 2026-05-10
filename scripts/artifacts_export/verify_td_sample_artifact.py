@@ -1,6 +1,12 @@
 import json
-import hashlib
+from pathlib import Path
+import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from zk_offline_dqn.io_utils import file_sha256
+from zk_offline_dqn.merkle import hash_leaf as hash_leaf_serialized
+from zk_offline_dqn.merkle import verify_merkle_path
 from zk_offline_dqn.zk_specs import (
     serialize_transition_leaf,
     compute_td_target_fp,
@@ -9,41 +15,6 @@ from zk_offline_dqn.zk_specs import (
 
 ARTIFACT_PATH = "artifacts/td_sample_from_dataset.json"
 CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
-
-
-def encode_leaf_for_hash(leaf):
-    s = ",".join(str(x) for x in leaf)
-    return s.encode("utf-8")
-
-
-def hash_leaf_serialized(leaf):
-    return hashlib.sha256(encode_leaf_for_hash(leaf)).hexdigest()
-
-
-def hash_internal_node(left_hex: str, right_hex: str) -> str:
-    left_bytes = bytes.fromhex(left_hex)
-    right_bytes = bytes.fromhex(right_hex)
-    return hashlib.sha256(left_bytes + right_bytes).hexdigest()
-
-
-def verify_merkle_path(leaf_hash, merkle_path, expected_root):
-    current = leaf_hash
-    for step in merkle_path:
-        sibling_hash = step["sibling_hash"]
-        current_is_left = step["current_is_left"]
-        if current_is_left:
-            current = hash_internal_node(current, sibling_hash)
-        else:
-            current = hash_internal_node(sibling_hash, current)
-    return current == expected_root, current
-
-
-def file_sha256(path: str) -> str:
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def main():
