@@ -25,12 +25,15 @@ For one transition or a small minibatch, the prover shows that:
 The minimal relation is:
 
 ```text
-MerkleVerify(transition, merkle_path, dataset_root) = true
+leaf = SerializeTransition(transition)
+leaf_hash = SHA256(CanonicalLeafEncoding(leaf))
+MerkleVerify(leaf_hash, merkle_path, dataset_root) = true
 
-target_fp = reward_fp + gamma_fp * q_target_max_fp
+target_fp = reward_fp + FixedPointMul(gamma_fp, q_target_max_fp, fp_scale)
 td_error_fp = q_online_action_fp - target_fp
 loss_fp = SmoothL1(td_error_fp)
 
+target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
@@ -43,7 +46,7 @@ target_fp = reward_fp
 For non-terminal transitions:
 
 ```text
-target_fp = reward_fp + gamma_fp * q_target_max_fp
+target_fp = reward_fp + FixedPointMul(gamma_fp, q_target_max_fp, fp_scale)
 ```
 
 ## 3. Public Inputs
@@ -78,6 +81,8 @@ The prover should keep private:
 
 ```text
 transition
+leaf
+leaf_hash
 merkle_path
 q_online_action_fp
 q_target_max_fp
@@ -108,9 +113,15 @@ The backend must check the following constraints.
 The serialized transition must hash to a leaf that belongs to the public dataset root.
 
 ```text
-leaf = Hash(Serialize(transition))
-MerkleVerify(leaf, merkle_path, dataset_root) = true
+leaf = SerializeTransition(transition)
+leaf_hash = SHA256(CanonicalLeafEncoding(leaf))
+MerkleVerify(leaf_hash, merkle_path, dataset_root) = true
 ```
+
+The canonical serializer is `zk_offline_dqn.zk_specs.serialize_transition_leaf`.
+The current leaf encoding is `zk_offline_dqn.merkle.encode_leaf_for_hash`: join
+the signed integer leaf fields with commas, then UTF-8 encode the resulting
+string before SHA-256 hashing.
 
 ### 5.2 Bellman target
 
@@ -167,16 +178,17 @@ real_value ≈ value_fp / fp_scale
 Recommended initial scale:
 
 ```text
-fp_scale = 1000000
+fp_scale = 1000
 ```
 
 All multiplication must use explicit rescaling:
 
 ```text
-FixedPointMul(a_fp, b_fp, fp_scale) = round_or_trunc((a_fp * b_fp) / fp_scale)
+FixedPointMul(a_fp, b_fp, fp_scale) = (a_fp * b_fp) // fp_scale
 ```
 
-The rounding rule must match the existing Python artifact verifier.
+The truncation rule must match `zk_offline_dqn/zk_specs.py` and
+`scripts/artifacts_export/verify_td_mvp_test_vector.py`.
 
 A later version may replace decimal scaling with power-of-two scaling if it is more convenient for the proving backend.
 

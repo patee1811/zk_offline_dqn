@@ -5,15 +5,16 @@ This directory tracks the path from the current Python verifier prototype to a r
 Current status:
 
 - Backend target: **SP1**.
-- Implemented today: documentation skeletons and one TD MVP JSON test vector.
-- Not implemented yet: Rust workspace, SP1 guest, SP1 host, proof generation, proof verification.
+- Implemented: one TD MVP JSON test vector, a Rust SP1 workspace, guest relation checks, host proof generation/verification, and initial tamper rejection checks.
+- Current smoke result: a valid TD MVP proof verifies, and the initial SP1 negative cases reject as expected.
 
 ## First Backend Statement
 
 The first backend should prove only the TD MVP relation:
 
 ```text
-leaf_hash == Hash(Serialize(leaf))
+leaf == SerializeTransition(transition)
+leaf_hash == SHA256(CanonicalLeafEncoding(leaf))
 MerkleVerify(leaf_hash, merkle_path, dataset_root) == true
 target_fp == reward_fp if done else reward_fp + (gamma_fp * q_target_max_fp) // fp_scale
 td_error_fp == q_online_action_fp - target_fp
@@ -47,19 +48,17 @@ zk_backend/
     sp1/
       README.md
       toolchain.md
-      host/README.md
-      guest/README.md
-      shared/README.md
+      Cargo.toml
+      host/
+      guest/
+      shared/
 ```
 
 ## Next Milestone
 
-1. Install and smoke-test SP1 on Linux/macOS or WSL2 Ubuntu.
-2. Create a buildable Rust/SP1 workspace under `zk_backend/td_mvp/sp1/`.
-3. Port the TD MVP relation into the guest.
-4. Load or embed `td_mvp_case_0.json` in the host.
-5. Generate and verify a valid proof.
-6. Record proving time, verification time, and proof size.
-7. Add tampered-input rejection checks.
+1. Add benchmark/reproducibility scripts around the SP1 host.
+2. Expand SP1 negative tests to mirror the full Python TD MVP tamper set.
+3. Record stable proving/verification/proof-size outputs as artifacts.
+4. Package instructions for clean reproduction from a fresh WSL2 Ubuntu environment.
 
 Non-goals for this first backend milestone: full DQN training, neural-network forward proof, argmax proof, gradient proof, optimizer proof, long traces, and recursive aggregation.

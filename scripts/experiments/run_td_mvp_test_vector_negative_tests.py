@@ -42,6 +42,16 @@ def mutate_reward(tv: Dict[str, Any]) -> None:
     tv["private"]["transition"]["reward"] = float(tv["private"]["transition"]["reward"]) + 1.0
 
 
+def mutate_transition_obs(tv: Dict[str, Any]) -> None:
+    tv["private"]["transition"]["obs"][0] = (
+        float(tv["private"]["transition"]["obs"][0]) + 1.0
+    )
+
+
+def mutate_leaf_encoding(tv: Dict[str, Any]) -> None:
+    tv["private"]["leaf"][0] += 1
+
+
 def mutate_merkle_path(tv: Dict[str, Any]) -> None:
     tv["private"]["merkle_path"][0]["sibling_hash"] = "00" * 32
 
@@ -81,6 +91,16 @@ def main() -> None:
             "case_name": "tamper_reward",
             "expected_accept": False,
             "mutator": mutate_reward,
+        },
+        {
+            "case_name": "tamper_transition_obs",
+            "expected_accept": False,
+            "mutator": mutate_transition_obs,
+        },
+        {
+            "case_name": "tamper_leaf_encoding",
+            "expected_accept": False,
+            "mutator": mutate_leaf_encoding,
         },
         {
             "case_name": "tamper_merkle_path",

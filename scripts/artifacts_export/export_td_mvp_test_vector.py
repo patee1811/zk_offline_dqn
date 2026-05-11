@@ -126,11 +126,13 @@ def build_td_mvp_test_vector(artifact: Dict[str, Any], item_index: int, source_p
                 "target_fp": target_fp,
                 "td_error_fp": q_online_action_fp - target_fp,
                 "loss_fp": loss_fp,
-            },"artifact_path": source_path.as_posix(),
+            },
+            "artifact_path": source_path.as_posix(),
         },
         "relation": {
             "checks": [
-                "leaf_hash == Hash(Serialize(transition))",
+                "leaf == SerializeTransition(transition)",
+                "leaf_hash == SHA256(CanonicalLeafEncoding(leaf))",
                 "MerkleVerify(leaf_hash, merkle_path, dataset_root) == true",
                 "target_fp == reward_fp if done else reward_fp + FixedPointMul(gamma_fp, q_target_max_fp, fp_scale)",
                 "td_error_fp == q_online_action_fp - target_fp",

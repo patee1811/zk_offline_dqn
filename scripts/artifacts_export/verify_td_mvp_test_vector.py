@@ -9,6 +9,7 @@ from typing import Any, Dict
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from zk_offline_dqn.merkle import hash_leaf, verify_merkle_path
+from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 DEFAULT_INPUT = Path("zk_backend/test_vectors/td_mvp_case_0.json")
 
@@ -93,11 +94,14 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
     merkle_path = private["merkle_path"]
     td = private["td_witness"]
 
-    recomputed_leaf_hash = hash_leaf(leaf)
+    recomputed_leaf = serialize_transition_leaf(transition)
+    leaf_encoding_ok = leaf == recomputed_leaf
+    provided_leaf_hash = hash_leaf(leaf)
+    recomputed_leaf_hash = hash_leaf(recomputed_leaf)
     leaf_hash_ok = recomputed_leaf_hash == claimed_leaf_hash
 
     merkle_ok, recomputed_root = verify_merkle_path(
-        leaf_hash=claimed_leaf_hash,
+        leaf_hash=recomputed_leaf_hash,
         merkle_path=merkle_path,
         expected_root=dataset_root,
     )
@@ -132,6 +136,7 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
     all_ok = all(
         [
             leaf_hash_ok,
+            leaf_encoding_ok,
             merkle_ok,
             target_ok,
             td_error_ok,
@@ -143,6 +148,7 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "schema_version_ok": True,
+        "leaf_encoding_ok": leaf_encoding_ok,
         "leaf_hash_ok": leaf_hash_ok,
         "merkle_ok": merkle_ok,
         "target_ok": target_ok,
@@ -153,6 +159,9 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
         "verification_passed": all_ok,
         "details": {
             "claimed_leaf_hash": claimed_leaf_hash,
+            "provided_leaf": leaf,
+            "recomputed_leaf": recomputed_leaf,
+            "provided_leaf_hash": provided_leaf_hash,
             "recomputed_leaf_hash": recomputed_leaf_hash,
             "dataset_root": dataset_root,
             "recomputed_root": recomputed_root,
@@ -182,6 +191,7 @@ def main() -> None:
 
     print("=== TD MVP TEST VECTOR VERIFICATION ===")
     print(f"input_path = {args.input}")
+    print(f"leaf_encoding_ok = {result['leaf_encoding_ok']}")
     print(f"leaf_hash_ok = {result['leaf_hash_ok']}")
     print(f"merkle_ok = {result['merkle_ok']}")
     print(f"target_ok = {result['target_ok']}")
