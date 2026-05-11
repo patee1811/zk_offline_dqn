@@ -17,13 +17,14 @@ Current contribution:
 - export verification-friendly TD, one-step, and short-trace artifacts;
 - verify committed-data membership, Bellman targets, SmoothL1 TD losses, checkpoint/model-state commitments, one-step SGD consistency, short trace chaining, target sync semantics, and deterministic sampling rules;
 - run negative tamper tests and CI regression over committed fixtures;
-- prepare the first backend target: an SP1 TD MVP proof for Merkle membership + TD arithmetic.
+- implement the first SP1 TD MVP proof for Merkle membership + TD arithmetic.
 
 Current backend status:
 
 - Python artifact/verifier layer is implemented and regression-tested.
 - SP1 is selected as the first concrete proving backend.
-- `zk_backend/td_mvp/sp1/` is still a documentation skeleton. It does not yet contain a Rust workspace or real SP1 proof.
+- `zk_backend/td_mvp/sp1/` contains a Rust SP1 workspace with `host`, `guest`, and `shared` crates.
+- A valid TD MVP SP1 proof has been generated and verified in WSL2 Ubuntu; initial tamper cases are rejected.
 
 ## What Is Verified
 
@@ -41,7 +42,7 @@ The current Python verifiers check these relations over committed fixtures:
 
 Important non-goals:
 
-- no true zero-knowledge proof is generated yet;
+- no full zero-knowledge proof-of-training is generated yet;
 - no full DQN training proof from initialization to final checkpoint;
 - no full neural-network forward/backpropagation proof inside a proving backend;
 - no Adam optimizer proof;
@@ -77,7 +78,7 @@ docs/
 
 zk_backend/
   test_vectors/td_mvp_case_0.json
-  td_mvp/sp1/                  SP1 host/guest/shared skeleton docs
+  td_mvp/sp1/                  SP1 host/guest/shared TD MVP workspace
 ```
 
 `paper/` contains the manuscript draft and is intentionally separate from this technical cleanup path.
@@ -151,14 +152,15 @@ The full regression runner currently executes:
 
 CI runs the same regression entrypoint through `.github/workflows/regression.yml`.
 
-## Backend Roadmap
+## SP1 Backend
 
-The next development milestone is the first real SP1 TD MVP proof.
+The first real SP1 TD MVP proof has been implemented.
 
 Target relation:
 
 ```text
-leaf_hash == Hash(Serialize(leaf))
+leaf == SerializeTransition(transition)
+leaf_hash == SHA256(CanonicalLeafEncoding(leaf))
 MerkleVerify(leaf_hash, merkle_path, dataset_root) == true
 target_fp == reward_fp if done else reward_fp + (gamma_fp * q_target_max_fp) // fp_scale
 td_error_fp == q_online_action_fp - target_fp
@@ -167,16 +169,27 @@ target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
-Near-term implementation checklist:
+Current SP1 smoke result:
 
-1. Set up SP1 on Linux/macOS or WSL2 Ubuntu.
-2. Run an external SP1 hello-world smoke test.
-3. Create the Rust workspace under `zk_backend/td_mvp/sp1/`.
-4. Port the TD MVP input structs and relation helpers.
-5. Load or embed `zk_backend/test_vectors/td_mvp_case_0.json`.
-6. Generate and verify a valid proof.
-7. Record proving time, verification time, and proof size.
-8. Add tampered-input rejection checks.
+```text
+proof_generated = true
+proof_verified = true
+proving_time_sec = 69.608704
+verification_time_sec = 0.088708
+proof_size_bytes = 2782588
+all_sp1_negative_cases_passed = true
+```
+
+Core SP1 commands should be run on Linux/macOS or WSL2 Ubuntu:
+
+```bash
+cd zk_backend/td_mvp/sp1
+cargo run --release -p td-mvp-host -- --execute
+cargo run --release -p td-mvp-host -- --prove
+bash run_negative_cases.sh
+```
+
+Next backend work is benchmark/reproducibility hardening, broader tamper coverage, and artifact packaging.
 
 RISC Zero remains the main later comparison backend. Circuit-oriented backends such as Noir, Circom, and Halo2 are deferred until the relation is stable.
 

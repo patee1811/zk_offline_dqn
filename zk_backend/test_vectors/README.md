@@ -56,6 +56,11 @@ merkle_path
 td_witness
 ```
 
+`leaf` must equal the canonical serialization of `transition` from
+`zk_offline_dqn.zk_specs.serialize_transition_leaf`. The leaf hash is SHA-256
+over `zk_offline_dqn.merkle.encode_leaf_for_hash(leaf)`, which currently joins
+the signed integer fields with commas and encodes the result as UTF-8.
+
 The `td_witness` contains:
 
 ```text
@@ -75,6 +80,8 @@ The backend should accept the valid test vector and reject tampered variants suc
 
 ```text
 tampered reward
+tampered transition fields
+tampered leaf encoding
 tampered Merkle path
 tampered q_target_max_fp
 tampered claimed_target_fp

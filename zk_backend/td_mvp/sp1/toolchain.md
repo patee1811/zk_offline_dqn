@@ -141,7 +141,84 @@ a generated SP1 project builds
 a generated SP1 example can prove and verify
 ```
 
-## 8. Repository Integration Plan
+## 8. Current Local Setup Check
+
+Checked on 2026-05-11 from the repository's native Windows PowerShell
+environment.
+
+```text
+OS: Microsoft Windows 10.0.26200.8246
+Shell: Windows PowerShell 5.1.26100.8115
+CPU: Intel64 Family 6 Model 183 Stepping 1, GenuineIntel
+Logical processors: 20
+Git: git version 2.49.0.windows.1
+Rust: rustc 1.94.0, cargo 1.94.0
+SP1 CLI: cargo prove is not installed
+Docker: not found on PATH
+protoc: not found on PATH
+WSL: WSL2 is the default version, but no Linux distribution is installed
+```
+
+Additional access note:
+
+```text
+The developer's interactive Windows account reports an Ubuntu WSL2 distro:
+Ubuntu, Stopped, Version 2.
+
+The Codex process runs as desktop-eonddfu\codexsandboxoffline. WSL distro
+registrations are per Windows user, so this process cannot see or enter the
+developer account's Ubuntu distro. `wsl -d Ubuntu` from Codex returns
+WSL_E_DISTRO_NOT_FOUND.
+
+An attempt to register a separate `Ubuntu-Codex` distro for the Codex account
+was not approved, so Codex cannot directly enter WSL from this session.
+```
+
+Manual WSL Ubuntu smoke test:
+
+```text
+Run date: 2026-05-11
+Runner: user `duy` inside WSL2 Ubuntu
+Project path: /home/duy/tmp/sp1-smoke/hello_sp1
+
+OS: Ubuntu 26.04 LTS (resolute)
+CPU: 13th Gen Intel(R) Core(TM) i7-13650HX
+Memory: 11 GiB total, 10 GiB available at check time
+Swap: 3.0 GiB total
+rustc: rustc 1.95.0 (59807616e 2026-04-14)
+cargo: cargo 1.95.0 (f2d3ce0bd 2026-03-21)
+Docker: Docker version 29.1.3, build 29.1.3-0ubuntu4.1
+protoc: libprotoc 3.21.12
+SP1 CLI: cargo-prove sp1 (d454975 2026-04-11T01:54:01.305546215Z)
+```
+
+Command:
+
+```bash
+cd "$HOME/tmp/sp1-smoke/hello_sp1"
+cargo run --release -- --prove
+```
+
+Result:
+
+```text
+Finished `release` profile [optimized] target(s) in 1.31s
+Running `target/release/fibonacci --prove`
+n: 20
+Successfully generated proof!
+Successfully verified proof!
+```
+
+Conclusion:
+
+```text
+SP1 hello-world proof gate passed in the developer's WSL2 Ubuntu environment.
+Codex cannot directly access that distro because it runs under a separate
+Windows sandbox account, so future SP1 commands either need to be run manually
+inside the developer distro or through a Codex-visible distro.
+```
+
+## 9. Repository Integration Plan
 
 After the external smoke test works, the next milestone should create a buildable workspace under:
 
@@ -167,14 +244,15 @@ zk_backend/td_mvp/sp1/
 
 This layout may be adjusted to match the current SP1 template.
 
-## 9. First SP1 Implementation Goal
+## 10. First SP1 Implementation Goal
 
 The first real SP1 implementation should not attempt full DQN training.
 
 It should only prove:
 
 ```text
-leaf_hash == Hash(Serialize(leaf))
+leaf == SerializeTransition(transition)
+leaf_hash == SHA256(CanonicalLeafEncoding(leaf))
 MerkleVerify(leaf_hash, merkle_path, dataset_root) == true
 target_fp == reward_fp if done else reward_fp + FixedPointMul(gamma_fp, q_target_max_fp, fp_scale)
 td_error_fp == q_online_action_fp - target_fp
@@ -183,7 +261,7 @@ target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
-## 10. First SP1 Non-Goals
+## 11. First SP1 Non-Goals
 
 The first SP1 implementation should not prove:
 
@@ -197,7 +275,7 @@ short trace chaining
 recursive proof aggregation
 ```
 
-## 11. Smoke-Test Acceptance Criteria
+## 12. Smoke-Test Acceptance Criteria
 
 The next SP1 workspace milestone should be considered successful if:
 
@@ -209,7 +287,7 @@ a minimal SP1 proof verifies
 the setup steps are documented
 ```
 
-## 12. TD MVP Acceptance Criteria
+## 13. TD MVP Acceptance Criteria
 
 The later TD MVP proof milestone should be considered successful if:
 
@@ -224,7 +302,22 @@ verification time is recorded
 proof size is recorded
 ```
 
-## 13. References
+Current TD MVP smoke result, recorded on 2026-05-11 in WSL2 Ubuntu:
+
+```text
+valid proof generated and verified
+proving_time_sec = 69.608704
+verification_time_sec = 0.088708
+proof_size_bytes = 2782588
+initial negative cases passed:
+  tamper_reward
+  tamper_done
+  tamper_merkle_path
+  tamper_claimed_target_fp
+  tamper_claimed_loss_fp
+```
+
+## 14. References
 
 ```text
 SP1 official installation documentation
@@ -232,5 +325,6 @@ SP1 official quickstart documentation
 docs/backend_selection_v0_12.md
 docs/backend_choice.md
 zk_backend/td_mvp/sp1/README.md
+zk_backend/td_mvp/sp1/tamper_checklist.md
 scripts/artifacts_export/verify_td_mvp_test_vector.py
 ```

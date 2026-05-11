@@ -9,9 +9,10 @@ The goal is to move one already-tested Python verifier relation into SP1 before 
 - `zk_backend/test_vectors/td_mvp_case_0.json` exists.
 - `scripts/artifacts_export/verify_td_mvp_test_vector.py` verifies the relation in Python.
 - `scripts/experiments/run_td_mvp_test_vector_negative_tests.py` checks tampered cases.
-- `sp1/` contains documentation skeletons only.
+- `sp1/` contains a Rust SP1 workspace with host, guest, and shared crates.
 
-No real zkVM proof is generated yet.
+A valid TD MVP SP1 proof has been generated and verified in WSL2 Ubuntu.
+Initial SP1 tamper cases reject as expected.
 
 ## Statement
 
@@ -41,7 +42,8 @@ td_witness
 Required checks:
 
 ```text
-leaf_hash == Hash(Serialize(leaf))
+leaf == SerializeTransition(transition)
+leaf_hash == SHA256(CanonicalLeafEncoding(leaf))
 MerkleVerify(leaf_hash, merkle_path, dataset_root) == true
 target_fp == reward_fp if done else reward_fp + (gamma_fp * q_target_max_fp) // fp_scale
 td_error_fp == q_online_action_fp - target_fp

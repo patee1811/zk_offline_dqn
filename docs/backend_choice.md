@@ -94,7 +94,7 @@ The backend must support relation branches such as:
 if done:
     target_fp = reward_fp
 else:
-    target_fp = reward_fp + gamma_fp * q_target_max_fp
+    target_fp = reward_fp + FixedPointMul(gamma_fp, q_target_max_fp, fp_scale)
 ```
 
 and:
