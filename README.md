@@ -174,9 +174,10 @@ Current SP1 smoke result:
 ```text
 proof_generated = true
 proof_verified = true
-proving_time_sec = 69.608704
-verification_time_sec = 0.088708
+proving_time_sec = 66.668891
+verification_time_sec = 0.088947
 proof_size_bytes = 2782588
+cycle_count = 365501
 all_sp1_negative_cases_passed = true
 ```
 
@@ -189,7 +190,15 @@ cargo run --release -p td-mvp-host -- --prove
 bash run_negative_cases.sh
 ```
 
-Next backend work is benchmark/reproducibility hardening, broader tamper coverage, and artifact packaging.
+Week 3 benchmark/reproducibility command:
+
+```bash
+python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+```
+
+It writes `artifacts/benchmarks/sp1_td_mvp/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The latest WSL2 runs completed TD-1 with `66.668891s` prove time, `0.088947s` verify time, `2782588` proof bytes, and `365501` cycles, and TD-2 minibatch proof with `78.693257s` prove time, `0.131290s` verify time, `2787687` proof bytes, and `725309` cycles. TD-4 and TD-8 execute successfully but are currently resource-limited for local WSL2 proving. The runner compares the Python semantic oracle and SP1 backend over the same valid/tampered TD MVP cases.
+
+Next backend work is broader-resource TD-4/TD-8 proof runs, stronger adversarial tests, and artifact packaging.
 
 RISC Zero remains the main later comparison backend. Circuit-oriented backends such as Noir, Circom, and Halo2 are deferred until the relation is stable.
 
