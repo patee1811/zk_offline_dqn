@@ -20,6 +20,9 @@ struct Args {
 
     #[arg(long)]
     prove: bool,
+
+    #[arg(long)]
+    skip_host_precheck: bool,
 }
 
 #[tokio::main]
@@ -32,11 +35,21 @@ async fn main() -> Result<()> {
     println!("input_path = {}", input_path.display());
     println!("case_name = {}", args.case);
 
-    if args.case == "valid_control" {
+    if args.case == "valid_control" && !args.skip_host_precheck {
         let output = verify_td_mvp(&input);
         println!("host_precheck = true");
-        println!("claimed_target_fp = {}", output.claimed_target_fp);
-        println!("claimed_loss_fp = {}", output.claimed_loss_fp);
+        if let Some(claimed_target_fp) = output.claimed_target_fp {
+            println!("claimed_target_fp = {}", claimed_target_fp);
+        }
+        if let Some(claimed_loss_fp) = output.claimed_loss_fp {
+            println!("claimed_loss_fp = {}", claimed_loss_fp);
+        }
+        if let Some(batch_size) = output.batch_size {
+            println!("batch_size = {}", batch_size);
+        }
+        if let Some(claimed_batch_loss_fp) = output.claimed_batch_loss_fp {
+            println!("claimed_batch_loss_fp = {}", claimed_batch_loss_fp);
+        }
     } else {
         println!("host_precheck = skipped_for_tamper_case");
     }
@@ -137,36 +150,141 @@ fn apply_case(input: &mut TdMvpInput, case_name: &str) -> Result<()> {
     match case_name {
         "valid_control" => {}
         "tamper_reward" => {
-            input.private.transition.reward += 1.0;
+            first_transition_mut(input)?.reward += 1.0;
         }
         "tamper_done" => {
-            input.private.transition.done = 1 - input.private.transition.done;
+            let transition = first_transition_mut(input)?;
+            transition.done = 1 - transition.done;
         }
         "tamper_transition_obs" => {
-            input.private.transition.obs[0] += 1.0;
+            first_transition_mut(input)?.obs[0] += 1.0;
         }
         "tamper_leaf_encoding" => {
-            input.private.leaf[0] += 1;
+            first_leaf_mut(input)?[0] += 1;
         }
         "tamper_merkle_path" => {
-            input.private.merkle_path[0].sibling_hash = "00".repeat(32);
+            first_merkle_path_mut(input)?[0].sibling_hash = "00".repeat(32);
         }
         "tamper_q_target_max_fp" => {
-            input.private.td_witness.q_target_max_fp += 1;
+            first_td_witness_mut(input)?.q_target_max_fp += 1;
         }
         "tamper_claimed_target_fp" => {
-            input.public.claimed_target_fp += 1;
+            input.public.claimed_target_fp = Some(
+                input
+                    .public
+                    .claimed_target_fp
+                    .ok_or_else(|| anyhow!("input has no claimed_target_fp"))?
+                    + 1,
+            );
         }
         "tamper_claimed_loss_fp" => {
-            input.public.claimed_loss_fp += 1;
+            input.public.claimed_loss_fp = Some(
+                input
+                    .public
+                    .claimed_loss_fp
+                    .ok_or_else(|| anyhow!("input has no claimed_loss_fp"))?
+                    + 1,
+            );
         }
         "tamper_leaf_hash" => {
-            input.private.leaf_hash = "11".repeat(32);
+            *first_leaf_hash_mut(input)? = "11".repeat(32);
         }
         "tamper_td_error_fp" => {
-            input.private.td_witness.td_error_fp += 1;
+            let td_witness = first_td_witness_mut(input)?;
+            td_witness.td_error_fp = Some(
+                td_witness
+                    .td_error_fp
+                    .ok_or_else(|| anyhow!("input has no td_error_fp"))?
+                    + 1,
+            );
+        }
+        "tamper_batch_claimed_loss_fp" => {
+            input.public.claimed_batch_loss_fp = Some(
+                input
+                    .public
+                    .claimed_batch_loss_fp
+                    .ok_or_else(|| anyhow!("input has no claimed_batch_loss_fp"))?
+                    + 1,
+            );
+        }
+        "tamper_batch_size" => {
+            input.public.batch_size = Some(
+                input
+                    .public
+                    .batch_size
+                    .ok_or_else(|| anyhow!("input has no batch_size"))?
+                    + 1,
+            );
+        }
+        "tamper_batch_item_loss_fp" => {
+            first_td_witness_mut(input)?.loss_fp += 1;
+        }
+        "tamper_batch_item_index" => {
+            let first = input
+                .private
+                .items
+                .first_mut()
+                .ok_or_else(|| anyhow!("input has no batch items"))?;
+            first.index += 1;
         }
         other => return Err(anyhow!("unknown case_name: {other}")),
     }
     Ok(())
+}
+
+fn first_transition_mut(input: &mut TdMvpInput) -> Result<&mut td_mvp_shared::Transition> {
+    if let Some(first) = input.private.items.first_mut() {
+        return Ok(&mut first.transition);
+    }
+    input
+        .private
+        .transition
+        .as_mut()
+        .ok_or_else(|| anyhow!("input has no transition"))
+}
+
+fn first_leaf_mut(input: &mut TdMvpInput) -> Result<&mut Vec<i64>> {
+    if let Some(first) = input.private.items.first_mut() {
+        return Ok(&mut first.leaf);
+    }
+    input
+        .private
+        .leaf
+        .as_mut()
+        .ok_or_else(|| anyhow!("input has no leaf"))
+}
+
+fn first_leaf_hash_mut(input: &mut TdMvpInput) -> Result<&mut String> {
+    if let Some(first) = input.private.items.first_mut() {
+        return Ok(&mut first.leaf_hash);
+    }
+    input
+        .private
+        .leaf_hash
+        .as_mut()
+        .ok_or_else(|| anyhow!("input has no leaf_hash"))
+}
+
+fn first_merkle_path_mut(
+    input: &mut TdMvpInput,
+) -> Result<&mut Vec<td_mvp_shared::MerklePathStep>> {
+    if let Some(first) = input.private.items.first_mut() {
+        return Ok(&mut first.merkle_path);
+    }
+    input
+        .private
+        .merkle_path
+        .as_mut()
+        .ok_or_else(|| anyhow!("input has no merkle_path"))
+}
+
+fn first_td_witness_mut(input: &mut TdMvpInput) -> Result<&mut td_mvp_shared::TdWitness> {
+    if let Some(first) = input.private.items.first_mut() {
+        return Ok(&mut first.td_witness);
+    }
+    input
+        .private
+        .td_witness
+        .as_mut()
+        .ok_or_else(|| anyhow!("input has no td_witness"))
 }

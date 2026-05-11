@@ -87,3 +87,39 @@ tampered q_target_max_fp
 tampered claimed_target_fp
 tampered claimed_loss_fp
 ```
+
+## Minibatch Test Vectors
+
+Week 4 adds a generated minibatch schema:
+
+```text
+td_mvp_batch_test_vector_v1
+```
+
+Generate TD-2/4/8 fixtures from the canonical single-transition vector:
+
+```bash
+python3 scripts/artifacts_export/export_td_mvp_batch_test_vector.py \
+  --input zk_backend/test_vectors/td_mvp_case_0.json \
+  --out /tmp/td_mvp_batch_size_2.json \
+  --batch-size 2
+```
+
+The minibatch public inputs add:
+
+```text
+batch_size
+claimed_batch_loss_fp
+```
+
+The private witness uses:
+
+```text
+items[]
+```
+
+Each item contains the same transition, leaf, Merkle path, and TD witness fields as the single-transition vector. The additional relation check is:
+
+```text
+claimed_batch_loss_fp == floor(sum(items[].td_witness.loss_fp) / batch_size)
+```

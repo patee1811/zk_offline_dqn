@@ -75,24 +75,24 @@ def load_json(path: Path) -> Dict[str, Any]:
         return json.load(f)
 
 
-def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
-    if tv.get("schema_version") != "td_mvp_test_vector_v1":
-        raise ValueError(f"Unexpected schema_version: {tv.get('schema_version')}")
+def get_q_online_action_fp(td: Dict[str, Any]) -> int:
+    if "q_online_action_fp" in td:
+        return int(td["q_online_action_fp"])
+    return int(td["q_online_fp"])
 
-    public = tv["public"]
-    private = tv["private"]
 
-    dataset_root = public["dataset_root"]
-    fp_scale = int(public["fp_scale"])
-    gamma_fp = int(public["gamma_fp"])
-    claimed_target_fp = int(public["claimed_target_fp"])
-    claimed_loss_fp = int(public["claimed_loss_fp"])
-
-    transition = private["transition"]
-    leaf = private["leaf"]
-    claimed_leaf_hash = private["leaf_hash"]
-    merkle_path = private["merkle_path"]
-    td = private["td_witness"]
+def verify_item(
+    item: Dict[str, Any],
+    *,
+    dataset_root: str,
+    fp_scale: int,
+    gamma_fp: int,
+) -> Dict[str, Any]:
+    transition = item["transition"]
+    leaf = item["leaf"]
+    claimed_leaf_hash = item["leaf_hash"]
+    merkle_path = item["merkle_path"]
+    td = item["td_witness"]
 
     recomputed_leaf = serialize_transition_leaf(transition)
     leaf_encoding_ok = leaf == recomputed_leaf
@@ -105,14 +105,17 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
         merkle_path=merkle_path,
         expected_root=dataset_root,
     )
+    index_ok = True
+    if "index" in item and merkle_path:
+        index_ok = int(merkle_path[0]["current_index"]) == int(item["index"])
 
     reward_fp = reward_to_fp(transition["reward"], fp_scale)
     done = done_to_bool(transition["done"])
 
-    q_online_action_fp = int(td["q_online_action_fp"])
+    q_online_action_fp = get_q_online_action_fp(td)
     q_target_max_fp = int(td["q_target_max_fp"])
     target_fp = int(td["target_fp"])
-    td_error_fp = int(td["td_error_fp"])
+    td_error_fp = int(td["td_error_fp"]) if "td_error_fp" in td else None
     loss_fp = int(td["loss_fp"])
 
     if done:
@@ -128,35 +131,30 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
     expected_loss_fp = smooth_l1_loss_fp(expected_td_error_fp, fp_scale)
 
     target_ok = target_fp == expected_target_fp
-    td_error_ok = td_error_fp == expected_td_error_fp
+    td_error_ok = True if td_error_fp is None else td_error_fp == expected_td_error_fp
     loss_ok = loss_fp == expected_loss_fp
-    claimed_target_ok = target_fp == claimed_target_fp
-    claimed_loss_ok = loss_fp == claimed_loss_fp
 
     all_ok = all(
         [
             leaf_hash_ok,
             leaf_encoding_ok,
             merkle_ok,
+            index_ok,
             target_ok,
             td_error_ok,
             loss_ok,
-            claimed_target_ok,
-            claimed_loss_ok,
         ]
     )
 
     return {
-        "schema_version_ok": True,
         "leaf_encoding_ok": leaf_encoding_ok,
         "leaf_hash_ok": leaf_hash_ok,
         "merkle_ok": merkle_ok,
+        "index_ok": index_ok,
         "target_ok": target_ok,
         "td_error_ok": td_error_ok,
         "loss_ok": loss_ok,
-        "claimed_target_ok": claimed_target_ok,
-        "claimed_loss_ok": claimed_loss_ok,
-        "verification_passed": all_ok,
+        "item_passed": all_ok,
         "details": {
             "claimed_leaf_hash": claimed_leaf_hash,
             "provided_leaf": leaf,
@@ -165,6 +163,7 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
             "recomputed_leaf_hash": recomputed_leaf_hash,
             "dataset_root": dataset_root,
             "recomputed_root": recomputed_root,
+            "index_ok": index_ok,
             "reward_fp": reward_fp,
             "done": done,
             "q_online_action_fp": q_online_action_fp,
@@ -175,10 +174,127 @@ def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
             "expected_td_error_fp": expected_td_error_fp,
             "loss_fp": loss_fp,
             "expected_loss_fp": expected_loss_fp,
+        },
+    }
+
+
+def verify_single_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
+    public = tv["public"]
+    private = tv["private"]
+
+    dataset_root = public["dataset_root"]
+    fp_scale = int(public["fp_scale"])
+    gamma_fp = int(public["gamma_fp"])
+    claimed_target_fp = int(public["claimed_target_fp"])
+    claimed_loss_fp = int(public["claimed_loss_fp"])
+
+    item_result = verify_item(
+        {
+            "transition": private["transition"],
+            "leaf": private["leaf"],
+            "leaf_hash": private["leaf_hash"],
+            "merkle_path": private["merkle_path"],
+            "td_witness": private["td_witness"],
+        },
+        dataset_root=dataset_root,
+        fp_scale=fp_scale,
+        gamma_fp=gamma_fp,
+    )
+
+    target_fp = int(private["td_witness"]["target_fp"])
+    loss_fp = int(private["td_witness"]["loss_fp"])
+    claimed_target_ok = target_fp == claimed_target_fp
+    claimed_loss_ok = loss_fp == claimed_loss_fp
+    verification_passed = (
+        item_result["item_passed"] and claimed_target_ok and claimed_loss_ok
+    )
+
+    return {
+        "schema_version_ok": True,
+        **{key: item_result[key] for key in [
+            "leaf_encoding_ok",
+            "leaf_hash_ok",
+            "merkle_ok",
+            "target_ok",
+            "td_error_ok",
+            "loss_ok",
+        ]},
+        "claimed_target_ok": claimed_target_ok,
+        "claimed_loss_ok": claimed_loss_ok,
+        "batch_size_ok": None,
+        "claimed_batch_loss_ok": None,
+        "verification_passed": verification_passed,
+        "details": {
+            **item_result["details"],
             "claimed_target_fp": claimed_target_fp,
             "claimed_loss_fp": claimed_loss_fp,
         },
     }
+
+
+def verify_batch_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
+    public = tv["public"]
+    private = tv["private"]
+
+    dataset_root = public["dataset_root"]
+    fp_scale = int(public["fp_scale"])
+    gamma_fp = int(public["gamma_fp"])
+    claimed_batch_loss_fp = int(
+        public.get("claimed_batch_loss_fp", public.get("batch_loss_fp"))
+    )
+    batch_size = int(public["batch_size"])
+    items = private["items"]
+
+    item_results = [
+        verify_item(
+            item,
+            dataset_root=dataset_root,
+            fp_scale=fp_scale,
+            gamma_fp=gamma_fp,
+        )
+        for item in items
+    ]
+    total_loss_fp = sum(int(item["td_witness"]["loss_fp"]) for item in items)
+    recomputed_batch_loss_fp = total_loss_fp // batch_size
+    batch_size_ok = batch_size == len(items)
+    claimed_batch_loss_ok = recomputed_batch_loss_fp == claimed_batch_loss_fp
+    verification_passed = (
+        all(result["item_passed"] for result in item_results)
+        and batch_size_ok
+        and claimed_batch_loss_ok
+    )
+
+    return {
+        "schema_version_ok": True,
+        "leaf_encoding_ok": all(result["leaf_encoding_ok"] for result in item_results),
+        "leaf_hash_ok": all(result["leaf_hash_ok"] for result in item_results),
+        "merkle_ok": all(result["merkle_ok"] for result in item_results),
+        "target_ok": all(result["target_ok"] for result in item_results),
+        "td_error_ok": all(result["td_error_ok"] for result in item_results),
+        "loss_ok": all(result["loss_ok"] for result in item_results),
+        "claimed_target_ok": None,
+        "claimed_loss_ok": None,
+        "batch_size_ok": batch_size_ok,
+        "claimed_batch_loss_ok": claimed_batch_loss_ok,
+        "verification_passed": verification_passed,
+        "details": {
+            "batch_size": batch_size,
+            "item_count": len(items),
+            "total_loss_fp": total_loss_fp,
+            "claimed_batch_loss_fp": claimed_batch_loss_fp,
+            "recomputed_batch_loss_fp": recomputed_batch_loss_fp,
+            "items": [result["details"] for result in item_results],
+        },
+    }
+
+
+def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
+    schema_version = tv.get("schema_version")
+    if schema_version == "td_mvp_test_vector_v1":
+        return verify_single_test_vector(tv)
+    if schema_version == "td_mvp_batch_test_vector_v1":
+        return verify_batch_test_vector(tv)
+    raise ValueError(f"Unexpected schema_version: {schema_version}")
 
 
 def main() -> None:
@@ -199,6 +315,8 @@ def main() -> None:
     print(f"loss_ok = {result['loss_ok']}")
     print(f"claimed_target_ok = {result['claimed_target_ok']}")
     print(f"claimed_loss_ok = {result['claimed_loss_ok']}")
+    print(f"batch_size_ok = {result['batch_size_ok']}")
+    print(f"claimed_batch_loss_ok = {result['claimed_batch_loss_ok']}")
     print(f"verification_passed = {result['verification_passed']}")
 
     print("\n=== DETAILS ===")

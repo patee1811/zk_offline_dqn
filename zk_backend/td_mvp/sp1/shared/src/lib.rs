@@ -14,14 +14,39 @@ pub struct PublicInputs {
     pub fp_scale: i64,
     pub gamma_fp: i64,
     pub loss_type: String,
-    pub claimed_target_fp: i64,
-    pub claimed_loss_fp: i64,
-    pub leaf_index: i64,
+    #[serde(default)]
+    pub claimed_target_fp: Option<i64>,
+    #[serde(default)]
+    pub claimed_loss_fp: Option<i64>,
+    #[serde(default)]
+    pub leaf_index: Option<i64>,
+    #[serde(default)]
+    pub batch_size: Option<usize>,
+    #[serde(default, alias = "batch_loss_fp")]
+    pub claimed_batch_loss_fp: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PrivateWitness {
+    #[serde(default)]
+    pub transition: Option<Transition>,
+    #[serde(default)]
+    pub leaf: Option<Vec<i64>>,
+    #[serde(default)]
+    pub leaf_hash: Option<String>,
+    #[serde(default)]
+    pub merkle_path: Option<Vec<MerklePathStep>>,
+    #[serde(default)]
+    pub td_witness: Option<TdWitness>,
+    #[serde(default)]
+    pub items: Vec<TdMvpItem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TdMvpItem {
+    pub index: i64,
     pub transition: Transition,
+    #[serde(alias = "serialized_leaf")]
     pub leaf: Vec<i64>,
     pub leaf_hash: String,
     pub merkle_path: Vec<MerklePathStep>,
@@ -48,11 +73,14 @@ pub struct MerklePathStep {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TdWitness {
-    pub q_online_action_fp: i64,
-    pub next_action_online: i64,
+    #[serde(default, alias = "q_online_fp")]
+    pub q_online_action_fp: Option<i64>,
+    #[serde(default)]
+    pub next_action_online: Option<i64>,
     pub q_target_max_fp: i64,
     pub target_fp: i64,
-    pub td_error_fp: i64,
+    #[serde(default)]
+    pub td_error_fp: Option<i64>,
     pub loss_fp: i64,
 }
 
@@ -60,74 +88,67 @@ pub struct TdWitness {
 pub struct PublicOutput {
     pub schema_version: String,
     pub dataset_root: String,
-    pub claimed_target_fp: i64,
-    pub claimed_loss_fp: i64,
-    pub leaf_index: i64,
+    pub claimed_target_fp: Option<i64>,
+    pub claimed_loss_fp: Option<i64>,
+    pub leaf_index: Option<i64>,
+    pub batch_size: Option<usize>,
+    pub claimed_batch_loss_fp: Option<i64>,
+    pub items: Vec<TdItemOutput>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TdItemOutput {
+    pub index: i64,
+    pub target_fp: i64,
+    pub loss_fp: i64,
 }
 
 pub fn verify_td_mvp(input: &TdMvpInput) -> PublicOutput {
-    assert_eq!(
-        input.schema_version, "td_mvp_test_vector_v1",
+    assert!(
+        input.schema_version == "td_mvp_test_vector_v1"
+            || input.schema_version == "td_mvp_batch_test_vector_v1",
         "unexpected schema_version"
     );
     assert_eq!(input.public.loss_type, "smooth_l1", "unsupported loss_type");
 
-    let recomputed_leaf =
-        serialize_transition_leaf(&input.private.transition, input.public.fp_scale);
-    assert_eq!(
-        input.private.leaf, recomputed_leaf,
-        "leaf does not match canonical transition serialization"
-    );
-
-    let recomputed_leaf_hash = hash_leaf(&recomputed_leaf);
-    assert_eq!(
-        input.private.leaf_hash, recomputed_leaf_hash,
-        "leaf_hash does not match canonical leaf hash"
-    );
-
-    let recomputed_root =
-        recompute_root_from_path(&recomputed_leaf_hash, &input.private.merkle_path);
-    assert_eq!(
-        recomputed_root, input.public.dataset_root,
-        "Merkle path does not authenticate to dataset_root"
-    );
-
-    let reward_fp = encode_fp(input.private.transition.reward, input.public.fp_scale);
-    let done = input.private.transition.done;
-    assert!(done == 0 || done == 1, "done must be 0 or 1");
-
-    let expected_target_fp = if done == 1 {
-        reward_fp
+    if input.private.items.is_empty() {
+        verify_single_td_mvp(input)
     } else {
-        reward_fp
-            + fixed_point_mul(
-                input.public.gamma_fp,
-                input.private.td_witness.q_target_max_fp,
-                input.public.fp_scale,
-            )
+        verify_batch_td_mvp(input)
+    }
+}
+
+fn verify_single_td_mvp(input: &TdMvpInput) -> PublicOutput {
+    let item = TdMvpItem {
+        index: input.public.leaf_index.expect("missing leaf_index"),
+        transition: input
+            .private
+            .transition
+            .clone()
+            .expect("missing transition"),
+        leaf: input.private.leaf.clone().expect("missing leaf"),
+        leaf_hash: input.private.leaf_hash.clone().expect("missing leaf_hash"),
+        merkle_path: input
+            .private
+            .merkle_path
+            .clone()
+            .expect("missing merkle_path"),
+        td_witness: input
+            .private
+            .td_witness
+            .clone()
+            .expect("missing td_witness"),
     };
-    assert_eq!(
-        input.private.td_witness.target_fp, expected_target_fp,
-        "target_fp mismatch"
-    );
 
-    let expected_td_error_fp = input.private.td_witness.q_online_action_fp - expected_target_fp;
+    let item_output = verify_td_item(&input.public, &item);
     assert_eq!(
-        input.private.td_witness.td_error_fp, expected_td_error_fp,
-        "td_error_fp mismatch"
-    );
-
-    let expected_loss_fp = smooth_l1_loss_fp(expected_td_error_fp, input.public.fp_scale);
-    assert_eq!(
-        input.private.td_witness.loss_fp, expected_loss_fp,
-        "loss_fp mismatch"
-    );
-    assert_eq!(
-        input.private.td_witness.target_fp, input.public.claimed_target_fp,
+        Some(item_output.target_fp),
+        input.public.claimed_target_fp,
         "claimed_target_fp mismatch"
     );
     assert_eq!(
-        input.private.td_witness.loss_fp, input.public.claimed_loss_fp,
+        Some(item_output.loss_fp),
+        input.public.claimed_loss_fp,
         "claimed_loss_fp mismatch"
     );
 
@@ -137,6 +158,113 @@ pub fn verify_td_mvp(input: &TdMvpInput) -> PublicOutput {
         claimed_target_fp: input.public.claimed_target_fp,
         claimed_loss_fp: input.public.claimed_loss_fp,
         leaf_index: input.public.leaf_index,
+        batch_size: None,
+        claimed_batch_loss_fp: None,
+        items: vec![item_output],
+    }
+}
+
+fn verify_batch_td_mvp(input: &TdMvpInput) -> PublicOutput {
+    let batch_size = input.public.batch_size.expect("missing batch_size");
+    assert_eq!(
+        batch_size,
+        input.private.items.len(),
+        "batch_size does not match witness item count"
+    );
+    assert!(batch_size > 0, "batch_size must be positive");
+
+    let mut total_loss_fp = 0i64;
+    let mut outputs = Vec::with_capacity(input.private.items.len());
+
+    for item in &input.private.items {
+        let item_output = verify_td_item(&input.public, item);
+        total_loss_fp += item_output.loss_fp;
+        outputs.push(item_output);
+    }
+
+    let expected_batch_loss_fp = total_loss_fp / batch_size as i64;
+    assert_eq!(
+        Some(expected_batch_loss_fp),
+        input.public.claimed_batch_loss_fp,
+        "claimed_batch_loss_fp mismatch"
+    );
+
+    PublicOutput {
+        schema_version: input.schema_version.clone(),
+        dataset_root: input.public.dataset_root.clone(),
+        claimed_target_fp: None,
+        claimed_loss_fp: None,
+        leaf_index: None,
+        batch_size: Some(batch_size),
+        claimed_batch_loss_fp: input.public.claimed_batch_loss_fp,
+        items: outputs,
+    }
+}
+
+fn verify_td_item(public: &PublicInputs, item: &TdMvpItem) -> TdItemOutput {
+    if let Some(first_step) = item.merkle_path.first() {
+        assert_eq!(
+            first_step.current_index, item.index,
+            "first Merkle path current_index does not match item index"
+        );
+    }
+
+    let recomputed_leaf = serialize_transition_leaf(&item.transition, public.fp_scale);
+    assert_eq!(
+        item.leaf, recomputed_leaf,
+        "leaf does not match canonical transition serialization"
+    );
+
+    let recomputed_leaf_hash = hash_leaf(&recomputed_leaf);
+    assert_eq!(
+        item.leaf_hash, recomputed_leaf_hash,
+        "leaf_hash does not match canonical leaf hash"
+    );
+
+    let recomputed_root = recompute_root_from_path(&recomputed_leaf_hash, &item.merkle_path);
+    assert_eq!(
+        recomputed_root, public.dataset_root,
+        "Merkle path does not authenticate to dataset_root"
+    );
+
+    let reward_fp = encode_fp(item.transition.reward, public.fp_scale);
+    let done = item.transition.done;
+    assert!(done == 0 || done == 1, "done must be 0 or 1");
+
+    let expected_target_fp = if done == 1 {
+        reward_fp
+    } else {
+        reward_fp
+            + fixed_point_mul(
+                public.gamma_fp,
+                item.td_witness.q_target_max_fp,
+                public.fp_scale,
+            )
+    };
+    assert_eq!(
+        item.td_witness.target_fp, expected_target_fp,
+        "target_fp mismatch"
+    );
+
+    let q_online_action_fp = item
+        .td_witness
+        .q_online_action_fp
+        .expect("missing q_online_action_fp");
+    let expected_td_error_fp = q_online_action_fp - expected_target_fp;
+    if let Some(td_error_fp) = item.td_witness.td_error_fp {
+        assert_eq!(td_error_fp, expected_td_error_fp, "td_error_fp mismatch");
+    }
+
+    let expected_loss_fp = smooth_l1_loss_fp(expected_td_error_fp, public.fp_scale);
+    assert_eq!(
+        item.td_witness.loss_fp, expected_loss_fp,
+        "loss_fp mismatch"
+    );
+
+    TdItemOutput {
+        index: item.index,
+        target_fp: item.td_witness.target_fp,
+        loss_fp: item.td_witness.loss_fp,
     }
 }
 

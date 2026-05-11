@@ -59,6 +59,43 @@ Run the initial SP1 negative checks:
 bash run_negative_cases.sh
 ```
 
+Run the Week 3 benchmark/reproducibility snapshot from the repository root:
+
+```bash
+python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+```
+
+This writes:
+
+```text
+artifacts/benchmarks/sp1_td_mvp/summary.json
+artifacts/benchmarks/sp1_td_mvp/benchmark_matrix.csv
+artifacts/benchmarks/sp1_td_mvp/summary.md
+```
+
+The runner checks the Python verifier as the semantic oracle and the SP1 host as the proving backend over the same valid/tampered TD MVP cases. Week 4 extends the same guest entrypoint to accept `td_mvp_batch_test_vector_v1` inputs for TD-2/4/8 minibatch checks.
+
+Generate and execute a standalone TD-2 minibatch fixture:
+
+```bash
+cd /mnt/c/Users/Ngoc\ Duy/Duytapcode/zk_offline_dqn
+python3 scripts/artifacts_export/export_td_mvp_batch_test_vector.py \
+  --input zk_backend/test_vectors/td_mvp_case_0.json \
+  --out /tmp/td_mvp_batch_size_2.json \
+  --batch-size 2
+
+cd zk_backend/td_mvp/sp1
+cargo run --release -p td-mvp-host -- \
+  --input /tmp/td_mvp_batch_size_2.json \
+  --execute
+```
+
+Run the extended negative checks:
+
+```bash
+bash run_negative_cases.sh
+```
+
 ## Current Smoke Results
 
 Recorded on 2026-05-11 in WSL2 Ubuntu.
@@ -68,9 +105,10 @@ Valid TD MVP proof:
 ```text
 proof_generated = true
 proof_verified = true
-proving_time_sec = 69.608704
-verification_time_sec = 0.088708
+proving_time_sec = 66.668891
+verification_time_sec = 0.088947
 proof_size_bytes = 2782588
+cycle_count = 365501
 ```
 
 Initial negative cases:
@@ -79,11 +117,35 @@ Initial negative cases:
 valid_control accepted
 tamper_reward rejected
 tamper_done rejected
+tamper_transition_obs rejected
+tamper_leaf_encoding rejected
 tamper_merkle_path rejected
+tamper_q_target_max_fp rejected
 tamper_claimed_target_fp rejected
 tamper_claimed_loss_fp rejected
+tamper_leaf_hash rejected
+tamper_td_error_fp rejected
 all_sp1_negative_cases_passed = true
 ```
+
+## Week 4 Minibatch Scope
+
+Implemented relation checks:
+
+- multiple Merkle memberships through `private.items[]`;
+- per-sample TD target, TD error, and SmoothL1 loss;
+- public `batch_size`;
+- public `claimed_batch_loss_fp`;
+- integer batch-average loss `sum(loss_fp) // batch_size`;
+- batch aggregation negative cases for claimed loss, batch size, item loss, and item index.
+
+The committed benchmark runner can generate TD-2/4/8 fixtures from the canonical single-transition vector. Fresh SP1 timings for TD-2/4/8 should be recorded after running `python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove` in WSL2 Ubuntu.
+
+Current local WSL2 result:
+
+- TD-2 proof completed: `78.693257s` prove, `0.131290s` verify, `2787687` proof bytes, `725309` cycles.
+- TD-4 execution completed with `1425790` cycles, but proof attempt made the WSL session unstable.
+- TD-8 execution completed with `2834727` cycles; proof timing is not claimed yet.
 
 ## Non-Goals
 
