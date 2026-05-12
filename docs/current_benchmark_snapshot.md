@@ -207,10 +207,40 @@ tamper_batch_fixed_point_rounding
 
 Together with the existing cases, this covers schema mismatch, fixed-point
 rounding mismatch, wrong done-branch semantics, wrong leaf index/path order,
-target-network value tamper, and batch aggregation/index tamper. SP1 execution
-confirmation should be run on Linux/WSL2/Kaggle with:
+target-network value tamper, and batch aggregation/index tamper.
 
-```bash
-cd zk_backend/td_mvp/sp1
-bash run_negative_cases.sh
+Kaggle SP1 execution confirmed all priority-2 single-transition cases reject:
+
+```text
+tamper_schema_version: rejected
+tamper_reward: rejected
+tamper_fixed_point_rounding: rejected
+tamper_done: rejected
+tamper_done_branch: rejected
+tamper_transition_obs: rejected
+tamper_leaf_encoding: rejected
+tamper_merkle_path: rejected
+tamper_leaf_index: rejected
+tamper_path_order: rejected
+tamper_q_target_max_fp: rejected
+tamper_target_network_value: rejected
+tamper_claimed_target_fp: rejected
+tamper_claimed_loss_fp: rejected
+tamper_leaf_hash: rejected
+tamper_td_error_fp: rejected
+single_negative_cases_passed = true
+```
+
+Kaggle SP1 execution also confirmed all priority-2 batch cases reject:
+
+```text
+valid_batch_size_2: accepted, cycle_count = 725309
+tamper_batch_claimed_loss_fp: rejected
+tamper_batch_size: rejected
+tamper_batch_item_loss_fp: rejected
+tamper_batch_item_index: rejected
+tamper_batch_path_order: rejected
+tamper_batch_target_network_value: rejected
+tamper_batch_fixed_point_rounding: rejected
+all_sp1_priority2_negative_cases_passed = true
 ```
