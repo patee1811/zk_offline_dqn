@@ -81,6 +81,35 @@ def get_q_online_action_fp(td: Dict[str, Any]) -> int:
     return int(td["q_online_fp"])
 
 
+def verify_merkle_path_metadata(merkle_path: list[Dict[str, Any]], leaf_index: int) -> bool:
+    expected_current_index = int(leaf_index)
+
+    for expected_level, step in enumerate(merkle_path):
+        level_ok = int(step["level"]) == expected_level
+        current_index = int(step["current_index"])
+        sibling_index = int(step["sibling_index"])
+        current_is_left = bool(step["current_is_left"])
+
+        current_ok = current_index == expected_current_index
+        if current_is_left:
+            sibling_ok = (
+                expected_current_index % 2 == 0
+                and sibling_index in {expected_current_index, expected_current_index + 1}
+            )
+        else:
+            sibling_ok = (
+                expected_current_index % 2 == 1
+                and sibling_index == expected_current_index - 1
+            )
+
+        if not (level_ok and current_ok and sibling_ok):
+            return False
+
+        expected_current_index //= 2
+
+    return True
+
+
 def verify_item(
     item: Dict[str, Any],
     *,
@@ -106,8 +135,13 @@ def verify_item(
         expected_root=dataset_root,
     )
     index_ok = True
+    path_metadata_ok = True
     if "index" in item and merkle_path:
         index_ok = int(merkle_path[0]["current_index"]) == int(item["index"])
+        path_metadata_ok = verify_merkle_path_metadata(
+            merkle_path=merkle_path,
+            leaf_index=int(item["index"]),
+        )
 
     reward_fp = reward_to_fp(transition["reward"], fp_scale)
     done = done_to_bool(transition["done"])
@@ -140,6 +174,7 @@ def verify_item(
             leaf_encoding_ok,
             merkle_ok,
             index_ok,
+            path_metadata_ok,
             target_ok,
             td_error_ok,
             loss_ok,
@@ -151,6 +186,7 @@ def verify_item(
         "leaf_hash_ok": leaf_hash_ok,
         "merkle_ok": merkle_ok,
         "index_ok": index_ok,
+        "path_metadata_ok": path_metadata_ok,
         "target_ok": target_ok,
         "td_error_ok": td_error_ok,
         "loss_ok": loss_ok,
@@ -164,6 +200,7 @@ def verify_item(
             "dataset_root": dataset_root,
             "recomputed_root": recomputed_root,
             "index_ok": index_ok,
+            "path_metadata_ok": path_metadata_ok,
             "reward_fp": reward_fp,
             "done": done,
             "q_online_action_fp": q_online_action_fp,
@@ -245,6 +282,9 @@ def verify_batch_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
     )
     batch_size = int(public["batch_size"])
     items = private["items"]
+    item_indices = [int(item["index"]) for item in items]
+    claimed_leaf_indices = public.get("leaf_indices")
+    batch_mode = public.get("batch_mode")
 
     item_results = [
         verify_item(
@@ -257,11 +297,22 @@ def verify_batch_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
     ]
     total_loss_fp = sum(int(item["td_witness"]["loss_fp"]) for item in items)
     recomputed_batch_loss_fp = total_loss_fp // batch_size
-    batch_size_ok = batch_size == len(items)
+    batch_size_ok = batch_size == len(items) and batch_size > 0
+    leaf_indices_ok = (
+        True
+        if claimed_leaf_indices is None
+        else [int(index) for index in claimed_leaf_indices] == item_indices
+    )
+    distinct_required = batch_mode == "distinct" or claimed_leaf_indices is not None
+    distinct_indices_ok = (
+        True if not distinct_required else len(set(item_indices)) == len(item_indices)
+    )
     claimed_batch_loss_ok = recomputed_batch_loss_fp == claimed_batch_loss_fp
     verification_passed = (
         all(result["item_passed"] for result in item_results)
         and batch_size_ok
+        and leaf_indices_ok
+        and distinct_indices_ok
         and claimed_batch_loss_ok
     )
 
@@ -276,11 +327,18 @@ def verify_batch_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
         "claimed_target_ok": None,
         "claimed_loss_ok": None,
         "batch_size_ok": batch_size_ok,
+        "leaf_indices_ok": leaf_indices_ok,
+        "distinct_indices_ok": distinct_indices_ok,
         "claimed_batch_loss_ok": claimed_batch_loss_ok,
         "verification_passed": verification_passed,
         "details": {
             "batch_size": batch_size,
             "item_count": len(items),
+            "batch_mode": batch_mode,
+            "leaf_indices": claimed_leaf_indices,
+            "item_indices": item_indices,
+            "leaf_indices_ok": leaf_indices_ok,
+            "distinct_indices_ok": distinct_indices_ok,
             "total_loss_fp": total_loss_fp,
             "claimed_batch_loss_fp": claimed_batch_loss_fp,
             "recomputed_batch_loss_fp": recomputed_batch_loss_fp,
@@ -317,6 +375,8 @@ def main() -> None:
     print(f"claimed_target_ok = {result['claimed_target_ok']}")
     print(f"claimed_loss_ok = {result['claimed_loss_ok']}")
     print(f"batch_size_ok = {result['batch_size_ok']}")
+    print(f"leaf_indices_ok = {result.get('leaf_indices_ok')}")
+    print(f"distinct_indices_ok = {result.get('distinct_indices_ok')}")
     print(f"claimed_batch_loss_ok = {result['claimed_batch_loss_ok']}")
     print(f"verification_passed = {result['verification_passed']}")
 

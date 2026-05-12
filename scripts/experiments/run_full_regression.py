@@ -53,6 +53,7 @@ def run_command(
         "verification_passed = True",
         "all_forward_ok = True",
         "all_tests_passed = True",
+        "all_passed = True",
     ]
 
     marker_ok = any(marker in result.stdout for marker in accepted_markers)
@@ -202,6 +203,14 @@ def main() -> None:
         {
             "name": "run_minibatch_td_negative_tests",
             "command": [py, "scripts/experiments/run_negative_verification_tests.py"],
+        },
+        {
+            "name": "benchmark_distinct_td_sp1_python_only",
+            "command": [
+                py,
+                "scripts/experiments/benchmark_distinct_td_sp1.py",
+                "--skip-sp1",
+            ],
         },
         {
             "name": "run_td_mvp_test_vector_negative_tests",

@@ -60,6 +60,24 @@ The canonical commitment helper is implemented in:
 zk_offline_dqn/commitments.py
 ```
 
+Phase A extends the main `minibatch_td_v1` path with distinct replay minibatch
+metadata:
+
+```text
+batch_mode = "distinct"
+leaf_indices = [ordered public transition indices]
+fp_scale
+gamma_fp
+```
+
+When `batch_mode` is `distinct` or `leaf_indices` is present, verifiers require:
+
+- `batch_size == len(items)`;
+- `items[i].index == leaf_indices[i]`;
+- no duplicate item indices;
+- Merkle path metadata starts at the item index and advances one level at a time;
+- swapped private item order is rejected unless public `leaf_indices` changes consistently.
+
 ---
 
 ### 0.2 One-Step Update v1 Extension

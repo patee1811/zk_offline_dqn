@@ -88,6 +88,42 @@ def make_tamper_online_state_dict_sha256(base_artifact: Dict[str, Any]) -> Dict[
     return artifact
 
 
+def make_tamper_duplicate_index(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+    if len(artifact["items"]) < 2:
+        raise ValueError("duplicate-index tamper requires at least two items")
+    artifact["public"]["batch_mode"] = "distinct"
+    artifact["items"][1] = copy.deepcopy(artifact["items"][0])
+    artifact["public"]["leaf_indices"] = [int(item["index"]) for item in artifact["items"]]
+    return artifact
+
+
+def make_tamper_wrong_item_index(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+    artifact["items"][0]["index"] = int(artifact["items"][0]["index"]) + 1
+    return artifact
+
+
+def make_tamper_swapped_item_order(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+    if len(artifact["items"]) < 2:
+        raise ValueError("swapped-order tamper requires at least two items")
+    artifact["items"][0], artifact["items"][1] = artifact["items"][1], artifact["items"][0]
+    return artifact
+
+
+def make_tamper_claimed_batch_average(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+    artifact["public"]["batch_loss_fp"] += 1
+    return artifact
+
+
+def make_tamper_path_order(base_artifact: Dict[str, Any]) -> Dict[str, Any]:
+    artifact = copy.deepcopy(base_artifact)
+    artifact["items"][0]["merkle_path"] = list(reversed(artifact["items"][0]["merkle_path"]))
+    return artifact
+
+
 
 def run_minibatch_verifier(
     artifact_path: Path,
@@ -157,6 +193,11 @@ def main() -> None:
         "tamper_online_state_dict_sha256",
         "tamper_leaf_hash",
         "tamper_merkle_path",
+        "tamper_duplicate_index",
+        "tamper_wrong_item_index",
+        "tamper_swapped_item_order",
+        "tamper_claimed_batch_average",
+        "tamper_path_order",
     ]
 
     print("=== NEGATIVE VERIFICATION TEST RUNNER ===")
@@ -313,6 +354,36 @@ def main() -> None:
 
     rows.append(tamper_online_state_row)
 
+    additional_tampers = [
+        ("tamper_duplicate_index", make_tamper_duplicate_index),
+        ("tamper_wrong_item_index", make_tamper_wrong_item_index),
+        ("tamper_swapped_item_order", make_tamper_swapped_item_order),
+        ("tamper_claimed_batch_average", make_tamper_claimed_batch_average),
+        ("tamper_path_order", make_tamper_path_order),
+    ]
+
+    additional_results = {}
+    for case_name, mutator in additional_tampers:
+        case_path = out_dir / f"{case_name}.json"
+        case_artifact = mutator(base_artifact)
+        save_json(case_artifact, case_path)
+
+        case_result = run_minibatch_verifier(
+            artifact_path=case_path,
+            checkpoint_path=args.checkpoint,
+        )
+        additional_results[case_name] = case_result
+
+        case_row = {
+            "case_name": case_name,
+            "expected_accept": False,
+            "actual_accept": case_result["accepted"],
+            "passed": case_result["accepted"] is False,
+            "artifact_path": case_path.as_posix(),
+            "returncode": case_result["returncode"],
+        }
+        rows.append(case_row)
+
     summary_csv_path = out_dir / "summary.csv"
     write_summary_csv(rows, summary_csv_path)
 
@@ -331,6 +402,10 @@ def main() -> None:
     print("tamper_leaf_hash_passed =", tamper_leaf_hash_row["passed"])
     print("tamper_merkle_path_accept =", tamper_merkle_path_result["accepted"])
     print("tamper_merkle_path_passed =", tamper_merkle_path_row["passed"])
+    for case_name, case_result in additional_results.items():
+        case_row = next(row for row in rows if row["case_name"] == case_name)
+        print(f"{case_name}_accept =", case_result["accepted"])
+        print(f"{case_name}_passed =", case_row["passed"])
     print("summary_csv_path =", summary_csv_path.as_posix())
     print("all_tests_passed =", all(row["passed"] for row in rows))
 

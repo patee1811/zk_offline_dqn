@@ -15,7 +15,8 @@ For each item, it checks:
     \item the transition serializes to the supplied fixed-point leaf;
     \item SHA-256 of the canonical leaf encoding matches the supplied leaf hash;
     \item the Merkle path recomputes the public dataset root;
-    \item the first Merkle path index matches the public or item leaf index;
+    \item the Merkle path metadata starts at the public or item leaf index and
+    advances by level;
     \item the done flag is binary;
     \item the target is $r_{\mathrm{fp}}$ for terminal transitions and
     $r_{\mathrm{fp}}+\lfloor \gamma_{\mathrm{fp}}q_{\mathrm{target,fp}}/S\rfloor$
@@ -55,6 +56,8 @@ Minibatch public inputs add:
 
 \begin{verbatim}
 batch_size
+batch_mode
+leaf_indices
 claimed_batch_loss_fp
 \end{verbatim}
 
@@ -98,6 +101,8 @@ tamper_batch_claimed_loss_fp
 tamper_batch_size
 tamper_batch_item_loss_fp
 tamper_batch_item_index
+tamper_duplicate_index
+tamper_swapped_item_order
 tamper_batch_path_order
 tamper_batch_target_network_value
 tamper_batch_fixed_point_rounding
@@ -121,7 +126,7 @@ Run the full SP1 benchmark:
 
 {\scriptsize
 \begin{verbatim}
-python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+python3 scripts/experiments/benchmark_distinct_td_sp1.py \
   --prove
 \end{verbatim}
 }
@@ -139,13 +144,13 @@ If the full SP1 proof benchmark is unstable, prove accepted cases separately:
 
 {\scriptsize
 \begin{verbatim}
-python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+python3 scripts/experiments/benchmark_distinct_td_sp1.py \
   --prove --prove-cases TD-1
-python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+python3 scripts/experiments/benchmark_distinct_td_sp1.py \
   --prove --prove-cases TD-2
-python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+python3 scripts/experiments/benchmark_distinct_td_sp1.py \
   --prove --prove-cases TD-4
-python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+python3 scripts/experiments/benchmark_distinct_td_sp1.py \
   --prove --prove-cases TD-8
 \end{verbatim}
 }

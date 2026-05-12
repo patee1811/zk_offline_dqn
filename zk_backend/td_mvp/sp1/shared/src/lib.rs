@@ -22,6 +22,10 @@ pub struct PublicInputs {
     pub leaf_index: Option<i64>,
     #[serde(default)]
     pub batch_size: Option<usize>,
+    #[serde(default)]
+    pub batch_mode: Option<String>,
+    #[serde(default)]
+    pub leaf_indices: Option<Vec<i64>>,
     #[serde(default, alias = "batch_loss_fp")]
     pub claimed_batch_loss_fp: Option<i64>,
 }
@@ -92,6 +96,7 @@ pub struct PublicOutput {
     pub claimed_loss_fp: Option<i64>,
     pub leaf_index: Option<i64>,
     pub batch_size: Option<usize>,
+    pub leaf_indices: Option<Vec<i64>>,
     pub claimed_batch_loss_fp: Option<i64>,
     pub items: Vec<TdItemOutput>,
 }
@@ -159,6 +164,7 @@ fn verify_single_td_mvp(input: &TdMvpInput) -> PublicOutput {
         claimed_loss_fp: input.public.claimed_loss_fp,
         leaf_index: input.public.leaf_index,
         batch_size: None,
+        leaf_indices: None,
         claimed_batch_loss_fp: None,
         items: vec![item_output],
     }
@@ -173,13 +179,38 @@ fn verify_batch_td_mvp(input: &TdMvpInput) -> PublicOutput {
     );
     assert!(batch_size > 0, "batch_size must be positive");
 
+    if let Some(leaf_indices) = &input.public.leaf_indices {
+        assert_eq!(
+            leaf_indices.len(),
+            batch_size,
+            "leaf_indices length does not match batch_size"
+        );
+        assert_distinct_i64(leaf_indices);
+    }
+
     let mut total_loss_fp = 0i64;
     let mut outputs = Vec::with_capacity(input.private.items.len());
 
-    for item in &input.private.items {
+    for (position, item) in input.private.items.iter().enumerate() {
+        if let Some(leaf_indices) = &input.public.leaf_indices {
+            assert_eq!(
+                item.index, leaf_indices[position],
+                "item index does not match public leaf_indices order"
+            );
+        }
         let item_output = verify_td_item(&input.public, item);
         total_loss_fp += item_output.loss_fp;
         outputs.push(item_output);
+    }
+    if input.public.batch_mode.as_deref() == Some("distinct") && input.public.leaf_indices.is_none()
+    {
+        let indices = input
+            .private
+            .items
+            .iter()
+            .map(|item| item.index)
+            .collect::<Vec<_>>();
+        assert_distinct_i64(&indices);
     }
 
     let expected_batch_loss_fp = total_loss_fp / batch_size as i64;
@@ -196,6 +227,7 @@ fn verify_batch_td_mvp(input: &TdMvpInput) -> PublicOutput {
         claimed_loss_fp: None,
         leaf_index: None,
         batch_size: Some(batch_size),
+        leaf_indices: input.public.leaf_indices.clone(),
         claimed_batch_loss_fp: input.public.claimed_batch_loss_fp,
         items: outputs,
     }
@@ -208,6 +240,7 @@ fn verify_td_item(public: &PublicInputs, item: &TdMvpItem) -> TdItemOutput {
             "first Merkle path current_index does not match item index"
         );
     }
+    assert_merkle_path_metadata(&item.merkle_path, item.index);
 
     let recomputed_leaf = serialize_transition_leaf(&item.transition, public.fp_scale);
     assert_eq!(
@@ -265,6 +298,55 @@ fn verify_td_item(public: &PublicInputs, item: &TdMvpItem) -> TdItemOutput {
         index: item.index,
         target_fp: item.td_witness.target_fp,
         loss_fp: item.td_witness.loss_fp,
+    }
+}
+
+fn assert_distinct_i64(values: &[i64]) {
+    for left in 0..values.len() {
+        for right in (left + 1)..values.len() {
+            assert_ne!(values[left], values[right], "duplicate leaf index");
+        }
+    }
+}
+
+fn assert_merkle_path_metadata(merkle_path: &[MerklePathStep], leaf_index: i64) {
+    let mut expected_current_index = leaf_index;
+
+    for (expected_level, step) in merkle_path.iter().enumerate() {
+        assert_eq!(
+            step.level, expected_level as i64,
+            "Merkle path level metadata mismatch"
+        );
+        assert_eq!(
+            step.current_index, expected_current_index,
+            "Merkle path current_index metadata mismatch"
+        );
+
+        if step.current_is_left {
+            assert_eq!(
+                expected_current_index % 2,
+                0,
+                "left Merkle path step has odd current_index"
+            );
+            assert!(
+                step.sibling_index == expected_current_index
+                    || step.sibling_index == expected_current_index + 1,
+                "left Merkle path sibling_index metadata mismatch"
+            );
+        } else {
+            assert_eq!(
+                expected_current_index % 2,
+                1,
+                "right Merkle path step has even current_index"
+            );
+            assert_eq!(
+                step.sibling_index,
+                expected_current_index - 1,
+                "right Merkle path sibling_index metadata mismatch"
+            );
+        }
+
+        expected_current_index /= 2;
     }
 }
 

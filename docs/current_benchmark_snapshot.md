@@ -9,11 +9,11 @@ This file records the current benchmark state used by the repository outside
 Latest local regression refresh:
 
 ```text
-date = 2026-05-12
+date = 2026-05-13
 platform = native Windows PowerShell
 command = python scripts/experiments/run_full_regression.py
-num_checks = 10
-num_passed = 10
+num_checks = 11
+num_passed = 11
 num_failed = 0
 all_regression_passed = True
 ```
@@ -31,9 +31,52 @@ Covered checks:
 | one-step negative tests | pass |
 | short-trace negative tests | pass |
 | minibatch TD negative tests | pass |
+| distinct TD-1/2/4/8 Python-only benchmark smoke | pass |
 | TD MVP test-vector negative tests | pass |
 
-## SP1 TD MVP
+## Phase A Distinct Minibatch TD
+
+Latest local Python-only benchmark refresh:
+
+```text
+generated_at_utc = see artifacts/benchmarks/distinct_td_sp1/summary.json
+platform = native Windows PowerShell
+command = python scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1
+batch_sizes = TD-1, TD-2, TD-4, TD-8
+all_python_expected = True
+all_passed = True
+```
+
+Accepted distinct replay minibatches:
+
+| Case | Relation | Batch size | Status |
+| --- | --- | ---: | --- |
+| TD-1 | `td_batch_distinct_v1` single item | 1 | Python accepted |
+| TD-2 | `td_batch_distinct_v1` ordered public `leaf_indices` | 2 | Python accepted |
+| TD-4 | `td_batch_distinct_v1` ordered public `leaf_indices` | 4 | Python accepted |
+| TD-8 | `td_batch_distinct_v1` ordered public `leaf_indices` | 8 | Python accepted |
+
+Tamper coverage:
+
+| Case group | Result |
+| --- | --- |
+| duplicate index | Python rejects |
+| wrong item index | Python rejects |
+| swapped item order against public `leaf_indices` | Python rejects |
+| wrong item loss | Python rejects |
+| wrong claimed batch average | Python rejects |
+| wrong Merkle path order/metadata | Python rejects |
+
+SP1 execute/prove should be refreshed on WSL2 Ubuntu, Linux, or Kaggle with:
+
+```bash
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
+```
+
+The older `benchmark_sp1_td_mvp.py` repeated-transition benchmark remains below
+as historical backend evidence, not as the main Phase A minibatch result.
+
+## Legacy SP1 TD MVP
 
 Latest full SP1 benchmark refresh:
 

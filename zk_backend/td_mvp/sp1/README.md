@@ -59,21 +59,32 @@ Run the initial SP1 negative checks:
 bash run_negative_cases.sh
 ```
 
-Run the Week 3 benchmark/reproducibility snapshot from the repository root:
+Run the Phase A distinct replay minibatch benchmark/reproducibility snapshot
+from the repository root:
 
 ```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 ```
 
 This writes:
 
 ```text
-artifacts/benchmarks/sp1_td_mvp/summary.json
-artifacts/benchmarks/sp1_td_mvp/benchmark_matrix.csv
-artifacts/benchmarks/sp1_td_mvp/summary.md
+artifacts/benchmarks/distinct_td_sp1/summary.json
+artifacts/benchmarks/distinct_td_sp1/benchmark_matrix.csv
+artifacts/benchmarks/distinct_td_sp1/summary.md
 ```
 
-The runner checks the Python verifier as the semantic oracle and the SP1 host as the proving backend over the same valid/tampered TD MVP cases. Week 4 extends the same guest entrypoint to accept `td_mvp_batch_test_vector_v1` inputs for TD-2/4/8 minibatch checks.
+The runner checks the Python verifier as the semantic oracle and the SP1 host
+as the proving backend over the same valid/tampered TD MVP cases. Phase A
+fixtures use distinct committed replay transitions with public ordered
+`leaf_indices`; duplicate-index, wrong-index, swapped-order, item-loss,
+claimed-average, and Merkle path-order tampers are rejected.
+
+The legacy repeated-transition runner remains available for comparison:
+
+```bash
+python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+```
 
 Generate and execute a standalone TD-2 minibatch fixture:
 
@@ -135,19 +146,23 @@ tamper_td_error_fp rejected
 all_sp1_negative_cases_passed = true
 ```
 
-## Week 4 Minibatch Scope
+## Phase A Distinct Minibatch Scope
 
 Implemented relation checks:
 
 - multiple Merkle memberships through `private.items[]`;
+- public ordered `leaf_indices`;
+- distinct index checks for `batch_mode == distinct`;
+- item order checks against public `leaf_indices`;
+- Merkle path metadata continuity checks;
 - per-sample TD target, TD error, and SmoothL1 loss;
 - public `batch_size`;
 - public `claimed_batch_loss_fp`;
 - integer batch-average loss `sum(loss_fp) // batch_size`;
-- batch aggregation negative cases for claimed loss, batch size, item loss, and item index.
+- batch aggregation negative cases for claimed loss, batch size, item loss, item index, duplicate index, swapped item order, and path order.
 
-The committed benchmark runner can generate TD-2/4/8 fixtures from the
-canonical single-transition vector.
+The committed benchmark runner can generate TD-1/2/4/8 fixtures from a
+committed replay dataset and Merkle artifact.
 
 Current proof results:
 

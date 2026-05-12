@@ -24,7 +24,7 @@ Current backend status:
 - Python artifact/verifier layer is implemented and regression-tested.
 - SP1 is selected as the first concrete proving backend.
 - `zk_backend/td_mvp/sp1/` contains a Rust SP1 workspace with `host`, `guest`, and `shared` crates.
-- Valid TD MVP SP1 proofs have been generated and verified for TD-1, TD-2, TD-4, and TD-8; single-transition and batch tamper cases are rejected.
+- Valid TD MVP SP1 proofs have been generated and verified for TD-1, TD-2, TD-4, and TD-8. Phase A now uses distinct replay minibatch fixtures for the main TD-1/2/4/8 path; duplicate, wrong-index, swapped-order, item-loss, path-order, and batch-average tampers are rejected.
 - The Week 5 implementation scope is locked in `docs/week5_artifact_package.md`.
 
 ## What Is Verified
@@ -33,7 +33,7 @@ The current Python verifiers check these relations over committed fixtures:
 
 - **Membership:** transition leaves match serialized transition data and authenticate to the public Merkle root.
 - **TD arithmetic:** Double-DQN target, TD error, and fixed-point SmoothL1 loss match the artifact witness.
-- **Batch loss:** minibatch average loss matches recomputed per-item losses.
+- **Distinct batch loss:** minibatch average loss matches recomputed per-item losses, with public ordered `leaf_indices` and duplicate-index rejection for distinct replay batches.
 - **Checkpoint anchoring:** checkpoint file SHA-256 and canonical online/target state-dict SHA-256 commitments match supplied checkpoints.
 - **Forward TD consistency:** TD witness values match actual checkpoint forward semantics.
 - **One-step update:** a simplified SGD update matches recomputed gradients, parameter deltas, learning rate, and pre/post checkpoints.
@@ -149,7 +149,8 @@ The full regression runner currently executes:
 7. One-step negative tests.
 8. Short-trace negative tests.
 9. Minibatch TD negative tests.
-10. TD MVP test-vector negative tests.
+10. Distinct TD-1/2/4/8 Python-only benchmark smoke.
+11. TD MVP test-vector negative tests.
 
 CI runs the same regression entrypoint through `.github/workflows/regression.yml`.
 
@@ -188,13 +189,13 @@ cargo run --release -p td-mvp-host -- --prove
 bash run_negative_cases.sh
 ```
 
-Week 3 benchmark/reproducibility command:
+Phase A distinct minibatch benchmark/reproducibility command:
 
 ```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 ```
 
-It writes `artifacts/benchmarks/sp1_td_mvp/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The latest full Kaggle run completed TD-1/2/4/8 with Python/SP1 agreement. TD-8 reached `275.077262s` prove time, `0.157424s` verify time, `2812327` proof bytes, and `2834727` cycles. The runner compares the Python semantic oracle and SP1 backend over the same valid/tampered TD MVP cases.
+It writes `artifacts/benchmarks/distinct_td_sp1/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The Python-only smoke path is `python3 scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1`. The earlier repeated-transition benchmark remains available as `benchmark_sp1_td_mvp.py`, but it is no longer the main paper-facing minibatch result.
 
 Week 5 locks the backend scope. Week 6 should focus on paper writing from the locked results, not on adding large backend features.
 
