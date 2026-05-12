@@ -4,7 +4,7 @@ import os
 import pickle
 from pathlib import Path
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 
@@ -52,8 +52,30 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--indices",
         type=str,
-        required=True,
-        help='Comma-separated minibatch indices, e.g. "0,1,2,3"',
+        default=None,
+        help=(
+            'Comma-separated minibatch indices, e.g. "0,1,2,3". '
+            "If omitted, --batch-size distinct indices are selected from "
+            "--start-index with --stride."
+        ),
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Number of distinct indices to select when --indices is omitted.",
+    )
+    parser.add_argument(
+        "--start-index",
+        type=int,
+        default=0,
+        help="First dataset index for automatic distinct-index selection.",
+    )
+    parser.add_argument(
+        "--stride",
+        type=int,
+        default=1,
+        help="Stride for automatic distinct-index selection.",
     )
     parser.add_argument(
         "--out",
@@ -75,6 +97,26 @@ def parse_indices(indices_str: str) -> List[int]:
         raise ValueError(f"Duplicate indices detected: {indices}")
 
     return indices
+
+
+def select_distinct_indices(
+    *,
+    explicit_indices: Optional[str],
+    batch_size: Optional[int],
+    start_index: int,
+    stride: int,
+) -> List[int]:
+    if explicit_indices is not None:
+        return parse_indices(explicit_indices)
+
+    if batch_size is None:
+        raise ValueError("Either --indices or --batch-size must be provided.")
+    if batch_size <= 0:
+        raise ValueError(f"batch_size must be positive, got {batch_size}")
+    if stride <= 0:
+        raise ValueError(f"stride must be positive, got {stride}")
+
+    return [start_index + stride * offset for offset in range(batch_size)]
 
 
 def load_transition_dataset(path: str) -> Dict[str, Any]:
@@ -201,8 +243,8 @@ def load_checkpoint_nets(
 
 def compute_td_witness(
     transition: Dict[str, Any],
-    online_net: nn.Module,
-    target_net: nn.Module,
+    online_net: torch.nn.Module,
+    target_net: torch.nn.Module,
 ) -> Dict[str, Any]:
     obs = torch.tensor(transition["obs"], dtype=torch.float32).unsqueeze(0)
     next_obs = torch.tensor(transition["next_obs"], dtype=torch.float32).unsqueeze(0)
@@ -256,7 +298,12 @@ def compute_td_witness(
 def main() -> None:
     args = parse_args()
 
-    indices = parse_indices(args.indices)
+    indices = select_distinct_indices(
+        explicit_indices=args.indices,
+        batch_size=args.batch_size,
+        start_index=args.start_index,
+        stride=args.stride,
+    )
 
     data = load_transition_dataset(args.data)
     dataset_size = get_dataset_size(data)
@@ -335,7 +382,11 @@ def main() -> None:
         "schema_version": SCHEMA_MINIBATCH_TD_V1,
         "public": {
             "dataset_root": dataset_root,
+            "fp_scale": zk_specs.SPECS.FP_SCALE,
+            "gamma_fp": zk_specs.SPECS.GAMMA_FP,
             "batch_size": batch_size,
+            "batch_mode": "distinct",
+            "leaf_indices": [int(item["index"]) for item in items],
             "loss_type": "smooth_l1",
             "batch_loss_fp": batch_loss_fp,
             "checkpoint_sha256": checkpoint_sha256,

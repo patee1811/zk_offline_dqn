@@ -33,6 +33,35 @@ CHECKPOINT_PATH = os.environ.get(
 )
 
 
+def verify_merkle_path_metadata(merkle_path, leaf_index: int):
+    expected_current_index = int(leaf_index)
+
+    for expected_level, step in enumerate(merkle_path):
+        level_ok = int(step["level"]) == expected_level
+        current_index = int(step["current_index"])
+        sibling_index = int(step["sibling_index"])
+        current_is_left = bool(step["current_is_left"])
+
+        current_ok = current_index == expected_current_index
+        if current_is_left:
+            sibling_ok = (
+                expected_current_index % 2 == 0
+                and sibling_index in {expected_current_index, expected_current_index + 1}
+            )
+        else:
+            sibling_ok = (
+                expected_current_index % 2 == 1
+                and sibling_index == expected_current_index - 1
+            )
+
+        if not (level_ok and current_ok and sibling_ok):
+            return False
+
+        expected_current_index //= 2
+
+    return True
+
+
 def verify_canonical_state_commitments(public, checkpoint_path: str):
     checkpoint = torch.load(
         checkpoint_path,
@@ -114,6 +143,8 @@ def main():
 
     dataset_root = public["dataset_root"]
     batch_size = int(public["batch_size"])
+    batch_mode = public.get("batch_mode")
+    claimed_leaf_indices = public.get("leaf_indices")
     loss_type = public["loss_type"]
     claimed_batch_loss_fp = int(public["batch_loss_fp"])
 
@@ -121,6 +152,8 @@ def main():
     print("artifact_path =", ARTIFACT_PATH)
     print("dataset_root =", dataset_root)
     print("batch_size =", batch_size)
+    print("batch_mode =", batch_mode)
+    print("leaf_indices =", claimed_leaf_indices)
     print("loss_type =", loss_type)
 
     if loss_type != "smooth_l1":
@@ -130,6 +163,17 @@ def main():
 
     all_items_ok = True
     total_loss_fp = 0
+    item_indices = [int(item["index"]) for item in items]
+    batch_size_ok = batch_size == len(items) and batch_size > 0
+    leaf_indices_match = (
+        True
+        if claimed_leaf_indices is None
+        else [int(index) for index in claimed_leaf_indices] == item_indices
+    )
+    distinct_required = batch_mode == "distinct" or claimed_leaf_indices is not None
+    distinct_indices_ok = (
+        True if not distinct_required else len(set(item_indices)) == len(item_indices)
+    )
 
     for i, item in enumerate(items):
         transition = item["transition"]
@@ -154,6 +198,10 @@ def main():
             merkle_path,
             dataset_root,
         )
+        path_metadata_ok = verify_merkle_path_metadata(
+            merkle_path=merkle_path,
+            leaf_index=int(item["index"]),
+        )
 
         reward_fp = recomputed_leaf[5]
         done_int = recomputed_leaf[-1]
@@ -175,6 +223,7 @@ def main():
             leaf_match
             and leaf_hash_match
             and merkle_ok
+            and path_metadata_ok
             and target_match
             and loss_match
         )
@@ -187,12 +236,13 @@ def main():
             f"leaf_match={leaf_match} "
             f"leaf_hash_match={leaf_hash_match} "
             f"merkle_ok={merkle_ok} "
+            f"path_metadata_ok={path_metadata_ok} "
             f"target_match={target_match} "
             f"loss_match={loss_match} "
             f"item_ok={item_ok}"
         )
 
-    recomputed_batch_loss_fp = total_loss_fp // batch_size
+    recomputed_batch_loss_fp = total_loss_fp // batch_size if batch_size > 0 else None
     batch_loss_match = recomputed_batch_loss_fp == claimed_batch_loss_fp
 
     expected_checkpoint_sha256 = public.get("checkpoint_sha256")
@@ -205,6 +255,9 @@ def main():
     )
 
     print("\n=== BATCH CHECK ===")
+    print("batch_size_ok =", batch_size_ok)
+    print("leaf_indices_match =", leaf_indices_match)
+    print("distinct_indices_ok =", distinct_indices_ok)
     print("total_loss_fp =", total_loss_fp)
     print("claimed_batch_loss_fp =", claimed_batch_loss_fp)
     print("recomputed_batch_loss_fp =", recomputed_batch_loss_fp)
@@ -242,6 +295,9 @@ def main():
 
     verification_passed = (
         all_items_ok
+        and batch_size_ok
+        and leaf_indices_match
+        and distinct_indices_ok
         and batch_loss_match
         and checkpoint_sha256_ok
         and canonical_checks["canonical_state_commitments_ok"]

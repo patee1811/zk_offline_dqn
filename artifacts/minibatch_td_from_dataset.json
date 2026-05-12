@@ -2,7 +2,16 @@
   "schema_version": "minibatch_td_v1",
   "public": {
     "dataset_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+    "fp_scale": 1000,
+    "gamma_fp": 990,
     "batch_size": 4,
+    "batch_mode": "distinct",
+    "leaf_indices": [
+      0,
+      1,
+      2,
+      3
+    ],
     "loss_type": "smooth_l1",
     "batch_loss_fp": 106,
     "checkpoint_sha256": "6f0fea11038d5f9bd69f48d8a4ee46523ce5d9772de6babf3570144576a79392",
@@ -686,9 +695,9 @@
     }
   ],
   "notes": {
-    "checkpoint_path": "models/offline_dqn_with_target_seed42_best.pt",
-    "data_path": "data/cartpole_dqn_eps010_transitions.pkl",
-    "merkle_path_source": "artifacts/cartpole_dqn_eps010_merkle.json",
+    "checkpoint_path": "models\\offline_dqn_with_target_seed42_best.pt",
+    "data_path": "data\\cartpole_dqn_eps010_transitions.pkl",
+    "merkle_path_source": "artifacts\\cartpole_dqn_eps010_merkle.json",
     "q_target_source": "double_dqn_target_net_at_online_argmax",
     "purpose": "minibatch TD artifact built directly from dataset + merkle + checkpoint",
     "commitment_note": "checkpoint_sha256 anchors the checkpoint file; online_state_dict_sha256 and target_state_dict_sha256 anchor canonical sorted state_dict tensor contents."

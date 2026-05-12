@@ -31,12 +31,12 @@ python scripts/artifacts_export/verify_td_mvp_test_vector.py
 python scripts/experiments/run_td_mvp_test_vector_negative_tests.py
 ```
 
-Python-only benchmark smoke, for machines without SP1:
+Python-only distinct minibatch benchmark smoke, for machines without SP1:
 
 ```powershell
-python scripts/experiments/benchmark_sp1_td_mvp.py `
+python scripts/experiments/benchmark_distinct_td_sp1.py `
   --skip-sp1 `
-  --out-dir artifacts/benchmarks/sp1_td_mvp_python_smoke
+  --out-dir artifacts/benchmarks/distinct_td_sp1_python_smoke
 ```
 
 ## SP1 Backend
@@ -51,19 +51,25 @@ cargo run --release -p td-mvp-host -- --prove
 bash run_negative_cases.sh
 ```
 
-Full SP1 benchmark/proof refresh from the repository root:
+Full Phase A distinct minibatch SP1 benchmark/proof refresh from the repository root:
 
 ```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 ```
 
 If the full run is unstable, prove one accepted case at a time:
 
 ```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove --prove-cases TD-1
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove --prove-cases TD-2
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove --prove-cases TD-4
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove --prove-cases TD-8
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-1
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-2
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-4
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-8
+```
+
+Legacy repeated-transition benchmark, kept for comparison only:
+
+```bash
+python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
 ```
 
 ## Short-Trace Benchmark
@@ -84,4 +90,6 @@ docs/week5_artifact_package.md
 docs/current_benchmark_snapshot.md
 artifacts/benchmarks/sp1_td_mvp/summary.md
 artifacts/benchmarks/sp1_td_mvp/benchmark_matrix.csv
+artifacts/benchmarks/distinct_td_sp1/summary.md
+artifacts/benchmarks/distinct_td_sp1/benchmark_matrix.csv
 ```

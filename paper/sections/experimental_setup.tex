@@ -26,13 +26,13 @@ one-step verification, short-trace verification, and negative tests.
 The SP1 benchmark is run on Linux, WSL2 Ubuntu, macOS, or Kaggle with:
 {\scriptsize
 \begin{verbatim}
-python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+python3 scripts/experiments/benchmark_distinct_td_sp1.py \
   --prove
 \end{verbatim}
 }
-The runner generates TD-1/2/4/8 accepted fixtures, generates proofs for the
-accepted cases, executes tampered cases, compares Python and SP1 outcomes, and
-writes JSON, CSV, and Markdown summaries.
+The runner generates TD-1/2/4/8 accepted fixtures from distinct committed replay
+transitions, generates proofs for the accepted cases, executes tampered cases,
+compares Python and SP1 outcomes, and writes JSON, CSV, and Markdown summaries.
 
 The SP1 negative suite can also be run directly from the SP1 workspace:
 {\scriptsize
@@ -47,16 +47,18 @@ bash run_negative_cases.sh
 The accepted benchmark matrix contains:
 \begin{itemize}[leftmargin=1.5em]
     \item TD-1: one Merkle membership plus one TD/SmoothL1 check;
-    \item TD-2, TD-4, TD-8: multiple Merkle memberships, per-item TD/SmoothL1
-    checks, and integer batch-average loss.
+    \item TD-2, TD-4, TD-8: distinct replay minibatches with multiple Merkle
+    memberships, public ordered leaf indices, per-item TD/SmoothL1 checks, and
+    integer batch-average loss.
 \end{itemize}
 
 The adversarial suite includes single-transition tampering of schema version,
 reward, fixed-point rounding, done flag, done-branch semantics, observation,
 leaf encoding, Merkle path, leaf index, path order, target-network value,
 claimed target, claimed loss, leaf hash, and TD error. Batch tampering covers
-claimed batch loss, batch size, item loss, item index, path order,
-target-network value, and fixed-point rounding.
+claimed batch loss, batch size, item loss, item index, duplicate index, swapped
+item order against public leaf indices, path order, target-network value, and
+fixed-point rounding.
 
 \subsection{Pre-ZK Extension Benchmarks}
 

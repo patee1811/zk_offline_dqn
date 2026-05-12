@@ -42,10 +42,11 @@ Run the full Python regression from the repository root:
 python scripts/experiments/run_full_regression.py
 ```
 
-Run the full SP1 benchmark on Linux, WSL2 Ubuntu, macOS, or Kaggle:
+Run the Phase A distinct minibatch SP1 benchmark on Linux, WSL2 Ubuntu, macOS,
+or Kaggle:
 
 ```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 ```
 
 Run the SP1 negative suite from the SP1 workspace:
