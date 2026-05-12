@@ -1,170 +1,130 @@
-\subsection{Evaluation Principle}
+\subsection{Python Regression}
 
-Unless otherwise noted, all claims in this section are based on \emph{100-episode re-evaluation} of the best checkpoint selected during training. We use short 10-episode evaluations only for model selection, because they are cheaper but noticeably noisier. This distinction is important: several runs show optimistic early spikes under 10-episode evaluation that do not fully survive longer re-evaluation.
-
-\subsection{Main Benchmark on the Behavior Dataset}
-
-\Cref{tab:dqn010-main} reports the main comparison on the narrow behavior dataset \texttt{dqn\_eps010}. Three patterns are immediate.
-
-First, naive offline Double DQN is consistently weak on this dataset. Across the three seeds, its 100-episode re-evaluation means are only 31.50, 54.25, and 94.68. The aggregate across-seed mean is 60.14, which is far below the other baselines.
-
-Second, behavior cloning is strong on the same dataset. Its seed-wise re-evaluation means are 392.87, 461.88, and 398.19, with an across-seed mean of 417.65. This indicates that \texttt{dqn\_eps010} contains useful action supervision even though it is not favorable to naive bootstrapped value learning.
-
-Third, CQL-lite largely closes the gap between imitation and offline value learning. Its seed-wise re-evaluation means are 416.14, 341.79, and 447.42, with an across-seed mean of 401.78. While CQL-lite does not dominate BC on every seed, it dramatically outperforms naive offline Double DQN and is competitive with the strongest imitation baseline.
-
-\begin{table}[!t]
-\centering
-\footnotesize
-\caption{Main results on \texttt{dqn\_eps010}. Seed rows report 100-episode re-evaluation mean $\pm$ standard deviation for the best checkpoint of that seed. Aggregate rows report the mean $\pm$ standard deviation \emph{across seed-wise means}, not across individual evaluation episodes.}
-\label{tab:dqn010-main}
-\begin{tabular}{llcc}
-\toprule
-Method & Seed & Best step & Return \\
-\midrule
-Offline Double DQN & 42  & 500  & 31.50 $\pm$ 3.97 \\
-Offline Double DQN & 123 & 500  & 54.25 $\pm$ 18.14 \\
-Offline Double DQN & 999 & 500  & 94.68 $\pm$ 22.42 \\
-Offline Double DQN & aggregate & --- & 60.14 $\pm$ 32.00 \\
-\midrule
-Behavior Cloning & 42  & 500  & 392.87 $\pm$ 132.02 \\
-Behavior Cloning & 123 & 500  & 461.88 $\pm$ 74.95 \\
-Behavior Cloning & 999 & 500  & 398.19 $\pm$ 100.15 \\
-Behavior Cloning & aggregate & --- & 417.65 $\pm$ 38.40 \\
-\midrule
-CQL-lite ($\alpha=1.0$) & 42  & 3500 & 416.14 $\pm$ 127.72 \\
-CQL-lite ($\alpha=1.0$) & 123 & 4500 & 341.79 $\pm$ 127.82 \\
-CQL-lite ($\alpha=1.0$) & 999 & 5000 & 447.42 $\pm$ 105.85 \\
-CQL-lite ($\alpha=1.0$) & aggregate & --- & 401.78 $\pm$ 54.26 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\Cref{fig:dqn010-method-comparison} visualizes the same result at the method level. The plot makes the central story visually clear: on the committed-style narrow behavior dataset, imitation and conservative offline RL occupy a high-performance regime, while naive offline Double DQN remains in a low-performance regime.
-
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.86\linewidth]{figures/dqn_eps010_method_comparison.png}
-\caption{Method-level comparison on \texttt{dqn\_eps010}. Bars show the mean of the seed-wise 100-episode returns; error bars show standard deviation across seeds; dots show individual seeds.}
-\label{fig:dqn010-method-comparison}
-\end{figure}
-
-\subsection{Dataset--Method Interaction Benchmark}
-
-The broader benchmark is summarized in \Cref{tab:dataset-method-benchmark}. The key point is that dataset quality cannot be discussed independently of the learning algorithm.
-
-\begin{table*}[!t]
-\centering
-\small
-\caption{Cross-dataset benchmark summary. Numerical entries are 100-episode re-evaluation means when available. ``Qualitative'' indicates that the current draft only supports a robust qualitative conclusion rather than a complete multi-seed numeric comparison.}
-\label{tab:dataset-method-benchmark}
-\begin{tabular}{p{4.5cm} p{3.5cm} p{8.5cm}}
-\toprule
-Dataset & Method & Result / observation \\
-\midrule
-\texttt{random\_matched} & Offline Double DQN & Very strong on seed 42 (479.86) and seed 999 (487.48), but catastrophic on seed 123 (15.56); strong seed sensitivity. \\
-\texttt{random\_matched} & Behavior Cloning & Weak on the measured seed (35.23); random data is poor for imitation. \\
-\texttt{dqn\_eps010} & Offline Double DQN & Consistent collapse across seeds: 31.50, 54.25, 94.68. \\
-\texttt{dqn\_eps010} & Behavior Cloning & Strong and comparatively stable: 392.87, 461.88, 398.19. \\
-\texttt{dqn\_eps010} & CQL-lite & Strong and competitive with BC: 416.14, 341.79, 447.42. \\
-\texttt{mixed\_random50\_dqn010} & Offline Double DQN & Qualitatively poor; best checkpoints appear extremely early and final performance remains weak. \\
-\texttt{mixed\_random20\_dqn010} & Offline Double DQN & Qualitatively poor; simple transition-level mixing does not rescue learning in the current pipeline. \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\subsection{Why the Mixed Datasets Do Not Help}
-
-A natural hypothesis is that adding random transitions to a narrow behavior dataset should improve coverage and therefore rescue offline Double DQN. In the current experiments, that hypothesis is not supported. Both \texttt{mixed\_random50\_dqn010} and \texttt{mixed\_random20\_dqn010} remain poor under the present trainer.
-
-This negative result is important. It suggests that transition-level mixing is not automatically beneficial: low-quality and high-quality data may interact in a way that degrades the target distribution seen by the value learner. Put differently, dataset composition matters not only through marginal coverage statistics, but also through how the induced backup targets behave during offline training.
-
-\subsection{Preliminary Verification Results on Committed Minibatches}
-
-In addition to the RL baseline results above, we evaluated the pre-ZK one-step update prototype on multiple committed minibatches. The goal of this experiment is not to claim a full proof of training, but to test whether the statement structure remains internally consistent across different minibatch sizes. In all tested runs, the exporter successfully produced a one-step update artifact and the verifier accepted it after checking membership, TD arithmetic, batch-loss consistency, gradient recomputation, parameter-delta consistency, SGD update consistency, checkpoint anchoring, and target-network invariance.
-
-\begin{table*}[!t]
-\centering
-\small
-\caption{Preliminary one-step update verification results across minibatch sizes.}
-\label{tab:one_step_verification}
-\begin{tabular}{c c c c c}
-\toprule
-Batch size & Batch indices & Batch loss (fp) & Export time (s) & Verify time (s) \\
-\midrule
-1  & \texttt{[0]} & 80  & 2.5105 & 1.5538 \\
-2  & \texttt{[0,1]} & 123 & 2.7638 & 1.4984 \\
-4  & \texttt{[0,1,2,3]} & 106 & 2.6312 & 1.5235 \\
-8  & \texttt{[0,\dots,7]} & 99  & 2.7076 & 1.5544 \\
-16 & \texttt{[0,\dots,15]} & 98 & 2.6446 & 1.5396 \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-All five configurations achieved successful verification. Across the tested range, artifact export time remained between approximately $2.51$ and $2.76$ seconds, while verification time remained between approximately $1.50$ and $1.55$ seconds. Although these timings come from a Python pre-ZK artifact/verifier pipeline rather than a cryptographic proving backend, they show that the current one-step statement is already experimentally stable across multiple committed minibatch sizes.
-
-These results should be interpreted carefully. The current one-step statement still verifies only a single SGD update with explicit minibatch indices and a fixed target network inside that local statement. By itself, it does not establish correctness of a longer training process. The stronger multi-step extension is evaluated in the next subsection, where consecutive one-step updates are composed into short verified training traces.
-
-\subsection{Short-Trace Verification with Deterministic Sampling-Rule Enforcement}
-
-We further strengthened the pre-ZK short-trace prototype by adding deterministic sampling-rule enforcement to the short verified training trace. Instead of accepting only explicitly provided minibatch indices, the exporter and verifier now both enforce a declared contiguous deterministic schedule with public batch size and start offset. Concretely, for step index $t$, batch size $k$, and start offset $s$, the expected minibatch is defined as:
-\[
-B_t = [s + tk,\; s + tk + 1,\; \dots,\; s + tk + (k-1)].
-\]
-
-This strengthens the statement from
-``the provided minibatch is valid and the update trace is correct''
-to
-``the provided minibatch is valid, was chosen according to a declared public rule, and the update trace is correct.''
-
-Our initial experiments established successful verification for 2-step traces with target synchronization applied every two steps. We then extended the benchmark to 4-step and 8-step traces, again with synchronization applied every two steps. Finally, we added deterministic sampling-rule enforcement to the 8-step benchmark using public start offsets and batch sizes. Across all tested runs, artifact export completed successfully, verification completed successfully, and the final result was accepted by the trace verifier.
-
-\begin{table*}[!t]
-\centering
-\small
-\caption{Preliminary short-trace verification results from 2-step to 8-step update traces. All runs achieved successful verification.}
-\label{tab:short_trace_verification}
-\begin{tabular}{c c c c c}
-\toprule
-Setting & Num. steps & Batch size per step & Export time (s) & Verify time (s) \\
-\midrule
-2-step trace A & 2 & 4 & 7.1569 & 4.3969 \\
-2-step trace B & 2 & 4 & 6.6204 & 4.1650 \\
-2-step trace C & 2 & 8 & 6.4856 & 4.3233 \\
-\midrule
-4-step trace A & 4 & 4 & 11.9230 & 7.2138 \\
-4-step trace B & 4 & 4 & 12.0252 & 7.2160 \\
-4-step trace C & 4 & 8 & 11.9653 & 7.5476 \\
-\midrule
-8-step trace A & 8 & 4 & 22.7587 & 13.2464 \\
-8-step trace B & 8 & 4 & 22.8837 & 12.9394 \\
-8-step trace C & 8 & 8 & 22.9010 & 13.7016 \\
-\bottomrule
-\end{tabular}
-\end{table*}
+The locked Python regression contains ten checks and passes all of them:
 
 \begin{table}[!t]
 \centering
 \small
-\caption{Locked 8-step short-trace benchmark with deterministic sampling-rule enforcement.}
-\label{tab:short_trace_sampling_rule}
-\begin{tabular}{c c c c c}
+\caption{Locked Python regression status.}
+\label{tab:python-regression}
+\begin{tabular}{lc}
 \toprule
-Run & Start offset & Batch size & Export time (s) & Verify time (s) \\
+Check group & Status \\
 \midrule
-Run 0 & 0  & 4 & 21.9907 & 13.4818 \\
-Run 1 & 32 & 4 & 23.2580 & 13.6440 \\
-Run 2 & 0  & 8 & 22.4650 & 14.0169 \\
+Compile checks & pass \\
+TD/minibatch artifact verifier & pass \\
+Forward TD consistency verifier & pass \\
+One-step update verifier & pass \\
+Short-trace contiguous verifier & pass \\
+Short-trace seeded verifier & pass \\
+One-step negative tests & pass \\
+Short-trace negative tests & pass \\
+Minibatch TD negative tests & pass \\
+TD MVP test-vector negative tests & pass \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The progression from 2-step to 4-step and then to 8-step traces shows that the current short-trace pipeline is not limited to a tiny hand-crafted composition. Instead, it already supports longer multi-step verification while preserving checkpoint chaining and target-network synchronization consistency across the trace. The deterministic-sampling extension further strengthens this result: the verifier now checks not only that each update step is locally correct and globally chained, but also that the per-step minibatch indices match a declared public contiguous schedule.
+This regression matters because the Python verifier is the semantic oracle used
+to cross-check the SP1 backend. The SP1 result is therefore not evaluated in
+isolation: accepted and rejected TD fixtures are checked against the same
+reference semantics.
 
-The measured timings also suggest a simple scaling pattern in the current Python prototype. When the number of steps increases from 2 to 4 and then to 8, both export time and verification time increase in an approximately controlled manner. By contrast, within the tested 8-step traces, increasing the per-step minibatch size from 4 to 8 causes only a modest change in verification time. In this current range, the cost appears more sensitive to trace length than to this small change in per-step batch size.
+\subsection{SP1 Proof Benchmark}
 
-These results should still be interpreted as preliminary pre-ZK consistency results rather than cryptographic proving-time measurements. The current short-trace verifier checks only a small number of explicitly specified update steps, with a fixed SGD optimizer, a declared target synchronization schedule, and now a declared deterministic sampling rule. It does not yet verify long training traces beyond the present short-trace scale, general replay-sampling correctness, checkpoint selection logic, or a true zero-knowledge backend. Nevertheless, the short-trace results provide evidence that the project has already moved beyond isolated update verification toward verification of a small but nontrivial training process under a stricter public statement.
+\Cref{tab:sp1-proof-benchmark} reports the locked SP1 proof benchmark. The
+full run was generated on Kaggle at 2026-05-12T12:37:34Z with
+\texttt{benchmark\_sp1\_td\_mvp.py --prove}. All accepted cases generated and
+verified proofs.
 
-For the remainder of this draft, \Cref{tab:short_trace_sampling_rule} is treated as the current locked benchmark snapshot for short-trace verification under deterministic sampling-rule enforcement. This snapshot corresponds to the B3 short-trace artifact format: operational paths are supplied by the benchmark/runtime environment, while persistent short-trace artifacts no longer store Merkle or checkpoint paths in \texttt{notes}.
+\begin{table*}[!t]
+\centering
+\small
+\caption{Locked SP1 TD MVP proof benchmark. TD-1 proves one committed
+transition and TD arithmetic. TD-2/4/8 prove minibatch membership, per-item TD
+arithmetic, and public integer batch-average loss.}
+\label{tab:sp1-proof-benchmark}
+\begin{tabular}{l l c r r r r}
+\toprule
+Case & Relation & Batch & Prove (s) & Verify (s) & Proof bytes & Cycles \\
+\midrule
+TD-1 & Merkle + TD + SmoothL1 & 1 & 142.324547 & 0.157464 & 2782625 & 382915 \\
+TD-2 & Merkle + TD + SmoothL1 + avg. loss & 2 & 154.923089 & 0.157712 & 2787687 & 725309 \\
+TD-4 & Merkle + TD + SmoothL1 + avg. loss & 4 & 188.501940 & 0.155969 & 2795631 & 1425790 \\
+TD-8 & Merkle + TD + SmoothL1 + avg. loss & 8 & 275.077262 & 0.157424 & 2812327 & 2834727 \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
-\paragraph{Negative sanity check for sampling-rule enforcement.}
-To confirm that the stronger sampling-rule statement is actually enforced by the verifier rather than only by the exporter, we performed a simple tampering test. Starting from a valid 4-step short-trace artifact, we manually modified the public batch indices of step 1 from $[4,5,6,7]$ to $[5,6,7,8]$ while leaving the underlying per-step witness unchanged. The verifier then rejected the artifact: one-step verification, checkpoint chaining, and target-sync state checks still passed, but the public batch no longer matched the declared deterministic schedule, so the overall result became \texttt{verification\_passed = False}. This negative test provides direct evidence that the current verifier independently checks deterministic sampling-rule consistency rather than merely trusting the exported artifact structure.
+The results show two useful properties. First, proof size grows slowly across
+the tested minibatch sizes, from 2.78 MB at TD-1 to 2.81 MB at TD-8. Second,
+verification time remains approximately constant at 0.16 seconds. Proving time
+and cycle count increase with batch size, as expected, because each additional
+item adds another membership and TD check.
+
+\subsection{Python/SP1 Agreement and Tamper Rejection}
+
+The benchmark runner reports:
+\begin{verbatim}
+all_python_expected = True
+all_sp1_expected = True
+python_sp1_agreement = True
+\end{verbatim}
+The standalone SP1 negative suite also reports:
+\begin{verbatim}
+all_sp1_negative_cases_passed = true
+\end{verbatim}
+
+\Cref{tab:tamper-summary} summarizes the adversarial coverage. For each case,
+the expected outcome is rejection; Python and SP1 agree.
+
+\begin{table*}[!t]
+\centering
+\small
+\caption{Tamper rejection summary. Each tampered case is rejected by the Python
+semantic oracle and by SP1 execution.}
+\label{tab:tamper-summary}
+\begin{tabular}{p{4.2cm} p{9.8cm}}
+\toprule
+Group & Rejected cases \\
+\midrule
+Schema and fixed-point semantics &
+schema version, fixed-point rounding, terminal/non-terminal done branch \\
+Transition and commitment &
+reward, observation, leaf encoding, leaf hash, Merkle sibling, leaf index, path order \\
+TD witness and public claims &
+target-network value, claimed target, claimed loss, TD error \\
+Batch aggregation &
+claimed batch loss, public batch size, item loss, item index, batch path order, batch target value, batch rounding \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+These negative tests are not a substitute for a formal security proof of the
+entire system, but they are important engineering evidence. They show that the
+backend is checking the intended relation rather than accepting arbitrary
+well-formed JSON or trusting host-side prechecks.
+
+\subsection{Pre-ZK One-Step and Short-Trace Context}
+
+The Python extension layer verifies a one-step SGD update artifact and an
+8-step short trace with checkpoint chaining, target-network synchronization,
+and deterministic contiguous sampling-rule enforcement. The locked short-trace
+benchmark uses 8 update steps, target synchronization every two steps, and
+batch sizes 4 or 8. Representative verification times are 13.48 s, 13.64 s,
+and 14.02 s for the three locked 8-step runs.
+
+These results are reported only as context. They support the claim that the
+artifact design has a plausible path from TD proofs toward update and trace
+proofs. They do not change the cryptographic claim of this paper, which is
+limited to the SP1 TD/minibatch-TD backend.
+
+\subsection{Offline RL Context}
+
+The repository also contains offline RL baseline results on the committed-style
+\texttt{dqn\_eps010} dataset. Naive offline Double DQN is weak on this narrow
+behavior dataset, while behavior cloning and CQL-lite are much stronger. The
+aggregate 100-episode returns are 60.14 for naive offline Double DQN, 417.65
+for behavior cloning, and 401.78 for CQL-lite. This observation is not the
+central contribution, but it motivates why future proof-of-update work should
+focus on learning rules that are empirically meaningful in the offline regime.

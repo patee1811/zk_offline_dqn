@@ -1,6 +1,6 @@
 # ZK-Offline-DQN
 
-> Pre-ZK verification prototype for offline Deep Q-Network training from committed trajectories.
+> ZK-backed TD verification prototype for offline Deep Q-Network training from committed trajectories.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
@@ -9,7 +9,7 @@
 
 ## Status
 
-This repository is a research prototype for verification-oriented offline RL. It is **not** a full zero-knowledge proof-of-training system yet.
+This repository is a research prototype for verification-oriented offline RL. It is **not** a full zero-knowledge proof-of-training system.
 
 Current contribution:
 
@@ -17,14 +17,15 @@ Current contribution:
 - export verification-friendly TD, one-step, and short-trace artifacts;
 - verify committed-data membership, Bellman targets, SmoothL1 TD losses, checkpoint/model-state commitments, one-step SGD consistency, short trace chaining, target sync semantics, and deterministic sampling rules;
 - run negative tamper tests and CI regression over committed fixtures;
-- implement the first SP1 TD MVP proof for Merkle membership + TD arithmetic.
+- implement SP1 TD and minibatch-TD MVP proofs for Merkle membership + TD arithmetic.
 
 Current backend status:
 
 - Python artifact/verifier layer is implemented and regression-tested.
 - SP1 is selected as the first concrete proving backend.
 - `zk_backend/td_mvp/sp1/` contains a Rust SP1 workspace with `host`, `guest`, and `shared` crates.
-- A valid TD MVP SP1 proof has been generated and verified in WSL2 Ubuntu; initial tamper cases are rejected.
+- Valid TD MVP SP1 proofs have been generated and verified for TD-1, TD-2, TD-4, and TD-8; single-transition and batch tamper cases are rejected.
+- The Week 5 implementation scope is locked in `docs/week5_artifact_package.md`.
 
 ## What Is Verified
 
@@ -169,16 +170,13 @@ target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
-Current SP1 smoke result:
+Current SP1 proof snapshot:
 
 ```text
-proof_generated = true
-proof_verified = true
-proving_time_sec = 66.668891
-verification_time_sec = 0.088947
-proof_size_bytes = 2782588
-cycle_count = 365501
-all_sp1_negative_cases_passed = true
+TD-1 prove_time_sec = 142.324547, verify_time_sec = 0.157464, proof_size_bytes = 2782625, cycle_count = 382915
+TD-2 prove_time_sec = 154.923089, verify_time_sec = 0.157712, proof_size_bytes = 2787687, cycle_count = 725309
+TD-4 prove_time_sec = 188.501940, verify_time_sec = 0.155969, proof_size_bytes = 2795631, cycle_count = 1425790
+TD-8 prove_time_sec = 275.077262, verify_time_sec = 0.157424, proof_size_bytes = 2812327, cycle_count = 2834727
 ```
 
 Core SP1 commands should be run on Linux/macOS or WSL2 Ubuntu:
@@ -196,19 +194,21 @@ Week 3 benchmark/reproducibility command:
 python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
 ```
 
-It writes `artifacts/benchmarks/sp1_td_mvp/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The latest runs completed TD-1 on WSL2 and TD-2/4/8 on Kaggle. TD-8 reached `340.160048s` prove time, `0.201657s` verify time, `2812327` proof bytes, and `2834727` cycles. The runner compares the Python semantic oracle and SP1 backend over the same valid/tampered TD MVP cases.
+It writes `artifacts/benchmarks/sp1_td_mvp/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The latest full Kaggle run completed TD-1/2/4/8 with Python/SP1 agreement. TD-8 reached `275.077262s` prove time, `0.157424s` verify time, `2812327` proof bytes, and `2834727` cycles. The runner compares the Python semantic oracle and SP1 backend over the same valid/tampered TD MVP cases.
 
-Next backend work is stronger adversarial tests, cleaner benchmark packaging, and artifact packaging.
+Week 5 locks the backend scope. Week 6 should focus on paper writing from the locked results, not on adding large backend features.
 
 RISC Zero remains the main later comparison backend. Circuit-oriented backends such as Noir, Circom, and Halo2 are deferred until the relation is stable.
 
 ## Canonical Docs
 
+- `docs/README.md`: documentation index and canonical command map.
 - `docs/artifact_schema.md`: artifact schema and witness/public/debug field classification.
 - `docs/zk_backend_mvp.md`: smallest backend-ready ZK statement.
 - `docs/backend_selection_v0_12.md`: SP1 decision.
 - `docs/threat_model.md`: threat model and non-goals.
 - `docs/current_benchmark_snapshot.md`: locked benchmark snapshot.
+- `docs/week5_artifact_package.md`: locked implementation scope, commands, benchmark table, tamper table, limitations, and submission recommendation.
 - `docs/dev_commands.md`: local developer command notes.
 
 ## License

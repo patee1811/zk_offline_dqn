@@ -1,7 +1,30 @@
-We study zero-knowledge verifiable offline DQN training from committed trajectories. The goal is to let a verifier check that key offline reinforcement-learning computations are carried out correctly on a pre-committed dataset without revealing the underlying transitions, rewards, or model weights.
+Offline reinforcement learning makes it possible to train policies from a fixed
+trajectory dataset, but it also creates a verification problem: a model producer
+may claim that temporal-difference computations were performed over a particular
+dataset without revealing the raw trajectories or intermediate model values. We
+study this problem for offline Deep Q-Network (DQN) training over committed
+trajectory data. The contribution is intentionally scoped: we do not claim a
+full proof of DQN training. Instead, we build a reproducible verification
+pipeline whose cryptographic backend proves the correctness of the
+reinforcement-learning-specific temporal-difference (TD) computation.
 
-Our current system is a pre-ZK artifact/verifier prototype rather than a full cryptographic proof-of-training backend. We first commit the offline dataset with a Merkle-style data-commitment pipeline, then export verification artifacts for committed transition membership, Bellman target correctness, TD-loss correctness, minibatch-loss consistency, and checkpoint anchoring. We further strengthen this prototype with a one-step update statement that checks gradient recomputation, parameter-delta consistency, SGD update consistency, and target-network invariance for a committed minibatch.
+The system commits an offline CartPole transition dataset with a Merkle tree,
+exports canonical fixed-point TD witnesses, and implements an SP1 zkVM backend
+for single-transition and minibatch TD statements. The proved relation checks
+transition membership in the committed dataset, canonical leaf hashing, Merkle
+path recomputation, terminal and non-terminal Bellman target semantics, TD error
+recomputation, SmoothL1 loss recomputation, and public target/loss or
+batch-loss consistency. A Python verifier is retained as the semantic oracle and
+as a pre-ZK extension path for one-step SGD update checks and short trace
+chaining.
 
-Beyond isolated one-step verification, we also evaluate short verified training traces by chaining consecutive verified update steps with explicit checkpoint consistency and target-network synchronization semantics. Our current benchmark supports successful verification for 2-step, 4-step, and 8-step traces. We additionally strengthen the 8-step setting with deterministic contiguous sampling-rule enforcement using public batch size and start offset, include a negative sanity check showing rejection of tampered public batch indices, and clean up the short-trace artifact contract so that operational paths are supplied by the runtime rather than stored as persistent statement metadata.
-
-These results should be interpreted as preliminary pre-ZK consistency results rather than end-to-end zero-knowledge proof-of-training results. Nevertheless, they provide evidence that offline DQN training on committed trajectories can be structured into meaningful verifiable statements that progress from TD arithmetic, to one-step update correctness, to short process-level training-trace verification under a stricter public sampling rule.
+In the locked benchmark, SP1 proves TD-1, TD-2, TD-4, and TD-8 cases with proof
+sizes from 2.78 MB to 2.81 MB and proving times from 142.32 s to 275.08 s on
+the recorded Kaggle run. Verification time is approximately 0.16 s for all four
+cases. Python and SP1 agree on the valid fixtures and on an adversarial suite
+covering schema, reward, rounding, done-branch, Merkle path, target-value,
+claimed-output, and batch-aggregation tampering. These results demonstrate a
+working ZK-backed TD verification pipeline for offline DQN over committed
+trajectories, while making explicit that neural-network forward passes,
+gradients, optimizer updates, checkpoint-to-checkpoint transitions, and full
+proof-of-training remain outside the current backend.

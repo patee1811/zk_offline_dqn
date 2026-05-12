@@ -107,19 +107,15 @@ The extended suite covers:
 - batch aggregation tamper;
 - batch item index/path/value/rounding tamper.
 
-## Current Smoke Results
+## Current Proof Results
 
-Recorded on 2026-05-11 in WSL2 Ubuntu.
-
-Valid TD MVP proof:
+The latest full benchmark run was generated on Kaggle at
+`2026-05-12T12:37:34.964280+00:00`.
 
 ```text
-proof_generated = true
-proof_verified = true
-proving_time_sec = 66.668891
-verification_time_sec = 0.088947
-proof_size_bytes = 2782588
-cycle_count = 365501
+all_python_expected = True
+all_sp1_expected = True
+python_sp1_agreement = True
 ```
 
 Initial negative cases:
@@ -150,13 +146,26 @@ Implemented relation checks:
 - integer batch-average loss `sum(loss_fp) // batch_size`;
 - batch aggregation negative cases for claimed loss, batch size, item loss, and item index.
 
-The committed benchmark runner can generate TD-2/4/8 fixtures from the canonical single-transition vector. Fresh SP1 timings for TD-2/4/8 should be recorded after running `python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove` in WSL2 Ubuntu.
+The committed benchmark runner can generate TD-2/4/8 fixtures from the
+canonical single-transition vector.
 
 Current proof results:
 
-- TD-2 proof completed on Kaggle: `192.414547s` prove, `0.196456s` verify, `2787687` proof bytes, `725309` cycles.
-- TD-4 proof completed on Kaggle: `234.509679s` prove, `0.199258s` verify, `2795631` proof bytes, `1425790` cycles.
-- TD-8 proof completed on Kaggle: `340.160048s` prove, `0.201657s` verify, `2812327` proof bytes, `2834727` cycles.
+- TD-1 proof completed on Kaggle: `142.324547s` prove, `0.157464s` verify, `2782625` proof bytes, `382915` cycles.
+- TD-2 proof completed on Kaggle: `154.923089s` prove, `0.157712s` verify, `2787687` proof bytes, `725309` cycles.
+- TD-4 proof completed on Kaggle: `188.501940s` prove, `0.155969s` verify, `2795631` proof bytes, `1425790` cycles.
+- TD-8 proof completed on Kaggle: `275.077262s` prove, `0.157424s` verify, `2812327` proof bytes, `2834727` cycles.
+
+## Week 5 Locked Scope
+
+Week 5 locks the backend implementation at SP1 TD-1/2/4/8 plus Python
+pre-ZK one-step and short-trace extensions. Do not add large backend features
+before the paper rewrite. The artifact package, final claim, benchmark table,
+tamper table, and limitation notes are in:
+
+```text
+docs/week5_artifact_package.md
+```
 
 ## Non-Goals
 

@@ -74,7 +74,9 @@ loss_fp
 
 ## Intended Use
 
-A future zkVM or circuit backend should use this file as a minimal compatibility target.
+The SP1 backend uses this file as the canonical single-transition
+compatibility target. Future zkVM or circuit backends should use the same file
+to compare semantics.
 
 The backend should accept the valid test vector and reject tampered variants such as:
 

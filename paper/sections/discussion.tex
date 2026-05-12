@@ -1,25 +1,74 @@
-The results support a sharper interpretation than a simple ``better dataset / worse dataset'' story. We organize the discussion around three themes: dataset--method interaction, implications for verifiable RL, and current limitations.
+\subsection{What Has Been Proved}
 
-\subsection{Dataset Suitability Is Method-Dependent}
+The current system proves a precise statement: a private transition or minibatch
+belongs to a committed trajectory dataset, and the fixed-point TD target, TD
+error, SmoothL1 loss, and public claimed outputs are recomputed correctly. This
+is a meaningful RL-specific statement because it includes terminal branch
+semantics, Bellman backup arithmetic, committed replay membership, and
+minibatch aggregation.
 
-\begin{enumerate}[leftmargin=1.5em]
-    \item \textbf{The same fixed dataset can be highly effective for imitation, highly unstable for naive offline Q-learning, and substantially improved by a conservative objective.} On \texttt{dqn\_eps010}, behavior cloning achieves 417.65 across-seed mean return while naive offline Double DQN achieves only 60.14. CQL-lite recovers to 401.78, demonstrating that the learning algorithm, not merely the data, determines offline performance.
-    \item \textbf{Coverage and behavior quality play different roles.} Broad random data helps bootstrapped offline value learning~\cite{levine2020offline}, whereas narrow high-return behavior data is better aligned with imitation. This is consistent with the distribution-shift analysis of offline RL~\cite{fujimoto2019offpolicy, kumar2020cql}.
-    \item \textbf{Conservative objectives are a promising bridge.} CQL-lite~\cite{kumar2020cql} retains the value-learning structure needed for Bellman-style proof statements, but behaves much more reliably than naive offline Double DQN on the dataset most naturally aligned with committed trajectories.
-\end{enumerate}
+The main engineering result is that this statement is not only checked by a
+Python script. It is implemented in a concrete SP1 zkVM backend, benchmarked
+with proof generation and verification, and tested against a negative suite
+that agrees with the Python semantic oracle.
 
-\subsection{Implications for Verifiable Reinforcement Learning}
+\subsection{What Has Not Been Proved}
 
-These findings matter directly for the zero-knowledge agenda. A proof system should not begin by certifying a training rule that is empirically unstable on the target data regime. In our setting, naive offline Double DQN captures the right computational structure but has the wrong empirical behavior on \texttt{dqn\_eps010}. Behavior cloning is stable, but it does not exercise Bellman targets and therefore produces weaker proof statements. CQL-lite is therefore the most promising current foundation for a verifiable offline RL pipeline: it still uses Bellman-style computations, yet it behaves robustly enough to justify proving those computations in the first place.
+The paper deliberately avoids claiming full proof-of-training. The current SP1
+backend does not prove:
+\begin{itemize}[leftmargin=1.5em]
+    \item neural-network forward passes;
+    \item argmax action selection;
+    \item target-network forward evaluation;
+    \item SmoothL1 gradients or backpropagation;
+    \item optimizer updates;
+    \item checkpoint-to-checkpoint consistency;
+    \item target-network synchronization over long traces;
+    \item replay-sampling correctness over a full training run;
+    \item model selection, early stopping, or best-checkpoint choice.
+\end{itemize}
+The Q-values in the SP1 TD statement are witness values. Python forward
+consistency checks exist, but they are outside the ZK backend.
 
-The preliminary verification results (\Cref{tab:one_step_verification}) further demonstrate that the one-step update statement is experimentally stable across tested minibatch sizes, with both export and verification times remaining approximately constant in the current Python prototype. The short-trace results (\Cref{tab:short_trace_verification,tab:short_trace_sampling_rule}) then show that the same step-level statement can be composed into small process-level training traces with checkpoint chaining, explicit target-network synchronization semantics, and deterministic contiguous sampling-rule enforcement. This is a stronger result than isolated one-step verification, while still remaining well short of a full proof of training.
+\subsection{Why the Scoped Claim Is Still Useful}
 
-\subsection{Current Limitations}
+A narrow claim is not a weakness if it is the right decomposition point.
+Offline DQN training contains several distinct verifiability problems:
+membership in committed trajectories, TD arithmetic, neural-network evaluation,
+gradient computation, optimizer semantics, and trace composition. The present
+work resolves the first backend layer and gives a tested artifact path for the
+next layers. In a Q1 systems/security framing, the contribution should be read
+as a reproducible ZK-backed verification pipeline for the RL-specific TD layer,
+not as an end-to-end zkML training system.
 
-Several limitations should be noted. First, the experiments are conducted only on CartPole-v1~\cite{brockman2016gym}, which has a low-dimensional state space and a small discrete action space. The scalability of both the offline RL analysis and the verification pipeline to higher-dimensional environments remains an open question.
+\subsection{Scalability}
 
-Second, the fixed-point arithmetic uses a scale factor of $S = 1000$, which introduces quantization error. While this is sufficient for the current prototype, higher precision may be required for more complex environments or deeper networks.
+The locked SP1 benchmark is prototype-scale. Proof generation takes minutes for
+the TD-1/2/4/8 cases, while verification is fast. Proof size is roughly stable
+across the tested cases. This is encouraging for artifact-level verification,
+but it is far from sufficient for full training traces. Scaling to real update
+proofs will require proving neural-network operations, aggregating many update
+steps, and likely using recursion or specialized circuits for repeated linear
+algebra.
 
-Third, the current implementation verifies only short traces, not a full training run. The repository now supports 2-step, 4-step, and 8-step pre-ZK traces with target synchronization and deterministic contiguous sampling-rule enforcement, but a full proof of training would require scaling this idea to many more steps, richer sampling rules, and the checkpoint-selection procedure used by training.
+\subsection{Benchmark Scope}
 
-Fourth, no true zero-knowledge proving backend has been implemented. The current system is a Python artifact-verifier prototype that enforces the intended statement structure but does not yet provide zero-knowledge or succinctness properties. The measured export and verification times should therefore be interpreted as prototype artifact/verifier timings rather than cryptographic proving or proof-verification times.
+The TD-2/4/8 fixtures repeat the canonical TD item to exercise multiple
+memberships, per-item relation checks, and batch aggregation. This is useful
+for validating the minibatch relation, but it is not yet a diverse sampled
+replay-batch benchmark. A stronger future artifact should generate TD-2/4/8
+fixtures from distinct committed transitions while preserving the same public
+statement.
+
+\subsection{Submission Positioning}
+
+For a Q1 journal submission, the paper should be positioned as a
+security/systems artifact. The strongest defensible claim is:
+\begin{quote}
+ZK-backed offline DQN TD and minibatch-TD verification over committed
+trajectory data, with Python pre-ZK extensions for one-step update and
+short-trace verification.
+\end{quote}
+The paper should not be positioned as solving full verifiable RL training.
+Reviewers should be able to see exactly which relation is proved, which
+relations are checked only in Python, and which parts remain future work.

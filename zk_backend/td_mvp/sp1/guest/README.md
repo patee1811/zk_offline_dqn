@@ -1,8 +1,9 @@
-# SP1 Guest Skeleton
+# SP1 Guest
 
-No guest implementation exists yet.
+This crate is the SP1 guest program for the TD MVP relation.
 
-The future guest should enforce the TD MVP relation:
+The guest reads a typed `TdMvpInput`, calls `td_mvp_shared::verify_td_mvp`,
+and commits the public output. The shared verifier enforces:
 
 ```text
 leaf == SerializeTransition(transition)
@@ -11,26 +12,15 @@ MerkleVerify(leaf_hash, merkle_path, dataset_root) == true
 target_fp == reward_fp if done else reward_fp + (gamma_fp * q_target_max_fp) // fp_scale
 td_error_fp == q_online_action_fp - target_fp
 loss_fp == SmoothL1(td_error_fp)
-target_fp == claimed_target_fp
-loss_fp == claimed_loss_fp
+target/loss or batch-loss public claims match recomputation
 ```
 
-Current arithmetic convention:
+Supported schemas:
 
 ```text
-fp_scale = 1000
-gamma_fp = 990
-loss_type = smooth_l1
-FixedPointMul(a, b, scale) = (a * b) // scale
+td_mvp_test_vector_v1
+td_mvp_batch_test_vector_v1
 ```
 
-SmoothL1 convention:
-
-```text
-if abs(td_error_fp) < fp_scale:
-    loss_fp = (abs(td_error_fp) * abs(td_error_fp)) // (2 * fp_scale)
-else:
-    loss_fp = abs(td_error_fp) - fp_scale // 2
-```
-
-The first guest should not prove neural-network forward semantics, gradients, optimizer updates, or training traces.
+Non-goals for this guest remain neural-network forward semantics, argmax proof,
+gradient proof, optimizer proof, trace proof, and recursive aggregation.

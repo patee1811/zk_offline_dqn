@@ -1,246 +1,111 @@
 # Current Benchmark Snapshot
 
-## Locked benchmark milestone
+This file records the current benchmark state used by the repository outside
+`paper/`. The authoritative Week 5 package is
+`docs/week5_artifact_package.md`.
 
-This file records the current benchmark milestone that should be treated as the canonical reference point for the repository and paper draft.
+## Python Regression
 
-Last refreshed on 2026-05-02 from:
-- `artifacts/benchmarks/short_trace_update/summary.json`
-- `artifacts/benchmarks/short_trace_update/summary.csv`
-
-### Main short-trace benchmark currently locked
-
-Sampling rule:
-- `sampling_rule_type = contiguous_deterministic`
-
-Trace setting:
-- `num_steps = 8`
-- `target_sync_every = 2`
-
-### Run 0
-- `start_offset = 0`
-- `batch_size = 4`
-- `trace_batch_indices = [[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],[16,17,18,19],[20,21,22,23],[24,25,26,27],[28,29,30,31]]`
-- `export_time_sec = 21.9907`
-- `verify_time_sec = 13.4818`
-- `verification_passed = True`
-- `initial_checkpoint_sha256 = 6f0fea11038d5f9bd69f48d8a4ee46523ce5d9772de6babf3570144576a79392`
-- `final_checkpoint_sha256 = b759ddbed0b5105e0ffd23f680ddbf577fc42a911d70d1245712610d43f59bb7`
-
-### Run 1
-- `start_offset = 32`
-- `batch_size = 4`
-- `trace_batch_indices = [[32,33,34,35],[36,37,38,39],[40,41,42,43],[44,45,46,47],[48,49,50,51],[52,53,54,55],[56,57,58,59],[60,61,62,63]]`
-- `export_time_sec = 23.2580`
-- `verify_time_sec = 13.6440`
-- `verification_passed = True`
-- `initial_checkpoint_sha256 = 6f0fea11038d5f9bd69f48d8a4ee46523ce5d9772de6babf3570144576a79392`
-- `final_checkpoint_sha256 = 82fefb4ba14afdc9b50bb5e2375e9283c4fedebb12d04388106eba77088bb4ec`
-
-### Run 2
-- `start_offset = 0`
-- `batch_size = 8`
-- `trace_batch_indices = [[0,1,2,3,4,5,6,7],[8,9,10,11,12,13,14,15],[16,17,18,19,20,21,22,23],[24,25,26,27,28,29,30,31],[32,33,34,35,36,37,38,39],[40,41,42,43,44,45,46,47],[48,49,50,51,52,53,54,55],[56,57,58,59,60,61,62,63]]`
-- `export_time_sec = 22.4650`
-- `verify_time_sec = 14.0169`
-- `verification_passed = True`
-- `initial_checkpoint_sha256 = 6f0fea11038d5f9bd69f48d8a4ee46523ce5d9772de6babf3570144576a79392`
-- `final_checkpoint_sha256 = 01d508d753a395f578e041976f8ecdf2bbd1dbfbf8acf11bf197e3e0fefc2e1e`
-
-## Artifact/schema status at this milestone
-
-The locked short-trace artifact schema has completed the B3 cleanup:
-
-- short-trace artifacts keep `public`, `steps`, and an empty compatibility `notes` object;
-- operational local paths are not part of the persistent artifact contract;
-- `notes.merkle_path`, `notes.initial_checkpoint_path`, and `notes.final_checkpoint_path` have been removed;
-- the benchmark supplies operational paths to the verifier through environment variables:
-  - `SHORT_TRACE_MERKLE_PATH`
-  - `SHORT_TRACE_INITIAL_CHECKPOINT_PATH`
-  - `SHORT_TRACE_FINAL_CHECKPOINT_PATH`
-- the benchmark summary still records `final_checkpoint_path` for reproducibility and reruns, but that field is benchmark metadata, not an artifact-schema field.
-
-## Interpretation
-
-This benchmark milestone should be used as the current repository-level reference for:
-- short verified training traces,
-- deterministic contiguous sampling-rule enforcement,
-- public `start_offset`,
-- public `batch_size`,
-- exporter + verifier consistency,
-- short-trace artifact schema cleanup after B3.
-
-Older benchmark numbers from earlier 2-step / 4-step stages remain historically useful, but this file should be treated as the primary current benchmark snapshot.
-
-## SP1 TD MVP Week 3 Snapshot
-
-Week 3 adds a reproducibility runner for the SP1 TD MVP backend. The latest full run was generated at `2026-05-11T09:26:40.773361+00:00` from WSL2 Ubuntu:
-
-```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
-```
-
-Expected outputs:
+Latest local regression refresh:
 
 ```text
-artifacts/benchmarks/sp1_td_mvp/summary.json
-artifacts/benchmarks/sp1_td_mvp/benchmark_matrix.csv
-artifacts/benchmarks/sp1_td_mvp/summary.md
+date = 2026-05-12
+platform = native Windows PowerShell
+command = python scripts/experiments/run_full_regression.py
+num_checks = 10
+num_passed = 10
+num_failed = 0
+all_regression_passed = True
 ```
 
-This snapshot is separate from the short-trace benchmark above. It compares:
+Covered checks:
 
-- Python verifier as the semantic oracle;
-- SP1 host/guest as the cryptographic backend;
-- valid TD MVP fixture acceptance;
-- matching rejection for tampered TD MVP fixtures.
+| Check | Status |
+| --- | --- |
+| Python compile checks | pass |
+| TD/minibatch artifact verifier | pass |
+| forward TD consistency verifier | pass |
+| one-step verifier | pass |
+| short-trace contiguous verifier | pass |
+| short-trace seeded verifier | pass |
+| one-step negative tests | pass |
+| short-trace negative tests | pass |
+| minibatch TD negative tests | pass |
+| TD MVP test-vector negative tests | pass |
 
-### TD-1 SP1 result
+## SP1 TD MVP
 
-| Case | Relation | Batch size | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
-| --- | --- | ---: | --- | ---: | ---: | ---: | ---: |
-| TD-1 | Merkle + TD + SmoothL1 | 1 | completed | 66.668891 | 0.088947 | 2782588 | 365501 |
-
-### Python/SP1 agreement
-
-All expected outcomes passed:
+Latest full SP1 benchmark refresh:
 
 ```text
+generated_at_utc = 2026-05-12T12:37:34.964280+00:00
+platform = Kaggle Linux
+command = python scripts/experiments/benchmark_sp1_td_mvp.py --prove
+prove_cases = TD-1, TD-2, TD-4, TD-8
 all_python_expected = True
 all_sp1_expected = True
 python_sp1_agreement = True
-all_passed = True
-```
-
-The agreement suite covers:
-
-- `valid_control`;
-- `tamper_reward`;
-- `tamper_done`;
-- `tamper_transition_obs`;
-- `tamper_leaf_encoding`;
-- `tamper_merkle_path`;
-- `tamper_q_target_max_fp`;
-- `tamper_claimed_target_fp`;
-- `tamper_claimed_loss_fp`;
-- `tamper_leaf_hash`;
-- `tamper_td_error_fp`.
-
-## SP1 TD MVP Week 4 Minibatch Update
-
-The SP1 relation has been extended in code to accept `td_mvp_batch_test_vector_v1` inputs with:
-
-- `private.items[]` for multiple Merkle membership and TD checks;
-- public `batch_size`;
-- public `claimed_batch_loss_fp`;
-- integer average loss `sum(loss_fp) // batch_size`.
-
-The Python semantic-oracle smoke path has passed for TD-2, TD-4, TD-8, and these batch aggregation tamper cases:
-
-- `tamper_batch_claimed_loss_fp`;
-- `tamper_batch_size`;
-- `tamper_batch_item_loss_fp`;
-- `tamper_batch_item_index`.
-
-The local WSL2 proof refresh completed TD-2, but the terminal/WSL session became unstable when attempting TD-4 proof. Kaggle completed TD-2, TD-4, and TD-8 direct proof runs.
-
-| Case | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count | Notes |
-| --- | --- | ---: | ---: | ---: | ---: | --- |
-| TD-1 | proof available from Week 3 | 66.668891 | 0.088947 | 2782588 | 365501 | single-transition proof |
-| TD-2 | proof completed on Kaggle | 192.414547 | 0.196456 | 2787687 | 725309 | minibatch proof with average loss |
-| TD-4 | proof completed on Kaggle | 234.509679 | 0.199258 | 2795631 | 1425790 | minibatch proof with average loss |
-| TD-8 | proof completed on Kaggle | 340.160048 | 0.201657 | 2812327 | 2834727 | minibatch proof with average loss |
-
-### WSL2 TD-2 execution smoke
-
-Recorded from WSL2 Ubuntu on 2026-05-12:
-
-```text
-TD-2 batch Python verifier: verification_passed = True
-cargo check -p td-mvp-shared -p td-mvp-host: passed
-SP1 TD-2 execution: execution_ok = true
-SP1 TD-2 execution_time_sec = 0.078742
-SP1 TD-2 cycle_count = 725309
-SP1 TD-2 exit_code = 0
-tamper_batch_claimed_loss_fp: rejected with exit_code = 1
-```
-
-### WSL2 SP1 negative suite
-
-Recorded from WSL2 Ubuntu on 2026-05-12:
-
-```text
-valid_control: accepted, cycle_count = 382915
-valid_batch_size_2: accepted, cycle_count = 725309
-tamper_reward: rejected
-tamper_done: rejected
-tamper_transition_obs: rejected
-tamper_leaf_encoding: rejected
-tamper_merkle_path: rejected
-tamper_q_target_max_fp: rejected
-tamper_claimed_target_fp: rejected
-tamper_claimed_loss_fp: rejected
-tamper_leaf_hash: rejected
-tamper_td_error_fp: rejected
-tamper_batch_claimed_loss_fp: rejected
-tamper_batch_size: rejected
-tamper_batch_item_loss_fp: rejected
-tamper_batch_item_index: rejected
 all_sp1_negative_cases_passed = true
 ```
 
-### Week 4 priority 2 adversarial suite
+| Case | Relation | Batch size | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| TD-1 | Merkle + TD + SmoothL1 | 1 | 142.324547 | 0.157464 | 2782625 | 382915 |
+| TD-2 | Merkle + TD + SmoothL1 + average loss | 2 | 154.923089 | 0.157712 | 2787687 | 725309 |
+| TD-4 | Merkle + TD + SmoothL1 + average loss | 4 | 188.501940 | 0.155969 | 2795631 | 1425790 |
+| TD-8 | Merkle + TD + SmoothL1 + average loss | 8 | 275.077262 | 0.157424 | 2812327 | 2834727 |
 
-The Python semantic-oracle suite has been extended and passed locally for:
+Tamper coverage:
+
+| Group | Result |
+| --- | --- |
+| single-transition schema/reward/rounding/done/leaf/path/target/loss tampers | Python and SP1 reject |
+| minibatch claimed-loss/size/item/path/target/rounding tampers | Python and SP1 reject |
+
+## Short-Trace Pre-ZK Benchmark
+
+The locked short-trace benchmark remains a Python verifier result, not an SP1
+trace proof.
+
+Source:
 
 ```text
-tamper_schema_version
-tamper_fixed_point_rounding
-tamper_done_branch
-tamper_leaf_index
-tamper_path_order
-tamper_target_network_value
-tamper_batch_path_order
-tamper_batch_target_network_value
-tamper_batch_fixed_point_rounding
+artifacts/benchmarks/short_trace_update/summary.json
+artifacts/benchmarks/short_trace_update/summary.csv
 ```
 
-Together with the existing cases, this covers schema mismatch, fixed-point
-rounding mismatch, wrong done-branch semantics, wrong leaf index/path order,
-target-network value tamper, and batch aggregation/index tamper.
-
-Kaggle SP1 execution confirmed all priority-2 single-transition cases reject:
+Representative settings:
 
 ```text
-tamper_schema_version: rejected
-tamper_reward: rejected
-tamper_fixed_point_rounding: rejected
-tamper_done: rejected
-tamper_done_branch: rejected
-tamper_transition_obs: rejected
-tamper_leaf_encoding: rejected
-tamper_merkle_path: rejected
-tamper_leaf_index: rejected
-tamper_path_order: rejected
-tamper_q_target_max_fp: rejected
-tamper_target_network_value: rejected
-tamper_claimed_target_fp: rejected
-tamper_claimed_loss_fp: rejected
-tamper_leaf_hash: rejected
-tamper_td_error_fp: rejected
-single_negative_cases_passed = true
+sampling_rule_type = contiguous_deterministic
+num_steps = 8
+target_sync_every = 2
+batch_size = 4 or 8
+verification_passed = True
 ```
 
-Kaggle SP1 execution also confirmed all priority-2 batch cases reject:
+Representative runs:
+
+| Run | Start offset | Batch size | Export time sec | Verify time sec | Final checkpoint SHA-256 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 0 | 0 | 4 | 21.9907 | 13.4818 | `b759ddbed0b5105e0ffd23f680ddbf577fc42a911d70d1245712610d43f59bb7` |
+| 1 | 32 | 4 | 23.2580 | 13.6440 | `82fefb4ba14afdc9b50bb5e2375e9283c4fedebb12d04388106eba77088bb4ec` |
+| 2 | 0 | 8 | 22.4650 | 14.0169 | `01d508d753a395f578e041976f8ecdf2bbd1dbfbf8acf11bf197e3e0fefc2e1e` |
+
+## Interpretation
+
+Paper-facing claim:
 
 ```text
-valid_batch_size_2: accepted, cycle_count = 725309
-tamper_batch_claimed_loss_fp: rejected
-tamper_batch_size: rejected
-tamper_batch_item_loss_fp: rejected
-tamper_batch_item_index: rejected
-tamper_batch_path_order: rejected
-tamper_batch_target_network_value: rejected
-tamper_batch_fixed_point_rounding: rejected
-all_sp1_priority2_negative_cases_passed = true
+ZK-backed offline DQN TD and minibatch-TD verification over committed
+trajectory data, with Python pre-ZK extensions for one-step update and
+short-trace verification.
+```
+
+Required limitation:
+
+```text
+The backend does not prove neural-network forward passes, gradients,
+optimizer semantics, checkpoint-to-checkpoint updates, full training traces,
+or honest data collection before commitment.
 ```

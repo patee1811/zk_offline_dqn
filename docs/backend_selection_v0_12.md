@@ -1,5 +1,10 @@
 # Backend Selection v0.12
 
+Historical note: this file records why SP1 was selected. The Week 5 repository
+state now includes a working SP1 TD/minibatch-TD backend; see
+`docs/week5_artifact_package.md` for the locked implementation status and
+benchmark values.
+
 ## 1. Purpose
 
 This document records the first concrete backend selection for the TD MVP zero-knowledge backend.
@@ -13,7 +18,8 @@ v0.10 - TD MVP test vector verifier and negative tests
 v0.11 - zkVM backend skeleton
 ```
 
-The next step is to choose one backend for the first implementation attempt.
+At the time of this decision, the next step was to choose one backend for the
+first implementation attempt.
 
 ## 2. Decision
 
@@ -23,7 +29,8 @@ The first backend target will be:
 SP1
 ```
 
-This decision means that the first real ZK backend milestone should attempt to port the TD MVP relation into an SP1 guest program and use an SP1 host program to generate and verify a proof.
+This decision led to porting the TD MVP relation into an SP1 guest program and
+using an SP1 host program to generate and verify proofs.
 
 ## 3. Why SP1 First
 
@@ -43,14 +50,15 @@ standalone test-vector compatibility
 
 These are easier to prototype in a zkVM than in a hand-written arithmetic circuit.
 
-SP1 also fits the current project structure because the repository already has:
+SP1 also fits the current project structure because the repository has:
 
 ```text
 zk_backend/test_vectors/td_mvp_case_0.json
 scripts/artifacts_export/verify_td_mvp_test_vector.py
 scripts/experiments/run_td_mvp_test_vector_negative_tests.py
-zk_backend/td_mvp/host/README.md
-zk_backend/td_mvp/guest/README.md
+zk_backend/td_mvp/sp1/host/
+zk_backend/td_mvp/sp1/guest/
+zk_backend/td_mvp/sp1/shared/
 ```
 
 The SP1 guest can initially mirror the standalone Python verifier logic in Rust.

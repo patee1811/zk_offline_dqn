@@ -1,15 +1,18 @@
-# SP1 Shared Skeleton
+# SP1 Shared Crate
 
-No shared Rust crate exists yet.
+This crate contains the typed Rust relation code used by both the SP1 host and
+guest.
 
-The future shared crate should hold code used by both host and guest:
+It owns:
 
-- TD MVP input structs;
-- public input structs;
-- private witness structs;
-- Merkle path step structs;
+- JSON-serializable public input and private witness structs;
+- single-transition and minibatch TD MVP input normalization;
+- canonical transition-to-leaf serialization;
+- SHA-256 leaf hashing and Merkle root recomputation;
 - fixed-point helpers;
-- SmoothL1 helper;
-- leaf encoding and hashing helpers.
+- SmoothL1 loss recomputation;
+- public output structs committed by the guest.
 
-Keep proving logic in the host and relation assertions in the guest.
+Keep host-only concerns such as CLI parsing, fixture loading, tamper mutation,
+proof generation, and metric printing in `td-mvp-host`. Keep guest entrypoint
+logic in `td-mvp-guest`.

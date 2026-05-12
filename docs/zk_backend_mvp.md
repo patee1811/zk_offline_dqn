@@ -4,7 +4,11 @@
 
 This document defines the smallest zero-knowledge backend target for the project.
 
-The current repository is a pre-ZK artifact/verifier framework for offline DQN training from committed trajectories. The MVP backend should not attempt to prove the full DQN training process. Instead, it should prove a compact RL-specific relation that is already supported by the current artifact/verifier design.
+The repository started as a Python artifact/verifier framework for offline DQN
+training from committed trajectories and now includes an SP1 backend for the TD
+MVP. The backend should not attempt to prove the full DQN training process.
+Instead, it proves a compact RL-specific relation that is supported by the
+artifact/verifier design.
 
 The first ZK statement is:
 
@@ -275,6 +279,14 @@ tampered witness rejected
 proving time recorded
 verification time recorded
 proof size recorded
+```
+
+Current Week 5 status:
+
+```text
+SP1 TD-1/2/4/8 proofs generated and verified
+Python/SP1 agreement holds on valid and tampered TD MVP cases
+full proof-of-training remains out of scope
 ```
 
 ## 10. Non-Goals

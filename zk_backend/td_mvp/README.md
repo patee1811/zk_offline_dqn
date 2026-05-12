@@ -11,8 +11,10 @@ The goal is to move one already-tested Python verifier relation into SP1 before 
 - `scripts/experiments/run_td_mvp_test_vector_negative_tests.py` checks tampered cases.
 - `sp1/` contains a Rust SP1 workspace with host, guest, and shared crates.
 
-A valid TD MVP SP1 proof has been generated and verified in WSL2 Ubuntu.
-Initial SP1 tamper cases reject as expected.
+Valid TD MVP SP1 proofs have been generated and verified for TD-1, TD-2,
+TD-4, and TD-8. Single-transition and minibatch tamper cases reject as
+expected. The locked Week 5 scope and artifact package are recorded in
+`docs/week5_artifact_package.md`.
 
 ## Statement
 
@@ -26,6 +28,7 @@ loss_type
 claimed_target_fp
 claimed_loss_fp
 leaf_index
+batch_size and claimed_batch_loss_fp for minibatch vectors
 checkpoint_commitments
 ```
 
@@ -37,6 +40,7 @@ leaf
 leaf_hash
 merkle_path
 td_witness
+items[] for minibatch vectors
 ```
 
 Required checks:
@@ -50,11 +54,12 @@ td_error_fp == q_online_action_fp - target_fp
 loss_fp == SmoothL1(td_error_fp)
 target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
+batch_loss_fp == claimed_batch_loss_fp for minibatch vectors
 ```
 
 ## Backend Split
 
-Host:
+SP1 host:
 
 - load or embed the TD MVP test vector;
 - validate schema/version;
@@ -62,14 +67,14 @@ Host:
 - run proving and verification;
 - report proving time, verification time, and proof size.
 
-Guest:
+SP1 guest:
 
 - parse typed inputs;
 - recompute leaf hash and Merkle root;
 - recompute TD target, TD error, and SmoothL1 loss;
 - assert claimed output consistency.
 
-Shared:
+SP1 shared crate:
 
 - Rust structs;
 - hashing/Merkle helpers;

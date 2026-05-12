@@ -1,253 +1,125 @@
-% System Design and Methodology
-% (section heading is defined in main.tex)
-
 \label{sec:system-design-body}
 
-This section describes the design of our pre-ZK verification system for offline DQN training from committed trajectories. \Cref{fig:system-architecture} provides an overview of the end-to-end pipeline, and subsequent subsections formalize each component.
+This section describes the committed-data pipeline, verification statements,
+and SP1 backend. The main design rule is to separate the relation that is
+proved in SP1 from the larger Python-only extension checks.
 
 \begin{figure*}[!t]
 \centering
 \begin{tikzpicture}[
-    box/.style={draw, rounded corners=3pt, minimum width=2.6cm, minimum height=0.8cm, align=center, font=\small},
+    box/.style={draw, rounded corners=3pt, minimum width=2.7cm, minimum height=0.75cm, align=center, font=\small},
     data/.style={box, fill=blue!8},
     commit/.style={box, fill=green!10},
-    train/.style={box, fill=orange!10},
-    verify/.style={box, fill=red!8},
+    proof/.style={box, fill=red!8},
+    ext/.style={box, fill=orange!12},
     arr/.style={-{Stealth[length=5pt]}, thick},
     lab/.style={font=\scriptsize, midway, above}
 ]
-% Row 1: Data pipeline
-\node[data] (env) {CartPole-v1};
-\node[data, right=0.6cm of env] (policy) {Behavior\\Policy};
-\node[data, right=0.6cm of policy] (episodes) {Episode\\Dataset};
-\node[data, right=0.6cm of episodes] (trans) {Transition\\Dataset $\dataset$};
-\draw[arr] (env) -- (policy);
-\draw[arr] (policy) -- node[lab] {$\epsilon$-greedy} (episodes);
-\draw[arr] (episodes) -- node[lab] {flatten} (trans);
-
-% Row 2: Split into commitment and training
-\node[commit, below left=1.6cm and -0.2cm of trans] (merkle) {Merkle Tree\\Commitment};
-\node[train, below right=1.6cm and -0.2cm of trans] (training) {Offline Training\\DQN / CQL / BC};
-\draw[arr] (trans) -- (merkle);
-\draw[arr] (trans) -- (training);
-
-% Row 3: Public outputs
-\node[commit, below=0.8cm of merkle] (root) {Public Root\\$h(\dataset)$};
-\node[train, below=0.8cm of training] (ckpt) {Checkpoint $\theta$\\SHA-256 Anchor};
-\draw[arr] (merkle) -- (root);
-\draw[arr] (training) -- (ckpt);
-
-% Row 4: Artifact export and verification
-\node[verify, below=1.4cm of $(root)!0.5!(ckpt)$, minimum width=3.8cm] (artifact) {Artifact Export\\and Verification};
-\draw[arr] (root) |- (artifact);
-\draw[arr] (ckpt) |- (artifact);
-
-% Result
-\node[verify, below=0.7cm of artifact, minimum width=2.8cm] (result) {Verification\\Result};
-\draw[arr] (artifact) -- (result);
+\node[data] (dataset) {Offline transition\\dataset $\dataset$};
+\node[commit, right=0.7cm of dataset] (merkle) {Merkle\\commitment};
+\node[proof, right=0.7cm of merkle] (artifact) {TD / minibatch\\artifact};
+\node[proof, right=0.7cm of artifact] (sp1) {SP1 host/guest\\proof backend};
+\node[proof, below=0.8cm of sp1] (verify) {Verified proof\\or rejection};
+\node[ext, below=0.8cm of artifact] (python) {Python oracle and\\pre-ZK extensions};
+\draw[arr] (dataset) -- (merkle);
+\draw[arr] (merkle) -- node[lab] {root} (artifact);
+\draw[arr] (artifact) -- (sp1);
+\draw[arr] (sp1) -- (verify);
+\draw[arr] (artifact) -- (python);
 \end{tikzpicture}
-\caption{End-to-end system architecture. The offline transition dataset is both committed via a Merkle tree and used for offline training. Verification artifacts tie training computations back to the committed data and the publicly anchored checkpoint.}
+\caption{Locked Week 5 system architecture. The cryptographic backend proves TD and minibatch-TD relations in SP1. Python verifiers remain as semantic oracles and as pre-ZK extension checks for one-step and short-trace statements.}
 \label{fig:system-architecture}
 \end{figure*}
 
-\subsection{Why Offline Training First}
+\subsection{Threat Model and Non-Goals}
 
-A fixed offline dataset is the natural bridge between reinforcement learning and cryptographic verification:
-\begin{itemize}[leftmargin=1.5em]
-    \item the dataset can be committed once, for example through a Merkle tree;
-    \item sampled transitions can be checked against the commitment through membership proofs;
-    \item Bellman targets and TD losses can be expressed as deterministic computations over committed samples and a publicly anchored model checkpoint;
-    \item the resulting pipeline is much more reproducible than online RL with ongoing exploration.
-\end{itemize}
-For these reasons, our roadmap does not begin with PPO, SAC, or general online interaction. Offline DQN-style value learning provides a much cleaner first verification target.
+The prover claims that a private transition or minibatch is drawn from the
+committed dataset and that the TD outputs are computed correctly. The verifier
+knows the dataset root, fixed-point constants, schema version, and claimed
+target/loss or batch loss. The prover supplies the private transition contents,
+Merkle paths, and TD witness values.
 
-\subsection{Dataset Commitment via Merkle Trees}
-\label{sec:merkle-commitment}
+The current backend protects against a prover who tampers with the transition,
+Merkle path, leaf index, fixed-point rounding, done-branch semantics,
+target-value witness, TD error, claimed target, claimed loss, batch size, or
+batch aggregation. It does not protect against dishonest data collection before
+commitment, and it does not prove that a full training run produced a final
+checkpoint.
 
-We commit the offline transition dataset $\dataset$ using a SHA-256-based Merkle tree. Each transition $(s_i, a_i, r_i, s'_i, d_i)$ is first serialized into a fixed-point integer vector:
-\begin{align*}
-\mathrm{leaf}_i &= [\mathrm{fp}(s_i^{(1)}), \ldots, \mathrm{fp}(s_i^{(d)}),\; a_i,\; \mathrm{fp}(r_i), \\
-&\quad \mathrm{fp}(s'^{(1)}_i), \ldots, \mathrm{fp}(s'^{(d)}_i),\; d_i],
-\end{align*}
-where $\mathrm{fp}(x) = \mathrm{round}(x \cdot S)$ encodes a real value into a fixed-point integer with scale factor $S$. The leaf hash is then $h_i = \mathrm{SHA\text{-}256}(\mathrm{leaf}_i)$.
+\subsection{Canonical Serialization and Commitment}
 
-The Merkle tree is constructed bottom-up by hashing pairs of consecutive nodes:
+Each transition is encoded using scale $S=1000$:
 \[
-h_{\mathrm{parent}} = \mathrm{SHA\text{-}256}(h_{\mathrm{left}} \,\|\, h_{\mathrm{right}}).
+\mathrm{fp}(x)=\mathrm{round}(Sx).
 \]
-The resulting root hash $h(\dataset)$ serves as the public commitment to the entire dataset. To prove that a transition $i$ belongs to $\dataset$, the prover provides the leaf contents, the leaf hash, and an authentication path of sibling hashes from the leaf to the root. The verifier recomputes the root from the path and checks equality with the public commitment.
+The serialized leaf contains the fixed-point state, action, reward,
+fixed-point next state, and done flag. The current canonical leaf hash is
+SHA-256 over the comma-separated signed integer fields. The Merkle root is
+recomputed by iterating over the authentication path and hashing ordered sibling
+pairs. The SP1 relation rejects a witness if the serialized transition, leaf
+hash, authentication path, or public root are inconsistent.
 
-\subsection{Fixed-Point Arithmetic}
-\label{sec:fixed-point}
+\subsection{Fixed-Point TD Relation}
 
-To make all TD-related arithmetic explicit and compatible with future proof backends, we represent real-valued quantities in fixed-point form. The specification is defined by:
-\begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Scale factor:} $S = 1000$, so encoding is $\mathrm{fp}(x) = \mathrm{round}(x \cdot 1000)$.
-    \item \textbf{Discount factor:} $\gamma = 0.99$ is encoded as $\gamma_{\mathrm{fp}} = 990$.
-    \item \textbf{SmoothL1 beta:} $\beta = 1.0$ is encoded as $\beta_{\mathrm{fp}} = 1000$.
-\end{itemize}
-
-The fixed-point Bellman target computation follows:
-\begin{equation}\label{eq:fp-target}
-y_{\mathrm{fp}} = r_{\mathrm{fp}} + (1 - d) \cdot \left\lfloor \frac{\gamma_{\mathrm{fp}} \cdot q^{\mathrm{target}}_{\mathrm{fp}}}{\,S\,} \right\rfloor,
-\end{equation}
-where $q^{\mathrm{target}}_{\mathrm{fp}}$ is the fixed-point target Q-value. The fixed-point SmoothL1 loss is:
-\begin{equation}\label{eq:fp-loss}
-\ell_{\mathrm{fp}}(q, y) = \begin{cases}
-\left\lfloor \frac{|\delta_{\mathrm{fp}}|^2}{2 \,\beta_{\mathrm{fp}}} \right\rfloor & \text{if } |\delta_{\mathrm{fp}}| < \beta_{\mathrm{fp}}, \\[6pt]
-|\delta_{\mathrm{fp}}| - \left\lfloor \frac{\beta_{\mathrm{fp}}}{2} \right\rfloor & \text{otherwise,}
+The backend uses integer arithmetic:
+\[
+\mathrm{mul}_{S}(a,b)=\left\lfloor \frac{ab}{S} \right\rfloor,
+\qquad
+\gamma_{\mathrm{fp}} = 990 .
+\]
+For a non-terminal transition,
+\[
+y_{\mathrm{fp}} =
+r_{\mathrm{fp}} +
+\left\lfloor \frac{\gamma_{\mathrm{fp}} q^{\mathrm{target}}_{\mathrm{fp}}}{S}
+\right\rfloor ,
+\]
+and for a terminal transition $y_{\mathrm{fp}}=r_{\mathrm{fp}}$. The TD error is
+\[
+\delta_{\mathrm{fp}} =
+q^{\mathrm{online}}_{\mathrm{fp}} - y_{\mathrm{fp}}.
+\]
+The fixed-point SmoothL1 loss is
+\[
+\ell_{\mathrm{fp}}(\delta)=
+\begin{cases}
+\left\lfloor \frac{|\delta|^2}{2S} \right\rfloor & \text{if } |\delta| < S,\\
+|\delta|-\left\lfloor \frac{S}{2}\right\rfloor & \text{otherwise.}
 \end{cases}
-\end{equation}
-where $\delta_{\mathrm{fp}} = q_{\mathrm{fp}} - y_{\mathrm{fp}}$. This integer-only arithmetic makes the computations deterministic and directly expressible as constraints in a future arithmetic circuit.
+\]
+The single-transition public claim is accepted only if the recomputed
+$y_{\mathrm{fp}}$ and $\ell_{\mathrm{fp}}$ match the public claimed target and
+loss.
 
-\subsection{Verification Statements}
-\label{sec:verification-statements}
+\subsection{Minibatch TD Relation}
 
-We define four increasingly strong verification statements, each building on the previous one.
+For a minibatch of $k$ items, the SP1 guest repeats the membership and TD checks
+for each item. It then computes
+\[
+L_{\mathrm{batch,fp}} =
+\left\lfloor \frac{\sum_{j=1}^{k} \ell_{j,\mathrm{fp}}}{k} \right\rfloor
+\]
+and checks equality with the public claimed batch loss. The public batch size
+must match the number of private witness items.
 
-\subsubsection{Single-Sample TD Statement}
+\subsection{SP1 Backend Split}
 
-For one transition $(s, a, r, s', d)$ drawn from the committed dataset:
-\begin{enumerate}[leftmargin=1.5em]
-    \item prove the transition is included in the committed dataset via Merkle membership;
-    \item prove $q_{\mathrm{online}} = Q_\theta(s)[a]$;
-    \item prove $a^* = \arg\max_{a'} Q_\theta(s')[a']$ (Double DQN action selection);
-    \item prove $q_{\mathrm{target}} = Q_{\bar\theta}(s')[a^*]$ (target network evaluation);
-    \item prove $y = r + (1-d) \cdot \gamma \cdot q_{\mathrm{target}}$ (Bellman target);
-    \item prove $\ell = \mathrm{SmoothL1}(q_{\mathrm{online}}, y)$ (TD loss).
-\end{enumerate}
+The backend is implemented under \texttt{zk\_backend/td\_mvp/sp1/}. The
+\texttt{shared} crate defines typed public inputs, private witnesses, Merkle
+steps, TD witnesses, fixed-point helpers, hashing, and relation logic. The
+\texttt{guest} reads a typed input, calls the shared verifier, and commits the
+public output. The \texttt{host} loads JSON fixtures, applies named tamper cases,
+runs optional host prechecks, executes the guest, generates proofs for accepted
+cases, verifies proofs, and records proving time, verification time, proof size,
+and cycle count.
 
-\subsubsection{Minibatch TD Statement}
+\subsection{Python Oracle and Pre-ZK Extensions}
 
-For a minibatch $B = \{i_1, \ldots, i_k\}$ of transitions:
-\begin{enumerate}[leftmargin=1.5em]
-    \item prove each transition $i_j$ is included in the committed dataset;
-    \item prove each per-sample Bellman target and TD loss is correct;
-    \item prove the batch-average loss: $\mathcal{L}_{\mathrm{fp}} = \lfloor \sum_j \ell_j / k \rfloor$.
-\end{enumerate}
-
-\subsubsection{One-Step SGD Update Statement}
-
-For one fixed minibatch of committed transitions with a pre-update checkpoint:
-\begin{enumerate}[leftmargin=1.5em]
-    \item prove all transitions belong to the committed dataset;
-    \item prove all Double DQN Bellman targets are correct;
-    \item prove all SmoothL1 TD losses are correct;
-    \item prove the minibatch-average loss is correct;
-    \item prove gradients are recomputed consistently from the pre-update checkpoint;
-    \item prove the parameter deltas are consistent: $\Delta\theta = \theta' - \theta$;
-    \item prove the SGD update rule: $\theta' = \theta - \eta \cdot \nabla\mathcal{L}$;
-    \item prove the target network remains unchanged during this one-step statement;
-    \item prove the post-update checkpoint hash matches the updated parameters.
-\end{enumerate}
-
-\subsubsection{Short Training-Trace Statement}
-
-For a sequence of committed minibatches and checkpoints over multiple SGD steps:
-\begin{enumerate}[leftmargin=1.5em]
-    \item prove each step satisfies the one-step update statement;
-    \item prove checkpoint chaining consistency across steps, so that the post-checkpoint of step $t$ matches the pre-checkpoint of step $t+1$;
-    \item prove the declared target-network synchronization rule is applied consistently at the specified synchronization steps;
-    \item prove the declared deterministic sampling rule is applied consistently across the trace;
-    \item prove the final published checkpoint hash matches the end of the verified trace.
-\end{enumerate}
-
-\Cref{fig:verification-pipeline} illustrates the verification pipeline for the one-step update statement, which acts as the building block for the stronger short-trace statement.
-
-\begin{figure*}[!t]
-\centering
-\begin{tikzpicture}[
-    vstep/.style={draw, rounded corners=2pt, minimum width=5.5cm, minimum height=0.65cm, align=center, font=\small},
-    inp/.style={vstep, fill=blue!8, minimum width=3.4cm},
-    chk/.style={vstep, fill=yellow!12},
-    res/.style={vstep, fill=green!15, font=\small\bfseries},
-    arr/.style={-{Stealth[length=4pt]}, thick}
-]
-% Inputs
-\node[inp] (ckpt) {Pre-Checkpoint $\theta$};
-\node[inp, right=0.3cm of ckpt] (batch) {Minibatch Indices};
-\node[inp, right=0.3cm of batch] (root) {Merkle Root};
-
-% Steps
-\node[chk, below=0.9cm of batch] (s1) {1. Checkpoint SHA-256 Anchoring};
-\node[chk, below=0.5cm of s1] (s2) {2. Merkle Membership (per transition)};
-\node[chk, below=0.5cm of s2] (s3) {3. Bellman Target + SmoothL1 Loss (fixed-point)};
-\node[chk, below=0.5cm of s3] (s4) {4. Batch-Average Loss Consistency};
-\node[chk, below=0.5cm of s4] (s5) {5. Gradient Recomputation Consistency};
-\node[chk, below=0.5cm of s5] (s6) {6. SGD Update: $\theta' = \theta - \eta \nabla\mathcal{L}$};
-\node[chk, below=0.5cm of s6] (s7) {7. Post-Checkpoint Anchoring + Target Invariance};
-
-% Result
-\node[res, below=0.7cm of s7] (result) {Verification: PASS / FAIL};
-
-% Arrows
-\draw[arr] (ckpt) |- (s1);
-\draw[arr] (batch) -- (s1);
-\draw[arr] (root) |- (s1);
-\draw[arr] (s1) -- (s2);
-\draw[arr] (s2) -- (s3);
-\draw[arr] (s3) -- (s4);
-\draw[arr] (s4) -- (s5);
-\draw[arr] (s5) -- (s6);
-\draw[arr] (s6) -- (s7);
-\draw[arr] (s7) -- (result);
-\end{tikzpicture}
-\caption{Verification pipeline for the one-step offline DQN SGD update statement. Each step represents a check that must pass for overall verification to succeed. The short-trace verifier composes this step-level statement over multiple updates.}
-\label{fig:verification-pipeline}
-\end{figure*}
-
-\subsection{Artifact Design: Public and Private Inputs}
-\label{sec:artifact-design}
-
-The verification artifacts are structured with a clear separation between public inputs and private witness data, following the standard prover--verifier paradigm.
-
-\paragraph{Public inputs.}
-The verifier sees:
-\begin{itemize}[leftmargin=1.5em]
-    \item $h(\dataset)$: Merkle root of the committed transition dataset;
-    \item \texttt{checkpoint\_sha256}: SHA-256 hash of the model checkpoint file;
-    \item \texttt{loss\_type}: the loss function identifier (\texttt{smooth\_l1});
-    \item \texttt{batch\_size} and \texttt{batch\_loss\_fp}: for minibatch artifacts;
-    \item \texttt{pre\_checkpoint\_sha256} and \texttt{post\_checkpoint\_sha256}: for one-step update artifacts;
-    \item \texttt{optimizer\_type} and \texttt{learning\_rate\_fp}: for one-step update artifacts;
-    \item \texttt{initial\_checkpoint\_sha256}, \texttt{final\_checkpoint\_sha256}, \texttt{num\_steps}, and the declared synchronization schedule for short-trace artifacts;
-    \item \texttt{sampling\_rule\_type}, \texttt{start\_offset}, and \texttt{batch\_size} for deterministic short-trace sampling-rule enforcement.
-\end{itemize}
-
-\paragraph{Private witness.}
-The prover keeps private:
-\begin{itemize}[leftmargin=1.5em]
-    \item sampled transition contents $(s, a, r, s', d)$;
-    \item serialized fixed-point leaf representations;
-    \item Merkle authentication paths;
-    \item per-sample Q-value evaluations and TD witnesses ($q_{\mathrm{online,fp}}$, $q_{\mathrm{target,fp}}$, $y_{\mathrm{fp}}$, $\ell_{\mathrm{fp}}$);
-    \item for one-step update: gradient tensors, parameter deltas, and pre/post network states;
-    \item for short traces: the sequence of intermediate checkpoints and synchronization events needed to witness multi-step chaining.
-\end{itemize}
-
-\paragraph{Prototype operational metadata.}
-In the current B3 short-trace artifact format, local filesystem paths are not part of the persistent artifact contract. The Python benchmark and verifier still need paths to load the Merkle tree, the initial checkpoint, and the final checkpoint for hash recomputation, but these are supplied through runtime environment variables rather than stored inside \texttt{notes}. This distinction keeps benchmark reproducibility metadata separate from the statement fields that would eventually become public inputs or private witnesses in a proving backend.
-
-\paragraph{Implicit constants.}
-Some parameters are currently fixed by the implementation rather than exposed as public inputs: the fixed-point scale ($S = 1000$), discount factor ($\gamma_{\mathrm{fp}} = 990$), SmoothL1 beta ($\beta_{\mathrm{fp}} = 1000$), and the network architecture (MLP with layers $4 \to 128 \to 128 \to 2$). In a future proving circuit, these must either be hard-coded or made explicit public parameters.
-
-\subsection{Checkpoint Anchoring}
-\label{sec:checkpoint-anchoring}
-
-A critical design requirement is that verification statements are tied to specific model artifacts. The checkpoint is publicly anchored by its SHA-256 digest, computed over the serialized file. This means the verifier is not merely checking arithmetic in the abstract, but arithmetic tied to a specific model state. For the one-step update statement, both the pre-update and post-update checkpoints are anchored. For the short-trace statement, the initial checkpoint, intermediate chained checkpoints, and final checkpoint are all tied together through explicit hash-based chaining conditions.
-
-\subsection{Current Scope and Limitations}
-\label{sec:scope-limitations}
-
-The current prototype is a \emph{pre-ZK artifact/verifier} implemented in Python. It is not yet a full zero-knowledge proof system. In particular, it does not yet prove:
-\begin{itemize}[leftmargin=1.5em]
-    \item that a full training run from initialization to the published checkpoint has been verified end-to-end;
-    \item that general replay-sampling correctness has been proved over the entire run;
-    \item that long-horizon target-network synchronization has been proved over realistic training lengths;
-    \item that model-selection procedures such as best-checkpoint selection or early stopping were verified;
-    \item any of the above statements inside a true zero-knowledge proving backend.
-\end{itemize}
-
-The system should therefore be described as a \emph{pre-ZK verifiable artifact prototype for committed-data membership, TD-target/loss correctness, one-step SGD update consistency, short verified training traces, and deterministic short-trace sampling-rule enforcement}. The repository now goes beyond isolated one-step verification and already supports successful short-trace verification for 2-step, 4-step, and 8-step SGD update chains with explicit checkpoint chaining and target-network synchronization semantics. It also now supports a stronger deterministic contiguous sampling rule with public \texttt{sampling\_rule\_type}, \texttt{start\_offset}, and \texttt{batch\_size} in the current short-trace benchmark setting.
-
-This changes the next technical milestone. The project is no longer best described as aiming only for a ``first verified update step.'' Instead, the next natural goal is stronger multi-step verification: longer trace composition, stronger replay-sampling guarantees beyond the current deterministic contiguous schedule, clearer synchronization semantics, more circuit-friendly witness design, and eventual migration to a real zero-knowledge backend.
+The Python verifier has two roles. First, it is the semantic oracle used to
+cross-check SP1 on valid and tampered TD fixtures. Second, it contains extension
+statements for forward TD consistency, one-step SGD updates, and short training
+traces. These extensions check checkpoint anchoring, gradient recomputation,
+parameter deltas, target-network invariance, checkpoint chaining, target-network
+synchronization, and deterministic contiguous sampling rules. They are included
+to show the path toward update and trace proofs, but the current ZK claim is
+limited to the SP1 TD/minibatch-TD backend.
