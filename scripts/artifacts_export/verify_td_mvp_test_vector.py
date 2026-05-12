@@ -190,6 +190,7 @@ def verify_single_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
 
     item_result = verify_item(
         {
+            "index": int(public["leaf_index"]),
             "transition": private["transition"],
             "leaf": private["leaf"],
             "leaf_hash": private["leaf_hash"],

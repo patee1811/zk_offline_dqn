@@ -42,9 +42,34 @@ def mutate_reward(tv: Dict[str, Any]) -> None:
     tv["private"]["transition"]["reward"] = float(tv["private"]["transition"]["reward"]) + 1.0
 
 
+def mutate_schema_version(tv: Dict[str, Any]) -> None:
+    tv["schema_version"] = f"{tv['schema_version']}_invalid"
+
+
+def mutate_fixed_point_rounding(tv: Dict[str, Any]) -> None:
+    tv["private"]["transition"]["reward"] = float(tv["private"]["transition"]["reward"]) + 0.0006
+
+
 def mutate_done(tv: Dict[str, Any]) -> None:
     done = int(tv["private"]["transition"]["done"])
     tv["private"]["transition"]["done"] = 1 - done
+
+
+def smooth_l1_loss_fp(td_error_fp: int, fp_scale: int) -> int:
+    abs_x_fp = abs(int(td_error_fp))
+    if abs_x_fp < fp_scale:
+        return (abs_x_fp * abs_x_fp) // (2 * fp_scale)
+    return abs_x_fp - fp_scale // 2
+
+
+def mutate_done_branch(tv: Dict[str, Any]) -> None:
+    td = tv["private"]["td_witness"]
+    reward_fp = int(tv["private"]["leaf"][5])
+    q_online_action_fp = int(td["q_online_action_fp"])
+    td_error_fp = q_online_action_fp - reward_fp
+    td["target_fp"] = reward_fp
+    td["td_error_fp"] = td_error_fp
+    td["loss_fp"] = smooth_l1_loss_fp(td_error_fp, int(tv["public"]["fp_scale"]))
 
 
 def mutate_transition_obs(tv: Dict[str, Any]) -> None:
@@ -61,8 +86,20 @@ def mutate_merkle_path(tv: Dict[str, Any]) -> None:
     tv["private"]["merkle_path"][0]["sibling_hash"] = "00" * 32
 
 
+def mutate_leaf_index(tv: Dict[str, Any]) -> None:
+    tv["public"]["leaf_index"] += 1
+
+
+def mutate_path_order(tv: Dict[str, Any]) -> None:
+    tv["private"]["merkle_path"] = list(reversed(tv["private"]["merkle_path"]))
+
+
 def mutate_q_target_max_fp(tv: Dict[str, Any]) -> None:
     tv["private"]["td_witness"]["q_target_max_fp"] += 1
+
+
+def mutate_target_network_value(tv: Dict[str, Any]) -> None:
+    mutate_q_target_max_fp(tv)
 
 
 def mutate_claimed_target_fp(tv: Dict[str, Any]) -> None:
@@ -130,6 +167,22 @@ def mutate_batch_item_index(tv: Dict[str, Any]) -> None:
     tv["private"]["items"][0]["index"] += 1
 
 
+def mutate_batch_path_order(tv: Dict[str, Any]) -> None:
+    tv["private"]["items"][0]["merkle_path"] = list(
+        reversed(tv["private"]["items"][0]["merkle_path"])
+    )
+
+
+def mutate_batch_target_network_value(tv: Dict[str, Any]) -> None:
+    tv["private"]["items"][0]["td_witness"]["q_target_max_fp"] += 1
+
+
+def mutate_batch_fixed_point_rounding(tv: Dict[str, Any]) -> None:
+    tv["private"]["items"][0]["transition"]["reward"] = (
+        float(tv["private"]["items"][0]["transition"]["reward"]) + 0.0006
+    )
+
+
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -143,14 +196,29 @@ def main() -> None:
             "mutator": None,
         },
         {
+            "case_name": "tamper_schema_version",
+            "expected_accept": False,
+            "mutator": mutate_schema_version,
+        },
+        {
             "case_name": "tamper_reward",
             "expected_accept": False,
             "mutator": mutate_reward,
         },
         {
+            "case_name": "tamper_fixed_point_rounding",
+            "expected_accept": False,
+            "mutator": mutate_fixed_point_rounding,
+        },
+        {
             "case_name": "tamper_done",
             "expected_accept": False,
             "mutator": mutate_done,
+        },
+        {
+            "case_name": "tamper_done_branch",
+            "expected_accept": False,
+            "mutator": mutate_done_branch,
         },
         {
             "case_name": "tamper_transition_obs",
@@ -168,9 +236,24 @@ def main() -> None:
             "mutator": mutate_merkle_path,
         },
         {
+            "case_name": "tamper_leaf_index",
+            "expected_accept": False,
+            "mutator": mutate_leaf_index,
+        },
+        {
+            "case_name": "tamper_path_order",
+            "expected_accept": False,
+            "mutator": mutate_path_order,
+        },
+        {
             "case_name": "tamper_q_target_max_fp",
             "expected_accept": False,
             "mutator": mutate_q_target_max_fp,
+        },
+        {
+            "case_name": "tamper_target_network_value",
+            "expected_accept": False,
+            "mutator": mutate_target_network_value,
         },
         {
             "case_name": "tamper_claimed_target_fp",
@@ -220,6 +303,24 @@ def main() -> None:
             "case_name": "tamper_batch_item_index",
             "expected_accept": False,
             "mutator": mutate_batch_item_index,
+            "base": batch_base,
+        },
+        {
+            "case_name": "tamper_batch_path_order",
+            "expected_accept": False,
+            "mutator": mutate_batch_path_order,
+            "base": batch_base,
+        },
+        {
+            "case_name": "tamper_batch_target_network_value",
+            "expected_accept": False,
+            "mutator": mutate_batch_target_network_value,
+            "base": batch_base,
+        },
+        {
+            "case_name": "tamper_batch_fixed_point_rounding",
+            "expected_accept": False,
+            "mutator": mutate_batch_fixed_point_rounding,
             "base": batch_base,
         },
     ]

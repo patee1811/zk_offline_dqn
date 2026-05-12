@@ -196,9 +196,9 @@ Week 3 benchmark/reproducibility command:
 python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
 ```
 
-It writes `artifacts/benchmarks/sp1_td_mvp/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The latest WSL2 runs completed TD-1 with `66.668891s` prove time, `0.088947s` verify time, `2782588` proof bytes, and `365501` cycles, and TD-2 minibatch proof with `78.693257s` prove time, `0.131290s` verify time, `2787687` proof bytes, and `725309` cycles. TD-4 and TD-8 execute successfully but are currently resource-limited for local WSL2 proving. The runner compares the Python semantic oracle and SP1 backend over the same valid/tampered TD MVP cases.
+It writes `artifacts/benchmarks/sp1_td_mvp/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The latest runs completed TD-1 on WSL2 and TD-2/4/8 on Kaggle. TD-8 reached `340.160048s` prove time, `0.201657s` verify time, `2812327` proof bytes, and `2834727` cycles. The runner compares the Python semantic oracle and SP1 backend over the same valid/tampered TD MVP cases.
 
-Next backend work is broader-resource TD-4/TD-8 proof runs, stronger adversarial tests, and artifact packaging.
+Next backend work is stronger adversarial tests, cleaner benchmark packaging, and artifact packaging.
 
 RISC Zero remains the main later comparison backend. Circuit-oriented backends such as Noir, Circom, and Halo2 are deferred until the relation is stable.
 

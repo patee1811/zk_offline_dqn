@@ -10,12 +10,18 @@ echo "valid_control"
 cargo run --release -p td-mvp-host -- --input "$INPUT" --case valid_control --execute
 
 cases=(
+  tamper_schema_version
   tamper_reward
+  tamper_fixed_point_rounding
   tamper_done
+  tamper_done_branch
   tamper_transition_obs
   tamper_leaf_encoding
   tamper_merkle_path
+  tamper_leaf_index
+  tamper_path_order
   tamper_q_target_max_fp
+  tamper_target_network_value
   tamper_claimed_target_fp
   tamper_claimed_loss_fp
   tamper_leaf_hash
@@ -44,6 +50,9 @@ batch_cases=(
   tamper_batch_size
   tamper_batch_item_loss_fp
   tamper_batch_item_index
+  tamper_batch_path_order
+  tamper_batch_target_network_value
+  tamper_batch_fixed_point_rounding
 )
 
 for case_name in "${batch_cases[@]}"; do

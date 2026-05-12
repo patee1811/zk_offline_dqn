@@ -96,6 +96,17 @@ Run the extended negative checks:
 bash run_negative_cases.sh
 ```
 
+The extended suite covers:
+
+- schema version mismatch;
+- fixed-point rounding mismatch;
+- wrong `done` branch semantics;
+- wrong leaf index;
+- wrong Merkle path order;
+- target-network value tamper;
+- batch aggregation tamper;
+- batch item index/path/value/rounding tamper.
+
 ## Current Smoke Results
 
 Recorded on 2026-05-11 in WSL2 Ubuntu.
@@ -141,11 +152,11 @@ Implemented relation checks:
 
 The committed benchmark runner can generate TD-2/4/8 fixtures from the canonical single-transition vector. Fresh SP1 timings for TD-2/4/8 should be recorded after running `python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove` in WSL2 Ubuntu.
 
-Current local WSL2 result:
+Current proof results:
 
-- TD-2 proof completed: `78.693257s` prove, `0.131290s` verify, `2787687` proof bytes, `725309` cycles.
-- TD-4 execution completed with `1425790` cycles, but proof attempt made the WSL session unstable.
-- TD-8 execution completed with `2834727` cycles; proof timing is not claimed yet.
+- TD-2 proof completed on Kaggle: `192.414547s` prove, `0.196456s` verify, `2787687` proof bytes, `725309` cycles.
+- TD-4 proof completed on Kaggle: `234.509679s` prove, `0.199258s` verify, `2795631` proof bytes, `1425790` cycles.
+- TD-8 proof completed on Kaggle: `340.160048s` prove, `0.201657s` verify, `2812327` proof bytes, `2834727` cycles.
 
 ## Non-Goals
 
