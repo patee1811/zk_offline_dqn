@@ -1,18 +1,27 @@
 \section{Conclusion}
 
-This work presents a concrete research path toward zero-knowledge verifiable offline DQN training from committed trajectories. Rather than attempting to solve full reinforcement-learning verifiability in one step, we focus on a narrower but well-defined setting: offline DQN training on a fixed committed dataset, with the aim of verifying reinforcement-learning-specific computations without revealing the underlying data or model parameters.
+This paper presents a ZK-backed verification pipeline for temporal-difference
+computation in offline DQN over committed trajectories. The contribution is
+scoped deliberately. Rather than claiming full proof-of-training, we prove the
+first RL-specific backend relation: committed transition membership plus
+fixed-point Bellman target, TD error, SmoothL1 loss, and minibatch-average loss
+consistency.
 
-Our current contribution is a pre-ZK artifact/verifier prototype rather than a full cryptographic proof-of-training system. On the data side, we instantiate a Merkle-style commitment pipeline for offline transition datasets. On the verification side, we show that key offline DQN computations can already be exported and checked in a structured way, including committed-transition membership, Double-DQN-style Bellman target correctness, SmoothL1 TD-loss correctness, minibatch-loss consistency, and checkpoint anchoring. We further extend this prototype to a stronger one-step update statement covering gradient recomputation, parameter-delta consistency, SGD update consistency, and target-network invariance.
+The implementation commits a CartPole transition dataset with a SHA-256 Merkle
+tree, exports canonical TD witnesses, and proves TD-1/2/4/8 relations in an SP1
+zkVM backend. The locked benchmark reports successful proof generation and
+verification, proof sizes around 2.8 MB, verification time around 0.16 seconds,
+and Python/SP1 agreement on valid and tampered fixtures. The negative suite
+rejects schema, transition, Merkle, rounding, done-branch, target-value,
+claimed-output, and batch-aggregation tampering.
 
-We then move beyond isolated one-step verification to short verified training traces. In particular, our current experiments show successful verification for 2-step, 4-step, and 8-step traces with explicit checkpoint chaining and target-network synchronization semantics. We also strengthen the current short-trace statement with deterministic contiguous sampling-rule enforcement, where the verifier checks that each minibatch follows a declared public rule parameterized by batch size and start offset. A negative sanity check confirms that this stronger statement is actually enforced: when the public batch indices are tampered while the underlying witness remains unchanged, the verifier rejects the artifact.
+The remaining path is clear. One-step update and short-trace verifiers already
+exist as Python pre-ZK extensions, but they must be ported to a proof backend
+before the project can claim proof-of-update or proof-of-training. Future work
+should therefore prioritize neural-network forward proofs, argmax and target
+network semantics, gradient and optimizer proofs, diverse minibatch fixtures,
+and recursive aggregation for longer traces.
 
-The current implementation also includes a B3 short-trace artifact cleanup milestone: operational filesystem paths are supplied by the benchmark/runtime environment rather than stored in persistent artifact metadata. This separates reproducibility handles from the statement fields that should eventually become public inputs or private witnesses in a proving backend.
-
-Taken together, these results show that the project has progressed from arithmetic-level checking toward verification of a small but nontrivial offline training process under a stricter public statement. This is a meaningful intermediate milestone: substantially stronger than a toy TD-arithmetic verifier, but still short of a complete proof-of-training construction.
-
-At the same time, the current system remains intentionally limited. It is still a Python pre-ZK verifier rather than a real zero-knowledge backend. It does not yet provide a full proof of training from initialization to final checkpoint, general replay-sampling correctness over a long run, long-horizon target-network synchronization guarantees, recursive proof aggregation, or verification of model-selection procedures such as early stopping and best-checkpoint selection.
-
-\paragraph{Future work.}
-The most natural next step is to continue strengthening multi-step verification beyond the current short-trace setting while making the statement more backend-ready. This includes longer trace composition, stronger replay-sampling guarantees beyond the current deterministic contiguous schedule, clearer synchronization semantics, and a more circuit-friendly witness design. After that, the project can be translated into a genuine proving backend and evaluated with true proving time, verification time, and proof-size measurements.
-
-Overall, the current results support the central claim of this work: offline DQN training on committed trajectories can be decomposed into meaningful verifiable statements, providing a practical path from TD arithmetic, to one-step update correctness, to short process-level training-trace verification, and eventually toward a full zero-knowledge proof-of-training system.
+The main conclusion is that offline DQN training can be decomposed into
+verifiable layers, and that the TD/minibatch-TD layer is already practical
+enough to prove in a real zkVM backend over committed trajectory data.

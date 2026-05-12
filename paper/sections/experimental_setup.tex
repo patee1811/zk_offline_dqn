@@ -1,79 +1,66 @@
-\subsection{Experimental Objective}
+\subsection{Artifact and Environment}
 
-The experimental section is designed to answer three questions that are directly relevant to a future verifiable training setting:
-\begin{enumerate}[leftmargin=1.5em]
-    \item How does offline performance depend on dataset structure when the dataset is fixed in advance?
-    \item Does a narrow high-return dataset favor imitation, bootstrapped value learning, or both?
-    \item Does a conservative offline RL objective provide a better value-learning foundation for later proof statements?
-\end{enumerate}
+All experiments use the repository artifacts locked at the end of Week 5. The
+canonical TD test vector is
+\path{zk_backend/test_vectors/td_mvp_case_0.json}. The Python semantic
+oracle is \path{scripts/artifacts_export/verify_td_mvp_test_vector.py}. The
+SP1 backend is the Rust workspace in \path{zk_backend/td_mvp/sp1/}.
 
-Our goal is therefore not to optimize CartPole performance at all costs, but to identify which learning procedures remain meaningful when training is restricted to a committed offline dataset.
+The concrete environment is CartPole-v1~\cite{brockman2016gym}. The model used
+by the Python extension artifacts is a multilayer perceptron with input
+dimension 4, two hidden layers of width 128, and two output actions. The SP1 TD
+backend does not prove this neural-network forward pass; it proves consistency
+of the fixed-point TD witness values and committed transition membership.
 
-\subsection{Pipeline}
+\subsection{Reproducibility Commands}
 
-The full workflow has four stages:
-\begin{enumerate}[leftmargin=1.5em]
-    \item train an online DQN~\cite{mnih2015dqn} behavior policy on CartPole-v1~\cite{brockman2016gym};
-    \item collect fixed trajectory datasets under different collection policies;
-    \item flatten trajectories into replay-style transition datasets; and
-    \item train offline baselines on the resulting fixed transitions.
-\end{enumerate}
+The Python regression suite is run with:
+{\scriptsize
+\begin{verbatim}
+python scripts/experiments/run_full_regression.py
+\end{verbatim}
+}
+It performs compile checks, TD/minibatch verification, forward TD consistency,
+one-step verification, short-trace verification, and negative tests.
 
-The online DQN policy is used only for data collection. All reported learning results are obtained \emph{offline}, from a dataset that is fixed before training begins.
+The SP1 benchmark is run on Linux, WSL2 Ubuntu, macOS, or Kaggle with:
+{\scriptsize
+\begin{verbatim}
+python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+  --prove
+\end{verbatim}
+}
+The runner generates TD-1/2/4/8 accepted fixtures, generates proofs for the
+accepted cases, executes tampered cases, compares Python and SP1 outcomes, and
+writes JSON, CSV, and Markdown summaries.
 
-\subsection{Environment and Function Approximator}
+The SP1 negative suite can also be run directly from the SP1 workspace:
+{\scriptsize
+\begin{verbatim}
+cd zk_backend/td_mvp/sp1
+bash run_negative_cases.sh
+\end{verbatim}
+}
 
-All experiments use CartPole-v1~\cite{brockman2016gym}. Observations are four-dimensional continuous vectors and the action space is discrete with two actions. The neural function approximator is a multilayer perceptron with two hidden layers of width 128 and ReLU activations. For value-based methods we use a target network, Huber loss (SmoothL1)~\cite{huber1964robust} for the TD term, gradient clipping at 10.0, and periodic target-network synchronization.
+\subsection{Benchmark Cases}
 
-\subsection{Datasets}
+The accepted benchmark matrix contains:
+\begin{itemize}[leftmargin=1.5em]
+    \item TD-1: one Merkle membership plus one TD/SmoothL1 check;
+    \item TD-2, TD-4, TD-8: multiple Merkle memberships, per-item TD/SmoothL1
+    checks, and integer batch-average loss.
+\end{itemize}
 
-We construct several fixed datasets, each with approximately 47k transitions.
+The adversarial suite includes single-transition tampering of schema version,
+reward, fixed-point rounding, done flag, done-branch semantics, observation,
+leaf encoding, Merkle path, leaf index, path order, target-network value,
+claimed target, claimed loss, leaf hash, and TD error. Batch tampering covers
+claimed batch loss, batch size, item loss, item index, path order,
+target-network value, and fixed-point rounding.
 
-\paragraph{Random matched dataset.}
-\texttt{random\_matched} is collected with uniformly random actions until its size matches the main behavior dataset. It is broad in state--action coverage, action-balanced, and relatively noisy, with shorter episodes and a higher terminal ratio.
+\subsection{Pre-ZK Extension Benchmarks}
 
-\paragraph{Behavior dataset \texttt{dqn\_eps010}.}
-This dataset is collected from a trained DQN behavior policy using $\epsilon=0.10$ during data generation. It contains longer episodes and higher-quality actions, but its support is narrower than the random dataset.
-
-\paragraph{Mixed datasets.}
-We also form transition-level mixtures of random and behavior data, specifically \texttt{mixed\_random50\_dqn010} and \texttt{mixed\_random20\_dqn010}. These datasets interpolate raw statistics between the two extremes, but, as shown later, interpolation in dataset composition does not automatically produce interpolation in learning stability.
-
-\subsection{Methods}
-
-We compare three baselines.
-
-\paragraph{Offline Double DQN.}
-This baseline uses Double DQN targets~\cite{hasselt2016double} on a fixed offline replay dataset. It includes early stopping, checkpoint selection, and no additional environment interaction.
-
-\paragraph{Behavior Cloning (BC).}
-This baseline treats the dataset as supervised state--action pairs and trains a policy to predict the dataset action from the current state. BC provides a useful reference because it removes Bellman bootstrapping entirely.
-
-\paragraph{CQL-lite.}
-This method augments the offline Double DQN objective with a conservative penalty~\cite{kumar2020cql}. In the present draft, we use $\alpha=1.0$. The purpose is not to claim a fully tuned CQL implementation, but to test whether a conservative objective stabilizes offline value learning on narrow-support behavior data.
-
-\subsection{Training and Evaluation Protocol}
-
-We use seeds 42, 123, and 999 when available. During training, we periodically run 10-episode evaluations and save the best checkpoint. Because short evaluations can be noisy, every selected checkpoint is then re-evaluated over 100 episodes. The paper reports these 100-episode re-evaluations as the main quantitative result.
-
-This protocol serves two purposes. First, it reduces the risk of over-interpreting transient short-horizon spikes. Second, it is closer to the eventual verifiable setting, where one would want to distinguish the audited training computation itself from a separate and more reliable downstream validation procedure.
-
-\subsection{Verification Experiments}
-\label{sec:verification-experiments}
-
-Beyond the offline RL baselines, we also evaluate the pre-ZK verification pipeline described in \Cref{sec:system-design}. The verification setup uses the Merkle-committed CartPole transition dataset, a trained offline DQN checkpoint with both online and target-network states, and artifact exporters/verifiers for four statement types: single-sample TD verification, minibatch TD verification, one-step offline DQN SGD update verification, and short-trace update verification.
-
-For the one-step update experiment, each run takes as input a committed minibatch specified by explicit indices, a fixed pre-update checkpoint, and a learning rate of $0.001$. The exporter constructs an artifact containing committed-minibatch membership data, TD witnesses, pre/post checkpoint hashes, parameter summaries, gradient tensors, and delta tensors. The verifier then checks all components described in \Cref{sec:verification-statements}.
-
-To obtain preliminary scaling behavior, we benchmark the one-step verifier across minibatch sizes $1, 2, 4, 8,$ and $16$, using fixed prefixes of the committed dataset indices. For each batch, we record the fixed-point batch loss, artifact export time, verification time, and the final verification outcome.
-
-For the short-trace experiment, each run composes consecutive one-step update statements over a declared sequence of committed minibatches. The current locked benchmark uses 8 update steps, target-network synchronization every two steps, and the deterministic contiguous sampling rule
-\[
-B_t = [s + tk,\; s + tk + 1,\; \ldots,\; s + tk + (k-1)],
-\]
-where $t$ is the step index, $k$ is the public batch size, and $s$ is the public start offset. The benchmark records artifact export time, verification time, initial and final checkpoint hashes, and the final verification outcome. After the B3 short-trace artifact cleanup, operational filesystem paths such as the Merkle path and checkpoint paths are supplied by the benchmark/runtime environment rather than stored in the persistent artifact.
-
-We also include a negative sanity check for the deterministic sampling rule. Starting from a valid short-trace artifact, we modify the public trace batch indices while leaving the underlying step witnesses unchanged. The expected result is rejection, because the public trace no longer matches the declared contiguous schedule.
-
-\subsection{Why This Setup Matters for Zero-Knowledge Verifiability}
-
-The experimental setup mirrors the structure needed for a proof system. The dataset is fixed before training. Training steps are deterministic given the dataset, minibatch indices, model parameters, and hyperparameters. Bellman targets and TD losses are explicit arithmetic objects. This makes the offline setting the right place to determine \emph{which} learning computations are worth proving before tackling the cost of proof construction itself.
+For context, the repository also retains Python benchmarks for one-step update
+verification and 8-step short-trace verification. These are not SP1 proof
+benchmarks. They are reported to clarify the engineering path from TD proofs
+toward proof-of-update and proof-of-trace.

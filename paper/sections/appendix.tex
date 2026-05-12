@@ -1,145 +1,163 @@
 \appendices
 
-\section{Hyperparameter Details}
-\label{app:hyperparameters}
+\section{Relation Summary}
+\label{app:relation-summary}
 
-\Cref{tab:app-hparams} records the settings that were explicitly fixed and repeatedly referenced in the reported experiments.
+The SP1 backend accepts two schema versions:
 
-\begin{table}[!t]
-\centering
-\footnotesize
-\caption{Explicitly reported experimental settings.}
-\label{tab:app-hparams}
-\begin{tabular}{ll}
-\toprule
-Setting & Value \\
-\midrule
-Environment & CartPole-v1 \\
-Observation dim. & 4 \\
-Action space size & 2 \\
-Network arch. & MLP, 2 hidden layers $\times$ 128 \\
-Hidden activation & ReLU \\
-Offline DQN LR & $1 \times 10^{-4}$ \\
-CQL-lite LR & $1 \times 10^{-4}$ \\
-TD loss & SmoothL1Loss (Huber) \\
-Gradient clipping & 10.0 \\
-Target network & Enabled \\
-Target rule & Double DQN \\
-CQL-lite $\alpha$ & 1.0 \\
-Behavior policy & DQN, $\epsilon = 0.10$ \\
-Model selection & 10-ep periodic eval \\
-Final evaluation & 100-episode re-eval \\
-Seeds & 42, 123, 999 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\begin{verbatim}
+td_mvp_test_vector_v1
+td_mvp_batch_test_vector_v1
+\end{verbatim}
 
-\section{Dataset Summary}
-\label{app:dataset-stats}
+For each item, it checks:
+\begin{enumerate}[leftmargin=1.5em]
+    \item the transition serializes to the supplied fixed-point leaf;
+    \item SHA-256 of the canonical leaf encoding matches the supplied leaf hash;
+    \item the Merkle path recomputes the public dataset root;
+    \item the first Merkle path index matches the public or item leaf index;
+    \item the done flag is binary;
+    \item the target is $r_{\mathrm{fp}}$ for terminal transitions and
+    $r_{\mathrm{fp}}+\lfloor \gamma_{\mathrm{fp}}q_{\mathrm{target,fp}}/S\rfloor$
+    for non-terminal transitions;
+    \item the TD error is $q_{\mathrm{online,fp}}-y_{\mathrm{fp}}$;
+    \item the SmoothL1 loss matches the fixed-point definition;
+    \item the public claimed target/loss or claimed batch loss matches
+    recomputation.
+\end{enumerate}
 
-\Cref{tab:app-datasets} summarizes the four offline datasets used in this study. All datasets contain approximately 47k transitions.
+\section{Public Inputs and Private Witnesses}
+\label{app:public-private}
 
-\begin{table*}[!t]
-\centering
-\footnotesize
-\caption{Dataset summary. Sizes are approximately matched at around 47k transitions.}
-\label{tab:app-datasets}
-\begin{tabular}{l l l p{7cm}}
-\toprule
-Dataset & Source policy & Size & Main characteristics \\
-\midrule
-\texttt{random\_matched} & Uniform random & $\approx 47$k & Broad state--action coverage, near-balanced actions, shorter episodes, higher terminal ratio, noisy trajectories. \\
-\texttt{dqn\_eps010} & Trained DQN, $\epsilon\!=\!0.10$ & $\approx 47$k & Narrower support, longer episodes, lower terminal ratio, higher-return behavior, good action supervision. \\
-\texttt{mixed\_random50\_dqn010} & 50--50 mix & $\approx 47$k & Intermediate raw statistics, but poor under offline Double DQN. \\
-\texttt{mixed\_random20\_dqn010} & 20--80 mix & $\approx 47$k & Closer to behavior data, yet still poor with transition-level mixing. \\
-\bottomrule
-\end{tabular}
-\end{table*}
+Single-transition public inputs:
 
-Two high-level contrasts are the most important:
-\begin{itemize}[leftmargin=1.5em]
-    \item \texttt{random\_matched} provides coverage without behavior quality;
-    \item \texttt{dqn\_eps010} provides behavior quality without broad support.
-\end{itemize}
-These opposing properties explain why the same offline dataset can favor different learning paradigms.
+\begin{verbatim}
+dataset_root
+fp_scale
+gamma_fp
+loss_type
+claimed_target_fp
+claimed_loss_fp
+leaf_index
+\end{verbatim}
 
-\section{Fixed-Point Specification}
-\label{app:fixedpoint-spec}
+Single-transition private witness:
 
-\Cref{tab:app-fp-spec} lists the complete fixed-point specification used in all verification artifacts, defined in the \texttt{zk\_specs.py} module.
+\begin{verbatim}
+transition
+leaf
+leaf_hash
+merkle_path
+td_witness
+\end{verbatim}
 
-\begin{table}[!t]
-\centering
-\footnotesize
-\caption{Fixed-point arithmetic specification.}
-\label{tab:app-fp-spec}
-\begin{tabular}{l l p{2.8cm}}
-\toprule
-Parameter & Value & Description \\
-\midrule
-\texttt{FP\_SCALE} & 1000 & Scaling: $\mathrm{fp}(x) = \mathrm{round}(x \cdot 1000)$ \\
-\texttt{OBS\_DIM} & 4 & Observation dimension \\
-\texttt{ACTION\_DIM} & 2 & Action space size \\
-\texttt{GAMMA\_FP} & 990 & $\gamma = 0.99$ in fixed-point \\
-\texttt{LOSS\_TYPE} & \texttt{smooth\_l1} & SmoothL1 loss \\
-\texttt{SMOOTH\_L1\_BETA\_FP} & 1000 & $\beta = 1.0$ in fixed-point \\
-\bottomrule
-\end{tabular}
-\end{table}
+Minibatch public inputs add:
 
-\section{Artifact JSON Schema}
-\label{app:artifact-schema}
+\begin{verbatim}
+batch_size
+claimed_batch_loss_fp
+\end{verbatim}
 
-The repository currently uses JSON artifacts as pre-ZK verifier inputs. These artifacts are intended to clarify the statement structure before it is translated to a true proving backend. The current schema separates public inputs, witness data, and prototype-only audit metadata.
+Minibatch private witness uses:
 
-\paragraph{TD and minibatch artifacts.}
-The TD artifacts contain:
-\begin{itemize}[leftmargin=1.5em]
-    \item \textbf{\texttt{public}}: verifier-visible values such as \texttt{dataset\_root}, \texttt{checkpoint\_sha256}, \texttt{loss\_type}, \texttt{batch\_size}, and \texttt{batch\_loss\_fp};
-    \item \textbf{\texttt{items}}: per-transition witnesses including transition data, serialized leaf values, Merkle authentication paths, and TD witnesses;
-    \item \textbf{\texttt{notes}}: prototype metadata used for debugging and audit convenience.
-\end{itemize}
+\begin{verbatim}
+items[]
+\end{verbatim}
 
-\paragraph{One-step update artifacts.}
-The one-step update artifact extends the minibatch artifact with:
-\begin{itemize}[leftmargin=1.5em]
-    \item \textbf{\texttt{public}}: \texttt{pre\_checkpoint\_sha256}, \texttt{post\_checkpoint\_sha256}, \texttt{optimizer\_type}, and \texttt{learning\_rate\_fp};
-    \item \textbf{\texttt{update\_witness}}: \texttt{batch\_loss\_fp}, pre/post state hashes, parameter summaries, \texttt{gradient\_tensors}, and \texttt{delta\_tensors}.
-\end{itemize}
-Some one-step fields, especially parameter summaries and redundant hashes, are audit-friendly prototype fields rather than finalized circuit-level fields.
+Each item contains an index, transition, leaf, leaf hash, Merkle path, and TD
+witness.
 
-\paragraph{Short-trace artifacts.}
-The current B3 short-trace artifact contains:
-\begin{itemize}[leftmargin=1.5em]
-    \item \textbf{\texttt{public}}: \texttt{dataset\_root}, \texttt{trace\_batch\_indices}, \texttt{num\_steps}, \texttt{batch\_size}, \texttt{loss\_type}, \texttt{optimizer\_type}, \texttt{learning\_rate\_fp}, \texttt{sampling\_rule\_type}, \texttt{start\_offset}, \texttt{target\_sync\_every}, \texttt{initial\_checkpoint\_sha256}, and \texttt{final\_checkpoint\_sha256};
-    \item \textbf{\texttt{steps}}: per-step checkpoint hashes, target-sync flags, \texttt{sync\_state\_witness}, and embedded one-step artifacts;
-    \item \textbf{\texttt{notes}}: an empty compatibility object after B3 cleanup.
-\end{itemize}
+\section{Tamper-Test Definitions}
+\label{app:tamper-tests}
 
-Operational paths are no longer persistent short-trace artifact metadata. The Python verifier receives paths through runtime environment variables such as \texttt{SHORT\_TRACE\_MERKLE\_PATH}, \texttt{SHORT\_TRACE\_INITIAL\_CHECKPOINT\_PATH}, and \texttt{SHORT\_TRACE\_FINAL\_CHECKPOINT\_PATH}. Benchmark summaries may still record paths such as \texttt{final\_checkpoint\_path} for reproducibility, but those fields are benchmark metadata rather than artifact-schema fields.
+Single-transition tamper cases:
 
-\section{File Naming Conventions}
-\label{app:naming}
+\begin{verbatim}
+tamper_schema_version
+tamper_reward
+tamper_fixed_point_rounding
+tamper_done
+tamper_done_branch
+tamper_transition_obs
+tamper_leaf_encoding
+tamper_merkle_path
+tamper_leaf_index
+tamper_path_order
+tamper_q_target_max_fp
+tamper_target_network_value
+tamper_claimed_target_fp
+tamper_claimed_loss_fp
+tamper_leaf_hash
+tamper_td_error_fp
+\end{verbatim}
 
-The codebase follows a stage-oriented naming style:
-\begin{itemize}[leftmargin=1.5em]
-    \item \texttt{generate\_*} for data collection;
-    \item \texttt{flatten\_*} for episode-to-transition conversion;
-    \item \texttt{train\_*} for model training;
-    \item \texttt{evaluate\_*} for checkpoint re-evaluation;
-    \item \texttt{export\_*} and \texttt{verify\_*} for artifact verification; and
-    \item \texttt{analyze\_*} for post-hoc analysis.
-\end{itemize}
+Batch tamper cases:
 
-Episode datasets use the naming \texttt{<name>\_episodes.pkl} with companion \texttt{.summary.json} files. Transition-level datasets use \texttt{<name>\_transitions.pkl}.
+\begin{verbatim}
+tamper_batch_claimed_loss_fp
+tamper_batch_size
+tamper_batch_item_loss_fp
+tamper_batch_item_index
+tamper_batch_path_order
+tamper_batch_target_network_value
+tamper_batch_fixed_point_rounding
+\end{verbatim}
 
-\section{Reporting Notes}
-\label{app:reporting-notes}
+Every tamper case is expected to reject. The locked benchmark reports agreement
+between the Python semantic oracle and SP1 execution for all of these cases.
 
-We distinguish two kinds of variability:
-\begin{itemize}[leftmargin=1.5em]
-    \item \textbf{within-seed evaluation variance}: standard deviation over the 100 evaluation episodes for a selected checkpoint;
-    \item \textbf{across-seed variance}: standard deviation across seed-wise mean returns (reported in aggregate rows).
-\end{itemize}
+\section{Reproducibility Commands}
+\label{app:reproducibility}
 
-This distinction matters because a method can be internally variable yet consistent across seeds, or vice versa.
+Run the Python regression:
+
+{\scriptsize
+\begin{verbatim}
+python scripts/experiments/run_full_regression.py
+\end{verbatim}
+}
+
+Run the full SP1 benchmark:
+
+{\scriptsize
+\begin{verbatim}
+python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+  --prove
+\end{verbatim}
+}
+
+Run the SP1 negative suite:
+
+{\scriptsize
+\begin{verbatim}
+cd zk_backend/td_mvp/sp1
+bash run_negative_cases.sh
+\end{verbatim}
+}
+
+If the full SP1 proof benchmark is unstable, prove accepted cases separately:
+
+{\scriptsize
+\begin{verbatim}
+python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+  --prove --prove-cases TD-1
+python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+  --prove --prove-cases TD-2
+python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+  --prove --prove-cases TD-4
+python3 scripts/experiments/benchmark_sp1_td_mvp.py \
+  --prove --prove-cases TD-8
+\end{verbatim}
+}
+
+\section{Locked Artifact Files}
+\label{app:artifact-files}
+
+The locked implementation state is documented in:
+
+\begin{verbatim}
+docs/week5_artifact_package.md
+docs/current_benchmark_snapshot.md
+zk_backend/td_mvp/sp1/README.md
+zk_backend/td_mvp/sp1/tamper_checklist.md
+\end{verbatim}

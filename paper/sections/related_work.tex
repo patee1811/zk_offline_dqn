@@ -1,14 +1,62 @@
-\paragraph{Deep reinforcement learning.}
-The Deep Q-Network (DQN) algorithm~\cite{mnih2015dqn} demonstrated that deep neural networks can learn effective control policies through temporal-difference learning~\cite{watkins1992qlearning} with experience replay and a target network. A key refinement, Double DQN~\cite{hasselt2016double}, addresses overestimation bias by decoupling action selection from value evaluation: the online network selects the best next action, while the target network evaluates that action. Our system uses Double DQN as the primary value-learning architecture for offline training, making this decoupled structure a core part of the verification statement.
+\paragraph{Offline RL and DQN.}
+DQN showed that deep value functions can learn control policies through
+temporal-difference learning with experience replay and a target
+network~\cite{mnih2015dqn,watkins1992qlearning}. Double DQN refines this
+structure by using the online network for next-action selection and the target
+network for value evaluation~\cite{hasselt2016double}. Offline RL studies the
+more constrained setting in which training uses a fixed dataset and no further
+environment interaction~\cite{levine2020offline}. This fixed-data setting is
+natural for commitment-based verification, but it also makes value learning
+fragile under distribution shift~\cite{fujimoto2019offpolicy}. Conservative
+Q-Learning addresses this by regularizing value estimates for unsupported
+actions~\cite{kumar2020cql}. Our work does not propose a new offline RL
+algorithm. Instead, it asks how the TD computations used by offline DQN-style
+training can be made verifiable over committed trajectories.
 
-\paragraph{Offline reinforcement learning.}
-Offline RL~\cite{levine2020offline} addresses the problem of learning policies from a fixed dataset without further environment interaction. A central challenge is distribution shift: the learned policy may select actions poorly represented in the data, leading to extrapolation errors. Fujimoto et al.~\cite{fujimoto2019offpolicy} showed that naive off-policy methods fail in the purely offline setting. Conservative Q-Learning (CQL)~\cite{kumar2020cql} mitigates this by regularizing the Q-function to produce lower-bound value estimates on out-of-distribution actions. Our work evaluates both naive offline Double DQN and a CQL-lite variant on committed datasets, finding that the conservative objective is essential for stable value learning on narrow behavior-generated data.
+\paragraph{Proof-of-learning and proof-of-training.}
+Proof-of-Learning introduced the problem of proving that released model
+parameters resulted from an expensive training procedure
+~\cite{jia2021proofoflearning}. Later zero-knowledge proof-of-training work
+aims to prove correct training on committed data without revealing private data
+or model parameters~\cite{zkdl2023,zkpotvicinity2025}. These systems primarily
+target supervised or general deep learning training. They motivate our threat
+model, but they do not directly address RL-specific semantics such as terminal
+Bellman branches, target-network values, replay membership, and TD losses. Our
+scope is therefore complementary: we do not prove all DQN training; we prove a
+smaller RL-specific TD relation that can be embedded later into a fuller update
+or trace proof.
 
-\paragraph{Verifiable machine learning.}
-The notion of verifying that a machine learning model was correctly trained has been explored under the concept of Proof-of-Learning~\cite{jia2021proofoflearning}, which aims to provide evidence that computational work was performed during training. Our approach differs in that we target cryptographically grounded verification of specific training computations---Bellman target computation, temporal-difference loss, and individual SGD updates---over committed data, rather than statistical evidence of training effort.
+\paragraph{Verifiable and zero-knowledge machine learning.}
+Verifiable ML systems have focused heavily on inference correctness. SafetyNets
+develops interactive proofs for neural-network inference on untrusted
+clouds~\cite{safetynets2017}. zkCNN gives zero-knowledge proofs for CNN
+prediction and accuracy while hiding model information~\cite{zkcnn2021}. VeriML
+uses SNARKs to provide integrity and fair-payment assurances for outsourced ML
+tasks~\cite{veriml2021}. Recent ZKML surveys organize this literature into
+verifiable inference, testing, and training~\cite{zkmlsurvey2026}. Our work
+differs in the computation being proved: the first-class statement is not a
+classification output or ordinary supervised update, but the TD computation
+that links a committed transition to a Bellman target and SmoothL1 loss.
 
-\paragraph{Zero-knowledge proof systems.}
-Zero-knowledge proofs allow a prover to convince a verifier of a statement's truth without revealing the underlying witness~\cite{thalerbook}. Modern constructions such as zkSNARKs~\cite{groth2016zksnark} and PLONK~\cite{gabizon2019plonk} enable succinct, non-interactive verification of general computations expressed as arithmetic circuits. While our current implementation is a pre-ZK artifact-verifier prototype rather than a true zero-knowledge system, the statement structure and fixed-point arithmetic are designed to be compatible with future deployment on such proving backends.
+\paragraph{Zero-knowledge proof systems and zkVMs.}
+Modern zero-knowledge systems enable succinct verification of general
+computation, with constructions such as Groth16 and PLONK providing important
+building blocks~\cite{groth2016zksnark,gabizon2019plonk}. zkVMs trade some
+constraint-level specialization for developer ergonomics by proving execution
+of programs written in conventional languages. SP1 is a Rust-oriented zkVM that
+proves execution of Rust or LLVM-compiled programs~\cite{succinct2024sp1}. We
+use SP1 because the TD MVP relation involves hashing, Merkle paths, branching,
+schema checks, and fixed-point integer arithmetic; implementing the first
+backend in a zkVM is substantially more direct than hand-writing a circuit
+before the relation stabilizes.
 
-\paragraph{Cryptographic commitments.}
-Merkle trees~\cite{merkle1987} provide an efficient mechanism for committing to a set of data elements and later proving membership of individual elements through authentication paths. In our system, the offline transition dataset is committed using a Merkle tree, and sampled transitions used for training are verified against the public root hash. This commitment structure ensures that the verifier can confirm that training computations are performed over the genuine committed dataset rather than adversarially chosen samples.
+\paragraph{Verifiable RL.}
+Prior verifiable RL work often focuses on interpretable or formally verifiable
+policies, rather than cryptographic verification of training computations.
+Programmatic-policy approaches, for example, search for policies that can be
+checked by symbolic methods~\cite{verma2019verifiable}. Other recent work
+combines zero-knowledge tools with distributed or federated RL primarily for
+privacy, communication integrity, or aggregation security. These directions are
+valuable, but they leave a gap around cryptographic correctness of the
+RL-specific arithmetic inside offline value learning. Our contribution targets
+that gap at the TD/minibatch-TD layer over committed trajectories.

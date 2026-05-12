@@ -4,7 +4,10 @@
 
 This document defines the threat model for the ZK-Offline-DQN project.
 
-The current project is a pre-ZK artifact/verifier framework for offline DQN training from committed trajectories. The goal is to move toward a zero-knowledge proof system that can prove selected offline DQN training relations over a committed dataset.
+The project combines Python artifact verifiers with a concrete SP1 backend for
+TD and minibatch-TD verification over committed trajectories. The goal is to
+expand zero-knowledge coverage carefully without claiming a full DQN
+proof-of-training.
 
 The first backend target is intentionally narrow:
 

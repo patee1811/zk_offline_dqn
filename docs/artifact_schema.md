@@ -327,13 +327,15 @@ This document separates:
 2. mandatory private witness fields,
 3. optional debug / audit fields,
 
-for the current pre-ZK artifact/verifier prototype.
+for the current artifact/verifier prototype and SP1 TD MVP backend.
 
-The goal is to reduce ambiguity and prepare the statement for a future backend-ready design.
+The goal is to reduce ambiguity, keep Python verifier artifacts consistent, and
+make backend-ready statements explicit.
 
 Current implementation status:
 
 - the TD and one-step artifacts remain audit-oriented Python verifier artifacts;
+- the TD MVP has a concrete SP1 backend for single-transition and minibatch TD checks;
 - the minibatch TD artifact now includes canonical checkpoint/model-state commitments;
 - the one-step artifact now includes canonical pre/post model-state commitments;
 - the one-step artifact now includes `next_action_online` as a core TD witness field;

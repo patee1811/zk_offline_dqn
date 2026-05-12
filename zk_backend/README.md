@@ -6,8 +6,9 @@ Current status:
 
 - Backend target: **SP1**.
 - Implemented: one TD MVP JSON test vector, a generated minibatch TD test-vector path, a Rust SP1 workspace, guest relation checks, host proof generation/verification, and single/batch tamper rejection checks.
-- Current Week 3 result: TD-1 proof verifies with `66.668891s` prove time, `0.088947s` verification time, `2782588` proof bytes, and `365501` cycles. Python and SP1 agree on the valid fixture and all TD MVP tamper cases.
-- Week 4 implementation status: the SP1 relation now accepts `td_mvp_batch_test_vector_v1` inputs with `private.items[]`, public `batch_size`, and public `claimed_batch_loss_fp`. Python oracle and SP1 execution smoke tests pass for TD-2/4/8 and batch aggregation tampers. SP1 proofs completed for TD-2, TD-4, and TD-8 on Kaggle.
+- Week 5 locked result: the full Kaggle SP1 benchmark completed TD-1/2/4/8 proofs with Python/SP1 agreement and all negative cases rejected.
+- Latest proof metrics: TD-1 `142.324547s` prove, `0.157464s` verify, `2782625` proof bytes, `382915` cycles; TD-2 `154.923089s` prove, `0.157712s` verify, `2787687` proof bytes, `725309` cycles; TD-4 `188.501940s` prove, `0.155969s` verify, `2795631` proof bytes, `1425790` cycles; TD-8 `275.077262s` prove, `0.157424s` verify, `2812327` proof bytes, `2834727` cycles.
+- The SP1 relation accepts `td_mvp_batch_test_vector_v1` inputs with `private.items[]`, public `batch_size`, and public `claimed_batch_loss_fp`. Python oracle and SP1 execution tests pass for TD-2/4/8, batch aggregation tampers, schema mismatch, fixed-point rounding mismatch, wrong done branch, wrong leaf index/path order, and target-network value tamper.
 
 ## First Backend Statement
 
@@ -53,7 +54,7 @@ zk_backend/
     td_mvp_case_0.json
   td_mvp/
     README.md
-    sp1/
+    sp1/                       concrete SP1 backend
       README.md
       toolchain.md
       Cargo.toml
@@ -62,11 +63,22 @@ zk_backend/
       shared/
 ```
 
-## Next Milestone
+## Locked Week 5 Scope
 
-1. Run the extended SP1 TD-2/4/8 benchmark from WSL2 Ubuntu and record prove/verify/proof-size metrics.
-2. Add stronger adversarial SP1 cases beyond aggregation, such as fixed-point rounding mismatch and done-branch mismatch.
-3. Keep refreshing `artifacts/benchmarks/sp1_td_mvp/` after relation changes with `python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove`.
-4. Package instructions for clean reproduction from a fresh WSL2 Ubuntu environment.
+The backend scope is locked at SP1 TD and minibatch-TD verification plus
+Python pre-ZK one-step and short-trace extensions. Week 6 should write the
+paper from these results rather than adding large backend features.
+
+Canonical package summary:
+
+```text
+docs/week5_artifact_package.md
+```
+
+Refresh command after any future relation change:
+
+```bash
+python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
+```
 
 Non-goals for this first backend milestone: full DQN training, neural-network forward proof, argmax proof, gradient proof, optimizer proof, long traces, and recursive aggregation.

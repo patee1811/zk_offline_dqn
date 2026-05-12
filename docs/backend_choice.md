@@ -10,6 +10,10 @@ SP1
 
 RISC Zero remains the main alternative backend for later comparison, but the next implementation milestone should focus on SP1 first.
 
+Week 5 status: SP1 is no longer only a selection target. The repository now
+contains a working SP1 TD/minibatch-TD backend with locked TD-1/2/4/8 proof
+metrics in `docs/week5_artifact_package.md`.
+
 The detailed decision rationale is documented in:
 
 ```text
