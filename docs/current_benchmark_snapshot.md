@@ -142,20 +142,14 @@ The Python semantic-oracle smoke path has passed for TD-2, TD-4, TD-8, and these
 - `tamper_batch_item_loss_fp`;
 - `tamper_batch_item_index`.
 
-Fresh SP1 proof timings for TD-2/4/8 are pending a WSL2 Ubuntu run of:
-
-```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
-```
-
-The first WSL2 proof refresh completed TD-2 but the terminal/WSL session became unstable when attempting TD-4 proof. Treat TD-4 and TD-8 as execution-only until a larger Linux machine or larger WSL memory limit is available.
+The local WSL2 proof refresh completed TD-2, but the terminal/WSL session became unstable when attempting TD-4 proof. Kaggle completed TD-2, TD-4, and TD-8 direct proof runs.
 
 | Case | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count | Notes |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | TD-1 | proof available from Week 3 | 66.668891 | 0.088947 | 2782588 | 365501 | single-transition proof |
-| TD-2 | proof completed | 78.693257 | 0.131290 | 2787687 | 725309 | minibatch proof with average loss |
-| TD-4 | execution-only | n/a | n/a | n/a | 1425790 | local WSL proof attempt exceeded available stability/resources |
-| TD-8 | execution-only | n/a | n/a | n/a | 2834727 | do not claim proof timing yet |
+| TD-2 | proof completed on Kaggle | 192.414547 | 0.196456 | 2787687 | 725309 | minibatch proof with average loss |
+| TD-4 | proof completed on Kaggle | 234.509679 | 0.199258 | 2795631 | 1425790 | minibatch proof with average loss |
+| TD-8 | proof completed on Kaggle | 340.160048 | 0.201657 | 2812327 | 2834727 | minibatch proof with average loss |
 
 ### WSL2 TD-2 execution smoke
 
@@ -193,4 +187,30 @@ tamper_batch_size: rejected
 tamper_batch_item_loss_fp: rejected
 tamper_batch_item_index: rejected
 all_sp1_negative_cases_passed = true
+```
+
+### Week 4 priority 2 adversarial suite
+
+The Python semantic-oracle suite has been extended and passed locally for:
+
+```text
+tamper_schema_version
+tamper_fixed_point_rounding
+tamper_done_branch
+tamper_leaf_index
+tamper_path_order
+tamper_target_network_value
+tamper_batch_path_order
+tamper_batch_target_network_value
+tamper_batch_fixed_point_rounding
+```
+
+Together with the existing cases, this covers schema mismatch, fixed-point
+rounding mismatch, wrong done-branch semantics, wrong leaf index/path order,
+target-network value tamper, and batch aggregation/index tamper. SP1 execution
+confirmation should be run on Linux/WSL2/Kaggle with:
+
+```bash
+cd zk_backend/td_mvp/sp1
+bash run_negative_cases.sh
 ```

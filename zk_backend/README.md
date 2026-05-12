@@ -7,7 +7,7 @@ Current status:
 - Backend target: **SP1**.
 - Implemented: one TD MVP JSON test vector, a generated minibatch TD test-vector path, a Rust SP1 workspace, guest relation checks, host proof generation/verification, and single/batch tamper rejection checks.
 - Current Week 3 result: TD-1 proof verifies with `66.668891s` prove time, `0.088947s` verification time, `2782588` proof bytes, and `365501` cycles. Python and SP1 agree on the valid fixture and all TD MVP tamper cases.
-- Week 4 implementation status: the SP1 relation now accepts `td_mvp_batch_test_vector_v1` inputs with `private.items[]`, public `batch_size`, and public `claimed_batch_loss_fp`. Python oracle and SP1 execution smoke tests pass for TD-2/4/8 and batch aggregation tampers. TD-2 proof completed on WSL2; TD-4/8 are currently execution-only on the local machine due to WSL stability/resource limits.
+- Week 4 implementation status: the SP1 relation now accepts `td_mvp_batch_test_vector_v1` inputs with `private.items[]`, public `batch_size`, and public `claimed_batch_loss_fp`. Python oracle and SP1 execution smoke tests pass for TD-2/4/8 and batch aggregation tampers. SP1 proofs completed for TD-2, TD-4, and TD-8 on Kaggle.
 
 ## First Backend Statement
 

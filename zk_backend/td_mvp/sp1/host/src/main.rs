@@ -5,7 +5,7 @@ use std::time::Instant;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use sp1_sdk::{include_elf, Prover, ProverClient, ProvingKey, SP1Stdin};
-use td_mvp_shared::{verify_td_mvp, TdMvpInput};
+use td_mvp_shared::{smooth_l1_loss_fp, verify_td_mvp, TdMvpInput};
 
 #[derive(Debug, Parser)]
 struct Args {
@@ -149,12 +149,30 @@ fn resolve_input_path(input: Option<PathBuf>) -> Result<PathBuf> {
 fn apply_case(input: &mut TdMvpInput, case_name: &str) -> Result<()> {
     match case_name {
         "valid_control" => {}
+        "tamper_schema_version" => {
+            input.schema_version = "td_mvp_test_vector_v0".to_owned();
+        }
         "tamper_reward" => {
             first_transition_mut(input)?.reward += 1.0;
+        }
+        "tamper_fixed_point_rounding" => {
+            first_transition_mut(input)?.reward += 0.0006;
         }
         "tamper_done" => {
             let transition = first_transition_mut(input)?;
             transition.done = 1 - transition.done;
+        }
+        "tamper_done_branch" => {
+            let fp_scale = input.public.fp_scale;
+            let reward_fp = first_leaf_mut(input)?[5];
+            let td_witness = first_td_witness_mut(input)?;
+            let q_online_action_fp = td_witness
+                .q_online_action_fp
+                .ok_or_else(|| anyhow!("input has no q_online_action_fp"))?;
+            td_witness.target_fp = reward_fp;
+            let td_error_fp = q_online_action_fp - reward_fp;
+            td_witness.td_error_fp = Some(td_error_fp);
+            td_witness.loss_fp = smooth_l1_loss_fp(td_error_fp, fp_scale);
         }
         "tamper_transition_obs" => {
             first_transition_mut(input)?.obs[0] += 1.0;
@@ -162,10 +180,25 @@ fn apply_case(input: &mut TdMvpInput, case_name: &str) -> Result<()> {
         "tamper_leaf_encoding" => {
             first_leaf_mut(input)?[0] += 1;
         }
+        "tamper_leaf_index" => {
+            input.public.leaf_index = Some(
+                input
+                    .public
+                    .leaf_index
+                    .ok_or_else(|| anyhow!("input has no leaf_index"))?
+                    + 1,
+            );
+        }
         "tamper_merkle_path" => {
             first_merkle_path_mut(input)?[0].sibling_hash = "00".repeat(32);
         }
+        "tamper_path_order" => {
+            first_merkle_path_mut(input)?.reverse();
+        }
         "tamper_q_target_max_fp" => {
+            first_td_witness_mut(input)?.q_target_max_fp += 1;
+        }
+        "tamper_target_network_value" => {
             first_td_witness_mut(input)?.q_target_max_fp += 1;
         }
         "tamper_claimed_target_fp" => {
@@ -226,6 +259,15 @@ fn apply_case(input: &mut TdMvpInput, case_name: &str) -> Result<()> {
                 .first_mut()
                 .ok_or_else(|| anyhow!("input has no batch items"))?;
             first.index += 1;
+        }
+        "tamper_batch_path_order" => {
+            first_merkle_path_mut(input)?.reverse();
+        }
+        "tamper_batch_target_network_value" => {
+            first_td_witness_mut(input)?.q_target_max_fp += 1;
+        }
+        "tamper_batch_fixed_point_rounding" => {
+            first_transition_mut(input)?.reward += 0.0006;
         }
         other => return Err(anyhow!("unknown case_name: {other}")),
     }
