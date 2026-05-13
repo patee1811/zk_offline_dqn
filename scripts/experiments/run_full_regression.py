@@ -229,6 +229,14 @@ def main() -> None:
             ],
         },
         {
+            "name": "benchmark_mountaincar_forward_td_sp1_python_only",
+            "command": [
+                py,
+                "scripts/experiments/benchmark_mountaincar_forward_td_sp1.py",
+                "--skip-sp1",
+            ],
+        },
+        {
             "name": "run_td_mvp_test_vector_negative_tests",
             "command": [py, "scripts/experiments/run_td_mvp_test_vector_negative_tests.py"],
         },

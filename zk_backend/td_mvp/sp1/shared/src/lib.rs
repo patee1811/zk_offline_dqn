@@ -570,7 +570,20 @@ fn verify_membership_only(public: &PublicInputs, item: &TdMvpItem) {
     }
     assert_merkle_path_metadata(&item.merkle_path, item.index);
 
-    let recomputed_leaf = serialize_transition_leaf(&item.transition, public.fp_scale);
+    let layer_sizes = public
+        .network_layer_sizes
+        .as_ref()
+        .expect("missing network_layer_sizes for membership-only relation");
+    assert!(
+        layer_sizes.len() >= 2,
+        "network_layer_sizes must include input and output dimensions"
+    );
+    let recomputed_leaf = serialize_transition_leaf_with_dims(
+        &item.transition,
+        public.fp_scale,
+        layer_sizes[0],
+        layer_sizes[layer_sizes.len() - 1],
+    );
     assert_eq!(
         item.leaf, recomputed_leaf,
         "leaf does not match canonical transition serialization"
@@ -793,18 +806,37 @@ fn assert_merkle_path_metadata(merkle_path: &[MerklePathStep], leaf_index: i64) 
 }
 
 pub fn serialize_transition_leaf(transition: &Transition, fp_scale: i64) -> Vec<i64> {
-    assert_eq!(transition.obs.len(), 4, "obs must have length 4");
-    assert_eq!(transition.next_obs.len(), 4, "next_obs must have length 4");
+    serialize_transition_leaf_with_dims(transition, fp_scale, 4, 2)
+}
+
+pub fn serialize_transition_leaf_with_dims(
+    transition: &Transition,
+    fp_scale: i64,
+    obs_dim: usize,
+    action_dim: usize,
+) -> Vec<i64> {
+    assert!(obs_dim > 0, "obs_dim must be positive");
+    assert!(action_dim > 0, "action_dim must be positive");
+    assert_eq!(
+        transition.obs.len(),
+        obs_dim,
+        "obs length does not match relation input dimension"
+    );
+    assert_eq!(
+        transition.next_obs.len(),
+        obs_dim,
+        "next_obs length does not match relation input dimension"
+    );
     assert!(
-        transition.action == 0 || transition.action == 1,
-        "action must be 0 or 1"
+        transition.action >= 0 && (transition.action as usize) < action_dim,
+        "action out of relation output range"
     );
     assert!(
         transition.done == 0 || transition.done == 1,
         "done must be 0 or 1"
     );
 
-    let mut leaf = Vec::with_capacity(11);
+    let mut leaf = Vec::with_capacity(2 * obs_dim + 3);
     for value in &transition.obs {
         leaf.push(encode_fp(*value, fp_scale));
     }

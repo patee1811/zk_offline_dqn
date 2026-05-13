@@ -37,7 +37,12 @@ def assert_equal(actual: Any, expected: Any, label: str) -> None:
 
 
 def verify_item_membership(public: Dict[str, Any], item: Dict[str, Any]) -> None:
-    leaf = zk_specs.serialize_transition_leaf(item["transition"])
+    layer_sizes = public["network_layer_sizes"]
+    leaf = zk_specs.serialize_transition_leaf(
+        item["transition"],
+        obs_dim=int(layer_sizes[0]),
+        action_dim=int(layer_sizes[-1]),
+    )
     assert_equal(item["leaf"], leaf, "leaf")
     leaf_hash = hash_leaf_serialized(leaf)
     assert_equal(item["leaf_hash"], leaf_hash, "leaf_hash")
