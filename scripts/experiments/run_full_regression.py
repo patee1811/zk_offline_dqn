@@ -54,6 +54,7 @@ def run_command(
         "all_forward_ok = True",
         "all_tests_passed = True",
         "all_passed = True",
+        "paper_number_check_passed = True",
     ]
 
     marker_ok = any(marker in result.stdout for marker in accepted_markers)
@@ -210,6 +211,8 @@ def main() -> None:
                 py,
                 "scripts/experiments/benchmark_distinct_td_sp1.py",
                 "--skip-sp1",
+                "--out-dir",
+                "artifacts/benchmarks/distinct_td_sp1_python_smoke",
             ],
         },
         {
@@ -218,6 +221,8 @@ def main() -> None:
                 py,
                 "scripts/experiments/benchmark_forward_td_mlp_sp1.py",
                 "--skip-sp1",
+                "--out-dir",
+                "artifacts/benchmarks/forward_td_mlp_sp1_python_smoke",
             ],
         },
         {
@@ -226,6 +231,8 @@ def main() -> None:
                 py,
                 "scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py",
                 "--skip-sp1",
+                "--out-dir",
+                "artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke",
             ],
         },
         {
@@ -234,11 +241,17 @@ def main() -> None:
                 py,
                 "scripts/experiments/benchmark_mountaincar_forward_td_sp1.py",
                 "--skip-sp1",
+                "--out-dir",
+                "artifacts/benchmarks/second_env_mountaincar_python_smoke",
             ],
         },
         {
             "name": "run_td_mvp_test_vector_negative_tests",
             "command": [py, "scripts/experiments/run_td_mvp_test_vector_negative_tests.py"],
+        },
+        {
+            "name": "check_paper_numbers_against_final_ndss",
+            "command": [py, "scripts/experiments/check_paper_numbers_against_final_ndss.py"],
         },
     ]
 

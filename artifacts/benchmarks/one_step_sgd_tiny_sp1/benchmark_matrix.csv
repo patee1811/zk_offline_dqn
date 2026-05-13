@@ -1,0 +1,8 @@
+case,status,prove_time_sec,verify_time_sec,proof_size_bytes,cycle_count
+one-step-SGD-tiny-1,accepted,115.494141,0.125332,2789940,862136
+tamper_gradient_tensor,rejected,,,,816177
+tamper_delta_tensor,rejected,,,,818750
+tamper_learning_rate_fp,rejected,,,,798867
+tamper_post_model_weight,rejected,,,,312479
+tamper_post_model_commitment,rejected,,,,312479
+tamper_smooth_l1_grad,rejected,,,,786499

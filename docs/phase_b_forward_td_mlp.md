@@ -63,8 +63,8 @@ python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
 Run metadata:
 
 ```text
-generated_at_utc = 2026-05-13T05:30:53.407570+00:00
-git_commit = 8be99d788de6fc08002fa10a48d2e63e38073992
+generated_at_utc = 2026-05-13T23:40:09.274341+00:00
+source = artifacts/benchmarks/final_ndss/benchmark_matrix.csv
 all_python_expected = True
 all_sp1_expected = True
 python_sp1_agreement = True
@@ -75,15 +75,15 @@ Benchmark matrix:
 
 | Case | Batch size | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
 | --- | ---: | --- | ---: | ---: | ---: | ---: |
-| `forward-TD-1` | 1 | accepted | 218.364941 | 0.154355 | 2797833 | 1542507 |
-| `forward-TD-2` | 2 | accepted | n/a | n/a | n/a | 1956254 |
-| `tamper_online_model_weight` | 1 | rejected | n/a | n/a | n/a | 632270 |
-| `tamper_target_model_weight` | 1 | rejected | n/a | n/a | n/a | 1118902 |
-| `tamper_activation` | 1 | rejected | n/a | n/a | n/a | 1497792 |
-| `tamper_relu_mask` | 1 | rejected | n/a | n/a | n/a | 1497090 |
-| `tamper_argmax` | 1 | rejected | n/a | n/a | n/a | 1480722 |
-| `tamper_selected_target_value` | 1 | rejected | n/a | n/a | n/a | 1480857 |
-| `tamper_claimed_batch_loss` | 1 | rejected | n/a | n/a | n/a | 1486939 |
+| `forward-TD-1` | 1 | accepted | 148.418458 | 0.127259 | 2797833 | 1543753 |
+| `forward-TD-2` | 2 | accepted | n/a | n/a | n/a | 1957958 |
+| `tamper_online_model_weight` | 1 | rejected | n/a | n/a | n/a | 633034 |
+| `tamper_target_model_weight` | 1 | rejected | n/a | n/a | n/a | 1119666 |
+| `tamper_activation` | 1 | rejected | n/a | n/a | n/a | 1498908 |
+| `tamper_relu_mask` | 1 | rejected | n/a | n/a | n/a | 1498210 |
+| `tamper_argmax` | 1 | rejected | n/a | n/a | n/a | 1481808 |
+| `tamper_selected_target_value` | 1 | rejected | n/a | n/a | n/a | 1481943 |
+| `tamper_claimed_batch_loss` | 1 | rejected | n/a | n/a | n/a | 1488117 |
 
 ## Acceptance Status
 

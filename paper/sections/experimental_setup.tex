@@ -1,16 +1,15 @@
 \subsection{Artifact and Environment}
 
-All experiments use the repository artifacts locked at the end of Week 5. The
+All experiments use the repository artifacts locked in the final Phase E
+package. The
 canonical TD test vector is
 \path{zk_backend/test_vectors/td_mvp_case_0.json}. The Python semantic
 oracle is \path{scripts/artifacts_export/verify_td_mvp_test_vector.py}. The
 SP1 backend is the Rust workspace in \path{zk_backend/td_mvp/sp1/}.
 
-The concrete environment is CartPole-v1~\cite{brockman2016gym}. The model used
-by the Python extension artifacts is a multilayer perceptron with input
-dimension 4, two hidden layers of width 128, and two output actions. The SP1 TD
-backend does not prove this neural-network forward pass; it proves consistency
-of the fixed-point TD witness values and committed transition membership.
+The concrete environments are CartPole-v1 and MountainCar-v0~\cite{brockman2016gym}.
+The SP1 backend proves distinct TD, forward-TD MLP, and tiny one-step SGD
+relations at the scales reported in the final benchmark matrix.
 
 \subsection{Reproducibility Commands}
 
@@ -26,13 +25,16 @@ one-step verification, short-trace verification, and negative tests.
 The SP1 benchmark is run on Linux, WSL2 Ubuntu, macOS, or Kaggle with:
 {\scriptsize
 \begin{verbatim}
-python3 scripts/experiments/benchmark_distinct_td_sp1.py \
-  --prove
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
+python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
+python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
+python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
+python3 scripts/experiments/run_final_ndss_regression.py
 \end{verbatim}
 }
-The runner generates TD-1/2/4/8 accepted fixtures from distinct committed replay
-transitions, generates proofs for the accepted cases, executes tampered cases,
-compares Python and SP1 outcomes, and writes JSON, CSV, and Markdown summaries.
+The runners generate accepted fixtures, prove the selected accepted cases,
+execute tampered cases, compare Python and SP1 outcomes, and write JSON, CSV,
+and Markdown summaries.
 
 The SP1 negative suite can also be run directly from the SP1 workspace:
 {\scriptsize
@@ -49,7 +51,9 @@ The accepted benchmark matrix contains:
     \item TD-1: one Merkle membership plus one TD/SmoothL1 check;
     \item TD-2, TD-4, TD-8: distinct replay minibatches with multiple Merkle
     memberships, public ordered leaf indices, per-item TD/SmoothL1 checks, and
-    integer batch-average loss.
+    integer batch-average loss;
+    \item CartPole and MountainCar forward-TD MLP batch-1 proofs;
+    \item CartPole tiny one-step SGD batch-1 proof.
 \end{itemize}
 
 The adversarial suite includes single-transition tampering of schema version,
@@ -60,9 +64,9 @@ claimed batch loss, batch size, item loss, item index, duplicate index, swapped
 item order against public leaf indices, path order, target-network value, and
 fixed-point rounding.
 
-\subsection{Pre-ZK Extension Benchmarks}
+\subsection{Trace Extension Benchmarks}
 
-For context, the repository also retains Python benchmarks for one-step update
-verification and 8-step short-trace verification. These are not SP1 proof
-benchmarks. They are reported to clarify the engineering path from TD proofs
-toward proof-of-update and proof-of-trace.
+For context, the repository also retains Python benchmarks for 8-step
+short-trace verification. These are not SP1 proof benchmarks. They are reported
+to clarify the engineering path from relation-level proofs toward
+proof-of-trace.

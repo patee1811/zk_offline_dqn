@@ -1,0 +1,319 @@
+{
+  "generated_at_utc": "2026-05-13T12:56:28.716016+00:00",
+  "input_path": "artifacts/minibatch_td_from_dataset.json",
+  "out_dir": "artifacts/benchmarks/one_step_sgd_tiny_sp1",
+  "layer_sizes": "4,8,2",
+  "learning_rate_fp": 100,
+  "skip_sp1": false,
+  "prove": true,
+  "case_results": [
+    {
+      "case_name": "one-step-SGD-tiny-1",
+      "expected_accept": true,
+      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+      "python": {
+        "accepted": true,
+        "returncode": 0,
+        "elapsed_sec": 0.107074,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_one-step-SGD-tiny-1.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_one-step-SGD-tiny-1.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+          "schema_version": "one_step_sgd_tiny_v1",
+          "item_index": 0,
+          "loss_fp": 556,
+          "smooth_l1_grad_fp": -1000,
+          "verification_passed": true,
+          "all_one_step_sgd_tiny_ok": true
+        }
+      },
+      "sp1": {
+        "accepted": true,
+        "returncode": 0,
+        "elapsed_sec": 218.130455,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_one-step-SGD-tiny-1.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_one-step-SGD-tiny-1.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+          "case_name": "valid_control",
+          "host_precheck": true,
+          "batch_size": 1,
+          "claimed_batch_loss_fp": 556,
+          "execution_ok": true,
+          "execution_time_sec": 0.063374,
+          "cycle_count": 862136,
+          "exit_code": 0,
+          "proof_generated": true,
+          "proof_verified": true,
+          "proving_time_sec": 115.494141,
+          "verification_time_sec": 0.125332,
+          "proof_size_bytes": 2789940
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_gradient_tensor",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_gradient_tensor.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.111016,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_gradient_tensor.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_gradient_tensor.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 91.975664,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_gradient_tensor.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_gradient_tensor.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_gradient_tensor.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.059352,
+          "cycle_count": 816177,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_delta_tensor",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_delta_tensor.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.104639,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_delta_tensor.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_delta_tensor.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 93.73911,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_delta_tensor.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_delta_tensor.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_delta_tensor.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.062397,
+          "cycle_count": 818750,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_learning_rate_fp",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_learning_rate_fp.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.126108,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_learning_rate_fp.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_learning_rate_fp.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 98.684266,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_learning_rate_fp.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_learning_rate_fp.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_learning_rate_fp.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.135662,
+          "cycle_count": 798867,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_post_model_weight",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_weight.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.251492,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_post_model_weight.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_post_model_weight.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 112.209385,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_post_model_weight.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_post_model_weight.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_weight.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.042349,
+          "cycle_count": 312479,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_post_model_commitment",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_commitment.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.108937,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_post_model_commitment.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_post_model_commitment.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 92.509355,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_post_model_commitment.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_post_model_commitment.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_commitment.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.041086,
+          "cycle_count": 312479,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_smooth_l1_grad",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_smooth_l1_grad.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.096078,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_smooth_l1_grad.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/python_tamper_smooth_l1_grad.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 92.100128,
+        "stdout_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_smooth_l1_grad.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/logs/sp1_tamper_smooth_l1_grad.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_smooth_l1_grad.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.05939,
+          "cycle_count": 786499,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    }
+  ],
+  "benchmark_matrix": [
+    {
+      "case": "one-step-SGD-tiny-1",
+      "status": "accepted",
+      "prove_time_sec": 115.494141,
+      "verify_time_sec": 0.125332,
+      "proof_size_bytes": 2789940,
+      "cycle_count": 862136
+    },
+    {
+      "case": "tamper_gradient_tensor",
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 816177
+    },
+    {
+      "case": "tamper_delta_tensor",
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 818750
+    },
+    {
+      "case": "tamper_learning_rate_fp",
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 798867
+    },
+    {
+      "case": "tamper_post_model_weight",
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 312479
+    },
+    {
+      "case": "tamper_post_model_commitment",
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 312479
+    },
+    {
+      "case": "tamper_smooth_l1_grad",
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 786499
+    }
+  ],
+  "all_python_expected": true,
+  "all_sp1_expected": true,
+  "python_sp1_agreement": true,
+  "all_passed": true
+}

@@ -1,168 +1,71 @@
 \appendices
 
-\section{Relation Summary}
-\label{app:relation-summary}
+\section{Artifact Files}
+\label{app:artifact-files}
 
-The SP1 backend accepts two schema versions:
-
+The final Phase E package is:
+{\scriptsize
 \begin{verbatim}
-td_mvp_test_vector_v1
-td_mvp_batch_test_vector_v1
+artifacts/benchmarks/final_ndss/summary.json
+artifacts/benchmarks/final_ndss/benchmark_matrix.csv
+artifacts/benchmarks/final_ndss/tamper_matrix.csv
+artifacts/benchmarks/final_ndss/summary.md
+artifacts/benchmarks/final_ndss/reproduction.md
 \end{verbatim}
+}
 
-For each item, it checks:
-\begin{enumerate}[leftmargin=1.5em]
-    \item the transition serializes to the supplied fixed-point leaf;
-    \item SHA-256 of the canonical leaf encoding matches the supplied leaf hash;
-    \item the Merkle path recomputes the public dataset root;
-    \item the Merkle path metadata starts at the public or item leaf index and
-    advances by level;
-    \item the done flag is binary;
-    \item the target is $r_{\mathrm{fp}}$ for terminal transitions and
-    $r_{\mathrm{fp}}+\lfloor \gamma_{\mathrm{fp}}q_{\mathrm{target,fp}}/S\rfloor$
-    for non-terminal transitions;
-    \item the TD error is $q_{\mathrm{online,fp}}-y_{\mathrm{fp}}$;
-    \item the SmoothL1 loss matches the fixed-point definition;
-    \item the public claimed target/loss or claimed batch loss matches
-    recomputation.
-\end{enumerate}
-
-\section{Public Inputs and Private Witnesses}
-\label{app:public-private}
-
-Single-transition public inputs:
-
+Component sources are:
+{\scriptsize
 \begin{verbatim}
-dataset_root
-fp_scale
-gamma_fp
-loss_type
-claimed_target_fp
-claimed_loss_fp
-leaf_index
+artifacts/benchmarks/distinct_td_sp1/summary.json
+artifacts/benchmarks/forward_td_mlp_sp1/summary.json
+artifacts/benchmarks/second_env_mountaincar/summary.json
+artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json
+artifacts/regression_summary.json
 \end{verbatim}
+}
 
-Single-transition private witness:
+\section{Reproduction Commands}
+\label{app:reproducibility}
 
+Run the fast Python smoke path from the repository root:
+{\scriptsize
 \begin{verbatim}
-transition
-leaf
-leaf_hash
-merkle_path
-td_witness
+python scripts/experiments/run_full_regression.py
+python scripts/experiments/run_final_ndss_regression.py
 \end{verbatim}
+}
 
-Minibatch public inputs add:
-
+Run full SP1 proof refresh on Linux, WSL2 Ubuntu, or Kaggle with SP1 installed:
+{\tiny
 \begin{verbatim}
-batch_size
-batch_mode
-leaf_indices
-claimed_batch_loss_fp
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
+python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
+python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
+python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
+python3 scripts/experiments/run_final_ndss_regression.py
 \end{verbatim}
+}
 
-Minibatch private witness uses:
-
+If the distinct-TD proof run is unstable, prove accepted cases separately:
+{\tiny
 \begin{verbatim}
-items[]
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-1
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-2
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-4
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-8
 \end{verbatim}
-
-Each item contains an index, transition, leaf, leaf hash, Merkle path, and TD
-witness.
+}
 
 \section{Tamper-Test Definitions}
 \label{app:tamper-tests}
 
-Single-transition tamper cases:
-
-\begin{verbatim}
-tamper_schema_version
-tamper_reward
-tamper_fixed_point_rounding
-tamper_done
-tamper_done_branch
-tamper_transition_obs
-tamper_leaf_encoding
-tamper_merkle_path
-tamper_leaf_index
-tamper_path_order
-tamper_q_target_max_fp
-tamper_target_network_value
-tamper_claimed_target_fp
-tamper_claimed_loss_fp
-tamper_leaf_hash
-tamper_td_error_fp
-\end{verbatim}
-
-Batch tamper cases:
-
-\begin{verbatim}
-tamper_batch_claimed_loss_fp
-tamper_batch_size
-tamper_batch_item_loss_fp
-tamper_batch_item_index
-tamper_duplicate_index
-tamper_swapped_item_order
-tamper_batch_path_order
-tamper_batch_target_network_value
-tamper_batch_fixed_point_rounding
-\end{verbatim}
-
-Every tamper case is expected to reject. The locked benchmark reports agreement
-between the Python semantic oracle and SP1 execution for all of these cases.
-
-\section{Reproducibility Commands}
-\label{app:reproducibility}
-
-Run the Python regression:
-
-{\scriptsize
-\begin{verbatim}
-python scripts/experiments/run_full_regression.py
-\end{verbatim}
-}
-
-Run the full SP1 benchmark:
-
-{\scriptsize
-\begin{verbatim}
-python3 scripts/experiments/benchmark_distinct_td_sp1.py \
-  --prove
-\end{verbatim}
-}
-
-Run the SP1 negative suite:
-
-{\scriptsize
-\begin{verbatim}
-cd zk_backend/td_mvp/sp1
-bash run_negative_cases.sh
-\end{verbatim}
-}
-
-If the full SP1 proof benchmark is unstable, prove accepted cases separately:
-
-{\scriptsize
-\begin{verbatim}
-python3 scripts/experiments/benchmark_distinct_td_sp1.py \
-  --prove --prove-cases TD-1
-python3 scripts/experiments/benchmark_distinct_td_sp1.py \
-  --prove --prove-cases TD-2
-python3 scripts/experiments/benchmark_distinct_td_sp1.py \
-  --prove --prove-cases TD-4
-python3 scripts/experiments/benchmark_distinct_td_sp1.py \
-  --prove --prove-cases TD-8
-\end{verbatim}
-}
-
-\section{Locked Artifact Files}
-\label{app:artifact-files}
-
-The locked implementation state is documented in:
-
-\begin{verbatim}
-docs/week5_artifact_package.md
-docs/current_benchmark_snapshot.md
-zk_backend/td_mvp/sp1/README.md
-zk_backend/td_mvp/sp1/tamper_checklist.md
-\end{verbatim}
+The final tamper matrix includes distinct-batch attacks on duplicate index,
+wrong item index, swapped item order, wrong item loss, wrong claimed batch
+average, and wrong path order. It includes forward-TD attacks on online model
+weight, target model weight, activation, ReLU mask, argmax, selected target
+value, and claimed batch loss. It includes tiny-update attacks on gradient
+tensor, delta tensor, learning rate, post model weight, post model commitment,
+and SmoothL1 gradient. The broader regression suite also retains legacy TD MVP
+tamper tests for schema, reward, done, rounding, Merkle, target, and TD-error
+cases.

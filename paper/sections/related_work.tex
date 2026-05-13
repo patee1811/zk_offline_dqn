@@ -1,62 +1,49 @@
 \paragraph{Offline RL and DQN.}
-DQN showed that deep value functions can learn control policies through
-temporal-difference learning with experience replay and a target
-network~\cite{mnih2015dqn,watkins1992qlearning}. Double DQN refines this
-structure by using the online network for next-action selection and the target
-network for value evaluation~\cite{hasselt2016double}. Offline RL studies the
-more constrained setting in which training uses a fixed dataset and no further
-environment interaction~\cite{levine2020offline}. This fixed-data setting is
-natural for commitment-based verification, but it also makes value learning
-fragile under distribution shift~\cite{fujimoto2019offpolicy}. Conservative
-Q-Learning addresses this by regularizing value estimates for unsupported
-actions~\cite{kumar2020cql}. Our work does not propose a new offline RL
-algorithm. Instead, it asks how the TD computations used by offline DQN-style
-training can be made verifiable over committed trajectories.
+DQN combines value-function approximation, experience replay, and a target
+network for temporal-difference learning~\cite{mnih2015dqn,watkins1992qlearning}.
+Double DQN separates next-action selection from target-network value evaluation
+to reduce overestimation~\cite{hasselt2016double}. Offline RL studies the fixed
+dataset setting~\cite{levine2020offline}, where value learning can be brittle
+under distribution shift~\cite{fujimoto2019offpolicy}; CQL addresses this with
+conservative value regularization~\cite{kumar2020cql}. Our work does not
+improve the RL algorithm. It makes selected DQN-style replay and TD computations
+verifiable over committed data.
 
 \paragraph{Proof-of-learning and proof-of-training.}
-Proof-of-Learning introduced the problem of proving that released model
-parameters resulted from an expensive training procedure
-~\cite{jia2021proofoflearning}. Later zero-knowledge proof-of-training work
-aims to prove correct training on committed data without revealing private data
-or model parameters~\cite{zkdl2023,zkpotvicinity2025}. These systems primarily
-target supervised or general deep learning training. They motivate our threat
-model, but they do not directly address RL-specific semantics such as terminal
-Bellman branches, target-network values, replay membership, and TD losses. Our
-scope is therefore complementary: we do not prove all DQN training; we prove a
-smaller RL-specific TD relation that can be embedded later into a fuller update
-or trace proof.
+Proof-of-Learning introduced the problem of proving that a model resulted from
+a claimed training procedure~\cite{jia2021proofoflearning}. zkDL and related
+systems target zero-knowledge proofs for deep learning training, including
+neural nonlinearities and backpropagation~\cite{zkdl2023}. Kaizen gives a
+zero-knowledge proof-of-training construction for DNNs based on per-iteration
+proofs and recursive composition~\cite{kaizen2024}. zkPoT work based on optimum
+vicinity explores another way to make training claims succinct~\cite{zkpotvicinity2025}.
+These systems motivate our goal, but they do not directly encode offline
+DQN-specific semantics such as terminal Bellman branches, replay membership,
+Double-DQN argmax, target-network selection, and TD losses.
 
 \paragraph{Verifiable and zero-knowledge machine learning.}
-Verifiable ML systems have focused heavily on inference correctness. SafetyNets
-develops interactive proofs for neural-network inference on untrusted
-clouds~\cite{safetynets2017}. zkCNN gives zero-knowledge proofs for CNN
-prediction and accuracy while hiding model information~\cite{zkcnn2021}. VeriML
-uses SNARKs to provide integrity and fair-payment assurances for outsourced ML
-tasks~\cite{veriml2021}. Recent ZKML surveys organize this literature into
-verifiable inference, testing, and training~\cite{zkmlsurvey2026}. Our work
-differs in the computation being proved: the first-class statement is not a
-classification output or ordinary supervised update, but the TD computation
-that links a committed transition to a Bellman target and SmoothL1 loss.
+Verifiable ML systems have heavily studied inference integrity. SafetyNets
+builds proofs for neural-network inference on untrusted clouds~\cite{safetynets2017};
+zkCNN proves CNN predictions and accuracy while hiding private information
+~\cite{zkcnn2021}; VeriML gives integrity and payment assurances for outsourced
+ML tasks~\cite{veriml2021}. Recent surveys organize this space into verifiable
+inference, testing, and training~\cite{zkmlsurvey2026}. Our relation is
+different: the first-class computation is a Bellman TD claim over committed
+replay data rather than a supervised prediction.
 
-\paragraph{Zero-knowledge proof systems and zkVMs.}
-Modern zero-knowledge systems enable succinct verification of general
-computation, with constructions such as Groth16 and PLONK providing important
-building blocks~\cite{groth2016zksnark,gabizon2019plonk}. zkVMs trade some
-constraint-level specialization for developer ergonomics by proving execution
-of programs written in conventional languages. SP1 is a Rust-oriented zkVM that
-proves execution of Rust or LLVM-compiled programs~\cite{succinct2024sp1}. We
-use SP1 because the TD MVP relation involves hashing, Merkle paths, branching,
-schema checks, and fixed-point integer arithmetic; implementing the first
-backend in a zkVM is substantially more direct than hand-writing a circuit
-before the relation stabilizes.
+\paragraph{zkVMs and proof backends.}
+General-purpose zkVMs trade circuit specialization for implementation speed.
+SP1 is a Rust-oriented zkVM used here because the relation combines hashing,
+Merkle paths, schema checks, integer arithmetic, and branching
+~\cite{succinct2024sp1}. RISC Zero is another zkVM-style backend in the same
+design space; in this project it is treated as a comparison or future backend
+rather than the main implementation target.
 
 \paragraph{Verifiable RL.}
 Prior verifiable RL work often focuses on interpretable or formally verifiable
-policies, rather than cryptographic verification of training computations.
-Programmatic-policy approaches, for example, search for policies that can be
-checked by symbolic methods~\cite{verma2019verifiable}. Other recent work
-combines zero-knowledge tools with distributed or federated RL primarily for
-privacy, communication integrity, or aggregation security. These directions are
-valuable, but they leave a gap around cryptographic correctness of the
-RL-specific arithmetic inside offline value learning. Our contribution targets
-that gap at the TD/minibatch-TD layer over committed trajectories.
+policies rather than cryptographic verification of training computations.
+Programmatic-policy approaches search for policies that can be checked by
+symbolic methods~\cite{verma2019verifiable}. Our work targets a different
+layer: cryptographic or deterministic verification of the replay membership,
+Bellman arithmetic, model-grounded TD evidence, and update evidence inside
+offline value learning.

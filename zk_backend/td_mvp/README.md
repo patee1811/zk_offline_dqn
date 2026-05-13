@@ -13,8 +13,9 @@ The goal is to move one already-tested Python verifier relation into SP1 before 
 
 Valid TD MVP SP1 proofs have been generated and verified for TD-1, TD-2,
 TD-4, and TD-8. Single-transition and minibatch tamper cases reject as
-expected. The locked Week 5 scope and artifact package are recorded in
-`docs/week5_artifact_package.md`.
+expected. The final Phase E scope extends the backend with forward-TD MLP and
+tiny one-step SGD relations; see `artifacts/benchmarks/final_ndss/summary.md`
+for the locked benchmark package.
 
 ## Statement
 

@@ -1,27 +1,22 @@
 \section{Conclusion}
 
-This paper presents a ZK-backed verification pipeline for temporal-difference
-computation in offline DQN over committed trajectories. The contribution is
-scoped deliberately. Rather than claiming full proof-of-training, we prove the
-first RL-specific backend relation: committed transition membership plus
-fixed-point Bellman target, TD error, SmoothL1 loss, and minibatch-average loss
-consistency.
+This paper presents a layered artifact system for ZK-verifiable offline DQN
+computation over committed replay data. The central claim is deliberately
+bounded: the system proves selected relation layers, not a full training trace.
+The strongest current SP1 result is distinct minibatch TD over CartPole replay
+data, including membership, ordered distinct indices, Bellman/TD arithmetic,
+SmoothL1 loss, and batch-average loss. The artifact also records a
+CartPole forward-TD MLP SP1 proof, a second-environment MountainCar forward-TD
+MLP SP1 proof, and a micro-scale CartPole one-step SGD SP1 proof.
 
-The implementation commits a CartPole transition dataset with a SHA-256 Merkle
-tree, exports canonical TD witnesses, and proves TD-1/2/4/8 relations in an SP1
-zkVM backend. The locked benchmark reports successful proof generation and
-verification, proof sizes around 2.8 MB, verification time around 0.16 seconds,
-and Python/SP1 agreement on valid and tampered fixtures. The negative suite
-rejects schema, transition, Merkle, rounding, done-branch, target-value,
-claimed-output, and batch-aggregation tampering.
+The Phase E package hardens the result into reviewer-facing artifacts:
+normalized benchmark and tamper matrices, machine-readable summaries, and
+reproduction commands for both fast Python smoke checks and full SP1 proof runs.
+This makes every reported number traceable to a JSON or CSV source.
 
-The remaining path is clear. One-step update and short-trace verifiers already
-exist as Python pre-ZK extensions, but they must be ported to a proof backend
-before the project can claim proof-of-update or proof-of-training. Future work
-should therefore prioritize neural-network forward proofs, argmax and target
-network semantics, gradient and optimizer proofs, diverse minibatch fixtures,
-and recursive aggregation for longer traces.
-
-The main conclusion is that offline DQN training can be decomposed into
-verifiable layers, and that the TD/minibatch-TD layer is already practical
-enough to prove in a real zkVM backend over committed trajectory data.
+The next technical step is clear: scale the current one-step update proof into
+repeated-update traces, add optimizer semantics beyond SGD, and compose those
+steps with recursion or another aggregation strategy. Until then, the
+defensible contribution is a reproducible security/systems artifact for
+verifiable replay membership, TD computation, minibatch aggregation,
+model-grounded forward evidence, and one micro update in offline RL.

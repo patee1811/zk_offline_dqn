@@ -64,8 +64,8 @@ python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
 Run metadata:
 
 ```text
-generated_at_utc = 2026-05-13T07:06:05.105838+00:00
-git_commit = 3ef14fe5baac8dc8f2b6369fb7229ef0266fac10
+generated_at_utc = 2026-05-13T23:40:09.274341+00:00
+source = artifacts/benchmarks/final_ndss/benchmark_matrix.csv
 all_python_expected = True
 all_sp1_expected = True
 python_sp1_agreement = True
@@ -76,13 +76,13 @@ Benchmark matrix:
 
 | Case | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `one-step-SGD-tiny-1` | accepted | 168.844574 | 0.152385 | 2789940 | 861913 |
-| `tamper_gradient_tensor` | rejected | n/a | n/a | n/a | 815954 |
-| `tamper_delta_tensor` | rejected | n/a | n/a | n/a | 818527 |
-| `tamper_learning_rate_fp` | rejected | n/a | n/a | n/a | 798644 |
+| `one-step-SGD-tiny-1` | accepted | 115.494141 | 0.125332 | 2789940 | 862136 |
+| `tamper_gradient_tensor` | rejected | n/a | n/a | n/a | 816177 |
+| `tamper_delta_tensor` | rejected | n/a | n/a | n/a | 818750 |
+| `tamper_learning_rate_fp` | rejected | n/a | n/a | n/a | 798867 |
 | `tamper_post_model_weight` | rejected | n/a | n/a | n/a | 312479 |
 | `tamper_post_model_commitment` | rejected | n/a | n/a | n/a | 312479 |
-| `tamper_smooth_l1_grad` | rejected | n/a | n/a | n/a | 786276 |
+| `tamper_smooth_l1_grad` | rejected | n/a | n/a | n/a | 786499 |
 
 ## Acceptance Status
 

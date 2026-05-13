@@ -41,7 +41,9 @@ From the repository root:
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
+python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
 python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
+python3 scripts/experiments/run_final_ndss_regression.py
 ```
 
 If the full benchmark is unstable, run one accepted proof case at a time:
@@ -58,20 +60,22 @@ python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases T
 Latest full SP1 benchmark run:
 
 ```text
-generated_at_utc = 2026-05-13T01:15:29.080668+00:00
-platform = Kaggle Linux
-all_python_expected = True
-all_sp1_expected = True
-python_sp1_agreement = True
-all_passed = True
+generated_at_utc = 2026-05-13T23:40:09.274341+00:00
+platform = Kaggle Linux SP1
+benchmark_rows = 29
+tamper_rows = 21
+all_components_passed = True
 ```
 
-| Case | Batch size | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| TD-1 | 1 | 168.311847 | 0.194367 | 2783354 | 383541 |
-| TD-2 | 2 | 197.410724 | 0.198335 | 2787712 | 729096 |
-| TD-4 | 4 | 265.605205 | 0.198736 | 2796184 | 1434680 |
-| TD-8 | 8 | 349.079689 | 0.198359 | 2812912 | 2845827 |
+| Relation | Case | Batch size | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Distinct TD | TD-1 | 1 | 97.955756 | 0.126565 | 2783869 | 385048 |
+| Distinct TD | TD-2 | 2 | 120.669043 | 0.127258 | 2788227 | 730778 |
+| Distinct TD | TD-4 | 4 | 141.309797 | 0.125481 | 2796699 | 1435787 |
+| Distinct TD | TD-8 | 8 | 202.921645 | 0.126658 | 2812915 | 2845813 |
+| CartPole forward-TD | forward-TD-1 | 1 | 148.418458 | 0.127259 | 2797833 | 1543753 |
+| MountainCar forward-TD | mountaincar-forward-TD-1 | 1 | 107.926506 | 0.126694 | 2787889 | 683942 |
+| CartPole one-step SGD tiny | one-step-SGD-tiny-1 | 1 | 115.494141 | 0.125332 | 2789940 | 862136 |
 
 ## Phase B Forward-TD MLP Result
 
@@ -88,8 +92,7 @@ SmoothL1 loss checking, and per-item/batch public loss claims.
 Latest Kaggle SP1 benchmark run:
 
 ```text
-generated_at_utc = 2026-05-13T05:30:53.407570+00:00
-git_commit = 8be99d788de6fc08002fa10a48d2e63e38073992
+generated_at_utc = 2026-05-13T23:40:09.274341+00:00
 network_spec = CartPole 4-16-16-2
 all_python_expected = True
 all_sp1_expected = True
@@ -99,8 +102,8 @@ all_passed = True
 
 | Case | Batch size | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
 | --- | ---: | --- | ---: | ---: | ---: | ---: |
-| forward-TD-1 | 1 | accepted | 218.364941 | 0.154355 | 2797833 | 1542507 |
-| forward-TD-2 | 2 | accepted | n/a | n/a | n/a | 1956254 |
+| forward-TD-1 | 1 | accepted | 148.418458 | 0.127259 | 2797833 | 1543753 |
+| forward-TD-2 | 2 | accepted | n/a | n/a | n/a | 1957958 |
 
 Tamper cases rejected under SP1 execute:
 
@@ -132,8 +135,7 @@ post-update model equality, and pre/target/post model commitments.
 Latest Kaggle SP1 benchmark run:
 
 ```text
-generated_at_utc = 2026-05-13T07:06:05.105838+00:00
-git_commit = 3ef14fe5baac8dc8f2b6369fb7229ef0266fac10
+generated_at_utc = 2026-05-13T23:40:09.274341+00:00
 network_spec = CartPole 4-8-2
 learning_rate_fp = 100
 all_python_expected = True
@@ -144,7 +146,7 @@ all_passed = True
 
 | Case | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
 | --- | --- | ---: | ---: | ---: | ---: |
-| one-step-SGD-tiny-1 | accepted | 168.844574 | 0.152385 | 2789940 | 861913 |
+| one-step-SGD-tiny-1 | accepted | 115.494141 | 0.125332 | 2789940 | 862136 |
 
 Tamper cases rejected under SP1 execute:
 

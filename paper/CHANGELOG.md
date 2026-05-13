@@ -1,8 +1,25 @@
 # Paper Changelog
 
+## Phase E Roadmap Rewrite - 2026-05-14
+
+The manuscript has been updated around the final Phase E artifact package.
+
+- Reframed the paper as a layered relation stack for committed replay
+  membership, distinct minibatch TD, model-grounded forward-TD MLP, and tiny
+  one-step SGD.
+- Added explicit threat model, formal statements, SP1 backend, security
+  analysis, limitations, and artifact appendix sections.
+- Updated proof metrics from `artifacts/benchmarks/final_ndss/summary.json`:
+  TD-1/2/4/8, CartPole forward-TD, MountainCar forward-TD, and CartPole
+  one-step SGD tiny.
+- Added an automated paper-number consistency check against the final NDSS
+  aggregate.
+- Clarified that the contribution is relation-level proof evidence, not full
+  proof-of-training.
+
 ## Week 6 Q1 Rewrite - 2026-05-13
 
-The manuscript has been rewritten around the locked Week 5 SP1 backend milestone.
+The manuscript was rewritten around the then-current SP1 backend milestone.
 
 - Retitled the paper to **ZK-Verifiable Temporal-Difference Computation for Offline DQN over Committed Trajectories**.
 - Repositioned the contribution from broad proof-of-training to a scoped TD/minibatch-TD ZK backend for offline DQN artifacts.
@@ -20,4 +37,9 @@ The manuscript has been rewritten around the locked Week 5 SP1 backend milestone
 
 ## Historical Sync - 2026-05-02
 
-Earlier manuscript notes described the repository as a Python pre-ZK artifact/verifier prototype with one-step and short-trace verification. Those notes are now superseded by the Week 6 Q1 rewrite. The Python verifiers remain useful as semantic oracles and future backend targets, but the paper's main implemented cryptographic claim is now the SP1 TD/minibatch-TD backend.
+Earlier manuscript notes described the repository as a Python pre-ZK
+artifact/verifier prototype with one-step and short-trace verification. Those
+notes are now superseded by the Phase E rewrite. The Python verifiers remain
+useful as semantic oracles and regression checks, while the paper's implemented
+cryptographic claim is now the SP1 relation stack reported in the final NDSS
+aggregate.

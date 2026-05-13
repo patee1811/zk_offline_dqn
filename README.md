@@ -17,15 +17,20 @@ Current contribution:
 - export verification-friendly TD, one-step, and short-trace artifacts;
 - verify committed-data membership, Bellman targets, SmoothL1 TD losses, checkpoint/model-state commitments, one-step SGD consistency, short trace chaining, target sync semantics, and deterministic sampling rules;
 - run negative tamper tests and CI regression over committed fixtures;
-- implement SP1 TD and minibatch-TD MVP proofs for Merkle membership + TD arithmetic.
+- implement SP1 relation proofs for Merkle membership, TD/minibatch arithmetic,
+  model-grounded forward-TD MLP checks, and one micro-scale SGD update.
 
 Current backend status:
 
 - Python artifact/verifier layer is implemented and regression-tested.
 - SP1 is selected as the first concrete proving backend.
 - `zk_backend/td_mvp/sp1/` contains a Rust SP1 workspace with `host`, `guest`, and `shared` crates.
-- Valid TD MVP SP1 proofs have been generated and verified for TD-1, TD-2, TD-4, and TD-8. Phase A now uses distinct replay minibatch fixtures for the main TD-1/2/4/8 path; duplicate, wrong-index, swapped-order, item-loss, path-order, and batch-average tampers are rejected.
-- The Week 5 implementation scope is locked in `docs/week5_artifact_package.md`.
+- Valid Phase E Kaggle SP1 proofs have been generated and verified for
+  distinct TD-1/2/4/8, CartPole forward-TD MLP batch 1, MountainCar
+  forward-TD MLP batch 1, and CartPole one-step SGD tiny batch 1. Tamper cases
+  for batch structure, model weights, activations, argmax/value selection, and
+  update tensors are rejected.
+- The final benchmark package is under `artifacts/benchmarks/final_ndss/`.
 
 ## What Is Verified
 
@@ -45,7 +50,7 @@ Important non-goals:
 
 - no full zero-knowledge proof-of-training is generated yet;
 - no full DQN training proof from initialization to final checkpoint;
-- no full neural-network forward/backpropagation proof inside a proving backend;
+- no large neural-network training trace inside a proving backend;
 - no Adam optimizer proof;
 - no claim that data collection or rewards were honest before commitment.
 
@@ -123,7 +128,7 @@ python scripts/experiments/run_full_regression.py
 Expected summary:
 
 ```text
-num_checks = 10
+num_checks = 15
 all_regression_passed = True
 ```
 
@@ -150,7 +155,11 @@ The full regression runner currently executes:
 8. Short-trace negative tests.
 9. Minibatch TD negative tests.
 10. Distinct TD-1/2/4/8 Python-only benchmark smoke.
-11. TD MVP test-vector negative tests.
+11. Forward-TD MLP Python-only benchmark smoke.
+12. One-step SGD tiny Python-only benchmark smoke.
+13. MountainCar forward-TD Python-only benchmark smoke.
+14. TD MVP test-vector negative tests.
+15. Paper/final-NDSS number consistency check.
 
 CI runs the same regression entrypoint through `.github/workflows/regression.yml`.
 
@@ -171,18 +180,20 @@ target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
-Current Phase A distinct SP1 proof snapshot:
+Current Phase E Kaggle SP1 proof snapshot:
 
 ```text
-generated_at_utc = 2026-05-13T01:15:29.080668+00:00
-relation = td_batch_distinct_v1
-TD-1 prove_time_sec = 168.311847, verify_time_sec = 0.194367, proof_size_bytes = 2783354, cycle_count = 383541
-TD-2 prove_time_sec = 197.410724, verify_time_sec = 0.198335, proof_size_bytes = 2787712, cycle_count = 729096
-TD-4 prove_time_sec = 265.605205, verify_time_sec = 0.198736, proof_size_bytes = 2796184, cycle_count = 1434680
-TD-8 prove_time_sec = 349.079689, verify_time_sec = 0.198359, proof_size_bytes = 2812912, cycle_count = 2845827
-all_python_expected = True
-all_sp1_expected = True
-python_sp1_agreement = True
+generated_at_utc = 2026-05-13T23:40:09.274341+00:00
+benchmark_rows = 29
+tamper_rows = 21
+all_components_passed = True
+TD-1 prove_time_sec = 97.955756, verify_time_sec = 0.126565, proof_size_bytes = 2783869, cycle_count = 385048
+TD-2 prove_time_sec = 120.669043, verify_time_sec = 0.127258, proof_size_bytes = 2788227, cycle_count = 730778
+TD-4 prove_time_sec = 141.309797, verify_time_sec = 0.125481, proof_size_bytes = 2796699, cycle_count = 1435787
+TD-8 prove_time_sec = 202.921645, verify_time_sec = 0.126658, proof_size_bytes = 2812915, cycle_count = 2845813
+CartPole forward-TD prove_time_sec = 148.418458, verify_time_sec = 0.127259, proof_size_bytes = 2797833, cycle_count = 1543753
+MountainCar forward-TD prove_time_sec = 107.926506, verify_time_sec = 0.126694, proof_size_bytes = 2787889, cycle_count = 683942
+CartPole one-step SGD tiny prove_time_sec = 115.494141, verify_time_sec = 0.125332, proof_size_bytes = 2789940, cycle_count = 862136
 ```
 
 Core SP1 commands should be run on Linux/macOS or WSL2 Ubuntu:
@@ -202,7 +213,9 @@ python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 
 It writes `artifacts/benchmarks/distinct_td_sp1/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The Python-only smoke path is `python3 scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1`. The earlier repeated-transition benchmark remains available as `benchmark_sp1_td_mvp.py`, but it is no longer the main paper-facing minibatch result.
 
-Week 5 locks the backend scope. Week 6 should focus on paper writing from the locked results, not on adding large backend features.
+Final Phase E aggregate and reproduction notes are in
+`artifacts/benchmarks/final_ndss/summary.md` and
+`artifacts/benchmarks/final_ndss/reproduction.md`.
 
 RISC Zero remains the main later comparison backend. Circuit-oriented backends such as Noir, Circom, and Halo2 are deferred until the relation is stable.
 
@@ -214,7 +227,6 @@ RISC Zero remains the main later comparison backend. Circuit-oriented backends s
 - `docs/backend_selection_v0_12.md`: SP1 decision.
 - `docs/threat_model.md`: threat model and non-goals.
 - `docs/current_benchmark_snapshot.md`: locked benchmark snapshot.
-- `docs/week5_artifact_package.md`: locked implementation scope, commands, benchmark table, tamper table, limitations, and submission recommendation.
 - `docs/dev_commands.md`: local developer command notes.
 
 ## License
