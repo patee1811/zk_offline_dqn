@@ -201,6 +201,7 @@ fn verify_single_td_mvp(input: &TdMvpInput) -> PublicOutput {
             .td_witness
             .clone()
             .expect("missing td_witness"),
+        forward_witness: None,
     };
 
     let item_output = verify_td_item(&input.public, &item);
