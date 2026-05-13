@@ -183,3 +183,130 @@ def compute_forward_td_item(
         "td_error_fp": td_error_fp,
         "loss_fp": loss_fp,
     }
+
+
+def smooth_l1_grad_fp(td_error_fp: int, fp_scale: int) -> int:
+    abs_x_fp = abs(td_error_fp)
+    if abs_x_fp < fp_scale:
+        return td_error_fp
+    return fp_scale if td_error_fp > 0 else -fp_scale
+
+
+def zero_update_tensors(layer_sizes: List[int]) -> Dict[str, Any]:
+    layers = []
+    for in_dim, out_dim in zip(layer_sizes[:-1], layer_sizes[1:]):
+        layers.append(
+            {
+                "weight": [[0 for _ in range(in_dim)] for _ in range(out_dim)],
+                "bias": [0 for _ in range(out_dim)],
+            }
+        )
+    return {"layers": layers}
+
+
+def apply_sgd_update(
+    *,
+    pre_model: Dict[str, Any],
+    gradients: Dict[str, Any],
+    learning_rate_fp: int,
+    fp_scale: int,
+) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    post_model = {
+        "format": pre_model["format"],
+        "layer_sizes": list(pre_model["layer_sizes"]),
+        "fp_scale": int(pre_model["fp_scale"]),
+        "layers": [],
+    }
+    deltas = zero_update_tensors(pre_model["layer_sizes"])
+
+    for layer_idx, layer in enumerate(pre_model["layers"]):
+        grad_layer = gradients["layers"][layer_idx]
+        post_weight = []
+        for row_idx, row in enumerate(layer["weight"]):
+            post_row = []
+            for col_idx, value in enumerate(row):
+                grad = int(grad_layer["weight"][row_idx][col_idx])
+                delta = -fixed_point_mul(learning_rate_fp, grad, fp_scale)
+                deltas["layers"][layer_idx]["weight"][row_idx][col_idx] = delta
+                post_row.append(int(value) + delta)
+            post_weight.append(post_row)
+
+        post_bias = []
+        for bias_idx, value in enumerate(layer["bias"]):
+            grad = int(grad_layer["bias"][bias_idx])
+            delta = -fixed_point_mul(learning_rate_fp, grad, fp_scale)
+            deltas["layers"][layer_idx]["bias"][bias_idx] = delta
+            post_bias.append(int(value) + delta)
+
+        post_model["layers"].append({"weight": post_weight, "bias": post_bias})
+
+    return post_model, deltas
+
+
+def compute_one_step_sgd_tiny(
+    *,
+    transition: Dict[str, Any],
+    pre_model: Dict[str, Any],
+    target_model: Dict[str, Any],
+    fp_scale: int,
+    gamma_fp: int,
+    learning_rate_fp: int,
+) -> Dict[str, Any]:
+    layer_sizes = pre_model["layer_sizes"]
+    if len(layer_sizes) != 3:
+        raise ValueError("one_step_sgd_tiny_v1 expects a one-hidden-layer MLP")
+
+    forward = compute_forward_td_item(
+        transition=transition,
+        online_model=pre_model,
+        target_model=target_model,
+        fp_scale=fp_scale,
+        gamma_fp=gamma_fp,
+    )
+    obs_fp = [int(round(float(value) * fp_scale)) for value in transition["obs"]]
+    action = int(transition["action"])
+    hidden_pre = forward["online_obs"]["pre_activations"][0]
+    hidden_values = [
+        value if value > 0 else 0
+        for value in hidden_pre
+    ]
+    loss_grad_fp = smooth_l1_grad_fp(forward["td_error_fp"], fp_scale)
+
+    gradients = zero_update_tensors(layer_sizes)
+    output_layer_idx = 1
+    hidden_layer_idx = 0
+
+    gradients["layers"][output_layer_idx]["bias"][action] = loss_grad_fp
+    for hidden_idx, hidden_fp in enumerate(hidden_values):
+        gradients["layers"][output_layer_idx]["weight"][action][hidden_idx] = (
+            fixed_point_mul(loss_grad_fp, hidden_fp, fp_scale)
+        )
+
+    output_action_weights = pre_model["layers"][output_layer_idx]["weight"][action]
+    for hidden_idx, z_fp in enumerate(hidden_pre):
+        grad_hidden_fp = fixed_point_mul(
+            loss_grad_fp,
+            int(output_action_weights[hidden_idx]),
+            fp_scale,
+        )
+        grad_z_fp = grad_hidden_fp if z_fp > 0 else 0
+        gradients["layers"][hidden_layer_idx]["bias"][hidden_idx] = grad_z_fp
+        for input_idx, input_fp in enumerate(obs_fp):
+            gradients["layers"][hidden_layer_idx]["weight"][hidden_idx][input_idx] = (
+                fixed_point_mul(grad_z_fp, input_fp, fp_scale)
+            )
+
+    post_model, deltas = apply_sgd_update(
+        pre_model=pre_model,
+        gradients=gradients,
+        learning_rate_fp=learning_rate_fp,
+        fp_scale=fp_scale,
+    )
+
+    return {
+        "forward_witness": forward,
+        "smooth_l1_grad_fp": loss_grad_fp,
+        "gradient_tensors": gradients,
+        "delta_tensors": deltas,
+        "post_model": post_model,
+    }

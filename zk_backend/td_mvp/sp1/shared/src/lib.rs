@@ -38,6 +38,14 @@ pub struct PublicInputs {
     pub target_model_commitment: Option<String>,
     #[serde(default)]
     pub claimed_item_losses_fp: Option<Vec<i64>>,
+    #[serde(default)]
+    pub optimizer_type: Option<String>,
+    #[serde(default)]
+    pub learning_rate_fp: Option<i64>,
+    #[serde(default)]
+    pub pre_model_commitment: Option<String>,
+    #[serde(default)]
+    pub post_model_commitment: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,6 +66,10 @@ pub struct PrivateWitness {
     pub online_model: Option<QuantizedMlp>,
     #[serde(default)]
     pub target_model: Option<QuantizedMlp>,
+    #[serde(default)]
+    pub post_online_model: Option<QuantizedMlp>,
+    #[serde(default)]
+    pub update_witness: Option<UpdateWitness>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -161,17 +173,34 @@ pub struct ForwardTrace {
     pub outputs: Vec<i64>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateWitness {
+    pub batch_loss_fp: i64,
+    pub smooth_l1_grad_fp: i64,
+    pub gradient_tensors: MlpUpdateTensors,
+    pub delta_tensors: MlpUpdateTensors,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MlpUpdateTensors {
+    pub layers: Vec<QuantizedLayer>,
+}
+
 pub fn verify_td_mvp(input: &TdMvpInput) -> PublicOutput {
     assert!(
         input.schema_version == "td_mvp_test_vector_v1"
             || input.schema_version == "td_mvp_batch_test_vector_v1"
-            || input.schema_version == "forward_td_mlp_v1",
+            || input.schema_version == "forward_td_mlp_v1"
+            || input.schema_version == "one_step_sgd_tiny_v1",
         "unexpected schema_version"
     );
     assert_eq!(input.public.loss_type, "smooth_l1", "unsupported loss_type");
 
     if input.schema_version == "forward_td_mlp_v1" {
         return verify_forward_td_mlp(input);
+    }
+    if input.schema_version == "one_step_sgd_tiny_v1" {
+        return verify_one_step_sgd_tiny(input);
     }
 
     if input.private.items.is_empty() {
@@ -403,6 +432,131 @@ fn verify_forward_td_mlp(input: &TdMvpInput) -> PublicOutput {
         items: outputs,
         network_spec_hash: input.public.network_spec_hash.clone(),
         online_model_commitment: input.public.online_model_commitment.clone(),
+        target_model_commitment: input.public.target_model_commitment.clone(),
+    }
+}
+
+fn verify_one_step_sgd_tiny(input: &TdMvpInput) -> PublicOutput {
+    let batch_size = input.public.batch_size.expect("missing batch_size");
+    assert_eq!(batch_size, 1, "one_step_sgd_tiny_v1 supports batch 1");
+    assert_eq!(
+        input.public.optimizer_type.as_deref(),
+        Some("sgd"),
+        "optimizer_type must be sgd"
+    );
+    let learning_rate_fp = input
+        .public
+        .learning_rate_fp
+        .expect("missing learning_rate_fp");
+    assert!(learning_rate_fp > 0, "learning_rate_fp must be positive");
+
+    let leaf_indices = input
+        .public
+        .leaf_indices
+        .clone()
+        .expect("missing leaf_indices");
+    assert_eq!(leaf_indices.len(), 1, "leaf_indices length mismatch");
+    assert_eq!(input.private.items.len(), 1, "expected exactly one item");
+
+    let network_layer_sizes = input
+        .public
+        .network_layer_sizes
+        .clone()
+        .expect("missing network_layer_sizes");
+    assert_eq!(
+        network_layer_sizes.len(),
+        3,
+        "one_step_sgd_tiny_v1 expects one hidden layer"
+    );
+    assert_eq!(
+        Some(network_spec_hash(&network_layer_sizes, input.public.fp_scale)),
+        input.public.network_spec_hash,
+        "network_spec_hash mismatch"
+    );
+
+    let pre_model = input
+        .private
+        .online_model
+        .as_ref()
+        .expect("missing online_model");
+    let target_model = input
+        .private
+        .target_model
+        .as_ref()
+        .expect("missing target_model");
+    let post_model = input
+        .private
+        .post_online_model
+        .as_ref()
+        .expect("missing post_online_model");
+    let update_witness = input
+        .private
+        .update_witness
+        .as_ref()
+        .expect("missing update_witness");
+
+    assert_valid_model(pre_model, &network_layer_sizes, input.public.fp_scale);
+    assert_valid_model(target_model, &network_layer_sizes, input.public.fp_scale);
+    assert_valid_model(post_model, &network_layer_sizes, input.public.fp_scale);
+    assert_eq!(
+        Some(model_commitment(pre_model, input.public.fp_scale)),
+        input.public.pre_model_commitment,
+        "pre_model_commitment mismatch"
+    );
+    assert_eq!(
+        Some(model_commitment(post_model, input.public.fp_scale)),
+        input.public.post_model_commitment,
+        "post_model_commitment mismatch"
+    );
+    assert_eq!(
+        Some(model_commitment(target_model, input.public.fp_scale)),
+        input.public.target_model_commitment,
+        "target_model_commitment mismatch"
+    );
+
+    let item = &input.private.items[0];
+    assert_eq!(
+        item.index, leaf_indices[0],
+        "item index does not match public leaf_indices"
+    );
+    verify_membership_only(&input.public, item);
+
+    let claimed_loss = input
+        .public
+        .claimed_batch_loss_fp
+        .expect("missing claimed_batch_loss_fp");
+    let output = verify_forward_item(&input.public, item, pre_model, target_model, claimed_loss);
+    assert_eq!(
+        update_witness.batch_loss_fp, output.loss_fp,
+        "update_witness batch_loss_fp mismatch"
+    );
+
+    let (smooth_l1_grad_fp, gradients, deltas, expected_post_model) =
+        compute_tiny_sgd_update(pre_model, item, output.target_fp, learning_rate_fp, input.public.fp_scale);
+    assert_eq!(
+        update_witness.smooth_l1_grad_fp, smooth_l1_grad_fp,
+        "smooth_l1_grad_fp mismatch"
+    );
+    assert_update_tensors_eq(
+        &update_witness.gradient_tensors,
+        &gradients,
+        "gradient_tensors",
+    );
+    assert_update_tensors_eq(&update_witness.delta_tensors, &deltas, "delta_tensors");
+    assert_model_eq(post_model, &expected_post_model, "post_online_model");
+
+    PublicOutput {
+        schema_version: input.schema_version.clone(),
+        dataset_root: input.public.dataset_root.clone(),
+        claimed_target_fp: None,
+        claimed_loss_fp: None,
+        leaf_index: None,
+        batch_size: Some(batch_size),
+        leaf_indices: Some(leaf_indices),
+        claimed_batch_loss_fp: input.public.claimed_batch_loss_fp,
+        items: vec![output],
+        network_spec_hash: input.public.network_spec_hash.clone(),
+        online_model_commitment: input.public.pre_model_commitment.clone(),
         target_model_commitment: input.public.target_model_commitment.clone(),
     }
 }
@@ -881,4 +1035,172 @@ fn usize_vec_json(values: &[usize]) -> String {
     }
     out.push(']');
     out
+}
+
+fn smooth_l1_grad_fp(td_error_fp: i64, fp_scale: i64) -> i64 {
+    let abs_x_fp = td_error_fp.abs();
+    if abs_x_fp < fp_scale {
+        td_error_fp
+    } else if td_error_fp > 0 {
+        fp_scale
+    } else {
+        -fp_scale
+    }
+}
+
+fn zero_update_tensors(layer_sizes: &[usize]) -> MlpUpdateTensors {
+    let mut layers = Vec::new();
+    for idx in 0..(layer_sizes.len() - 1) {
+        let in_dim = layer_sizes[idx];
+        let out_dim = layer_sizes[idx + 1];
+        layers.push(QuantizedLayer {
+            weight: vec![vec![0i64; in_dim]; out_dim],
+            bias: vec![0i64; out_dim],
+        });
+    }
+    MlpUpdateTensors { layers }
+}
+
+fn compute_tiny_sgd_update(
+    pre_model: &QuantizedMlp,
+    item: &TdMvpItem,
+    target_fp: i64,
+    learning_rate_fp: i64,
+    fp_scale: i64,
+) -> (i64, MlpUpdateTensors, MlpUpdateTensors, QuantizedMlp) {
+    assert_eq!(
+        pre_model.layer_sizes.len(),
+        3,
+        "tiny SGD update expects one hidden layer"
+    );
+    let obs_fp = item
+        .transition
+        .obs
+        .iter()
+        .map(|value| encode_fp(*value, fp_scale))
+        .collect::<Vec<_>>();
+    let forward = mlp_forward(pre_model, &obs_fp, fp_scale);
+    let action = item.transition.action as usize;
+    assert!(action < forward.outputs.len(), "action out of range");
+    let td_error_fp = forward.outputs[action] - target_fp;
+    let loss_grad_fp = smooth_l1_grad_fp(td_error_fp, fp_scale);
+    let mut gradients = zero_update_tensors(&pre_model.layer_sizes);
+
+    let hidden_pre = &forward.pre_activations[0];
+    let hidden_values = hidden_pre
+        .iter()
+        .map(|value| if *value > 0 { *value } else { 0 })
+        .collect::<Vec<_>>();
+
+    let output_layer_idx = 1usize;
+    let hidden_layer_idx = 0usize;
+    gradients.layers[output_layer_idx].bias[action] = loss_grad_fp;
+    for (hidden_idx, hidden_fp) in hidden_values.iter().enumerate() {
+        gradients.layers[output_layer_idx].weight[action][hidden_idx] =
+            fixed_point_mul(loss_grad_fp, *hidden_fp, fp_scale);
+    }
+
+    let output_action_weights = &pre_model.layers[output_layer_idx].weight[action];
+    for (hidden_idx, z_fp) in hidden_pre.iter().enumerate() {
+        let grad_hidden_fp =
+            fixed_point_mul(loss_grad_fp, output_action_weights[hidden_idx], fp_scale);
+        let grad_z_fp = if *z_fp > 0 { grad_hidden_fp } else { 0 };
+        gradients.layers[hidden_layer_idx].bias[hidden_idx] = grad_z_fp;
+        for (input_idx, input_fp) in obs_fp.iter().enumerate() {
+            gradients.layers[hidden_layer_idx].weight[hidden_idx][input_idx] =
+                fixed_point_mul(grad_z_fp, *input_fp, fp_scale);
+        }
+    }
+
+    let (post_model, deltas) =
+        apply_sgd_update(pre_model, &gradients, learning_rate_fp, fp_scale);
+    (loss_grad_fp, gradients, deltas, post_model)
+}
+
+fn apply_sgd_update(
+    pre_model: &QuantizedMlp,
+    gradients: &MlpUpdateTensors,
+    learning_rate_fp: i64,
+    fp_scale: i64,
+) -> (QuantizedMlp, MlpUpdateTensors) {
+    assert_eq!(
+        pre_model.layers.len(),
+        gradients.layers.len(),
+        "gradient layer count mismatch"
+    );
+    let mut post_model = QuantizedMlp {
+        format: pre_model.format.clone(),
+        layer_sizes: pre_model.layer_sizes.clone(),
+        fp_scale: pre_model.fp_scale,
+        layers: Vec::new(),
+    };
+    let mut deltas = zero_update_tensors(&pre_model.layer_sizes);
+
+    for (layer_idx, layer) in pre_model.layers.iter().enumerate() {
+        let grad_layer = &gradients.layers[layer_idx];
+        let mut post_weight = Vec::with_capacity(layer.weight.len());
+        for (row_idx, row) in layer.weight.iter().enumerate() {
+            let mut post_row = Vec::with_capacity(row.len());
+            for (col_idx, value) in row.iter().enumerate() {
+                let grad = grad_layer.weight[row_idx][col_idx];
+                let delta = -fixed_point_mul(learning_rate_fp, grad, fp_scale);
+                deltas.layers[layer_idx].weight[row_idx][col_idx] = delta;
+                post_row.push(*value + delta);
+            }
+            post_weight.push(post_row);
+        }
+
+        let mut post_bias = Vec::with_capacity(layer.bias.len());
+        for (bias_idx, value) in layer.bias.iter().enumerate() {
+            let grad = grad_layer.bias[bias_idx];
+            let delta = -fixed_point_mul(learning_rate_fp, grad, fp_scale);
+            deltas.layers[layer_idx].bias[bias_idx] = delta;
+            post_bias.push(*value + delta);
+        }
+
+        post_model.layers.push(QuantizedLayer {
+            weight: post_weight,
+            bias: post_bias,
+        });
+    }
+
+    (post_model, deltas)
+}
+
+fn assert_update_tensors_eq(actual: &MlpUpdateTensors, expected: &MlpUpdateTensors, label: &str) {
+    assert_eq!(
+        actual.layers.len(),
+        expected.layers.len(),
+        "{label} layer count mismatch"
+    );
+    for idx in 0..actual.layers.len() {
+        assert_eq!(
+            actual.layers[idx].weight, expected.layers[idx].weight,
+            "{label} weight mismatch"
+        );
+        assert_eq!(
+            actual.layers[idx].bias, expected.layers[idx].bias,
+            "{label} bias mismatch"
+        );
+    }
+}
+
+fn assert_model_eq(actual: &QuantizedMlp, expected: &QuantizedMlp, label: &str) {
+    assert_eq!(actual.format, expected.format, "{label} format mismatch");
+    assert_eq!(
+        actual.layer_sizes, expected.layer_sizes,
+        "{label} layer_sizes mismatch"
+    );
+    assert_eq!(actual.fp_scale, expected.fp_scale, "{label} fp_scale mismatch");
+    assert_eq!(actual.layers.len(), expected.layers.len(), "{label} layer count mismatch");
+    for idx in 0..actual.layers.len() {
+        assert_eq!(
+            actual.layers[idx].weight, expected.layers[idx].weight,
+            "{label} weight mismatch"
+        );
+        assert_eq!(
+            actual.layers[idx].bias, expected.layers[idx].bias,
+            "{label} bias mismatch"
+        );
+    }
 }
