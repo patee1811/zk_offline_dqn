@@ -1,30 +1,29 @@
-Offline reinforcement learning makes it possible to train policies from a fixed
-trajectory dataset, but it also creates a verification problem: a model producer
-may claim that temporal-difference computations were performed over a particular
-dataset without revealing the raw trajectories or intermediate model values. We
-study this problem for offline Deep Q-Network (DQN) training over committed
-trajectory data. The contribution is intentionally scoped: we do not claim a
-full proof of DQN training. Instead, we build a reproducible verification
-pipeline whose cryptographic backend proves the correctness of the
-reinforcement-learning-specific temporal-difference (TD) computation.
+Offline reinforcement learning creates a verification problem that is different
+from supervised proof-of-training: a dishonest prover can tamper not only with
+model parameters or losses, but also with replay membership, terminal flags,
+Bellman targets, action selection, target-network values, and minibatch
+aggregation. We present a layered artifact system for zero-knowledge-verifiable
+offline DQN over committed replay data. The system is intentionally scoped: it
+does not claim a full proof of training from initialization to final checkpoint.
+Instead, it decomposes the DQN training stack into auditable relations for
+committed transition membership, fixed-point Bellman/TD computation, distinct
+minibatch aggregation, model-grounded MLP forward/argmax evidence, and a tiny
+one-step SGD update extension.
 
-The system commits an offline CartPole transition dataset with a Merkle tree,
-exports canonical fixed-point TD witnesses, and implements an SP1 zkVM backend
-for single-transition and minibatch TD statements. The proved relation checks
-transition membership in the committed dataset, canonical leaf hashing, Merkle
-path recomputation, terminal and non-terminal Bellman target semantics, TD error
-recomputation, SmoothL1 loss recomputation, and public target/loss or
-batch-loss consistency. A Python verifier is retained as the semantic oracle and
-as a pre-ZK extension path for one-step SGD update checks and short trace
-chaining.
+The implemented artifact pipeline commits replay transitions with SHA-256
+Merkle roots, exports canonical fixed-point witnesses, checks adversarially
+tampered fixtures with a Python semantic oracle, and proves selected relations
+in an SP1 zkVM backend. The locked Phase E benchmark aggregate contains 29
+benchmark rows and 21 tamper rows. SP1 proofs are recorded for CartPole
+distinct TD batch sizes 1, 2, 4, and 8, with proving times from 97.96 s to
+202.92 s, verification times from 0.125 s to 0.127 s, and proof sizes from
+2.78 MB to 2.81 MB. Model-grounded forward-TD MLP proofs are also recorded for
+CartPole with a 4-16-16-2 network and MountainCar with a 2-8-8-3 network,
+taking 148.42 s and 107.93 s to prove, respectively. Finally, a tiny CartPole
+one-step SGD proof for a 4-8-2 network takes 115.49 s to prove.
 
-In the locked benchmark, SP1 proves TD-1, TD-2, TD-4, and TD-8 cases with proof
-sizes from 2.78 MB to 2.81 MB and proving times from 142.32 s to 275.08 s on
-the recorded Kaggle run. Verification time is approximately 0.16 s for all four
-cases. Python and SP1 agree on the valid fixtures and on an adversarial suite
-covering schema, reward, rounding, done-branch, Merkle path, target-value,
-claimed-output, and batch-aggregation tampering. These results demonstrate a
-working ZK-backed TD verification pipeline for offline DQN over committed
-trajectories, while making explicit that neural-network forward passes,
-gradients, optimizer updates, checkpoint-to-checkpoint transitions, and full
-proof-of-training remain outside the current backend.
+The contribution is therefore a reproducible security/systems artifact rather
+than an ML performance claim. It formalizes which public claims and private
+witnesses are checked at each layer, identifies the exact backend used by each
+relation, and packages reviewer-facing reproduction commands for fast Python
+smoke tests and full SP1 runs on Linux, WSL2 Ubuntu, or Kaggle.

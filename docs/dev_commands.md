@@ -39,6 +39,23 @@ python scripts/experiments/benchmark_distinct_td_sp1.py `
   --out-dir artifacts/benchmarks/distinct_td_sp1_python_smoke
 ```
 
+Final Phase E artifact aggregate:
+
+```powershell
+python scripts/experiments/run_final_ndss_regression.py
+python scripts/experiments/check_paper_numbers_against_final_ndss.py
+```
+
+Expected outputs:
+
+```text
+artifacts/benchmarks/final_ndss/summary.json
+artifacts/benchmarks/final_ndss/benchmark_matrix.csv
+artifacts/benchmarks/final_ndss/tamper_matrix.csv
+artifacts/benchmarks/final_ndss/summary.md
+artifacts/benchmarks/final_ndss/reproduction.md
+```
+
 ## SP1 Backend
 
 Run these on Linux, macOS, WSL2 Ubuntu, or Kaggle with SP1 installed:
@@ -55,6 +72,25 @@ Full Phase A distinct minibatch SP1 benchmark/proof refresh from the repository 
 
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
+```
+
+Full Phase E SP1 refresh from the repository root:
+
+```bash
+python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
+python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
+python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
+python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
+python3 scripts/experiments/run_final_ndss_regression.py
+```
+
+Latest Kaggle full-roadmap run:
+
+```text
+kernel = https://www.kaggle.com/code/nypate9999/zk-offline-dqn-final-roadmap-run
+dataset = nypate9999/zk-offline-dqn-workspace-final-ndss
+status = COMPLETE
+ROADMAP_KAGGLE_RUN_COMPLETED = True
 ```
 
 If the full run is unstable, prove one accepted case at a time:
@@ -86,10 +122,12 @@ python scripts/experiments/benchmark_short_trace_update.py `
 ## Canonical Status Files
 
 ```text
-docs/week5_artifact_package.md
 docs/current_benchmark_snapshot.md
 artifacts/benchmarks/sp1_td_mvp/summary.md
 artifacts/benchmarks/sp1_td_mvp/benchmark_matrix.csv
 artifacts/benchmarks/distinct_td_sp1/summary.md
 artifacts/benchmarks/distinct_td_sp1/benchmark_matrix.csv
+artifacts/benchmarks/final_ndss/summary.md
+artifacts/benchmarks/final_ndss/benchmark_matrix.csv
+artifacts/benchmarks/final_ndss/tamper_matrix.csv
 ```

@@ -1,0 +1,50 @@
+The artifact stack is organized as relations with explicit public inputs,
+private witnesses, checks, and backends. \Cref{tab:relations} summarizes the
+implemented and extension statements.
+
+\begin{table*}[!t]
+\centering
+\small
+\caption{Layered verification statements. SP1 indicates cryptographic backend
+coverage in the current artifact; Python oracle indicates deterministic
+semantic checking without a ZK proof.}
+\label{tab:relations}
+\begin{tabular}{p{2.7cm} p{3.4cm} p{3.5cm} p{4.5cm} p{1.7cm}}
+\toprule
+Relation & Public inputs & Private witness & Main checks & Backend \\
+\midrule
+Committed TD &
+root, scale, $\gamma$, leaf index, claimed target/loss &
+transition, leaf, leaf hash, path, Q-value witness &
+canonical serialization, Merkle membership, terminal/non-terminal target, TD
+error, SmoothL1 loss &
+SP1 \\
+\midrule
+Distinct minibatch TD &
+root, ordered leaf indices, batch size, claimed average loss &
+items with transitions, paths, TD witnesses &
+per-item committed TD, distinct indices, public order, integer batch average &
+SP1 \\
+\midrule
+Forward-TD MLP &
+root, network spec hash, online/target model commitments, claimed losses &
+quantized weights, activations, ReLU masks, transitions, paths &
+model commitment, MLP forward on $s$ and $s'$, argmax, selected target value,
+Bellman target, SmoothL1 loss &
+SP1 \\
+\midrule
+Tiny one-step SGD &
+pre/post model commitments, root, batch index, learning rate, optimizer id &
+pre/post weights, forward witnesses, gradient tensors, delta tensors &
+forward-TD consistency, SmoothL1 derivative branch, gradient tensor checks,
+$w' = w - \eta g$, post commitment &
+SP1 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+For every relation, acceptance means only that the stated relation holds. It
+does not imply that the committed dataset is truthful, that the model was
+trained for more than the checked step, or that the resulting policy is good.
+This relation-level interpretation is the basis for the security analysis and
+the evaluation tables.

@@ -1,11 +1,11 @@
 \subsection{What Has Been Proved}
 
-The current system proves a precise statement: a private transition or minibatch
-belongs to a committed trajectory dataset, and the fixed-point TD target, TD
-error, SmoothL1 loss, and public claimed outputs are recomputed correctly. This
-is a meaningful RL-specific statement because it includes terminal branch
-semantics, Bellman backup arithmetic, committed replay membership, and
-minibatch aggregation.
+The current system proves a precise stack of relation statements: a private
+transition or minibatch belongs to a committed trajectory dataset; fixed-point
+TD target, TD error, SmoothL1 loss, and public claimed outputs are recomputed
+correctly; selected forward-TD rows anchor Q-values to committed MLP weights;
+and one micro-scale SGD update is consistent with the checked gradients,
+deltas, learning rate, and post-model commitment.
 
 The main engineering result is that this statement is not only checked by a
 Python script. It is implemented in a concrete SP1 zkVM backend, benchmarked
@@ -15,20 +15,17 @@ that agrees with the Python semantic oracle.
 \subsection{What Has Not Been Proved}
 
 The paper deliberately avoids claiming full proof-of-training. The current SP1
-backend does not prove:
+backend still does not prove:
 \begin{itemize}[leftmargin=1.5em]
-    \item neural-network forward passes;
-    \item argmax action selection;
-    \item target-network forward evaluation;
-    \item SmoothL1 gradients or backpropagation;
-    \item optimizer updates;
     \item checkpoint-to-checkpoint consistency;
     \item target-network synchronization over long traces;
     \item replay-sampling correctness over a full training run;
+    \item Adam optimizer state;
     \item model selection, early stopping, or best-checkpoint choice.
 \end{itemize}
-The Q-values in the SP1 TD statement are witness values. Python forward
-consistency checks exist, but they are outside the ZK backend.
+The witness-Q TD relation remains useful as a smaller layer, while the
+forward-TD MLP and tiny one-step SGD relations cover selected model-grounded
+and update-grounded cases.
 
 \subsection{Why the Scoped Claim Is Still Useful}
 
@@ -36,29 +33,26 @@ A narrow claim is not a weakness if it is the right decomposition point.
 Offline DQN training contains several distinct verifiability problems:
 membership in committed trajectories, TD arithmetic, neural-network evaluation,
 gradient computation, optimizer semantics, and trace composition. The present
-work resolves the first backend layer and gives a tested artifact path for the
-next layers. In a Q1 systems/security framing, the contribution should be read
-as a reproducible ZK-backed verification pipeline for the RL-specific TD layer,
-not as an end-to-end zkML training system.
+work resolves several backend layers and gives a tested artifact path for trace
+composition. In a Q1 systems/security framing, the contribution should be read
+as a reproducible ZK-backed verification pipeline for selected RL-specific
+relations, not as an end-to-end zkML training system.
 
 \subsection{Scalability}
 
 The locked SP1 benchmark is prototype-scale. Proof generation takes minutes for
-the TD-1/2/4/8 cases, while verification is fast. Proof size is roughly stable
+the reported cases, while verification is fast. Proof size is roughly stable
 across the tested cases. This is encouraging for artifact-level verification,
-but it is far from sufficient for full training traces. Scaling to real update
-proofs will require proving neural-network operations, aggregating many update
-steps, and likely using recursion or specialized circuits for repeated linear
-algebra.
+but it is far from sufficient for full training traces. Scaling to practical
+training proofs will require aggregating many update steps and likely using
+recursion or specialized circuits for repeated linear algebra.
 
 \subsection{Benchmark Scope}
 
-The TD-2/4/8 fixtures repeat the canonical TD item to exercise multiple
-memberships, per-item relation checks, and batch aggregation. This is useful
-for validating the minibatch relation, but it is not yet a diverse sampled
-replay-batch benchmark. A stronger future artifact should generate TD-2/4/8
-fixtures from distinct committed transitions while preserving the same public
-statement.
+The TD-2/4/8 fixtures now use distinct committed transitions. The benchmark is
+still small-scale: CartPole and MountainCar are classic-control tasks, and the
+MountainCar dataset is a seeded random-policy artifact rather than a
+policy-performance result.
 
 \subsection{Submission Positioning}
 
@@ -66,9 +60,9 @@ For a Q1 journal submission, the paper should be positioned as a
 security/systems artifact. The strongest defensible claim is:
 \begin{quote}
 ZK-backed offline DQN TD and minibatch-TD verification over committed
-trajectory data, with Python pre-ZK extensions for one-step update and
-short-trace verification.
+trajectory data, model-grounded forward-TD MLP checks, and one micro-scale SGD
+update.
 \end{quote}
 The paper should not be positioned as solving full verifiable RL training.
-Reviewers should be able to see exactly which relation is proved, which
-relations are checked only in Python, and which parts remain future work.
+Reviewers should be able to see exactly which relation is proved and which
+parts remain future work.

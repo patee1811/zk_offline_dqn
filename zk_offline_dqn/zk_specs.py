@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 @dataclass(frozen=True)
@@ -32,21 +32,34 @@ def decode_fp(x_fp: int) -> float:
     return x_fp / SPECS.FP_SCALE
 
 
-def serialize_transition_leaf(transition: Dict) -> List[int]:
+def serialize_transition_leaf(
+    transition: Dict,
+    *,
+    obs_dim: Optional[int] = None,
+    action_dim: Optional[int] = None,
+) -> List[int]:
     obs = transition["obs"]
     action = int(transition["action"])
     reward = transition["reward"]
     next_obs = transition["next_obs"]
     done = int(transition["done"])
+    expected_obs_dim = SPECS.OBS_DIM if obs_dim is None else int(obs_dim)
+    expected_action_dim = SPECS.ACTION_DIM if action_dim is None else int(action_dim)
 
-    if len(obs) != SPECS.OBS_DIM:
-        raise ValueError(f"obs must have length {SPECS.OBS_DIM}, got {len(obs)}")
-    if len(next_obs) != SPECS.OBS_DIM:
+    if expected_obs_dim <= 0:
+        raise ValueError(f"obs_dim must be positive, got {expected_obs_dim}")
+    if expected_action_dim <= 0:
+        raise ValueError(f"action_dim must be positive, got {expected_action_dim}")
+    if len(obs) != expected_obs_dim:
+        raise ValueError(f"obs must have length {expected_obs_dim}, got {len(obs)}")
+    if len(next_obs) != expected_obs_dim:
         raise ValueError(
-            f"next_obs must have length {SPECS.OBS_DIM}, got {len(next_obs)}"
+            f"next_obs must have length {expected_obs_dim}, got {len(next_obs)}"
         )
-    if action < 0 or action >= SPECS.ACTION_DIM:
-        raise ValueError(f"action must be in [0, {SPECS.ACTION_DIM - 1}], got {action}")
+    if action < 0 or action >= expected_action_dim:
+        raise ValueError(
+            f"action must be in [0, {expected_action_dim - 1}], got {action}"
+        )
     if done not in (0, 1, False, True):
         raise ValueError(f"done must be 0/1 or bool, got {done}")
 

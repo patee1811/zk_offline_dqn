@@ -1,94 +1,56 @@
-Offline reinforcement learning (offline RL) separates data collection from
-training: a learner receives a fixed trajectory dataset and trains without
-further interaction with the environment~\cite{levine2020offline}. This
-separation is attractive in domains where interaction is expensive, unsafe, or
-privacy-sensitive. It also creates a natural integrity question. If a training
-provider claims that a value function was trained or audited using a particular
-offline dataset, how can a verifier check that the key reinforcement-learning
-computations were actually carried out over that dataset?
+Offline reinforcement learning (offline RL) trains policies from a fixed replay
+dataset without additional environment interaction~\cite{levine2020offline}.
+This fixed-data setting is attractive when interaction is costly, unsafe, or
+private, but it also exposes a verification gap. A model producer can claim
+that an offline DQN audit or update used a particular replay dataset while
+silently changing a transition, terminal flag, Bellman target, target-network
+value, loss, or minibatch aggregation. A verifier who only sees a final
+checkpoint has little evidence that the reinforcement-learning computation was
+performed over the committed data.
 
-Cryptographic commitments and zero-knowledge proofs provide a promising answer.
-A dataset can be committed once, and later computations can be proved with
-respect to the commitment without revealing the full dataset. In supervised
-learning, this idea appears in proof-of-learning and proof-of-training systems,
-as well as in verifiable inference and zkML systems
-~\cite{jia2021proofoflearning,veriml2021,zkdl2023,zkcnn2021,safetynets2017}.
-However, offline RL introduces statement structure that is not present in
-ordinary supervised learning. A DQN-style update depends on trajectory
-membership, terminal flags, Bellman backups, target-network values,
-Double-DQN-style online/target network separation, TD losses, replay sampling,
-and checkpoint synchronization. These are not merely implementation details:
-they are the semantics that make the computation an RL training computation.
+Zero-knowledge proof systems and zkVMs offer a way to make such claims
+checkable without revealing all private replay contents or intermediate model
+values. Existing proof-of-learning and proof-of-training work mainly targets
+supervised or general DNN training~\cite{jia2021proofoflearning,zkdl2023,kaizen2024,zkpotvicinity2025}.
+Offline DQN has additional statement structure: replay membership, terminal and
+non-terminal Bellman branches, Double-DQN action selection, target-network
+evaluation, SmoothL1 TD losses, and replay minibatches. These are not merely
+engineering details; they define what it means for the computation to be a DQN
+training computation.
 
-This paper focuses on a deliberately narrow but concrete target: ZK-verifiable
-TD computation for offline DQN over committed trajectories. The target is
-smaller than full proof-of-training, but it is the first relation in the DQN
-training stack that combines committed trajectory membership with
-reinforcement-learning-specific arithmetic. The proved statement checks that a
-private transition, or a small minibatch of private transitions, belongs to a
-public committed dataset root and that the Bellman target, TD error, and
-SmoothL1 loss are recomputed correctly in fixed-point arithmetic.
+This paper studies a scoped, artifact-driven target: layered ZK-verifiable
+evidence for offline DQN over committed replay data. The strongest implemented
+SP1 results are for distinct minibatch TD over CartPole replay data,
+model-grounded forward-TD MLP checks on CartPole and MountainCar, and a tiny
+one-step SGD update proof on CartPole. This separation of relation layers is
+deliberate. It lets the paper make precise statements about what has been
+proved today while avoiding a claim that the entire training trace has been
+proved.
 
-The design choice is pragmatic. Full DQN proof-of-training would require proving
-neural-network forward passes, action selection, target-network evaluation,
-loss gradients, optimizer semantics, checkpoint updates, sampling rules, and
-long trace composition. Proving all of these at once would obscure the boundary
-between what is implemented and what remains future work. Instead, we first
-lock the smallest RL-specific backend relation that can be tested end to end in
-a real proving system, and we keep the larger one-step and short-trace update
-checks as Python-level pre-ZK extensions.
+The decomposition point is the Bellman/TD layer. It is small enough to prove in
+a general-purpose zkVM, yet it captures RL-specific semantics absent from
+ordinary supervised losses. Once committed transition membership and TD
+arithmetic are anchored, later layers can add neural forward passes, argmax
+semantics, gradients, optimizer updates, and recursive trace composition.
 
-Our implementation has three layers. First, a Python artifact pipeline commits
-CartPole transitions with a SHA-256 Merkle tree and exports canonical TD
-witnesses using explicit fixed-point conventions. Second, a Python verifier
-serves as the semantic oracle for valid and tampered artifacts. Third, a Rust
-SP1 workspace implements the TD relation in a host/guest/shared split: the host
-loads fixtures and invokes execution or proving, the guest checks the relation,
-and the shared crate contains typed inputs and deterministic arithmetic.
-
-The locked Week 5 artifact package records the current backend scope. SP1
-proofs have been generated and verified for TD-1, TD-2, TD-4, and TD-8. The
-TD-1 case proves one transition; TD-2/4/8 prove multiple Merkle memberships,
-per-sample TD target and loss checks, and public integer batch-average loss.
-The full Kaggle benchmark records proving times of 142.32 s, 154.92 s,
-188.50 s, and 275.08 s, respectively, with verification time near 0.16 s and
-proof sizes from 2.78 MB to 2.81 MB. Python and SP1 agree on the valid fixtures
-and on a negative suite covering schema mismatch, fixed-point rounding
-mismatch, wrong done-branch semantics, wrong leaf index or path order,
-target-value tampering, claimed-output tampering, and batch-aggregation
-tampering.
-
-This scope is important for positioning the contribution. We do not claim that
-the current system proves an entire DQN training run. The SP1 backend does not
-yet prove neural-network forward passes, argmax action selection, gradients,
-optimizer updates, checkpoint-to-checkpoint transitions, or target-network
-synchronization over long traces. The Python one-step and short-trace verifiers
-are included because they show a path from TD verification toward update and
-trace verification, but they are not presented as ZK proofs.
-
-The paper makes the following contributions:
-
+The paper makes four contributions:
 \begin{itemize}[leftmargin=1.5em]
-    \item We formulate a scoped verification problem for offline DQN: proving TD
-    and minibatch-TD computation over a committed trajectory dataset, without
-    claiming full proof-of-training.
-    \item We implement a canonical artifact pipeline for committed CartPole
-    transitions, fixed-point TD witnesses, and adversarial tamper fixtures.
-    \item We implement an SP1 zkVM backend for single-transition and minibatch
-    TD relations, including Merkle membership, Bellman target, TD error,
-    SmoothL1 loss, and batch-average loss checks.
-    \item We evaluate reproducibility through Python regression, SP1 proof
-    generation, SP1 verification, proof-size reporting, cycle counts, and a
-    Python/SP1 agreement suite over valid and tampered cases.
-    \item We document the remaining gap to full offline DQN proof-of-training,
-    using Python one-step and short-trace verifiers only as pre-ZK extension
-    evidence.
+    \item It defines a threat model and formal relation table for committed
+    replay membership, distinct minibatch TD, forward-TD MLP anchoring, and
+    tiny one-step SGD update evidence.
+    \item It implements a reproducible artifact pipeline with canonical
+    fixed-point serialization, SHA-256 Merkle commitments, Python semantic
+    oracles, SP1 host/guest/shared crates, and adversarial tamper fixtures.
+    \item It reports a Phase E benchmark package whose numbers are sourced from
+    \path{artifacts/benchmarks/final_ndss/summary.json},
+    \path{benchmark_matrix.csv}, and \path{tamper_matrix.csv}.
+    \item It gives reviewer-facing reproduction paths: a fast Python smoke path
+    and full SP1 proof commands for Linux, WSL2 Ubuntu, or Kaggle.
 \end{itemize}
 
-The rest of the paper is organized as follows. \Cref{sec:related-work}
-positions the work relative to offline RL, proof-of-learning, zkML, and
-verifiable RL. \Cref{sec:problem-setup} defines the committed offline DQN
-setting. \Cref{sec:system-design} describes the verification statements and SP1
-backend. \Cref{sec:experimental-setup} and \Cref{sec:results} report the
-locked artifact and benchmark results. \Cref{sec:discussion} discusses
-limitations and submission-relevant interpretation.
+The claim is intentionally narrower than full proof-of-training. We do not
+prove data-collection honesty before commitment, Adam updates, long recursive
+training traces, model selection, or policy performance. The contribution is a
+security/systems artifact for verifiable RL computation layers, with explicit
+boundaries between SP1-proved relations, Python smoke checks, and future
+training-trace composition work.

@@ -15,12 +15,16 @@ loss_fp == SmoothL1(td_error_fp)
 target/loss or batch-loss public claims match recomputation
 ```
 
-Supported schemas:
+Supported schemas include TD/minibatch, forward-TD MLP, and tiny one-step SGD
+test vectors handled by the shared verifier:
 
 ```text
 td_mvp_test_vector_v1
 td_mvp_batch_test_vector_v1
+forward_td_mlp_test_vector_v1
+one_step_sgd_tiny_test_vector_v1
 ```
 
-Non-goals for this guest remain neural-network forward semantics, argmax proof,
-gradient proof, optimizer proof, trace proof, and recursive aggregation.
+Non-goals for this guest remain full DQN training, Adam state, long trace
+proofs, target-network synchronization over a full run, model selection, and
+recursive aggregation.

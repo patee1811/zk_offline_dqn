@@ -1,8 +1,8 @@
 # Current Benchmark Snapshot
 
 This file records the current benchmark state used by the repository outside
-`paper/`. The authoritative Week 5 package is
-`docs/week5_artifact_package.md`.
+`paper/`. The authoritative final package is
+`artifacts/benchmarks/final_ndss/`.
 
 ## Python Regression
 
@@ -12,8 +12,8 @@ Latest local regression refresh:
 date = 2026-05-13
 platform = native Windows PowerShell
 command = python scripts/experiments/run_full_regression.py
-num_checks = 11
-num_passed = 11
+num_checks = 15
+num_passed = 15
 num_failed = 0
 all_regression_passed = True
 ```
@@ -32,11 +32,49 @@ Covered checks:
 | short-trace negative tests | pass |
 | minibatch TD negative tests | pass |
 | distinct TD-1/2/4/8 Python-only benchmark smoke | pass |
+| forward-TD MLP Python-only benchmark smoke | pass |
+| one-step SGD tiny Python-only benchmark smoke | pass |
+| MountainCar forward-TD Python-only benchmark smoke | pass |
 | TD MVP test-vector negative tests | pass |
+| paper/final-NDSS number consistency check | pass |
+
+## Phase E Final Aggregate
+
+Latest Kaggle SP1 benchmark refresh:
+
+```text
+generated_at_utc = 2026-05-13T23:40:09.274341+00:00
+platform = Kaggle Linux SP1
+components_loaded = 4
+benchmark_rows = 29
+tamper_rows = 21
+all_components_passed = True
+```
+
+Accepted SP1 proof rows:
+
+| Relation | Environment | Network | Batch | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `td_batch_distinct_v1` | CartPole-v1 | witness Q | 1 | 97.955756 | 0.126565 | 2783869 | 385048 |
+| `td_batch_distinct_v1` | CartPole-v1 | witness Q | 2 | 120.669043 | 0.127258 | 2788227 | 730778 |
+| `td_batch_distinct_v1` | CartPole-v1 | witness Q | 4 | 141.309797 | 0.125481 | 2796699 | 1435787 |
+| `td_batch_distinct_v1` | CartPole-v1 | witness Q | 8 | 202.921645 | 0.126658 | 2812915 | 2845813 |
+| `forward_td_mlp_v1` | CartPole-v1 | 4-16-16-2 | 1 | 148.418458 | 0.127259 | 2797833 | 1543753 |
+| `forward_td_mlp_v1` | MountainCar-v0 | 2-8-8-3 | 1 | 107.926506 | 0.126694 | 2787889 | 683942 |
+| `one_step_sgd_tiny_v1` | CartPole-v1 | 4-8-2 | 1 | 115.494141 | 0.125332 | 2789940 | 862136 |
+
+Tamper coverage:
+
+| Relation | Count | Result |
+| --- | ---: | --- |
+| Distinct TD | 6 | Python and SP1 reject |
+| CartPole forward-TD MLP | 7 | Python and SP1 reject |
+| MountainCar forward-TD MLP | 2 | Python and SP1 reject |
+| Tiny one-step SGD | 6 | Python and SP1 reject |
 
 ## Phase A Distinct Minibatch TD
 
-Latest Kaggle SP1 benchmark refresh:
+Historical Kaggle SP1 benchmark refresh superseded by the Phase E aggregate:
 
 ```text
 generated_at_utc = 2026-05-13T01:15:29.080668+00:00
@@ -53,10 +91,10 @@ Accepted distinct replay minibatches:
 
 | Case | Relation | Batch size | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| TD-1 | `td_batch_distinct_v1` | 1 | 168.311847 | 0.194367 | 2783354 | 383541 |
-| TD-2 | `td_batch_distinct_v1` | 2 | 197.410724 | 0.198335 | 2787712 | 729096 |
-| TD-4 | `td_batch_distinct_v1` | 4 | 265.605205 | 0.198736 | 2796184 | 1434680 |
-| TD-8 | `td_batch_distinct_v1` | 8 | 349.079689 | 0.198359 | 2812912 | 2845827 |
+| TD-1 | `td_batch_distinct_v1` | 1 | 97.955756 | 0.126565 | 2783869 | 385048 |
+| TD-2 | `td_batch_distinct_v1` | 2 | 120.669043 | 0.127258 | 2788227 | 730778 |
+| TD-4 | `td_batch_distinct_v1` | 4 | 141.309797 | 0.125481 | 2796699 | 1435787 |
+| TD-8 | `td_batch_distinct_v1` | 8 | 202.921645 | 0.126658 | 2812915 | 2845813 |
 
 Tamper coverage:
 
@@ -136,15 +174,15 @@ Representative runs:
 Paper-facing claim:
 
 ```text
-ZK-backed offline DQN TD and minibatch-TD verification over committed
-trajectory data, with Python pre-ZK extensions for one-step update and
-short-trace verification.
+ZK-backed offline DQN relation proofs over committed trajectory data, covering
+distinct minibatch TD, model-grounded forward-TD MLP checks, and one
+micro-scale SGD update.
 ```
 
 Required limitation:
 
 ```text
-The backend does not prove neural-network forward passes, gradients,
-optimizer semantics, checkpoint-to-checkpoint updates, full training traces,
-or honest data collection before commitment.
+The backend does not prove full optimizer traces, Adam semantics,
+checkpoint-to-checkpoint training histories, full training traces, or honest
+data collection before commitment.
 ```

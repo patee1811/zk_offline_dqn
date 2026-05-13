@@ -1,11 +1,11 @@
 case,relation,batch_size,status,prove_time_sec,verify_time_sec,proof_size_bytes,cycle_count,notes
-TD-1,td_batch_distinct_v1,1,completed,168.311847,0.194367,2783354,383541,distinct committed replay minibatch
-TD-2,td_batch_distinct_v1,2,completed,197.410724,0.198335,2787712,729096,distinct committed replay minibatch
-TD-4,td_batch_distinct_v1,4,completed,265.605205,0.198736,2796184,1434680,distinct committed replay minibatch
-TD-8,td_batch_distinct_v1,8,completed,349.079689,0.198359,2812912,2845827,distinct committed replay minibatch
-tamper_duplicate_index,invalid distinct batch witness,2,rejected,,,,52326,negative test for duplicate/order/index/loss/average/path
-tamper_wrong_item_index,invalid distinct batch witness,2,rejected,,,,52731,negative test for duplicate/order/index/loss/average/path
-tamper_swapped_item_order,invalid distinct batch witness,2,rejected,,,,52731,negative test for duplicate/order/index/loss/average/path
-tamper_wrong_item_loss,invalid distinct batch witness,2,rejected,,,,379578,negative test for duplicate/order/index/loss/average/path
-tamper_wrong_claimed_batch_average,invalid distinct batch witness,2,rejected,,,,708751,negative test for duplicate/order/index/loss/average/path
-tamper_wrong_path_order,invalid distinct batch witness,2,rejected,,,,52757,negative test for duplicate/order/index/loss/average/path
+TD-1,td_batch_distinct_v1,1,completed,97.955756,0.126565,2783869,385048,distinct committed replay minibatch
+TD-2,td_batch_distinct_v1,2,completed,120.669043,0.127258,2788227,730778,distinct committed replay minibatch
+TD-4,td_batch_distinct_v1,4,completed,141.309797,0.125481,2796699,1435787,distinct committed replay minibatch
+TD-8,td_batch_distinct_v1,8,completed,202.921645,0.126658,2812915,2845813,distinct committed replay minibatch
+tamper_duplicate_index,invalid distinct batch witness,2,rejected,,,,55202,negative test for duplicate/order/index/loss/average/path
+tamper_wrong_item_index,invalid distinct batch witness,2,rejected,,,,55616,negative test for duplicate/order/index/loss/average/path
+tamper_swapped_item_order,invalid distinct batch witness,2,rejected,,,,55616,negative test for duplicate/order/index/loss/average/path
+tamper_wrong_item_loss,invalid distinct batch witness,2,rejected,,,,381602,negative test for duplicate/order/index/loss/average/path
+tamper_wrong_claimed_batch_average,invalid distinct batch witness,2,rejected,,,,709917,negative test for duplicate/order/index/loss/average/path
+tamper_wrong_path_order,invalid distinct batch witness,2,rejected,,,,55629,negative test for duplicate/order/index/loss/average/path

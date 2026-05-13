@@ -1,0 +1,171 @@
+{
+  "generated_at_utc": "2026-05-13T12:43:08.154515+00:00",
+  "environment": "MountainCar-v0",
+  "relation": "forward_td_mlp_v1",
+  "layer_sizes": "2,8,8,3",
+  "data_path": "data/mountaincar_random_seed42_transitions.pkl",
+  "data_summary_path": "data/mountaincar_random_seed42_transitions.summary.json",
+  "leaf_hashes_path": "artifacts/mountaincar_random_seed42_leaf_hashes.json",
+  "merkle_path": "artifacts/mountaincar_random_seed42_merkle.json",
+  "source_fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/mountaincar_source_minibatch_td.json",
+  "merkle_root": "e6b5cd64f0a687b67334403b2aacff84fb8dd604cc39e19f1e116354fb1ae133",
+  "batch_sizes": [
+    1
+  ],
+  "skip_sp1": false,
+  "prove": true,
+  "case_results": [
+    {
+      "case_name": "mountaincar-forward-TD-1",
+      "expected_accept": true,
+      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/mountaincar_forward_td_mlp_batch_size_1.json",
+      "python": {
+        "accepted": true,
+        "returncode": 0,
+        "elapsed_sec": 0.110368,
+        "stdout_path": "artifacts/benchmarks/second_env_mountaincar/logs/python_mountaincar-forward-TD-1.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/second_env_mountaincar/logs/python_mountaincar-forward-TD-1.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/second_env_mountaincar/fixtures/mountaincar_forward_td_mlp_batch_size_1.json",
+          "schema_version": "forward_td_mlp_v1",
+          "batch_size": 1,
+          "claimed_batch_loss_fp": 531,
+          "verification_passed": true,
+          "all_forward_td_mlp_ok": true
+        }
+      },
+      "sp1": {
+        "accepted": true,
+        "returncode": 0,
+        "elapsed_sec": 211.798064,
+        "stdout_path": "artifacts/benchmarks/second_env_mountaincar/logs/sp1_mountaincar-forward-TD-1.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/second_env_mountaincar/logs/sp1_mountaincar-forward-TD-1.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/second_env_mountaincar/fixtures/mountaincar_forward_td_mlp_batch_size_1.json",
+          "case_name": "valid_control",
+          "host_precheck": true,
+          "batch_size": 1,
+          "claimed_batch_loss_fp": 531,
+          "execution_ok": true,
+          "execution_time_sec": 0.056519,
+          "cycle_count": 683942,
+          "exit_code": 0,
+          "proof_generated": true,
+          "proof_verified": true,
+          "proving_time_sec": 107.926506,
+          "verification_time_sec": 0.126694,
+          "proof_size_bytes": 2787889
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_selected_target_value",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_selected_target_value.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.118257,
+        "stdout_path": "artifacts/benchmarks/second_env_mountaincar/logs/python_tamper_selected_target_value.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/second_env_mountaincar/logs/python_tamper_selected_target_value.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 103.821384,
+        "stdout_path": "artifacts/benchmarks/second_env_mountaincar/logs/sp1_tamper_selected_target_value.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/second_env_mountaincar/logs/sp1_tamper_selected_target_value.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_selected_target_value.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.054322,
+          "cycle_count": 630657,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    },
+    {
+      "case_name": "tamper_argmax",
+      "expected_accept": false,
+      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_argmax.json",
+      "python": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 0.119066,
+        "stdout_path": "artifacts/benchmarks/second_env_mountaincar/logs/python_tamper_argmax.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/second_env_mountaincar/logs/python_tamper_argmax.stderr.txt",
+        "metrics": {}
+      },
+      "sp1": {
+        "accepted": false,
+        "returncode": 1,
+        "elapsed_sec": 94.102355,
+        "stdout_path": "artifacts/benchmarks/second_env_mountaincar/logs/sp1_tamper_argmax.stdout.txt",
+        "stderr_path": "artifacts/benchmarks/second_env_mountaincar/logs/sp1_tamper_argmax.stderr.txt",
+        "metrics": {
+          "input_path": "/kaggle/working/zk_offline_dqn/artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_argmax.json",
+          "case_name": "valid_control",
+          "host_precheck": "skipped_for_tamper_case",
+          "execution_ok": true,
+          "execution_time_sec": 0.059011,
+          "cycle_count": 630523,
+          "exit_code": 1
+        }
+      },
+      "python_expected_ok": true,
+      "sp1_expected_ok": true,
+      "python_sp1_agree": true,
+      "passed": true
+    }
+  ],
+  "benchmark_matrix": [
+    {
+      "case": "mountaincar-forward-TD-1",
+      "environment": "MountainCar-v0",
+      "network_spec": "2,8,8,3",
+      "batch_size": 1,
+      "status": "accepted",
+      "prove_time_sec": 107.926506,
+      "verify_time_sec": 0.126694,
+      "proof_size_bytes": 2787889,
+      "cycle_count": 683942
+    },
+    {
+      "case": "tamper_selected_target_value",
+      "environment": "MountainCar-v0",
+      "network_spec": "2,8,8,3",
+      "batch_size": 1,
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 630657
+    },
+    {
+      "case": "tamper_argmax",
+      "environment": "MountainCar-v0",
+      "network_spec": "2,8,8,3",
+      "batch_size": 1,
+      "status": "rejected",
+      "prove_time_sec": null,
+      "verify_time_sec": null,
+      "proof_size_bytes": null,
+      "cycle_count": 630523
+    }
+  ],
+  "all_python_expected": true,
+  "all_sp1_expected": true,
+  "python_sp1_agreement": true,
+  "all_passed": true
+}

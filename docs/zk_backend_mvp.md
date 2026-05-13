@@ -281,10 +281,12 @@ verification time recorded
 proof size recorded
 ```
 
-Current Week 5 status:
+Current Phase E status:
 
 ```text
 SP1 TD-1/2/4/8 proofs generated and verified
+SP1 CartPole and MountainCar forward-TD MLP batch-1 proofs generated and verified
+SP1 CartPole tiny one-step SGD batch-1 proof generated and verified
 Python/SP1 agreement holds on valid and tampered TD MVP cases
 full proof-of-training remains out of scope
 ```
@@ -295,8 +297,7 @@ The first backend MVP does not prove:
 
 ```text
 full DQN training
-full neural-network forward pass
-full backpropagation
+large neural-network training traces
 Adam optimizer semantics
 long training traces
 target-network synchronization over many steps

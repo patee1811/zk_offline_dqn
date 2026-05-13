@@ -1,52 +1,37 @@
 We consider a discounted Markov decision process with state space $\states$,
-action space $\actions$, reward function $r$, terminal flag $d$, and discount
-factor $\gamma \in [0,1)$. The concrete benchmark uses
-CartPole-v1~\cite{brockman2016gym}, whose observations are four-dimensional
-continuous vectors and whose action space has two discrete actions.
-
-\paragraph{Committed transition dataset.}
-The offline dataset is fixed before verification:
+action space $\actions$, reward $r$, terminal flag $d$, and discount factor
+$\gamma \in [0,1)$. The offline dataset is fixed before verification:
 \[
 \dataset = \{(s_i,a_i,r_i,s'_i,d_i)\}_{i=1}^N .
 \]
-Each transition is serialized into a fixed-point integer leaf and committed in a
+Each transition is serialized into fixed-point integers and committed in a
 SHA-256 Merkle tree~\cite{merkle1987}. The public dataset commitment is the
-Merkle root $h(\dataset)$. A prover may keep the transition contents private
-while revealing enough authentication data to prove membership in the committed
-dataset.
+Merkle root. A membership witness consists of the private transition, canonical
+leaf encoding, leaf hash, leaf index, and sibling path.
 
-\paragraph{Offline DQN TD computation.}
 For a DQN with online parameters $\theta$ and target parameters $\bar{\theta}$,
 the Double-DQN target for transition $i$ is
 \begin{align}
 a_i^* &= \arg\max_{a' \in \actions} Q_\theta(s'_i,a'), \\
 y_i &= r_i + \gamma (1-d_i) Q_{\bar{\theta}}(s'_i,a_i^*).
 \end{align}
-The TD error is
+The TD error and SmoothL1 loss are
 \[
 \delta_i = Q_\theta(s_i,a_i) - y_i,
-\]
-and the SmoothL1 loss with $\beta=1$ is
-\[
-\ell(\delta_i) =
+\qquad
+\ell_i =
 \begin{cases}
 \frac{1}{2}\delta_i^2 & \text{if } |\delta_i| < 1,\\
-|\delta_i| - \frac{1}{2} & \text{otherwise.}
+|\delta_i|-\frac{1}{2} & \text{otherwise.}
 \end{cases}
 \]
-For a minibatch $B$, the batch loss is the average of per-transition losses.
+For a minibatch $B$, the claimed batch loss is the integer average of per-item
+fixed-point losses.
 
-\paragraph{Backend-proved scope.}
-The SP1 backend does not yet prove neural-network forward evaluation or the
-argmax operation. Instead, the Q-values used in the Bellman target are witness
-values, and the backend proves that the committed transition, target arithmetic,
-TD error, loss, and claimed public outputs are mutually consistent. This is the
-first backend target because it is small enough to prove today while still
-capturing RL-specific semantics: terminal branches, Bellman backups, TD errors,
-and replay membership.
-
-\paragraph{Pre-ZK extension scope.}
-The repository also contains Python verifiers for forward TD consistency,
-one-step SGD update checks, and short trace chaining. These are useful for
-engineering the future proof-of-update path, but they are not claimed as ZK
-proofs in this paper. They are reported separately as pre-ZK extension evidence.
+The implementation uses scale $S=1000$ and deterministic integer arithmetic.
+The TD-only relation treats the Q-values as private witness values and proves
+membership plus Bellman/TD/loss consistency. The forward-TD relation additionally
+hashes quantized model weights to public model commitments and checks MLP
+forward passes, ReLU masks, online argmax, target-network selection, Bellman
+target, and loss. The tiny SGD relation extends this with a single
+fixed-point-gradient update for a small network.

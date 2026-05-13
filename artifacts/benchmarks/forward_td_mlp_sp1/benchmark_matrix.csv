@@ -1,0 +1,10 @@
+case,batch_size,status,prove_time_sec,verify_time_sec,proof_size_bytes,cycle_count
+forward-TD-1,1,accepted,148.418458,0.127259,2797833,1543753
+forward-TD-2,2,accepted,,,,1957958
+tamper_online_model_weight,1,rejected,,,,633034
+tamper_target_model_weight,1,rejected,,,,1119666
+tamper_activation,1,rejected,,,,1498908
+tamper_relu_mask,1,rejected,,,,1498210
+tamper_argmax,1,rejected,,,,1481808
+tamper_selected_target_value,1,rejected,,,,1481943
+tamper_claimed_batch_loss,1,rejected,,,,1488117

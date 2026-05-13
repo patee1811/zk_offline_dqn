@@ -165,24 +165,25 @@ Implemented relation checks:
 The committed benchmark runner can generate TD-1/2/4/8 fixtures from a
 committed replay dataset and Merkle artifact.
 
-Current Phase A distinct proof results:
+Current Phase E distinct proof results:
 
-- TD-1 proof completed on Kaggle: `168.311847s` prove, `0.194367s` verify, `2783354` proof bytes, `383541` cycles.
-- TD-2 proof completed on Kaggle: `197.410724s` prove, `0.198335s` verify, `2787712` proof bytes, `729096` cycles.
-- TD-4 proof completed on Kaggle: `265.605205s` prove, `0.198736s` verify, `2796184` proof bytes, `1434680` cycles.
-- TD-8 proof completed on Kaggle: `349.079689s` prove, `0.198359s` verify, `2812912` proof bytes, `2845827` cycles.
+- TD-1 proof completed on Kaggle: `97.955756s` prove, `0.126565s` verify, `2783869` proof bytes, `385048` cycles.
+- TD-2 proof completed on Kaggle: `120.669043s` prove, `0.127258s` verify, `2788227` proof bytes, `730778` cycles.
+- TD-4 proof completed on Kaggle: `141.309797s` prove, `0.125481s` verify, `2796699` proof bytes, `1435787` cycles.
+- TD-8 proof completed on Kaggle: `202.921645s` prove, `0.126658s` verify, `2812915` proof bytes, `2845813` cycles.
 
-## Week 5 Locked Scope
+## Final Phase E Scope
 
-Week 5 locks the backend implementation at SP1 TD-1/2/4/8 plus Python
-pre-ZK one-step and short-trace extensions. Do not add large backend features
-before the paper rewrite. The artifact package, final claim, benchmark table,
-tamper table, and limitation notes are in:
+Phase E locks the backend implementation at SP1 distinct TD, forward-TD MLP,
+and tiny one-step SGD relation proofs. The artifact package, final claim,
+benchmark table, tamper table, and limitation notes are in:
 
 ```text
-docs/week5_artifact_package.md
+artifacts/benchmarks/final_ndss/summary.md
 ```
 
 ## Non-Goals
 
-The first SP1 milestone should not prove neural-network forward passes, argmax action selection, gradients, optimizer updates, short traces, or recursive aggregation.
+The current SP1 milestone does not prove full DQN training, Adam optimizer
+state, long traces, target-network synchronization over a full run, model
+selection, or recursive aggregation.

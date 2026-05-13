@@ -1,13 +1,7 @@
-\label{sec:system-design-body}
-
-This section describes the committed-data pipeline, verification statements,
-and SP1 backend. The main design rule is to separate the relation that is
-proved in SP1 from the larger Python-only extension checks.
-
 \begin{figure*}[!t]
 \centering
 \begin{tikzpicture}[
-    box/.style={draw, rounded corners=3pt, minimum width=2.7cm, minimum height=0.75cm, align=center, font=\small},
+    box/.style={draw, rounded corners=3pt, minimum width=2.65cm, minimum height=0.72cm, align=center, font=\small},
     data/.style={box, fill=blue!8},
     commit/.style={box, fill=green!10},
     proof/.style={box, fill=red!8},
@@ -15,111 +9,44 @@ proved in SP1 from the larger Python-only extension checks.
     arr/.style={-{Stealth[length=5pt]}, thick},
     lab/.style={font=\scriptsize, midway, above}
 ]
-\node[data] (dataset) {Offline transition\\dataset $\dataset$};
-\node[commit, right=0.7cm of dataset] (merkle) {Merkle\\commitment};
-\node[proof, right=0.7cm of merkle] (artifact) {TD / minibatch\\artifact};
-\node[proof, right=0.7cm of artifact] (sp1) {SP1 host/guest\\proof backend};
-\node[proof, below=0.8cm of sp1] (verify) {Verified proof\\or rejection};
-\node[ext, below=0.8cm of artifact] (python) {Python oracle and\\pre-ZK extensions};
-\draw[arr] (dataset) -- (merkle);
-\draw[arr] (merkle) -- node[lab] {root} (artifact);
-\draw[arr] (artifact) -- (sp1);
-\draw[arr] (sp1) -- (verify);
-\draw[arr] (artifact) -- (python);
+\node[data] (dataset) {Offline replay\\dataset};
+\node[commit, right=0.55cm of dataset] (root) {Merkle root\\commitment};
+\node[proof, right=0.55cm of root] (td) {TD/minibatch\\fixtures};
+\node[proof, right=0.55cm of td] (sp1) {SP1 execute\\or prove};
+\node[proof, below=0.75cm of sp1] (verdict) {Accepted proof\\or rejection};
+\node[ext, below=0.75cm of td] (forward) {Forward/update\\oracle fixtures};
+\draw[arr] (dataset) -- (root);
+\draw[arr] (root) -- node[lab] {public root} (td);
+\draw[arr] (td) -- (sp1);
+\draw[arr] (sp1) -- (verdict);
+\draw[arr] (td) -- (forward);
+\draw[arr] (forward) -- (sp1);
 \end{tikzpicture}
-\caption{Locked Week 5 system architecture. The cryptographic backend proves TD and minibatch-TD relations in SP1. Python verifiers remain as semantic oracles and as pre-ZK extension checks for one-step and short-trace statements.}
+\caption{Layered artifact architecture. The final benchmark package records
+which layers are SP1 proofs and which are Python semantic-oracle extension
+checks.}
 \label{fig:system-architecture}
 \end{figure*}
 
-\subsection{Threat Model and Non-Goals}
+The design has three layers. The first layer is a canonical artifact pipeline:
+datasets are serialized into fixed-point transition leaves, committed with a
+Merkle tree, and exported as JSON fixtures with public and private fields
+separated. This layer is shared by all relations.
 
-The prover claims that a private transition or minibatch is drawn from the
-committed dataset and that the TD outputs are computed correctly. The verifier
-knows the dataset root, fixed-point constants, schema version, and claimed
-target/loss or batch loss. The prover supplies the private transition contents,
-Merkle paths, and TD witness values.
+The second layer is the semantic oracle. Python exporters and verifiers build
+deterministic fixtures for accepted cases and adversarially modified cases.
+This oracle is used to validate fixed-point rounding, membership paths, loss
+recomputation, model commitments, forward witnesses, and update witnesses. It is
+also the fast reviewer path for machines without a prover.
 
-The current backend protects against a prover who tampers with the transition,
-Merkle path, leaf index, fixed-point rounding, done-branch semantics,
-target-value witness, TD error, claimed target, claimed loss, batch size, or
-batch aggregation. It does not protect against dishonest data collection before
-commitment, and it does not prove that a full training run produced a final
-checkpoint.
+The third layer is the SP1 backend. For SP1-supported relations, the same JSON
+fixtures are loaded by a Rust host, passed to a guest program, checked inside
+the zkVM, and optionally proved. Negative cases skip host prechecks so that
+rejection is attributable to guest relation logic rather than to JSON filtering.
 
-\subsection{Canonical Serialization and Commitment}
-
-Each transition is encoded using scale $S=1000$:
-\[
-\mathrm{fp}(x)=\mathrm{round}(Sx).
-\]
-The serialized leaf contains the fixed-point state, action, reward,
-fixed-point next state, and done flag. The current canonical leaf hash is
-SHA-256 over the comma-separated signed integer fields. The Merkle root is
-recomputed by iterating over the authentication path and hashing ordered sibling
-pairs. The SP1 relation rejects a witness if the serialized transition, leaf
-hash, authentication path, or public root are inconsistent.
-
-\subsection{Fixed-Point TD Relation}
-
-The backend uses integer arithmetic:
-\[
-\mathrm{mul}_{S}(a,b)=\left\lfloor \frac{ab}{S} \right\rfloor,
-\qquad
-\gamma_{\mathrm{fp}} = 990 .
-\]
-For a non-terminal transition,
-\[
-y_{\mathrm{fp}} =
-r_{\mathrm{fp}} +
-\left\lfloor \frac{\gamma_{\mathrm{fp}} q^{\mathrm{target}}_{\mathrm{fp}}}{S}
-\right\rfloor ,
-\]
-and for a terminal transition $y_{\mathrm{fp}}=r_{\mathrm{fp}}$. The TD error is
-\[
-\delta_{\mathrm{fp}} =
-q^{\mathrm{online}}_{\mathrm{fp}} - y_{\mathrm{fp}}.
-\]
-The fixed-point SmoothL1 loss is
-\[
-\ell_{\mathrm{fp}}(\delta)=
-\begin{cases}
-\left\lfloor \frac{|\delta|^2}{2S} \right\rfloor & \text{if } |\delta| < S,\\
-|\delta|-\left\lfloor \frac{S}{2}\right\rfloor & \text{otherwise.}
-\end{cases}
-\]
-The single-transition public claim is accepted only if the recomputed
-$y_{\mathrm{fp}}$ and $\ell_{\mathrm{fp}}$ match the public claimed target and
-loss.
-
-\subsection{Minibatch TD Relation}
-
-For a minibatch of $k$ items, the SP1 guest repeats the membership and TD checks
-for each item. It then computes
-\[
-L_{\mathrm{batch,fp}} =
-\left\lfloor \frac{\sum_{j=1}^{k} \ell_{j,\mathrm{fp}}}{k} \right\rfloor
-\]
-and checks equality with the public claimed batch loss. The public batch size
-must match the number of private witness items.
-
-\subsection{SP1 Backend Split}
-
-The backend is implemented under \texttt{zk\_backend/td\_mvp/sp1/}. The
-\texttt{shared} crate defines typed public inputs, private witnesses, Merkle
-steps, TD witnesses, fixed-point helpers, hashing, and relation logic. The
-\texttt{guest} reads a typed input, calls the shared verifier, and commits the
-public output. The \texttt{host} loads JSON fixtures, applies named tamper cases,
-runs optional host prechecks, executes the guest, generates proofs for accepted
-cases, verifies proofs, and records proving time, verification time, proof size,
-and cycle count.
-
-\subsection{Python Oracle and Pre-ZK Extensions}
-
-The Python verifier has two roles. First, it is the semantic oracle used to
-cross-check SP1 on valid and tampered TD fixtures. Second, it contains extension
-statements for forward TD consistency, one-step SGD updates, and short training
-traces. These extensions check checkpoint anchoring, gradient recomputation,
-parameter deltas, target-network invariance, checkpoint chaining, target-network
-synchronization, and deterministic contiguous sampling rules. They are included
-to show the path toward update and trace proofs, but the current ZK claim is
-limited to the SP1 TD/minibatch-TD backend.
+The final artifact package is a Phase E aggregation layer over these component
+benchmarks. It writes
+\path{artifacts/benchmarks/final_ndss/summary.json},
+\path{benchmark_matrix.csv}, \path{tamper_matrix.csv}, \path{summary.md}, and
+\path{reproduction.md}. The paper uses these files as the source of benchmark
+numbers.

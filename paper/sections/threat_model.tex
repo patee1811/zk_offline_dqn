@@ -1,0 +1,26 @@
+The prover holds private replay transitions, private model weights, and
+intermediate witnesses. The verifier knows public commitments and public claims:
+the dataset root, fixed-point scale, discount factor, loss type, relation id,
+batch indices, model commitments when the relation includes models, and claimed
+per-item or batch losses.
+
+The dishonest prover may try to make a false public claim by changing a replay
+transition, substituting a Merkle path, reordering minibatch items, using the
+wrong terminal branch, altering fixed-point rounding, changing model weights
+after committing to them, lying about activations or ReLU masks, changing the
+argmax action, altering selected target Q-values, or submitting inconsistent
+gradient/update tensors. The verifier's goal is to accept only when the
+relation-specific witness satisfies the public statement.
+
+The system provides relation-level integrity. For SP1-backed relations, the
+verifier relies on the soundness of the SP1 proof system and on collision
+resistance of SHA-256 for the Merkle and model commitments. For Python-only
+extension relations, the verifier receives deterministic semantic-check
+evidence but not a zero-knowledge proof. The paper marks these cases explicitly
+in the evaluation tables.
+
+The threat model excludes several larger claims. It does not prove that replay
+data were collected honestly before commitment, that the committed dataset is
+representative, that a final policy is performant or safe, or that a full
+checkpoint was produced by an entire DQN training run. It also does not make a
+privacy claim for the Python verifier path.

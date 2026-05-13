@@ -1,9 +1,11 @@
 # Backend Selection v0.12
 
-Historical note: this file records why SP1 was selected. The Week 5 repository
-state now includes a working SP1 TD/minibatch-TD backend; see
-`docs/week5_artifact_package.md` for the locked implementation status and
-benchmark values.
+Historical note: this file records why SP1 was selected. The current
+repository state includes working SP1 relations for distinct minibatch TD,
+model-grounded forward-TD MLP, and a micro-scale one-step SGD update. See
+`docs/current_benchmark_snapshot.md` and
+`artifacts/benchmarks/final_ndss/summary.md` for the final implementation
+status and benchmark values.
 
 ## 1. Purpose
 

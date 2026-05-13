@@ -5,10 +5,17 @@ This directory tracks the path from the current Python verifier prototype to a r
 Current status:
 
 - Backend target: **SP1**.
-- Implemented: one TD MVP JSON test vector, a generated minibatch TD test-vector path, a Rust SP1 workspace, guest relation checks, host proof generation/verification, and single/batch tamper rejection checks.
-- Phase A result: the full Kaggle SP1 benchmark completed distinct replay TD-1/2/4/8 proofs with Python/SP1 agreement and all distinct-batch negative cases rejected.
-- Latest proof metrics: TD-1 `168.311847s` prove, `0.194367s` verify, `2783354` proof bytes, `383541` cycles; TD-2 `197.410724s` prove, `0.198335s` verify, `2787712` proof bytes, `729096` cycles; TD-4 `265.605205s` prove, `0.198736s` verify, `2796184` proof bytes, `1434680` cycles; TD-8 `349.079689s` prove, `0.198359s` verify, `2812912` proof bytes, `2845827` cycles.
-- The SP1 relation accepts `td_mvp_batch_test_vector_v1` inputs with `private.items[]`, public `batch_size`, public ordered `leaf_indices`, `batch_mode == distinct`, and public `claimed_batch_loss_fp`. Python oracle and SP1 execution tests pass for TD-2/4/8, duplicate index, wrong item index, swapped item order, item loss, claimed batch average, path order, schema mismatch, fixed-point rounding mismatch, wrong done branch, wrong leaf index/path order, and target-network value tamper.
+- Implemented: TD MVP test vectors, distinct minibatch TD, forward-TD MLP,
+  tiny one-step SGD, a Rust SP1 workspace, guest relation checks, host proof
+  generation/verification, and tamper rejection checks.
+- Phase E result: the full Kaggle SP1 benchmark completed distinct replay
+  TD-1/2/4/8 proofs, CartPole forward-TD batch 1, MountainCar forward-TD batch
+  1, and CartPole one-step SGD tiny batch 1 with Python/SP1 agreement.
+- Latest proof metrics are in `artifacts/benchmarks/final_ndss/summary.md`.
+- Python oracle and SP1 execution tests pass for batch structure, arithmetic,
+  commitment, model-weight, activation, ReLU mask, argmax, selected target
+  value, claimed-loss, gradient, delta, learning-rate, and post-model tamper
+  cases.
 
 ## First Backend Statement
 
@@ -66,22 +73,29 @@ zk_backend/
       shared/
 ```
 
-## Locked Week 5 Scope
+## Final Phase E Scope
 
-The backend scope is locked at SP1 TD and minibatch-TD verification plus
-Python pre-ZK one-step and short-trace extensions. Week 6 should write the
-paper from these results rather than adding large backend features.
+The backend scope is locked at relation-level SP1 proofs for distinct
+minibatch TD, forward-TD MLP, and one micro-scale SGD update. The paper should
+use these results as relation-level evidence, not as a full training-trace
+claim.
 
 Canonical package summary:
 
 ```text
-docs/week5_artifact_package.md
+artifacts/benchmarks/final_ndss/summary.md
 ```
 
 Refresh command after any future relation change:
 
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
+python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
+python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
+python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
+python3 scripts/experiments/run_final_ndss_regression.py
 ```
 
-Non-goals for this first backend milestone: full DQN training, neural-network forward proof, argmax proof, gradient proof, optimizer proof, long traces, and recursive aggregation.
+Non-goals for this backend milestone: full DQN training, Adam optimizer state,
+long traces, target-network synchronization over a full run, model selection,
+and recursive aggregation.
