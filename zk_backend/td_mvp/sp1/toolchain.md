@@ -41,6 +41,7 @@ From the repository root:
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
+python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
 ```
 
 If the full benchmark is unstable, run one accepted proof case at a time:
@@ -115,9 +116,54 @@ tamper_claimed_batch_loss
 
 See `docs/phase_b_forward_td_mlp.md` for the full Phase B result snapshot.
 
+## Phase C One-Step SGD Tiny Result
+
+The Phase C relation is:
+
+```text
+one_step_sgd_tiny_v1
+```
+
+It extends the backend path with a micro-scale fixed-point SGD update over a
+one-hidden-layer Q-network. The relation checks committed transition
+membership, forward-TD, SmoothL1 derivative, backprop gradients, SGD deltas,
+post-update model equality, and pre/target/post model commitments.
+
+Latest Kaggle SP1 benchmark run:
+
+```text
+generated_at_utc = 2026-05-13T07:06:05.105838+00:00
+git_commit = 3ef14fe5baac8dc8f2b6369fb7229ef0266fac10
+network_spec = CartPole 4-8-2
+learning_rate_fp = 100
+all_python_expected = True
+all_sp1_expected = True
+python_sp1_agreement = True
+all_passed = True
+```
+
+| Case | Status | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
+| --- | --- | ---: | ---: | ---: | ---: |
+| one-step-SGD-tiny-1 | accepted | 168.844574 | 0.152385 | 2789940 | 861913 |
+
+Tamper cases rejected under SP1 execute:
+
+```text
+tamper_gradient_tensor
+tamper_delta_tensor
+tamper_learning_rate_fp
+tamper_post_model_weight
+tamper_post_model_commitment
+tamper_smooth_l1_grad
+```
+
+See `docs/phase_c_one_step_sgd_tiny.md` for the full Phase C result snapshot.
+
 ## Non-Goals
 
 The TD-only backend does not prove full DQN training, gradients, optimizer
 updates, short traces, or recursive aggregation. Phase B now proves
 micro-scale fixed-point MLP forward and argmax anchoring for TD values, but
-does not prove optimizer updates or full training.
+does not prove full training. Phase C proves a tiny SGD update, but still does
+not prove Adam, target synchronization, recursive aggregation, or a long
+training trace.
