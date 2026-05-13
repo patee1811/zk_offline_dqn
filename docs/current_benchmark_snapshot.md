@@ -36,42 +36,38 @@ Covered checks:
 
 ## Phase A Distinct Minibatch TD
 
-Latest local Python-only benchmark refresh:
+Latest Kaggle SP1 benchmark refresh:
 
 ```text
-generated_at_utc = see artifacts/benchmarks/distinct_td_sp1/summary.json
-platform = native Windows PowerShell
-command = python scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1
+generated_at_utc = 2026-05-13T01:15:29.080668+00:00
+platform = Kaggle Linux
+command = python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 batch_sizes = TD-1, TD-2, TD-4, TD-8
 all_python_expected = True
+all_sp1_expected = True
+python_sp1_agreement = True
 all_passed = True
 ```
 
 Accepted distinct replay minibatches:
 
-| Case | Relation | Batch size | Status |
-| --- | --- | ---: | --- |
-| TD-1 | `td_batch_distinct_v1` single item | 1 | Python accepted |
-| TD-2 | `td_batch_distinct_v1` ordered public `leaf_indices` | 2 | Python accepted |
-| TD-4 | `td_batch_distinct_v1` ordered public `leaf_indices` | 4 | Python accepted |
-| TD-8 | `td_batch_distinct_v1` ordered public `leaf_indices` | 8 | Python accepted |
+| Case | Relation | Batch size | Prove time sec | Verify time sec | Proof size bytes | Cycle count |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| TD-1 | `td_batch_distinct_v1` | 1 | 168.311847 | 0.194367 | 2783354 | 383541 |
+| TD-2 | `td_batch_distinct_v1` | 2 | 197.410724 | 0.198335 | 2787712 | 729096 |
+| TD-4 | `td_batch_distinct_v1` | 4 | 265.605205 | 0.198736 | 2796184 | 1434680 |
+| TD-8 | `td_batch_distinct_v1` | 8 | 349.079689 | 0.198359 | 2812912 | 2845827 |
 
 Tamper coverage:
 
 | Case group | Result |
 | --- | --- |
-| duplicate index | Python rejects |
-| wrong item index | Python rejects |
-| swapped item order against public `leaf_indices` | Python rejects |
-| wrong item loss | Python rejects |
-| wrong claimed batch average | Python rejects |
-| wrong Merkle path order/metadata | Python rejects |
-
-SP1 execute/prove should be refreshed on WSL2 Ubuntu, Linux, or Kaggle with:
-
-```bash
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
-```
+| duplicate index | Python and SP1 reject |
+| wrong item index | Python and SP1 reject |
+| swapped item order against public `leaf_indices` | Python and SP1 reject |
+| wrong item loss | Python and SP1 reject |
+| wrong claimed batch average | Python and SP1 reject |
+| wrong Merkle path order/metadata | Python and SP1 reject |
 
 The older `benchmark_sp1_td_mvp.py` repeated-transition benchmark remains below
 as historical backend evidence, not as the main Phase A minibatch result.

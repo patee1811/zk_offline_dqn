@@ -12,7 +12,7 @@ The paper can currently claim:
 
 - committed offline transition membership through Merkle roots and paths;
 - fixed-point DQN TD target, TD error, and SmoothL1 loss verification;
-- minibatch-average TD loss verification for batch sizes 2, 4, and 8;
+- distinct replay minibatch-average TD loss verification for batch sizes 2, 4, and 8;
 - an SP1 host/guest/shared implementation for the TD MVP relation;
 - cryptographic proof benchmarks for TD-1, TD-2, TD-4, and TD-8;
 - Python/SP1 agreement on valid controls and tampered witnesses;
@@ -64,10 +64,10 @@ paper/
 
 ## Locked Benchmark Snapshot
 
-The SP1 proof benchmark was generated at UTC `2026-05-12T12:37:34.964280+00:00` with:
+The SP1 proof benchmark was generated at UTC `2026-05-13T01:15:29.080668+00:00` with:
 
 ```bash
-python scripts/experiments/benchmark_sp1_td_mvp.py --prove
+python scripts/experiments/benchmark_distinct_td_sp1.py --prove
 ```
 
 Summary:
@@ -75,16 +75,16 @@ Summary:
 - Python expected outcomes passed: `True`
 - SP1 expected outcomes passed: `True`
 - Python/SP1 agreement: `True`
-- SP1 negative cases passed: `True`
+- Distinct-batch negative cases passed: `True`
 
 Core proof metrics:
 
 | Case | Batch | Prove sec | Verify sec | Proof bytes | Cycles |
 |---|---:|---:|---:|---:|---:|
-| TD-1 | 1 | 142.324547 | 0.157464 | 2782625 | 382915 |
-| TD-2 | 2 | 154.923089 | 0.157712 | 2787687 | 725309 |
-| TD-4 | 4 | 188.501940 | 0.155969 | 2795631 | 1425790 |
-| TD-8 | 8 | 275.077262 | 0.157424 | 2812327 | 2834727 |
+| TD-1 | 1 | 168.311847 | 0.194367 | 2783354 | 383541 |
+| TD-2 | 2 | 197.410724 | 0.198335 | 2787712 | 729096 |
+| TD-4 | 4 | 265.605205 | 0.198736 | 2796184 | 1434680 |
+| TD-8 | 8 | 349.079689 | 0.198359 | 2812912 | 2845827 |
 
 ## Build Notes
 
