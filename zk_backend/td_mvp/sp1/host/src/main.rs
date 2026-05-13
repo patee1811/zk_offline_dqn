@@ -269,6 +269,36 @@ fn apply_case(input: &mut TdMvpInput, case_name: &str) -> Result<()> {
         "tamper_batch_fixed_point_rounding" => {
             first_transition_mut(input)?.reward += 0.0006;
         }
+        "tamper_online_model_weight" => {
+            let model = input
+                .private
+                .online_model
+                .as_mut()
+                .ok_or_else(|| anyhow!("input has no online_model"))?;
+            model.layers[0].weight[0][0] += 1;
+        }
+        "tamper_target_model_weight" => {
+            let model = input
+                .private
+                .target_model
+                .as_mut()
+                .ok_or_else(|| anyhow!("input has no target_model"))?;
+            model.layers[0].weight[0][0] += 1;
+        }
+        "tamper_activation" => {
+            first_forward_witness_mut(input)?.online_obs.pre_activations[0][0] += 1;
+        }
+        "tamper_relu_mask" => {
+            let mask = &mut first_forward_witness_mut(input)?.online_obs.relu_masks[0][0];
+            *mask = 1 - *mask;
+        }
+        "tamper_argmax" => {
+            let witness = first_forward_witness_mut(input)?;
+            witness.next_action_online = 1 - witness.next_action_online;
+        }
+        "tamper_selected_target_value" => {
+            first_forward_witness_mut(input)?.q_target_max_fp += 1;
+        }
         other => return Err(anyhow!("unknown case_name: {other}")),
     }
     Ok(())
@@ -329,4 +359,15 @@ fn first_td_witness_mut(input: &mut TdMvpInput) -> Result<&mut td_mvp_shared::Td
         .td_witness
         .as_mut()
         .ok_or_else(|| anyhow!("input has no td_witness"))
+}
+
+fn first_forward_witness_mut(
+    input: &mut TdMvpInput,
+) -> Result<&mut td_mvp_shared::ForwardWitness> {
+    input
+        .private
+        .items
+        .first_mut()
+        .and_then(|item| item.forward_witness.as_mut())
+        .ok_or_else(|| anyhow!("input has no forward_witness"))
 }
