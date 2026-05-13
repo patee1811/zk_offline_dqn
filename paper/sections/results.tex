@@ -33,37 +33,34 @@ reference semantics.
 
 \subsection{SP1 Proof Benchmark}
 
-\Cref{tab:sp1-proof-benchmark} reports the locked historical SP1 proof
-benchmark. The full run was generated on Kaggle at 2026-05-12T12:37:34Z with
-\texttt{benchmark\_sp1\_td\_mvp.py --prove}. Phase A replaces this runner as the
-main paper-facing path with \texttt{benchmark\_distinct\_td\_sp1.py}, which uses
-distinct committed replay transitions and public ordered leaf indices. The
-distinct runner currently passes Python-only TD-1/2/4/8 smoke tests locally;
-SP1 proof refresh should be rerun on Linux/WSL/Kaggle before freezing this table.
+\Cref{tab:sp1-proof-benchmark} reports the locked Phase A SP1 proof benchmark.
+The full run was generated on Kaggle at 2026-05-13T01:15:29Z with
+\texttt{benchmark\_distinct\_td\_sp1.py --prove}. The accepted TD-1/2/4/8 cases
+use distinct committed replay transitions and public ordered leaf indices.
 
 \begin{table*}[!t]
 \centering
 \small
-\caption{Historical SP1 TD MVP proof benchmark before Phase A distinct-batch
-refresh. TD-1 proves one committed transition and TD arithmetic. TD-2/4/8 prove
-minibatch membership, per-item TD arithmetic, and public integer batch-average
-loss.}
+\caption{Locked Phase A SP1 TD proof benchmark. TD-1 proves one committed
+transition and TD arithmetic. TD-2/4/8 prove distinct replay minibatch
+membership, public ordered leaf indices, per-item TD arithmetic, and public
+integer batch-average loss.}
 \label{tab:sp1-proof-benchmark}
 \begin{tabular}{l l c r r r r}
 \toprule
 Case & Relation & Batch & Prove (s) & Verify (s) & Proof bytes & Cycles \\
 \midrule
-TD-1 & Merkle + TD + SmoothL1 & 1 & 142.324547 & 0.157464 & 2782625 & 382915 \\
-TD-2 & Merkle + TD + SmoothL1 + avg. loss & 2 & 154.923089 & 0.157712 & 2787687 & 725309 \\
-TD-4 & Merkle + TD + SmoothL1 + avg. loss & 4 & 188.501940 & 0.155969 & 2795631 & 1425790 \\
-TD-8 & Merkle + TD + SmoothL1 + avg. loss & 8 & 275.077262 & 0.157424 & 2812327 & 2834727 \\
+TD-1 & Distinct replay TD + SmoothL1 & 1 & 168.311847 & 0.194367 & 2783354 & 383541 \\
+TD-2 & Distinct replay TD + avg. loss & 2 & 197.410724 & 0.198335 & 2787712 & 729096 \\
+TD-4 & Distinct replay TD + avg. loss & 4 & 265.605205 & 0.198736 & 2796184 & 1434680 \\
+TD-8 & Distinct replay TD + avg. loss & 8 & 349.079689 & 0.198359 & 2812912 & 2845827 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 The results show two useful properties. First, proof size grows slowly across
 the tested minibatch sizes, from 2.78 MB at TD-1 to 2.81 MB at TD-8. Second,
-verification time remains approximately constant at 0.16 seconds. Proving time
+verification time remains approximately constant at 0.20 seconds. Proving time
 and cycle count increase with batch size, as expected, because each additional
 item adds another membership and TD check.
 
@@ -74,11 +71,10 @@ The benchmark runner reports:
 all_python_expected = True
 all_sp1_expected = True
 python_sp1_agreement = True
+all_passed = True
 \end{verbatim}
-The standalone SP1 negative suite also reports:
-\begin{verbatim}
-all_sp1_negative_cases_passed = true
-\end{verbatim}
+The same runner executes the distinct-batch tamper cases and requires rejection
+by both the Python oracle and SP1 execution.
 
 \Cref{tab:tamper-summary} summarizes the adversarial coverage. For each case,
 the expected outcome is rejection; Python and SP1 agree.

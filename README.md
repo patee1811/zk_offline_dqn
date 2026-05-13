@@ -171,13 +171,18 @@ target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
-Current SP1 proof snapshot:
+Current Phase A distinct SP1 proof snapshot:
 
 ```text
-TD-1 prove_time_sec = 142.324547, verify_time_sec = 0.157464, proof_size_bytes = 2782625, cycle_count = 382915
-TD-2 prove_time_sec = 154.923089, verify_time_sec = 0.157712, proof_size_bytes = 2787687, cycle_count = 725309
-TD-4 prove_time_sec = 188.501940, verify_time_sec = 0.155969, proof_size_bytes = 2795631, cycle_count = 1425790
-TD-8 prove_time_sec = 275.077262, verify_time_sec = 0.157424, proof_size_bytes = 2812327, cycle_count = 2834727
+generated_at_utc = 2026-05-13T01:15:29.080668+00:00
+relation = td_batch_distinct_v1
+TD-1 prove_time_sec = 168.311847, verify_time_sec = 0.194367, proof_size_bytes = 2783354, cycle_count = 383541
+TD-2 prove_time_sec = 197.410724, verify_time_sec = 0.198335, proof_size_bytes = 2787712, cycle_count = 729096
+TD-4 prove_time_sec = 265.605205, verify_time_sec = 0.198736, proof_size_bytes = 2796184, cycle_count = 1434680
+TD-8 prove_time_sec = 349.079689, verify_time_sec = 0.198359, proof_size_bytes = 2812912, cycle_count = 2845827
+all_python_expected = True
+all_sp1_expected = True
+python_sp1_agreement = True
 ```
 
 Core SP1 commands should be run on Linux/macOS or WSL2 Ubuntu:

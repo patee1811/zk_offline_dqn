@@ -121,12 +121,13 @@ The extended suite covers:
 ## Current Proof Results
 
 The latest full benchmark run was generated on Kaggle at
-`2026-05-12T12:37:34.964280+00:00`.
+`2026-05-13T01:15:29.080668+00:00`.
 
 ```text
 all_python_expected = True
 all_sp1_expected = True
 python_sp1_agreement = True
+all_passed = True
 ```
 
 Initial negative cases:
@@ -164,12 +165,12 @@ Implemented relation checks:
 The committed benchmark runner can generate TD-1/2/4/8 fixtures from a
 committed replay dataset and Merkle artifact.
 
-Current proof results:
+Current Phase A distinct proof results:
 
-- TD-1 proof completed on Kaggle: `142.324547s` prove, `0.157464s` verify, `2782625` proof bytes, `382915` cycles.
-- TD-2 proof completed on Kaggle: `154.923089s` prove, `0.157712s` verify, `2787687` proof bytes, `725309` cycles.
-- TD-4 proof completed on Kaggle: `188.501940s` prove, `0.155969s` verify, `2795631` proof bytes, `1425790` cycles.
-- TD-8 proof completed on Kaggle: `275.077262s` prove, `0.157424s` verify, `2812327` proof bytes, `2834727` cycles.
+- TD-1 proof completed on Kaggle: `168.311847s` prove, `0.194367s` verify, `2783354` proof bytes, `383541` cycles.
+- TD-2 proof completed on Kaggle: `197.410724s` prove, `0.198335s` verify, `2787712` proof bytes, `729096` cycles.
+- TD-4 proof completed on Kaggle: `265.605205s` prove, `0.198736s` verify, `2796184` proof bytes, `1434680` cycles.
+- TD-8 proof completed on Kaggle: `349.079689s` prove, `0.198359s` verify, `2812912` proof bytes, `2845827` cycles.
 
 ## Week 5 Locked Scope
 
