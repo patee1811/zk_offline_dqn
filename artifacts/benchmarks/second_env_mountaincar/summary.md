@@ -1,6 +1,4 @@
-# Phase D MountainCar Forward-TD SP1 Snapshot
-
-Generated at UTC: `2026-05-13T12:43:08.154515+00:00`
+# MountainCar Forward-TD SP1 Benchmark Snapshot
 
 ## Commands
 

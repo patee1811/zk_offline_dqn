@@ -1,5 +1,4 @@
 {
-  "generated_at_utc": "2026-05-13T12:19:11.958713+00:00",
   "data_path": "data/cartpole_dqn_eps010_transitions.pkl",
   "merkle_path": "artifacts/cartpole_dqn_eps010_merkle.json",
   "checkpoint_path": "models/offline_dqn_with_target_seed42_best.pt",

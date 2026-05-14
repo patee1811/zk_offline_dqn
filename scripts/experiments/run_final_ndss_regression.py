@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -232,9 +231,7 @@ def build_rows(component: Dict[str, Any], summary: Dict[str, Any]) -> tuple[List
 def write_summary_md(path: Path, summary: Dict[str, Any], benchmark_rows: List[Dict[str, Any]]) -> None:
     proved_rows = [row for row in benchmark_rows if row["backend"] == "SP1 proof" and row["status"] == "accepted"]
     lines = [
-        "# Final NDSS Benchmark Artifact",
-        "",
-        f"Generated at UTC: `{summary['generated_at_utc']}`",
+        "# Achieved Relation Benchmark Artifact",
         "",
         "## Status",
         "",
@@ -356,7 +353,6 @@ def main() -> None:
                 "relation_id": component["relation_id"],
                 "environment": component["environment"],
                 "summary_path": rel(path),
-                "generated_at_utc": summary.get("generated_at_utc"),
                 "all_passed": summary.get("all_passed"),
                 "all_python_expected": summary.get("all_python_expected"),
                 "all_sp1_expected": summary.get("all_sp1_expected"),
@@ -367,8 +363,7 @@ def main() -> None:
         )
 
     aggregate = {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "artifact_id": "final_ndss_phase_e_v1",
+        "artifact_id": "achieved_relation_benchmark_v1",
         "output_dir": rel(out_dir),
         "components": component_summaries,
         "benchmark_rows": len(benchmark_rows),

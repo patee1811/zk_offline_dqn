@@ -8,10 +8,10 @@ Current status:
 - Implemented: TD MVP test vectors, distinct minibatch TD, forward-TD MLP,
   tiny one-step SGD, a Rust SP1 workspace, guest relation checks, host proof
   generation/verification, and tamper rejection checks.
-- Phase E result: the full Kaggle SP1 benchmark completed distinct replay
+- Achieved result: the full Kaggle SP1 benchmark completed distinct replay
   TD-1/2/4/8 proofs, CartPole forward-TD batch 1, MountainCar forward-TD batch
   1, and CartPole one-step SGD tiny batch 1 with Python/SP1 agreement.
-- Latest proof metrics are in `artifacts/benchmarks/final_ndss/summary.md`.
+- Current proof metrics are in `artifacts/benchmarks/final_ndss/summary.md`.
 - Python oracle and SP1 execution tests pass for batch structure, arithmetic,
   commitment, model-weight, activation, ReLU mask, argmax, selected target
   value, claimed-loss, gradient, delta, learning-rate, and post-model tamper
@@ -32,7 +32,7 @@ target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
-The Phase A distinct minibatch extension proves the same per-item checks for each item and adds:
+The distinct minibatch extension proves the same per-item checks for each item and adds:
 
 ```text
 batch_size == len(items)
@@ -73,9 +73,9 @@ zk_backend/
       shared/
 ```
 
-## Final Phase E Scope
+## Implemented Scope
 
-The backend scope is locked at relation-level SP1 proofs for distinct
+The backend scope is relation-level SP1 proofs for distinct
 minibatch TD, forward-TD MLP, and one micro-scale SGD update. The paper should
 use these results as relation-level evidence, not as a full training-trace
 claim.

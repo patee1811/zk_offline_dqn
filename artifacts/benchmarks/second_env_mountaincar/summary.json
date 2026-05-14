@@ -1,5 +1,4 @@
 {
-  "generated_at_utc": "2026-05-13T12:43:08.154515+00:00",
   "environment": "MountainCar-v0",
   "relation": "forward_td_mlp_v1",
   "layer_sizes": "2,8,8,3",

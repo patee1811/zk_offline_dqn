@@ -33,7 +33,7 @@ The paper should not claim:
 
 The safest current positioning is:
 
-> a scoped ZK-verifiable offline-DQN relation stack, with locked SP1 proof benchmarks and explicit boundaries on what remains outside the proof.
+> a scoped ZK-verifiable offline-DQN relation stack, with SP1 proof benchmarks and explicit boundaries on what remains outside the proof.
 
 ## Folder Structure
 
@@ -57,7 +57,7 @@ paper/
 
 ## Manuscript Organization
 
-- **Abstract**: states the scoped SP1 TD/minibatch-TD contribution and locked benchmark results.
+- **Abstract**: states the scoped SP1 relation-stack contribution and benchmark results.
 - **Introduction**: motivates verifiable offline RL and positions the work between proof-of-learning, ZKML, and RL-specific Bellman checks.
 - **Related Work**: covers offline RL, proof-of-learning/proof-of-training, verifiable ML/ZKML, proof systems, and verifiable RL.
 - **Problem Setup**: defines committed transitions, fixed-point TD arithmetic, and the exact backend statement.
@@ -68,10 +68,9 @@ paper/
 - **Conclusion**: summarizes the current contribution and immediate next research steps.
 - **Appendix**: records relation details, public/private fields, tamper cases, and reproducibility commands.
 
-## Locked Benchmark Snapshot
+## Benchmark Snapshot
 
-The final Phase E aggregate was generated at UTC
-`2026-05-13T23:40:09.274341+00:00` with:
+The aggregate benchmark package is generated with:
 
 ```bash
 python scripts/experiments/run_final_ndss_regression.py

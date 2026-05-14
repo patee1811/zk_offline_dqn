@@ -13,9 +13,9 @@ The goal is to move one already-tested Python verifier relation into SP1 before 
 
 Valid TD MVP SP1 proofs have been generated and verified for TD-1, TD-2,
 TD-4, and TD-8. Single-transition and minibatch tamper cases reject as
-expected. The final Phase E scope extends the backend with forward-TD MLP and
+expected. The current scope extends the backend with forward-TD MLP and
 tiny one-step SGD relations; see `artifacts/benchmarks/final_ndss/summary.md`
-for the locked benchmark package.
+for the benchmark package.
 
 ## Statement
 

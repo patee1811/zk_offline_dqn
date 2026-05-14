@@ -1,7 +1,5 @@
 # Forward-TD MLP SP1 Benchmark Snapshot
 
-Generated at UTC: `2026-05-13T12:36:17.682267+00:00`
-
 ## Commands
 
 ```bash

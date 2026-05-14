@@ -8,7 +8,6 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -329,8 +328,6 @@ def write_markdown(path: Path, summary: Dict[str, Any]) -> None:
     lines = [
         "# Distinct TD SP1 Benchmark Snapshot",
         "",
-        f"Generated at UTC: `{summary['generated_at_utc']}`",
-        "",
         "## Command",
         "",
         "```bash",
@@ -494,7 +491,6 @@ def main() -> None:
     all_passed = all(item["passed"] for item in results)
 
     summary = {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "data_path": args.data.relative_to(ROOT).as_posix() if args.data.is_relative_to(ROOT) else str(args.data),
         "merkle_path": args.merkle.relative_to(ROOT).as_posix() if args.merkle.is_relative_to(ROOT) else str(args.merkle),
         "checkpoint_path": args.checkpoint.relative_to(ROOT).as_posix() if args.checkpoint.is_relative_to(ROOT) else str(args.checkpoint),

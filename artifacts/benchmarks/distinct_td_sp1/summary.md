@@ -1,7 +1,5 @@
 # Distinct TD SP1 Benchmark Snapshot
 
-Generated at UTC: `2026-05-13T12:19:11.958713+00:00`
-
 ## Command
 
 ```bash
