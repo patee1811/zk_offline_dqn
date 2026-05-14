@@ -1,5 +1,4 @@
 {
-  "generated_at_utc": "2026-05-13T12:36:17.682267+00:00",
   "input_path": "artifacts/minibatch_td_from_dataset.json",
   "out_dir": "artifacts/benchmarks/forward_td_mlp_sp1",
   "batch_sizes": [

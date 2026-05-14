@@ -281,7 +281,7 @@ verification time recorded
 proof size recorded
 ```
 
-Current Phase E status:
+Current implemented status:
 
 ```text
 SP1 TD-1/2/4/8 proofs generated and verified

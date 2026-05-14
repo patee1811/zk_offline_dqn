@@ -59,7 +59,7 @@ Run the initial SP1 negative checks:
 bash run_negative_cases.sh
 ```
 
-Run the Phase A distinct replay minibatch benchmark/reproducibility snapshot
+Run the distinct replay minibatch benchmark/reproducibility snapshot
 from the repository root:
 
 ```bash
@@ -75,7 +75,7 @@ artifacts/benchmarks/distinct_td_sp1/summary.md
 ```
 
 The runner checks the Python verifier as the semantic oracle and the SP1 host
-as the proving backend over the same valid/tampered TD MVP cases. Phase A
+as the proving backend over the same valid/tampered TD MVP cases. The
 fixtures use distinct committed replay transitions with public ordered
 `leaf_indices`; duplicate-index, wrong-index, swapped-order, item-loss,
 claimed-average, and Merkle path-order tampers are rejected.
@@ -120,9 +120,6 @@ The extended suite covers:
 
 ## Current Proof Results
 
-The latest full benchmark run was generated on Kaggle at
-`2026-05-13T01:15:29.080668+00:00`.
-
 ```text
 all_python_expected = True
 all_sp1_expected = True
@@ -147,7 +144,7 @@ tamper_td_error_fp rejected
 all_sp1_negative_cases_passed = true
 ```
 
-## Phase A Distinct Minibatch Scope
+## Distinct Minibatch Scope
 
 Implemented relation checks:
 
@@ -165,17 +162,17 @@ Implemented relation checks:
 The committed benchmark runner can generate TD-1/2/4/8 fixtures from a
 committed replay dataset and Merkle artifact.
 
-Current Phase E distinct proof results:
+Current distinct proof results:
 
 - TD-1 proof completed on Kaggle: `97.955756s` prove, `0.126565s` verify, `2783869` proof bytes, `385048` cycles.
 - TD-2 proof completed on Kaggle: `120.669043s` prove, `0.127258s` verify, `2788227` proof bytes, `730778` cycles.
 - TD-4 proof completed on Kaggle: `141.309797s` prove, `0.125481s` verify, `2796699` proof bytes, `1435787` cycles.
 - TD-8 proof completed on Kaggle: `202.921645s` prove, `0.126658s` verify, `2812915` proof bytes, `2845813` cycles.
 
-## Final Phase E Scope
+## Implemented Scope
 
-Phase E locks the backend implementation at SP1 distinct TD, forward-TD MLP,
-and tiny one-step SGD relation proofs. The artifact package, final claim,
+The backend implementation contains SP1 distinct TD, forward-TD MLP, and tiny
+one-step SGD relation proofs. The artifact package, final claim,
 benchmark table, tamper table, and limitation notes are in:
 
 ```text

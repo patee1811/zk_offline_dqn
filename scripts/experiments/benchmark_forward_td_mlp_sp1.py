@@ -8,7 +8,6 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -272,8 +271,6 @@ def write_markdown(path: Path, summary: Dict[str, Any]) -> None:
     lines = [
         "# Forward-TD MLP SP1 Benchmark Snapshot",
         "",
-        f"Generated at UTC: `{summary['generated_at_utc']}`",
-        "",
         "## Commands",
         "",
         "```bash",
@@ -401,7 +398,6 @@ def main() -> None:
     python_sp1_agreement = None if args.skip_sp1 else all(item["python_sp1_agree"] for item in results)
     all_passed = all(item["passed"] for item in results)
     summary = {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "input_path": args.input.relative_to(ROOT).as_posix() if args.input.is_relative_to(ROOT) else str(args.input),
         "out_dir": out_dir.relative_to(ROOT).as_posix(),
         "batch_sizes": batch_sizes,

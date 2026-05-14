@@ -1,19 +1,19 @@
 # Project Documentation Index
 
 This directory is the canonical documentation entry point for the project.
-`paper/` is intentionally separate and should be updated only during the paper
-writing phase.
+`paper/` is intentionally separate from implementation notes.
 
-## Current Locked State
+## Current State
 
-Start here for the final Phase E implementation state:
+Start here for the achieved implementation state:
 
-- `current_benchmark_snapshot.md` - current benchmark snapshot and historical
-  SP1 context.
+- `current_benchmark_snapshot.md` - current benchmark snapshot.
 - `dev_commands.md` - reproduction commands for Python smoke, SP1 refresh, and
-  final Phase E aggregation.
-- `ndss_astar_3_month_roadmap.md` - roadmap used to drive the final Phase E
-  artifact and paper rewrite.
+  benchmark aggregation.
+- `forward_td_mlp_result.md` - model-grounded forward-TD proof result.
+- `one_step_sgd_tiny_result.md` - micro-scale SGD update proof result.
+- `second_environment_forward_td_result.md` - MountainCar forward-TD proof
+  result.
 
 ## Backend And Threat Model
 
@@ -34,8 +34,6 @@ Start here for the final Phase E implementation state:
 
 - `dev_commands.md` - local commands for regression, SP1 runs, and benchmark
   refreshes.
-- `ndss_astar_3_month_roadmap.md` - planning roadmap. Treat it as historical
-  planning unless it conflicts with the final Phase E artifact.
 
 ## Canonical Commands
 
@@ -45,7 +43,7 @@ Run the full Python regression from the repository root:
 python scripts/experiments/run_full_regression.py
 ```
 
-Run the full Phase E SP1 benchmark path on Linux, WSL2 Ubuntu, macOS, or Kaggle:
+Run the full SP1 benchmark path on Linux, WSL2 Ubuntu, macOS, or Kaggle:
 
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove

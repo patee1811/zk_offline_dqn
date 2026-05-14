@@ -1,6 +1,5 @@
 {
-  "generated_at_utc": "2026-05-13T23:40:09.274341+00:00",
-  "artifact_id": "final_ndss_phase_e_v1",
+  "artifact_id": "achieved_relation_benchmark_v1",
   "output_dir": "artifacts/benchmarks/final_ndss",
   "components": [
     {
@@ -8,7 +7,6 @@
       "relation_id": "td_batch_distinct_v1",
       "environment": "CartPole-v1",
       "summary_path": "artifacts/benchmarks/distinct_td_sp1/summary.json",
-      "generated_at_utc": "2026-05-13T12:19:11.958713+00:00",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,
@@ -21,7 +19,6 @@
       "relation_id": "forward_td_mlp_v1",
       "environment": "CartPole-v1",
       "summary_path": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
-      "generated_at_utc": "2026-05-13T12:36:17.682267+00:00",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,
@@ -34,7 +31,6 @@
       "relation_id": "forward_td_mlp_v1",
       "environment": "MountainCar-v0",
       "summary_path": "artifacts/benchmarks/second_env_mountaincar/summary.json",
-      "generated_at_utc": "2026-05-13T12:43:08.154515+00:00",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,
@@ -47,7 +43,6 @@
       "relation_id": "one_step_sgd_tiny_v1",
       "environment": "CartPole-v1",
       "summary_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
-      "generated_at_utc": "2026-05-13T12:56:28.716016+00:00",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,

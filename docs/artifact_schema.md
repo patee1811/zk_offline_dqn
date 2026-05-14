@@ -60,7 +60,8 @@ The canonical commitment helper is implemented in:
 zk_offline_dqn/commitments.py
 ```
 
-Phase A extends the main `minibatch_td_v1` path with distinct replay minibatch
+The distinct replay extension updates the main `minibatch_td_v1` path with
+distinct replay minibatch
 metadata:
 
 ```text

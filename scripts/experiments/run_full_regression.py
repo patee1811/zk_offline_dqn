@@ -3,7 +3,6 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -80,7 +79,6 @@ def run_command(
 
 def write_json_summary(results: List[Dict[str, Any]]) -> None:
     summary = {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "num_checks": len(results),
         "num_passed": sum(1 for item in results if item["passed"]),
         "num_failed": sum(1 for item in results if not item["passed"]),
@@ -101,8 +99,6 @@ def write_markdown_summary(results: List[Dict[str, Any]]) -> None:
 
     lines: List[str] = []
     lines.append("# Full Regression Summary")
-    lines.append("")
-    lines.append(f"Generated at UTC: `{datetime.now(timezone.utc).isoformat()}`")
     lines.append("")
     lines.append("## Overall Result")
     lines.append("")

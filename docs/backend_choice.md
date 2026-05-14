@@ -12,8 +12,8 @@ RISC Zero remains the main alternative backend for later comparison, but the nex
 
 Current status: SP1 is no longer only a selection target. The repository now
 contains working SP1 relations for distinct minibatch TD, model-grounded
-forward-TD MLP, and a micro-scale one-step SGD update. The final Phase E
-metrics are summarized in `docs/current_benchmark_snapshot.md` and
+forward-TD MLP, and a micro-scale one-step SGD update. The current metrics are
+summarized in `docs/current_benchmark_snapshot.md` and
 `artifacts/benchmarks/final_ndss/summary.md`.
 
 The detailed decision rationale is documented in:

@@ -92,7 +92,7 @@ tampered claimed_loss_fp
 
 ## Minibatch Test Vectors
 
-Week 4 adds a generated minibatch schema:
+The backend also supports a generated minibatch schema:
 
 ```text
 td_mvp_batch_test_vector_v1

@@ -16,7 +16,7 @@ Protocol Buffers compiler if required by the installed SP1 flow
 
 ## Local Environment Notes
 
-Native Windows check from 2026-05-12:
+Native Windows notes:
 
 ```text
 SP1 CLI: not available to the Codex Windows session
@@ -55,12 +55,11 @@ python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases T
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-8
 ```
 
-## Locked Proof Result
+## Proof Result
 
-Latest full SP1 benchmark run:
+Full SP1 benchmark run:
 
 ```text
-generated_at_utc = 2026-05-13T23:40:09.274341+00:00
 platform = Kaggle Linux SP1
 benchmark_rows = 29
 tamper_rows = 21
@@ -77,9 +76,9 @@ all_components_passed = True
 | MountainCar forward-TD | mountaincar-forward-TD-1 | 1 | 107.926506 | 0.126694 | 2787889 | 683942 |
 | CartPole one-step SGD tiny | one-step-SGD-tiny-1 | 1 | 115.494141 | 0.125332 | 2789940 | 862136 |
 
-## Phase B Forward-TD MLP Result
+## Forward-TD MLP Result
 
-The Phase B relation is:
+The relation is:
 
 ```text
 forward_td_mlp_v1
@@ -89,10 +88,9 @@ It extends the TD backend path with fixed-point MLP forward computation,
 Double-DQN argmax/value selection, model commitments, Bellman target checking,
 SmoothL1 loss checking, and per-item/batch public loss claims.
 
-Latest Kaggle SP1 benchmark run:
+Kaggle SP1 benchmark run:
 
 ```text
-generated_at_utc = 2026-05-13T23:40:09.274341+00:00
 network_spec = CartPole 4-16-16-2
 all_python_expected = True
 all_sp1_expected = True
@@ -117,11 +115,11 @@ tamper_selected_target_value
 tamper_claimed_batch_loss
 ```
 
-See `docs/phase_b_forward_td_mlp.md` for the full Phase B result snapshot.
+See `docs/forward_td_mlp_result.md` for the full result snapshot.
 
-## Phase C One-Step SGD Tiny Result
+## One-Step SGD Tiny Result
 
-The Phase C relation is:
+The relation is:
 
 ```text
 one_step_sgd_tiny_v1
@@ -132,10 +130,9 @@ one-hidden-layer Q-network. The relation checks committed transition
 membership, forward-TD, SmoothL1 derivative, backprop gradients, SGD deltas,
 post-update model equality, and pre/target/post model commitments.
 
-Latest Kaggle SP1 benchmark run:
+Kaggle SP1 benchmark run:
 
 ```text
-generated_at_utc = 2026-05-13T23:40:09.274341+00:00
 network_spec = CartPole 4-8-2
 learning_rate_fp = 100
 all_python_expected = True
@@ -159,13 +156,9 @@ tamper_post_model_commitment
 tamper_smooth_l1_grad
 ```
 
-See `docs/phase_c_one_step_sgd_tiny.md` for the full Phase C result snapshot.
+See `docs/one_step_sgd_tiny_result.md` for the full result snapshot.
 
 ## Non-Goals
 
-The TD-only backend does not prove full DQN training, gradients, optimizer
-updates, short traces, or recursive aggregation. Phase B now proves
-micro-scale fixed-point MLP forward and argmax anchoring for TD values, but
-does not prove full training. Phase C proves a tiny SGD update, but still does
-not prove Adam, target synchronization, recursive aggregation, or a long
-training trace.
+The backend does not prove full DQN training, Adam, target synchronization,
+recursive aggregation, or a long training trace.

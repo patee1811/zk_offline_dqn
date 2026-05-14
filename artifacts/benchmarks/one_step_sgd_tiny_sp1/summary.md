@@ -1,7 +1,5 @@
 # One-Step SGD Tiny SP1 Benchmark Snapshot
 
-Generated at UTC: `2026-05-13T12:56:28.716016+00:00`
-
 ## Commands
 
 ```bash

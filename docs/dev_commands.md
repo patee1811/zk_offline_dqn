@@ -39,7 +39,7 @@ python scripts/experiments/benchmark_distinct_td_sp1.py `
   --out-dir artifacts/benchmarks/distinct_td_sp1_python_smoke
 ```
 
-Final Phase E artifact aggregate:
+Aggregate benchmark package:
 
 ```powershell
 python scripts/experiments/run_final_ndss_regression.py
@@ -68,13 +68,13 @@ cargo run --release -p td-mvp-host -- --prove
 bash run_negative_cases.sh
 ```
 
-Full Phase A distinct minibatch SP1 benchmark/proof refresh from the repository root:
+Distinct minibatch SP1 benchmark/proof refresh from the repository root:
 
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 ```
 
-Full Phase E SP1 refresh from the repository root:
+Full SP1 refresh from the repository root:
 
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
@@ -82,15 +82,6 @@ python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
 python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
 python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
 python3 scripts/experiments/run_final_ndss_regression.py
-```
-
-Latest Kaggle full-roadmap run:
-
-```text
-kernel = https://www.kaggle.com/code/nypate9999/zk-offline-dqn-final-roadmap-run
-dataset = nypate9999/zk-offline-dqn-workspace-final-ndss
-status = COMPLETE
-ROADMAP_KAGGLE_RUN_COMPLETED = True
 ```
 
 If the full run is unstable, prove one accepted case at a time:

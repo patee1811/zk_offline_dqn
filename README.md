@@ -25,11 +25,11 @@ Current backend status:
 - Python artifact/verifier layer is implemented and regression-tested.
 - SP1 is selected as the first concrete proving backend.
 - `zk_backend/td_mvp/sp1/` contains a Rust SP1 workspace with `host`, `guest`, and `shared` crates.
-- Valid Phase E Kaggle SP1 proofs have been generated and verified for
-  distinct TD-1/2/4/8, CartPole forward-TD MLP batch 1, MountainCar
-  forward-TD MLP batch 1, and CartPole one-step SGD tiny batch 1. Tamper cases
-  for batch structure, model weights, activations, argmax/value selection, and
-  update tensors are rejected.
+- Kaggle SP1 proofs have been generated and verified for distinct TD-1/2/4/8,
+  CartPole forward-TD MLP batch 1, MountainCar forward-TD MLP batch 1, and
+  CartPole one-step SGD tiny batch 1. Tamper cases for batch structure, model
+  weights, activations, argmax/value selection, and update tensors are
+  rejected.
 - The final benchmark package is under `artifacts/benchmarks/final_ndss/`.
 
 ## What Is Verified
@@ -180,10 +180,9 @@ target_fp == claimed_target_fp
 loss_fp == claimed_loss_fp
 ```
 
-Current Phase E Kaggle SP1 proof snapshot:
+Current SP1 proof results:
 
 ```text
-generated_at_utc = 2026-05-13T23:40:09.274341+00:00
 benchmark_rows = 29
 tamper_rows = 21
 all_components_passed = True
@@ -205,7 +204,7 @@ cargo run --release -p td-mvp-host -- --prove
 bash run_negative_cases.sh
 ```
 
-Phase A distinct minibatch benchmark/reproducibility command:
+Distinct minibatch benchmark/reproducibility command:
 
 ```bash
 python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
@@ -213,7 +212,7 @@ python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 
 It writes `artifacts/benchmarks/distinct_td_sp1/summary.json`, `benchmark_matrix.csv`, and `summary.md`. The Python-only smoke path is `python3 scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1`. The earlier repeated-transition benchmark remains available as `benchmark_sp1_td_mvp.py`, but it is no longer the main paper-facing minibatch result.
 
-Final Phase E aggregate and reproduction notes are in
+Aggregate benchmark and reproduction notes are in
 `artifacts/benchmarks/final_ndss/summary.md` and
 `artifacts/benchmarks/final_ndss/reproduction.md`.
 
@@ -226,7 +225,7 @@ RISC Zero remains the main later comparison backend. Circuit-oriented backends s
 - `docs/zk_backend_mvp.md`: smallest backend-ready ZK statement.
 - `docs/backend_selection_v0_12.md`: SP1 decision.
 - `docs/threat_model.md`: threat model and non-goals.
-- `docs/current_benchmark_snapshot.md`: locked benchmark snapshot.
+- `docs/current_benchmark_snapshot.md`: current benchmark snapshot.
 - `docs/dev_commands.md`: local developer command notes.
 
 ## License

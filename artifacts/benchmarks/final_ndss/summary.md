@@ -1,6 +1,4 @@
-# Final NDSS Benchmark Artifact
-
-Generated at UTC: `2026-05-13T23:40:09.274341+00:00`
+# Achieved Relation Benchmark Artifact
 
 ## Status
 

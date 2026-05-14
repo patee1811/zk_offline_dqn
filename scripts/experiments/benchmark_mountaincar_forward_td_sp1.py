@@ -9,7 +9,6 @@ import pickle
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -282,7 +281,7 @@ def build_source_artifact(
         "items": items,
         "notes": {
             "env": "MountainCar-v0",
-            "purpose": "Phase D source minibatch for second-environment forward-TD fixture",
+            "purpose": "source minibatch for second-environment forward-TD fixture",
         },
     }
     write_json(source_path, source)
@@ -409,9 +408,7 @@ def write_csv(path: Path, rows: List[Dict[str, Any]]) -> None:
 
 def write_markdown(path: Path, summary: Dict[str, Any]) -> None:
     lines = [
-        "# Phase D MountainCar Forward-TD SP1 Snapshot",
-        "",
-        f"Generated at UTC: `{summary['generated_at_utc']}`",
+        "# MountainCar Forward-TD SP1 Benchmark Snapshot",
         "",
         "## Commands",
         "",
@@ -581,7 +578,6 @@ def main() -> None:
     python_sp1_agreement = None if args.skip_sp1 else all(item["python_sp1_agree"] for item in results)
     all_passed = all(item["passed"] for item in results)
     summary = {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "environment": "MountainCar-v0",
         "relation": "forward_td_mlp_v1",
         "layer_sizes": args.layer_sizes,
