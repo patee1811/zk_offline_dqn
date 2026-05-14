@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+from zk_offline_dqn.artifacts.schemas import (
+    SCHEMA_TD_MVP_BATCH_TEST_VECTOR_V1,
+    SCHEMA_TD_MVP_TEST_VECTOR_V1,
+)
 from zk_offline_dqn.core.merkle import hash_leaf, verify_merkle_path
 from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
@@ -340,8 +344,8 @@ def verify_batch_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
 
 def verify_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:
     schema_version = tv.get("schema_version")
-    if schema_version == "td_mvp_test_vector_v1":
+    if schema_version == SCHEMA_TD_MVP_TEST_VECTOR_V1:
         return verify_single_test_vector(tv)
-    if schema_version == "td_mvp_batch_test_vector_v1":
+    if schema_version == SCHEMA_TD_MVP_BATCH_TEST_VECTOR_V1:
         return verify_batch_test_vector(tv)
     raise ValueError(f"Unexpected schema_version: {schema_version}")

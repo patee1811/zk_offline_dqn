@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+from zk_offline_dqn.artifacts.schemas import SCHEMA_ONE_STEP_SGD_TINY_V1
 from zk_offline_dqn.forward_td_mlp import (
     build_model_commitment,
     build_network_spec_hash,
@@ -23,7 +24,7 @@ def verify_tensor_pack(
 
 
 def verify_vector(vector: Dict[str, Any]) -> Dict[str, Any]:
-    assert_equal(vector.get("schema_version"), "one_step_sgd_tiny_v1", "schema_version")
+    assert_equal(vector.get("schema_version"), SCHEMA_ONE_STEP_SGD_TINY_V1, "schema_version")
     public = vector["public"]
     private = vector["private"]
     fp_scale = int(public["fp_scale"])

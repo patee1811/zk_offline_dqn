@@ -1,9 +1,9 @@
 """Transition membership verifier adapter."""
 
-import json
 from pathlib import Path
 from typing import Any, Mapping, Union
 
+from zk_offline_dqn.artifacts.io import load_json_artifact
 from zk_offline_dqn.relations.membership import (
     MembershipCheckResult,
     check_transition_membership_artifact,
@@ -18,8 +18,7 @@ DEFAULT_TRANSITION_MEMBERSHIP_ARTIFACT_PATH = (
 def load_transition_membership_artifact(
     path: Union[str, Path] = DEFAULT_TRANSITION_MEMBERSHIP_ARTIFACT_PATH,
 ) -> Mapping[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return load_json_artifact(path)
 
 
 def verify_transition_membership_artifact(

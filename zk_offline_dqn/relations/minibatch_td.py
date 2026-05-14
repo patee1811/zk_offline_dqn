@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from zk_offline_dqn.artifact_schema_versions import (
+from zk_offline_dqn.artifacts.schemas import (
     SCHEMA_MINIBATCH_TD_V1,
     require_schema_version,
 )

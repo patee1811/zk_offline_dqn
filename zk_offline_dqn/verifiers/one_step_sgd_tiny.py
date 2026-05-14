@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any, Dict
 
+from zk_offline_dqn.artifacts.io import load_json_artifact
 from zk_offline_dqn.relations.one_step_sgd_tiny import verify_vector
 
 
@@ -12,8 +12,7 @@ DEFAULT_INPUT = "zk_backend/test_vectors/one_step_sgd_tiny_case_0.json"
 
 
 def load_json(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return load_json_artifact(path)
 
 
 def verify_one_step_sgd_tiny_test_vector(vector: Dict[str, Any]) -> Dict[str, Any]:

@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Mapping
 
 import torch
 
-from zk_offline_dqn.artifact_schema_versions import (
+from zk_offline_dqn.artifacts.schemas import (
     SCHEMA_SHORT_TRACE_UPDATE_V2,
     require_schema_version,
 )

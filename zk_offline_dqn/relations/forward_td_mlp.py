@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from zk_offline_dqn import zk_specs
+from zk_offline_dqn.artifacts.schemas import SCHEMA_FORWARD_TD_MLP_V1
 from zk_offline_dqn.core.merkle import (
     hash_leaf as hash_leaf_serialized,
     recompute_root_from_path,
@@ -48,7 +49,7 @@ def verify_forward_trace(
 
 
 def verify_vector(vector: Dict[str, Any]) -> Dict[str, Any]:
-    assert_equal(vector.get("schema_version"), "forward_td_mlp_v1", "schema_version")
+    assert_equal(vector.get("schema_version"), SCHEMA_FORWARD_TD_MLP_V1, "schema_version")
     public = vector["public"]
     private = vector["private"]
     fp_scale = int(public["fp_scale"])

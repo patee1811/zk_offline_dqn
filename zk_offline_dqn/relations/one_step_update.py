@@ -12,7 +12,7 @@ from zk_offline_dqn.artifact_export_utils import (
     hash_leaf_serialized,
     serialize_leaf,
 )
-from zk_offline_dqn.artifact_schema_versions import (
+from zk_offline_dqn.artifacts.schemas import (
     SCHEMA_ONE_STEP_UPDATE_V1,
     require_schema_version,
 )

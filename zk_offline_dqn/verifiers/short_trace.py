@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import os
 import traceback
 from typing import Any, Dict, Optional
 
 import torch
 
+from zk_offline_dqn.artifacts.io import load_json_artifact
 from zk_offline_dqn.io_utils import file_sha256
 from zk_offline_dqn.relations.short_trace import (
     check_short_trace_artifact,
@@ -25,8 +25,7 @@ DEFAULT_ARTIFACT_PATH = "artifacts/short_trace_update_artifact.json"
 
 
 def load_json(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return load_json_artifact(path)
 
 
 def load_checkpoint(path: str) -> Dict[str, Any]:

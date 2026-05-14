@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any, Dict
 
 import torch
 
+from zk_offline_dqn.artifacts.io import load_json_artifact
 from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
 from zk_offline_dqn.io_utils import file_sha256
 from zk_offline_dqn.relations.minibatch_td import check_minibatch_td_artifact
@@ -17,8 +17,7 @@ DEFAULT_CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 
 
 def load_json(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return load_json_artifact(path)
 
 
 def verify_canonical_state_commitments(public, checkpoint_path: str):

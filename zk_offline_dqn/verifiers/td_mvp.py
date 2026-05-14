@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Dict, Union
 
+from zk_offline_dqn.artifacts.io import load_json_artifact
 from zk_offline_dqn.relations.td_mvp import verify_test_vector
 
 
@@ -13,9 +13,7 @@ DEFAULT_INPUT = Path("zk_backend/test_vectors/td_mvp_case_0.json")
 
 
 def load_json(path: Union[str, Path]) -> Dict[str, Any]:
-    path = Path(path)
-    with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    return load_json_artifact(path)
 
 
 def verify_td_mvp_test_vector(tv: Dict[str, Any]) -> Dict[str, Any]:

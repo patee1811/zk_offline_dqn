@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any, Dict, Optional
 
 import torch
 
+from zk_offline_dqn.artifacts.io import load_json_artifact
 from zk_offline_dqn.artifact_export_utils import (
     file_sha256,
     load_checkpoint_nets,
@@ -25,8 +25,7 @@ DEFAULT_POST_CHECKPOINT_PATH = "artifacts/one_step_post_checkpoint.pt"
 
 
 def load_json(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return load_json_artifact(path)
 
 
 def resolve_checkpoint_paths(
