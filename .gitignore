@@ -25,6 +25,10 @@ ENV/
 data/
 models/
 artifacts/
+!zk_offline_dqn/artifacts/
+!zk_offline_dqn/artifacts/__init__.py
+!src/zk_offline_dqn/artifacts/
+!src/zk_offline_dqn/artifacts/__init__.py
 logs/
 plots/
 

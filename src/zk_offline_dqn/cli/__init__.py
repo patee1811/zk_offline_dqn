@@ -1,0 +1,1 @@
+"""Future CLI namespace."""
