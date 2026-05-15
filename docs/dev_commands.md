@@ -1,124 +1,117 @@
 # Developer Commands
 
-This file keeps reproducibility commands in one place. Run commands from the
-repository root unless another directory is specified.
+## Quick Smoke
 
-## Python Regression
+```text
+python -m compileall zk_offline_dqn scripts src tests
+```
 
-```powershell
+Equivalent Make target:
+
+```text
+make smoke
+```
+
+## Unit, Golden, and Negative Tests
+
+```text
+python -m unittest discover tests
+python -m unittest discover tests/unit
+python -m unittest discover tests/golden
+python -m unittest discover tests/negative
+```
+
+Equivalent Make targets:
+
+```text
+make unit
+make golden
+make negative
+```
+
+## CLI Smoke
+
+```text
+python -m unittest discover tests/regression
+python -m zk_offline_dqn.cli.main --help
+python -m zk_offline_dqn.cli.main verify --help
+```
+
+Equivalent Make target:
+
+```text
+make cli-smoke
+```
+
+## Full Regression
+
+```text
 python scripts/experiments/run_full_regression.py
 ```
 
-Expected result:
+Equivalent Make target:
 
 ```text
-all_regression_passed = True
+make regression
 ```
 
-Reports:
+## SP1 Python-Side Smoke
 
 ```text
-artifacts/regression_summary.json
-artifacts/regression_summary.md
-artifacts/full_regression/*.stdout.txt
-artifacts/full_regression/*.stderr.txt
+python -m zk_offline_dqn.cli.main verify td-mvp --input zk_backend/test_vectors/td_mvp_case_0.json
+python scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1 --out-dir artifacts/benchmarks/distinct_td_sp1_python_smoke
+python scripts/experiments/benchmark_forward_td_mlp_sp1.py --skip-sp1 --out-dir artifacts/benchmarks/forward_td_mlp_sp1_python_smoke
+python scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --skip-sp1 --out-dir artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke
+python scripts/experiments/check_sp1_environment.py
 ```
 
-## TD MVP Semantic Oracle
+These commands check Python/SP1 fixture alignment without requiring Rust, Cargo,
+or SP1 proof generation.
 
-```powershell
-python scripts/artifacts_export/verify_td_mvp_test_vector.py
-python scripts/experiments/run_td_mvp_test_vector_negative_tests.py
-```
-
-Python-only distinct minibatch benchmark smoke, for machines without SP1:
-
-```powershell
-python scripts/experiments/benchmark_distinct_td_sp1.py `
-  --skip-sp1 `
-  --out-dir artifacts/benchmarks/distinct_td_sp1_python_smoke
-```
-
-Aggregate benchmark package:
-
-```powershell
-python scripts/experiments/run_final_ndss_regression.py
-python scripts/experiments/check_paper_numbers_against_final_ndss.py
-```
-
-Expected outputs:
+## Kaggle SP1 Validation
 
 ```text
-artifacts/benchmarks/final_ndss/summary.json
-artifacts/benchmarks/final_ndss/benchmark_matrix.csv
-artifacts/benchmarks/final_ndss/tamper_matrix.csv
-artifacts/benchmarks/final_ndss/summary.md
-artifacts/benchmarks/final_ndss/reproduction.md
+python scripts/experiments/run_phase6_kaggle_validation.py
 ```
 
-## SP1 Backend
+If the API runner cannot push or retrieve outputs, run the validation manually
+inside the Kaggle notebook:
 
-Run these on Linux, macOS, WSL2 Ubuntu, or Kaggle with SP1 installed:
+```text
+python scripts/experiments/kaggle_sp1_validation.py
+```
 
-```bash
+Optional Kaggle setup helper:
+
+```text
+bash scripts/experiments/setup_sp1_on_kaggle.sh
+```
+
+## WSL2/Linux SP1 Fallback
+
+```text
 cd zk_backend/td_mvp/sp1
-cargo check -p td-mvp-shared -p td-mvp-host
+cargo test
 cargo run --release -p td-mvp-host -- --execute
-cargo run --release -p td-mvp-host -- --prove
-bash run_negative_cases.sh
+RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove
 ```
 
-Distinct minibatch SP1 benchmark/proof refresh from the repository root:
+Proof generation is not part of the default Python regression. Run proof mode
+only in an environment with the Rust/SP1 toolchain installed.
 
-```bash
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
-```
-
-Full SP1 refresh from the repository root:
-
-```bash
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
-python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
-python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
-python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
-python3 scripts/experiments/run_final_ndss_regression.py
-```
-
-If the full run is unstable, prove one accepted case at a time:
-
-```bash
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-1
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-2
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-4
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-8
-```
-
-Legacy repeated-transition benchmark, kept for comparison only:
-
-```bash
-python3 scripts/experiments/benchmark_sp1_td_mvp.py --prove
-```
-
-## Short-Trace Benchmark
-
-```powershell
-python scripts/experiments/benchmark_short_trace_update.py `
-  --data data/cartpole_dqn_eps010_transitions.pkl `
-  --merkle artifacts/cartpole_dqn_eps010_merkle.json `
-  --checkpoint models/offline_dqn_with_target_seed42_best.pt `
-  --lr 0.001 `
-  --target-sync-every 2
-```
-
-## Canonical Status Files
+## All Default Checks
 
 ```text
-docs/current_benchmark_snapshot.md
-artifacts/benchmarks/sp1_td_mvp/summary.md
-artifacts/benchmarks/sp1_td_mvp/benchmark_matrix.csv
-artifacts/benchmarks/distinct_td_sp1/summary.md
-artifacts/benchmarks/distinct_td_sp1/benchmark_matrix.csv
-artifacts/benchmarks/final_ndss/summary.md
-artifacts/benchmarks/final_ndss/benchmark_matrix.csv
-artifacts/benchmarks/final_ndss/tamper_matrix.csv
+make all-checks
 ```
+
+This runs compile smoke, unit, golden, negative, CLI smoke, and the full Python
+regression runner.
+
+## Compatibility Notes
+
+- Legacy scripts under `scripts/artifacts_export/` still exist for compatibility.
+- The unified CLI is available as `python -m zk_offline_dqn.cli.main`.
+- Default Python regression uses `--skip-sp1` benchmark checks where applicable.
+- SP1 proof generation is not required for the default Python regression unless
+  a developer explicitly runs SP1/Rust proof commands.

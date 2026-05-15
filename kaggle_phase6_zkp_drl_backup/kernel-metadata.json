@@ -1,0 +1,17 @@
+{
+  "id": "nypate9999/zkp-drl",
+  "id_no": 118848796,
+  "title": "ZKP - DRL",
+  "code_file": "phase6_sp1_validation.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}

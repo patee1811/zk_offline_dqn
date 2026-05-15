@@ -1,0 +1,13 @@
+{
+  "id": "unknown/phase6-sp1-validation",
+  "title": "Phase 6 SP1 Validation",
+  "code_file": "phase6_sp1_validation.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}
