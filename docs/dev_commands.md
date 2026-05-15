@@ -70,14 +70,47 @@ or SP1 proof generation.
 
 ## Kaggle SP1 Validation
 
+Remote branch mode:
+
 ```text
-python scripts/experiments/run_phase6_kaggle_validation.py
+python scripts/experiments/run_phase6_kaggle_validation.py --git-branch cleanup-project-structure
+```
+
+Remote branch mode requires the current work to be committed and pushed first.
+If the working tree has local edits, use local archive mode:
+
+```text
+python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive
+```
+
+Request Rust/SP1 setup and execute on Kaggle:
+
+```text
+python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive --run-sp1-setup --run-sp1-execute
+```
+
+Proof is opt-in:
+
+```text
+python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive --run-sp1-setup --run-sp1-execute --run-sp1-prove
 ```
 
 If the API runner cannot push or retrieve outputs, run the validation manually
 inside the Kaggle notebook:
 
 ```text
+RUN_SP1_SETUP=1
+RUN_SP1_EXECUTE=1
+RUN_SP1_PROVE=0
+python scripts/experiments/kaggle_sp1_validation.py
+```
+
+Set `RUN_SP1_PROVE=1` only when requesting proof generation:
+
+```text
+RUN_SP1_SETUP=1
+RUN_SP1_EXECUTE=1
+RUN_SP1_PROVE=1
 python scripts/experiments/kaggle_sp1_validation.py
 ```
 
@@ -86,6 +119,10 @@ Optional Kaggle setup helper:
 ```text
 bash scripts/experiments/setup_sp1_on_kaggle.sh
 ```
+
+On Kaggle, the setup helper installs Rust if missing, installs native build
+prerequisites including protobuf when `apt-get` is available, runs the SP1
+installer, and leaves proof disabled unless `RUN_SP1_PROVE=1` is set.
 
 ## WSL2/Linux SP1 Fallback
 
@@ -98,6 +135,48 @@ RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove
 
 Proof generation is not part of the default Python regression. Run proof mode
 only in an environment with the Rust/SP1 toolchain installed.
+
+## Paper-Facing Reports
+
+Check report sources without running benchmarks:
+
+```text
+python scripts/experiments/check_report_sources.py
+python -m zk_offline_dqn.cli.main report check-sources
+```
+
+Generate deterministic report snapshots from existing outputs:
+
+```text
+python scripts/experiments/generate_paper_reports.py
+python -m zk_offline_dqn.cli.main report generate
+```
+
+Reports are written to:
+
+```text
+artifacts/reports/final_ndss/
+```
+
+Report generation does not rerun heavy benchmarks and does not rerun SP1
+prove. Missing optional values are reported as missing rather than inferred.
+
+## Documentation And Hygiene
+
+Reviewer-facing docs:
+
+```text
+README.md
+docs/architecture.md
+docs/reproducibility.md
+docs/sp1_python_alignment.md
+docs/legacy_status.md
+docs/reporting_policy.md
+docs/refactor_final_summary.md
+```
+
+Migration logs remain under `docs/refactor_phase*.md`. They are useful for
+audit history, but they are not the first docs a reviewer should read.
 
 ## All Default Checks
 

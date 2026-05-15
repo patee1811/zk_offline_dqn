@@ -112,10 +112,16 @@ python scripts/experiments/check_sp1_environment.py
 Kaggle validation:
 
 ```text
-python scripts/experiments/run_phase6_kaggle_validation.py
+python scripts/experiments/run_phase6_kaggle_validation.py --git-branch cleanup-project-structure
+python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive
+python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive --run-sp1-setup --run-sp1-execute
+python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive --run-sp1-setup --run-sp1-execute --run-sp1-prove
 python scripts/experiments/kaggle_sp1_validation.py
 bash scripts/experiments/setup_sp1_on_kaggle.sh
 ```
+
+Remote branch mode requires a commit and push first. Local archive mode is the
+fallback when the current refactor workspace has uncommitted changes.
 
 WSL2/Linux SP1 commands:
 
@@ -136,3 +142,22 @@ For this project, Kaggle validation is accepted if the user's `zkp-drl`
 environment successfully runs Rust/SP1 execute and, when explicitly enabled,
 prove. A final paper or release package should still record the exact Kaggle
 kernel, OS image, Rust toolchain, SP1 version, command lines, and proof metrics.
+
+## Paper-Facing Report Inputs
+
+Phase 7 report generation reads existing outputs only:
+
+```text
+python scripts/experiments/check_report_sources.py
+python scripts/experiments/generate_paper_reports.py
+python -m zk_offline_dqn.cli.main report generate
+```
+
+The generated `artifacts/reports/final_ndss/paper_numbers.json` records
+provenance for every value. The SP1 proof fields are scoped to the TD MVP SP1
+backend and `zk_backend/test_vectors/td_mvp_case_0.json`; missing optional
+values are reported as missing or null instead of inferred.
+
+Phase 6C validated `cargo run --release -p td-mvp-host -- --prove` on Kaggle
+for the TD MVP SP1 backend and canonical test vector only. This is not a claim
+about full DQN training or other relation proofs.

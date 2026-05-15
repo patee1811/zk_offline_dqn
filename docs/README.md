@@ -1,61 +1,62 @@
 # Project Documentation Index
 
-This directory is the canonical documentation entry point for the project.
-`paper/` is intentionally separate from implementation notes.
+This directory is the canonical documentation entry point for implementation
+and reproducibility notes. The `paper/` directory is intentionally separate and
+is not edited by cleanup phases unless explicitly approved.
 
-## Current State
+## Start Here
 
-Start here for the achieved implementation state:
+- `architecture.md` - current code and workflow architecture.
+- `reproducibility.md` - regression, SP1 validation, and report regeneration.
+- `sp1_python_alignment.md` - Python/SP1 field and command alignment.
+- `dev_commands.md` - developer command reference.
+- `legacy_status.md` - active vs compatibility entrypoints.
+- `reporting_policy.md` - generated report commit policy.
+- `refactor_final_summary.md` - completed phases and remaining limitations.
 
-- `current_benchmark_snapshot.md` - current benchmark snapshot.
-- `dev_commands.md` - reproduction commands for Python smoke, SP1 refresh, and
-  benchmark aggregation.
-- `forward_td_mlp_result.md` - model-grounded forward-TD proof result.
-- `one_step_sgd_tiny_result.md` - micro-scale SGD update proof result.
-- `second_environment_forward_td_result.md` - MountainCar forward-TD proof
-  result.
+## Scope
+
+This project verifies selected offline-DQN relations over committed artifacts.
+It does not claim a full proof of DQN training. The validated SP1 proof claim is
+scoped to the TD MVP backend and
+`zk_backend/test_vectors/td_mvp_case_0.json`.
+
+## Artifact Contracts
+
+- `artifact_schema.md` - schema notes for TD, one-step, and short-trace
+  artifacts.
+- `one_step_field_classification.md` - older one-step field audit retained as
+  background.
 
 ## Backend And Threat Model
 
 - `zk_backend_mvp.md` - TD MVP statement and public/private field split.
 - `backend_selection_v0_12.md` - historical SP1 selection decision.
 - `backend_choice.md` - backend comparison notes and deferred alternatives.
-- `threat_model.md` - prover/verifier assumptions, non-goals, and security
-  boundaries.
+- `threat_model.md` - prover/verifier assumptions, non-goals, and boundaries.
 
-## Artifact Contracts
+## Migration Logs
 
-- `artifact_schema.md` - canonical schema notes for TD, one-step, and
-  short-trace artifacts.
-- `one_step_field_classification.md` - older one-step field audit retained as
-  background for update-proof work.
+`refactor_phase*.md` files are internal migration logs. They are useful for
+auditing how the repository reached its current layout, but reviewer-facing
+workflows should start with the docs listed above.
 
-## Operations
+## Core Commands
 
-- `dev_commands.md` - local commands for regression, SP1 runs, and benchmark
-  refreshes.
+Run the full Python regression:
 
-## Canonical Commands
-
-Run the full Python regression from the repository root:
-
-```bash
+```text
 python scripts/experiments/run_full_regression.py
 ```
 
-Run the full SP1 benchmark path on Linux, WSL2 Ubuntu, macOS, or Kaggle:
+Generate paper-facing report snapshots:
 
-```bash
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
-python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
-python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
-python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
-python3 scripts/experiments/run_final_ndss_regression.py
+```text
+python scripts/experiments/generate_paper_reports.py
 ```
 
-Run the SP1 negative suite from the SP1 workspace:
+Use the unified CLI:
 
-```bash
-cd zk_backend/td_mvp/sp1
-bash run_negative_cases.sh
+```text
+python -m zk_offline_dqn.cli.main --help
 ```
