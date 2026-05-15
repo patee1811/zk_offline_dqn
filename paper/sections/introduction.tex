@@ -19,13 +19,14 @@ engineering details; they define what it means for the computation to be a DQN
 training computation.
 
 This paper studies a scoped, artifact-driven target: layered ZK-verifiable
-evidence for offline DQN over committed replay data. The strongest implemented
-SP1 results are for distinct minibatch TD over CartPole replay data,
-model-grounded forward-TD MLP checks on CartPole and MountainCar, and a tiny
-one-step SGD update proof on CartPole. This separation of relation layers is
-deliberate. It lets the paper make precise statements about what has been
-proved today while avoiding a claim that the entire training trace has been
-proved.
+evidence for offline DQN over committed replay data. The current repository
+implements Python semantic oracles for distinct minibatch TD, model-grounded
+forward-TD MLP checks, and a tiny one-step SGD update. The validated SP1 proof
+claim is narrower: proof generation and verification passed on Kaggle for the
+TD MVP SP1 backend using \path{zk_backend/test_vectors/td_mvp_case_0.json}.
+This separation of relation layers is deliberate. It lets the paper make
+precise statements about what has been validated today while avoiding a claim
+that the entire training trace has been proved.
 
 The decomposition point is the Bellman/TD layer. It is small enough to prove in
 a general-purpose zkVM, yet it captures RL-specific semantics absent from
@@ -45,12 +46,13 @@ The paper makes four contributions:
     \path{artifacts/benchmarks/final_ndss/summary.json},
     \path{benchmark_matrix.csv}, and \path{tamper_matrix.csv}.
     \item It gives reviewer-facing reproduction paths: a fast Python smoke path
-    and full SP1 proof commands for Linux, WSL2 Ubuntu, or Kaggle.
+    and opt-in TD MVP SP1 validation commands for Linux, WSL2 Ubuntu, or
+    Kaggle.
 \end{itemize}
 
 The claim is intentionally narrower than full proof-of-training. We do not
 prove data-collection honesty before commitment, Adam updates, long recursive
 training traces, model selection, or policy performance. The contribution is a
 security/systems artifact for verifiable RL computation layers, with explicit
-boundaries between SP1-proved relations, Python smoke checks, and future
+boundaries between the TD MVP SP1 proof, Python smoke checks, and future
 training-trace composition work.

@@ -1,16 +1,17 @@
-\subsection{What Has Been Proved}
+\subsection{What Has Been Checked}
 
-The current system proves a precise stack of relation statements: a private
+The current system checks a precise stack of relation statements: a private
 transition or minibatch belongs to a committed trajectory dataset; fixed-point
 TD target, TD error, SmoothL1 loss, and public claimed outputs are recomputed
 correctly; selected forward-TD rows anchor Q-values to committed MLP weights;
 and one micro-scale SGD update is consistent with the checked gradients,
 deltas, learning rate, and post-model commitment.
 
-The main engineering result is that this statement is not only checked by a
-Python script. It is implemented in a concrete SP1 zkVM backend, benchmarked
-with proof generation and verification, and tested against a negative suite
-that agrees with the Python semantic oracle.
+The main engineering result is that the canonical TD MVP statement is not only
+checked by a Python script. It is implemented in a concrete SP1 zkVM backend
+and validated with proof generation and verification on Kaggle. The wider
+relation stack remains Python-oracle and report-backed unless separate SP1
+validation summaries are produced for those fixtures.
 
 \subsection{What Has Not Been Proved}
 
@@ -33,16 +34,16 @@ A narrow claim is not a weakness if it is the right decomposition point.
 Offline DQN training contains several distinct verifiability problems:
 membership in committed trajectories, TD arithmetic, neural-network evaluation,
 gradient computation, optimizer semantics, and trace composition. The present
-work resolves several backend layers and gives a tested artifact path for trace
-composition. In a Q1 systems/security framing, the contribution should be read
+work validates one backend layer and gives a tested Python artifact path for
+future trace composition. In a Q1 systems/security framing, the contribution should be read
 as a reproducible ZK-backed verification pipeline for selected RL-specific
 relations, not as an end-to-end zkML training system.
 
 \subsection{Scalability}
 
-The SP1 benchmark is prototype-scale. Proof generation takes minutes for
-the reported cases, while verification is fast. Proof size is roughly stable
-across the tested cases. This is encouraging for artifact-level verification,
+The TD MVP SP1 validation is prototype-scale. Proof generation takes minutes,
+while verification is fast. The proof size is recorded for the canonical
+vector. This is encouraging for artifact-level verification,
 but it is far from sufficient for full training traces. Scaling to practical
 training proofs will require aggregating many update steps and likely using
 recursion or specialized circuits for repeated linear algebra.
@@ -59,9 +60,9 @@ policy-performance result.
 For a Q1 journal submission, the paper should be positioned as a
 security/systems artifact. The strongest defensible claim is:
 \begin{quote}
-ZK-backed offline DQN TD and minibatch-TD verification over committed
-trajectory data, model-grounded forward-TD MLP checks, and one micro-scale SGD
-update.
+relation-level offline DQN verification over committed trajectory data, with a
+validated SP1 proof for the TD MVP canonical vector and Python semantic oracles
+for model-grounded and update-grounded extensions.
 \end{quote}
 The paper should not be positioned as solving full verifiable RL training.
 Reviewers should be able to see exactly which relation is proved and which

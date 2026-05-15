@@ -32,28 +32,26 @@ Run the fast Python smoke path from the repository root:
 {\scriptsize
 \begin{verbatim}
 python scripts/experiments/run_full_regression.py
-python scripts/experiments/run_final_ndss_regression.py
+python scripts/experiments/check_report_sources.py
+python scripts/experiments/generate_paper_reports.py
 \end{verbatim}
 }
 
-Run full SP1 proof refresh on Linux, WSL2 Ubuntu, or Kaggle with SP1 installed:
+Run the scoped TD MVP SP1 validation on Linux, WSL2 Ubuntu, or Kaggle with SP1
+installed:
 {\tiny
 \begin{verbatim}
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
-python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
-python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
-python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
-python3 scripts/experiments/run_final_ndss_regression.py
+cd zk_backend/td_mvp/sp1
+cargo test
+cargo run --release -p td-mvp-host -- --execute
+RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove
 \end{verbatim}
 }
 
-If the distinct-TD proof run is unstable, prove accepted cases separately:
+The Kaggle wrapper can request the same proof path through:
 {\tiny
 \begin{verbatim}
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-1
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-2
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-4
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove --prove-cases TD-8
+python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive --run-sp1-setup --run-sp1-execute --run-sp1-prove
 \end{verbatim}
 }
 

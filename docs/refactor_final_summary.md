@@ -19,6 +19,8 @@
   outputs.
 - Phase 8: documented architecture, legacy status, reporting policy, and
   repository hygiene.
+- Phase 9: aligned paper-facing claims with the implemented artifact and
+  hardened the SP1 proof claim to TD MVP canonical-vector validation.
 
 ## Problems Addressed
 
@@ -30,6 +32,7 @@
 - Kaggle SP1 validation can use a local workspace archive.
 - Paper-facing report files are generated with provenance.
 - Legacy scripts are classified instead of deleted aggressively.
+- Paper-facing SP1 claims are checked for overbroad wording.
 
 ## Remaining Limitations
 
@@ -39,7 +42,8 @@
 - Python regression pass does not imply SP1 proof generation unless Kaggle or a
   Linux/SP1 environment has run the proof command.
 - Legacy scripts remain because compatibility users still exist.
-- Paper files have not been rewritten by this refactor sequence.
+- Paper files were edited conservatively in Phase 9 to scope the validated SP1
+  proof claim to the TD MVP canonical vector.
 
 ## Remaining Cleanup Work
 
@@ -47,3 +51,5 @@
 - Keep `.gitignore` aligned with generated output policy.
 - Re-run report generation after any benchmark or Kaggle validation refresh.
 - Record exact backend environments when creating release artifacts.
+- Produce separate proof validation summaries before expanding paper claims to
+  additional relations.

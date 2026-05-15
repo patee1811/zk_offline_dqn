@@ -16,3 +16,12 @@ The manuscript has been updated around the achieved artifact results.
   aggregate.
 - Clarified that the contribution is relation-level proof evidence, not full
   proof-of-training.
+
+## Phase 9 Claim Hardening
+
+- Scoped the paper's validated SP1 proof claim to the TD MVP backend on
+  `zk_backend/test_vectors/td_mvp_case_0.json`.
+- Replaced broad SP1 proof wording for distinct TD, forward-TD MLP, and tiny
+  SGD with Python-oracle/report-backed wording.
+- Updated the results table to use `artifacts/reports/final_ndss/paper_numbers.json`
+  provenance for the TD MVP proof metrics.

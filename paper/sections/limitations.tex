@@ -3,13 +3,11 @@ final checkpoint follows from an initialization through all replay batches,
 target-network synchronizations, optimizer states, or model-selection decisions.
 It also does not prove Adam; the tiny update extension is scoped to simple SGD.
 
-The current backend coverage is still uneven by design. Distinct TD has
-CartPole SP1 proofs for batch sizes 1, 2, 4, and 8. Forward-TD MLP has batch-1
-SP1 proofs for CartPole and MountainCar, while the CartPole batch-2 row is an
-SP1 execute result rather than a proof row. Tiny one-step SGD has a batch-1 SP1
-proof for a 4-8-2 CartPole network, but no batch-2 proof and no long update
-trace. These rows should be described as relation-level proofs, not as full
-proof-of-training evidence.
+The current backend coverage is still uneven by design. The validated SP1
+proof claim is the TD MVP canonical vector. Distinct TD, forward-TD MLP, and
+tiny one-step SGD are checked through Python semantic oracles and represented
+in report matrices, but they should not be described as validated SP1 proofs
+without a separate backend validation summary.
 
 The benchmarks are small-scale. CartPole and MountainCar are classic-control
 tasks, and MountainCar uses a random-policy transition dataset for the second

@@ -1,8 +1,8 @@
-For SP1-backed relations, soundness reduces to two assumptions: the SP1 proof
-system soundly proves execution of the guest program, and SHA-256 commitments
-are collision resistant for the artifact sizes considered. Under these
-assumptions, an accepting proof implies that the guest relation accepted the
-public input and private witness.
+For the validated TD MVP SP1 relation, soundness reduces to two assumptions:
+the SP1 proof system soundly proves execution of the guest program, and
+SHA-256 commitments are collision resistant for the artifact sizes considered.
+Under these assumptions, an accepting proof implies that the guest relation
+accepted the public input and private witness.
 
 For committed TD, an accepting proof binds the transition to the public dataset
 root and binds the public claimed target/loss to deterministic fixed-point
@@ -10,18 +10,19 @@ recomputation. A prover cannot change the transition, reward, done flag, leaf
 index, Merkle path, target witness, TD error, or loss without causing rejection,
 except with a hash collision or proof-system failure.
 
-For distinct minibatch TD, the guarantee extends itemwise and also covers batch
-structure. The public ordered index list must match the private items, duplicate
-indices are rejected, and the claimed batch loss must equal the integer average
-of recomputed per-item losses. This blocks attacks that replace one item,
-shuffle items while preserving a multiset, or adjust the claimed average.
+For distinct minibatch TD, the Python relation check extends itemwise and also
+covers batch structure. The public ordered index list must match the private
+items, duplicate indices are rejected, and the claimed batch loss must equal
+the integer average of recomputed per-item losses. This blocks attacks that
+replace one item, shuffle items while preserving a multiset, or adjust the
+claimed average in the Python oracle path.
 
-For model-grounded forward-TD SP1 cases, the selected Q-values are no longer
+For model-grounded forward-TD Python cases, the selected Q-values are no longer
 free TD witnesses. They are anchored to committed quantized weights and checked
 through MLP forward execution, ReLU masks, online argmax semantics, and
 target-network value selection.
 
-For the tiny one-step SGD SP1 case, the guarantee additionally binds the
+For the tiny one-step SGD Python case, the check additionally binds the
 claimed post-update model to the checked pre-update model, learning rate,
 SmoothL1 derivative branch, gradient tensors, and fixed-point delta tensors.
 This is update evidence for one small step, not a proof that repeated optimizer

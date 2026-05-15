@@ -7,51 +7,45 @@ python scripts/experiments/run_final_ndss_regression.py
 \end{verbatim}
 }
 It reads component benchmark summaries and writes the final package under
-\path{artifacts/benchmarks/final_ndss/}. The aggregate contains 29 benchmark
-rows and 21 tamper rows across four components: distinct TD, CartPole
-forward-TD MLP, MountainCar forward-TD MLP, and tiny one-step SGD. All loaded
-components report expected outcomes passed.
+\path{artifacts/benchmarks/final_ndss/}. The Phase 7 report generator also
+writes paper-facing provenance under \path{artifacts/reports/final_ndss/}. The
+aggregate contains 29 benchmark rows and 21 tamper rows across four components:
+distinct TD, CartPole forward-TD MLP, MountainCar forward-TD MLP, and tiny
+one-step SGD. All loaded components report expected outcomes passed.
 
-\subsection{Proof Metrics}
+\subsection{Validated SP1 Proof Metric}
 
-\Cref{tab:final-proof-benchmark} lists the accepted SP1 proof rows in the
-benchmark matrix. CartPole distinct TD uses a Merkle depth of 16 and public
-ordered leaf indices. MountainCar uses a synthetic/random-policy second
-environment dataset with Merkle depth 6 and a 2-8-8-3 network.
+\Cref{tab:td-mvp-proof} lists the SP1 proof result that is validated by the
+current Kaggle summary and surfaced in
+\path{artifacts/reports/final_ndss/paper_numbers.json}. This is the only SP1
+proof claim made by the current artifact.
 
 \begin{table*}[!t]
 \centering
 \small
-\caption{Accepted SP1 proof rows from the final NDSS benchmark matrix CSV.}
-\label{tab:final-proof-benchmark}
-\begin{tabular}{l l l r r r r r}
+\caption{Validated SP1 proof result for the TD MVP canonical vector.}
+\label{tab:td-mvp-proof}
+\begin{tabular}{l l r r r r}
 \toprule
-Relation & Env. & Network & Batch & Depth & Prove (s) & Verify (s) & Proof bytes \\
+Relation & Fixture & Prove (s) & Verify (s) & Proof bytes & Cycles \\
 \midrule
-TD distinct & CartPole & witness Q & 1 & 16 & 97.955756 & 0.126565 & 2783869 \\
-TD distinct & CartPole & witness Q & 2 & 16 & 120.669043 & 0.127258 & 2788227 \\
-TD distinct & CartPole & witness Q & 4 & 16 & 141.309797 & 0.125481 & 2796699 \\
-TD distinct & CartPole & witness Q & 8 & 16 & 202.921645 & 0.126658 & 2812915 \\
-Forward-TD MLP & CartPole & 4-16-16-2 & 1 & 16 & 148.418458 & 0.127259 & 2797833 \\
-Forward-TD MLP & MountainCar & 2-8-8-3 & 1 & 6 & 107.926506 & 0.126694 & 2787889 \\
-Tiny one-step SGD & CartPole & 4-8-2 & 1 & 16 & 115.494141 & 0.125332 & 2789940 \\
+TD MVP & \path{td_mvp_case_0.json} & 167.726006 & 0.190326 & 2783869 & 385048 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-The CartPole TD proof size grows slowly from 2.78 MB to 2.81 MB as batch size
-increases from 1 to 8. Verification time remains around 0.13 s. Proving time
-and cycle count increase with batch size, as expected, because each additional
-item adds a Merkle path and TD check.
+The Kaggle validation summary records \texttt{proof\_generated = true} and
+\texttt{proof\_verified = true} for this row. No separate proof artifact path is
+reported by the host output.
 
 \subsection{Tamper Rejection}
 
 \Cref{tab:tamper-summary} summarizes tamper coverage from
-\path{tamper_matrix.csv}. SP1-backed distinct TD rejects six final distinct
-batch tamper cases, and the older regression suite also retains broader TD MVP
-negative tests for schema, reward, done, rounding, Merkle, target, and TD-error
-tampering. Forward-TD and one-step rows also reject their model, forward, and
-update tamper cases in both the Python oracle and SP1 execute paths.
+\path{tamper_matrix.csv}. The broader regression suite retains TD MVP negative
+tests for schema, reward, done, rounding, Merkle, target, and TD-error
+tampering. Distinct TD, forward-TD, and one-step rows are checked by the Python
+oracle in the current scoped claim, with SP1 proof validation claimed only for
+the TD MVP canonical vector.
 
 \begin{table*}[!t]
 \centering
@@ -61,12 +55,12 @@ outcome reject and passed their component checks.}
 \label{tab:tamper-summary}
 \begin{tabular}{l l l r l}
 \toprule
-Relation & Env. & Backend for tamper rows & Count & Categories \\
+Relation & Env. & Checker for tamper rows & Count & Categories \\
 \midrule
-Distinct TD & CartPole & Python + SP1 execute & 6 & batch, arithmetic, commitment \\
-Forward-TD MLP & CartPole & Python + SP1 execute & 7 & model, forward, arithmetic \\
-Forward-TD MLP & MountainCar & Python + SP1 execute & 2 & forward \\
-Tiny one-step SGD & CartPole & Python + SP1 execute & 6 & update \\
+Distinct TD & CartPole & Python oracle & 6 & batch, arithmetic, commitment \\
+Forward-TD MLP & CartPole & Python oracle & 7 & model, forward, arithmetic \\
+Forward-TD MLP & MountainCar & Python oracle & 2 & forward \\
+Tiny one-step SGD & CartPole & Python oracle & 6 & update \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -82,9 +76,9 @@ SP1 proof summaries used by the paper.
 
 \subsection{Interpretation}
 
-The final artifact supports three claims. First, distinct replay minibatch TD is
-proved in SP1 for CartPole batch sizes 1, 2, 4, and 8. Second, model-grounded
-forward-TD is proved in SP1 for both CartPole and a second-environment
-MountainCar fixture. Third, a micro-scale one-step SGD update is proved in SP1
-for a CartPole 4-8-2 network. These are relation-level proofs, not a full
-proof of training.
+The final artifact supports three classes of claims. First, Python semantic
+oracles check distinct replay minibatch TD, model-grounded forward-TD MLP, and
+tiny one-step SGD fixtures with tamper rejection. Second, report generation
+surfaces existing benchmark and tamper matrices with provenance. Third, SP1
+proof generation and verification are validated for the TD MVP canonical vector
+only. These are relation-level results, not a full proof of training.

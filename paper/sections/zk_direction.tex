@@ -22,9 +22,8 @@
 \draw[arr] (td) -- (forward);
 \draw[arr] (forward) -- (sp1);
 \end{tikzpicture}
-\caption{Layered artifact architecture. The final benchmark package records
-which layers are SP1 proofs and which are Python semantic-oracle extension
-checks.}
+\caption{Layered artifact architecture. The final report package records the
+validated TD MVP SP1 proof and Python semantic-oracle extension checks.}
 \label{fig:system-architecture}
 \end{figure*}
 
@@ -39,10 +38,10 @@ This oracle is used to validate fixed-point rounding, membership paths, loss
 recomputation, model commitments, forward witnesses, and update witnesses. It is
 also the fast reviewer path for machines without a prover.
 
-The third layer is the SP1 backend. For SP1-supported relations, the same JSON
-fixtures are loaded by a Rust host, passed to a guest program, checked inside
-the zkVM, and optionally proved. Negative cases skip host prechecks so that
-rejection is attributable to guest relation logic rather than to JSON filtering.
+The third layer is the SP1 backend. For the validated TD MVP vector, the JSON
+fixture is loaded by a Rust host, passed to a guest program, checked inside the
+zkVM, and proved. Negative cases can skip host prechecks so that rejection is
+attributable to guest relation logic rather than to JSON filtering.
 
 The final artifact package is an aggregation layer over these component
 benchmarks. It writes

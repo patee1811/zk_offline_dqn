@@ -87,6 +87,13 @@ artifacts/reports/final_ndss/
 The report generator does not rerun heavy benchmarks and does not rerun SP1
 prove. Missing optional values are represented explicitly rather than inferred.
 
+Paper-facing claim checks:
+
+```text
+python scripts/experiments/check_paper_claims.py
+python scripts/experiments/check_paper_numbers_against_final_ndss.py
+```
+
 ## SP1 Validation
 
 Kaggle validation can run from a pushed branch or from a local workspace

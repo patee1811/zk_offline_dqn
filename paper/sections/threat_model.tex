@@ -12,12 +12,12 @@ argmax action, altering selected target Q-values, or submitting inconsistent
 gradient/update tensors. The verifier's goal is to accept only when the
 relation-specific witness satisfies the public statement.
 
-The system provides relation-level integrity. For SP1-backed relations, the
+The system provides relation-level integrity. For the TD MVP SP1 backend, the
 verifier relies on the soundness of the SP1 proof system and on collision
-resistance of SHA-256 for the Merkle and model commitments. For Python-only
-extension relations, the verifier receives deterministic semantic-check
-evidence but not a zero-knowledge proof. The paper marks these cases explicitly
-in the evaluation tables.
+resistance of SHA-256 for the Merkle commitment. For Python-only extension
+relations, the verifier receives deterministic semantic-check evidence but not
+a zero-knowledge proof. The paper marks these cases explicitly in the
+evaluation tables.
 
 The threat model excludes several larger claims. It does not prove that replay
 data were collected honestly before commitment, that the committed dataset is

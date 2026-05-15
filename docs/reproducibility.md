@@ -88,6 +88,17 @@ prove. Missing optional values are represented as `missing`, `not_run`, or
 Every paper-facing number in `paper_numbers.json` includes provenance pointing
 to the source path and field used.
 
+## Paper Claim Checks
+
+Check paper-facing wording and scoped number provenance:
+
+```text
+python scripts/experiments/check_paper_claims.py
+python scripts/experiments/check_paper_numbers_against_final_ndss.py
+```
+
+These checks do not compile LaTeX and do not run SP1 proof generation.
+
 ## Repository Hygiene
 
 Generated Kaggle work folders, local Kaggle outputs, Python caches, local
