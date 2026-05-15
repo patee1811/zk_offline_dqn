@@ -20,17 +20,34 @@ venv/
 ENV/
 
 # =============================================================================
-# Data & Model Artifacts (too large for GitHub)
+# Data & Model Artifacts
 # =============================================================================
 data/
 models/
-artifacts/
 !zk_offline_dqn/artifacts/
 !zk_offline_dqn/artifacts/__init__.py
 !src/zk_offline_dqn/artifacts/
 !src/zk_offline_dqn/artifacts/__init__.py
 logs/
 plots/
+
+# =============================================================================
+# Generated Benchmark Smoke Outputs
+# =============================================================================
+artifacts/benchmarks/*_python_smoke/
+artifacts/full_regression/
+artifacts/regression_summary.json
+artifacts/regression_summary.md
+artifacts/reports/*
+!artifacts/reports/final_ndss/
+!artifacts/reports/final_ndss/**
+artifacts/kaggle*/
+artifacts/cleanup_artifact_schema_commit_log.txt
+artifacts/negative_tests/
+artifacts/one_step_negative_tests/
+artifacts/short_trace_negative_tests/
+artifacts/td_mvp_test_vector_negative_tests/
+artifacts/short_trace_negative_test_work/
 
 # =============================================================================
 # IDE / Editor
@@ -62,8 +79,21 @@ paper/*.synctex.gz
 paper/*.pdf
 
 # =============================================================================
-# Project-specific
+# Tool Caches
+# =============================================================================
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# =============================================================================
+# Kaggle / Local Validation Outputs
 # =============================================================================
 .miktex/
 .mplconfig/
 .sixth/
+kaggle_phase6_zkp_drl/
+kaggle_phase6_zkp_drl_backup/
+kaggle_phase6_zkp_drl_backup_*/
+kaggle_phase6_outputs/
+zk_offline_dqn_phase6b_workspace.zip
+*_phase6b_workspace.zip
