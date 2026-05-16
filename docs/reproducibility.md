@@ -73,6 +73,12 @@ Generated reports are written to:
 artifacts/reports/final_ndss/
 ```
 
+The SP1 Kaggle proof summaries used as report provenance are snapshotted under:
+
+```text
+artifacts/reports/provenance/sp1/
+```
+
 The report generator does not run heavy benchmarks and does not rerun SP1
 prove. Missing optional values are represented as `missing`, `not_run`, or
 `null` with source provenance rather than inferred.
@@ -101,9 +107,11 @@ These checks do not compile LaTeX and do not run SP1 proof generation.
 
 ## Repository Hygiene
 
-Generated Kaggle work folders, local Kaggle outputs, Python caches, local
-archive zip files, and Python-only smoke benchmark directories are ignored by
-`.gitignore`.
+Generated Kaggle work folders, local Kaggle output downloads, Python caches,
+local archive zip files, and Python-only smoke benchmark directories are
+ignored by `.gitignore`.
 
 The final report snapshot under `artifacts/reports/final_ndss/` is intentionally
-left trackable. See `docs/reporting_policy.md` for the commit policy.
+left trackable. The SP1 provenance snapshot under
+`artifacts/reports/provenance/sp1/` is also trackable. See
+`docs/archive/internal_manifests/reporting_policy.md` for the commit policy.

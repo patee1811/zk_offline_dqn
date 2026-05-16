@@ -11,7 +11,7 @@ td_mvp_case_0.json
 It is exported from:
 
 ```text
-artifacts/minibatch_td_from_dataset.json
+artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json
 ```
 
 using:

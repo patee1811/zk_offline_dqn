@@ -13,9 +13,9 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_PATHS = [
     ROOT / "zk_backend/test_vectors/td_mvp_case_0.json",
     ROOT
-    / "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json",
+    / "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json",
     ROOT
-    / "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+    / "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json",
 ]
 
 

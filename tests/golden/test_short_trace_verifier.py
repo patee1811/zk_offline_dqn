@@ -15,12 +15,12 @@ from zk_offline_dqn.verifiers.short_trace import (
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 CANONICAL_ARTIFACT = REPO_ROOT / DEFAULT_ARTIFACT_PATH
 CANONICAL_ARTIFACT_ARG = DEFAULT_ARTIFACT_PATH
-CANONICAL_MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
+CANONICAL_MERKLE_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json"
 CANONICAL_INITIAL_CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 CANONICAL_FINAL_CHECKPOINT_PATH = (
-    "artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt"
+    "artifacts/fixtures/short_trace/short_trace_work/step_1_post_synced_4_5_6_7.pt"
 )
-CANONICAL_WORK_DIR = "artifacts/short_trace_work"
+CANONICAL_WORK_DIR = "artifacts/fixtures/short_trace/short_trace_work"
 
 
 def load_canonical_artifact():

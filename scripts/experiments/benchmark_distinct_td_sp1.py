@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATA = ROOT / "data/cartpole_dqn_eps010_transitions.pkl"
-DEFAULT_MERKLE = ROOT / "artifacts/cartpole_dqn_eps010_merkle.json"
+DEFAULT_MERKLE = ROOT / "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json"
 DEFAULT_CHECKPOINT = ROOT / "models/offline_dqn_with_target_seed42_best.pt"
 DEFAULT_OUT_DIR = ROOT / "artifacts/benchmarks/distinct_td_sp1"
 EXPORTER = ROOT / "scripts/artifacts_export/export_minibatch_td_artifact_from_dataset.py"

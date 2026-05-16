@@ -1,7 +1,7 @@
 .PHONY: smoke unit golden negative cli-smoke regression all-checks
 
 smoke:
-	python -m compileall zk_offline_dqn scripts src tests
+	python -m compileall zk_offline_dqn scripts tests
 
 unit:
 	python -m unittest discover tests/unit

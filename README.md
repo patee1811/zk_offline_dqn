@@ -84,6 +84,12 @@ Generated final reports live under:
 artifacts/reports/final_ndss/
 ```
 
+SP1 proof provenance copied from Kaggle lives under:
+
+```text
+artifacts/reports/provenance/sp1/
+```
+
 The report generator does not rerun heavy benchmarks and does not rerun SP1
 prove. Missing optional values are represented explicitly rather than inferred.
 
@@ -120,10 +126,10 @@ Python regression.
 - `docs/reproducibility.md`: regression, SP1 validation, and report
   regeneration workflow.
 - `docs/sp1_python_alignment.md`: Python/SP1 field and command alignment.
-- `docs/dev_commands.md`: developer command reference.
-- `docs/legacy_status.md`: active vs compatibility entrypoints.
-- `docs/reporting_policy.md`: which generated reports should be committed.
-- `docs/refactor_final_summary.md`: completed phases and remaining limitations.
+- `docs/archive/internal_manifests/dev_commands.md`: developer command reference.
+- `docs/archive/internal_manifests/legacy_status.md`: active vs compatibility entrypoints.
+- `docs/archive/internal_manifests/reporting_policy.md`: which generated reports should be committed.
+- `docs/archive/refactor_history/refactor_final_summary.md`: completed phases and remaining limitations.
 
 Legacy scripts are intentionally kept for compatibility. Prefer the unified CLI
 and current scripts for new work, but do not remove legacy exporters or

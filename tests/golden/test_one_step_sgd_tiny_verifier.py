@@ -15,10 +15,10 @@ from zk_offline_dqn.verifiers.one_step_sgd_tiny import (
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 CANONICAL_FIXTURE = (
     REPO_ROOT
-    / "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json"
+    / "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json"
 )
 CANONICAL_FIXTURE_ARG = (
-    "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json"
+    "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json"
 )
 
 

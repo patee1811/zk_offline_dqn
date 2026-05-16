@@ -79,7 +79,7 @@ class ArtifactSchemaTests(unittest.TestCase):
         self.assertEqual(new_error, old_error)
 
     def test_wrong_minibatch_schema_still_rejected(self):
-        artifact = load_json_artifact("artifacts/minibatch_td_from_dataset.json")
+        artifact = load_json_artifact("artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json")
         tampered = copy.deepcopy(artifact)
         tampered["schema_version"] = "wrong"
 
@@ -96,7 +96,7 @@ class ArtifactSchemaTests(unittest.TestCase):
 
     def test_wrong_forward_td_mlp_schema_still_rejected(self):
         vector = load_json_artifact(
-            "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json"
+            "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json"
         )
         tampered = copy.deepcopy(vector)
         tampered["schema_version"] = "wrong"
@@ -106,7 +106,7 @@ class ArtifactSchemaTests(unittest.TestCase):
 
     def test_wrong_one_step_sgd_tiny_schema_still_rejected(self):
         vector = load_json_artifact(
-            "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json"
+            "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json"
         )
         tampered = copy.deepcopy(vector)
         tampered["schema_version"] = "wrong"

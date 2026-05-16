@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-DEFAULT_ARTIFACT_PATH = "artifacts/one_step_update_artifact.json"
-DEFAULT_MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
+DEFAULT_ARTIFACT_PATH = "artifacts/fixtures/one_step_update/one_step_update_artifact.json"
+DEFAULT_MERKLE_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json"
 DEFAULT_CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
-DEFAULT_POST_CHECKPOINT_PATH = "artifacts/one_step_post_checkpoint.pt"
+DEFAULT_POST_CHECKPOINT_PATH = "artifacts/fixtures/one_step_update/one_step_post_checkpoint.pt"
 DEFAULT_OUT_DIR = "artifacts/one_step_negative_tests"
 
 

@@ -1,0 +1,7 @@
+wrote_test_vector = /kaggle/working/zk_offline_dqn/artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json
+schema_version = one_step_sgd_tiny_v1
+network_layer_sizes = [4, 8, 2]
+learning_rate_fp = 100
+pre_model_commitment = 2f630e5b3dac38f89d32ad2a55ab2d42ee5901347c68b4678f4d7555eceba800
+post_model_commitment = bbf63fa4fde94f33b52daaf44622931963e0bbd8464bd125d70736d1f0afdb65
+claimed_batch_loss_fp = 556

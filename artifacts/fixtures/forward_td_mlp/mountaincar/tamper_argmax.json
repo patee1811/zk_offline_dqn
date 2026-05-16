@@ -1,0 +1,681 @@
+{
+  "schema_version": "forward_td_mlp_v1",
+  "source": {
+    "artifact_path": "/kaggle/working/zk_offline_dqn/artifacts/fixtures/forward_td_mlp/mountaincar/mountaincar_source_minibatch_td.json",
+    "output_path": "/kaggle/working/zk_offline_dqn/artifacts/fixtures/forward_td_mlp/mountaincar/mountaincar_forward_td_mlp_batch_size_1.json",
+    "construction": "distinct committed replay transitions with synthetic quantized MLP weights"
+  },
+  "statement": {
+    "name": "forward_td_mlp_v1",
+    "description": "Fixed-point MLP forward, Double-DQN argmax/value selection, Bellman target, SmoothL1 loss, Merkle membership, and model commitments."
+  },
+  "public": {
+    "dataset_root": "e6b5cd64f0a687b67334403b2aacff84fb8dd604cc39e19f1e116354fb1ae133",
+    "fp_scale": 1000,
+    "gamma_fp": 990,
+    "loss_type": "smooth_l1",
+    "batch_size": 1,
+    "batch_mode": "distinct",
+    "leaf_indices": [
+      0
+    ],
+    "network_spec_hash": "965647afa9e03d0a724529afc79f7efd5f7871a7b255c8a4126fbbe690d3b4a5",
+    "network_layer_sizes": [
+      2,
+      8,
+      8,
+      3
+    ],
+    "online_model_commitment": "c58279f273fd7021bade3721004fcdba4be13a9c0ee6bfb1460dbc0e6f386a19",
+    "target_model_commitment": "723625a6df55aa8290cfca9a7a1f49cf52aadeeeaab5fb78e3f138eccfc39444",
+    "claimed_item_losses_fp": [
+      531
+    ],
+    "claimed_batch_loss_fp": 531
+  },
+  "private": {
+    "online_model": {
+      "format": "quantized_mlp_v1",
+      "layer_sizes": [
+        2,
+        8,
+        8,
+        3
+      ],
+      "fp_scale": 1000,
+      "layers": [
+        {
+          "weight": [
+            [
+              -61,
+              -161
+            ],
+            [
+              157,
+              168
+            ],
+            [
+              81,
+              -40
+            ],
+            [
+              10,
+              83
+            ],
+            [
+              24,
+              -81
+            ],
+            [
+              -140,
+              -124
+            ],
+            [
+              -143,
+              2
+            ],
+            [
+              93,
+              193
+            ]
+          ],
+          "bias": [
+            -1,
+            -18,
+            11,
+            16,
+            -28,
+            18,
+            -1,
+            11
+          ]
+        },
+        {
+          "weight": [
+            [
+              151,
+              -23,
+              81,
+              -48,
+              35,
+              163,
+              -198,
+              -68
+            ],
+            [
+              -189,
+              9,
+              145,
+              47,
+              -90,
+              143,
+              113,
+              -146
+            ],
+            [
+              185,
+              0,
+              73,
+              21,
+              -53,
+              -48,
+              -26,
+              88
+            ],
+            [
+              -5,
+              198,
+              -92,
+              155,
+              6,
+              -174,
+              160,
+              167
+            ],
+            [
+              12,
+              134,
+              62,
+              181,
+              -13,
+              -200,
+              -166,
+              23
+            ],
+            [
+              -144,
+              -14,
+              60,
+              -103,
+              108,
+              -142,
+              -117,
+              -83
+            ],
+            [
+              77,
+              -158,
+              124,
+              88,
+              50,
+              23,
+              124,
+              18
+            ],
+            [
+              3,
+              -111,
+              163,
+              107,
+              -81,
+              170,
+              -67,
+              -114
+            ]
+          ],
+          "bias": [
+            -15,
+            29,
+            12,
+            31,
+            19,
+            -38,
+            -19,
+            -36
+          ]
+        },
+        {
+          "weight": [
+            [
+              194,
+              34,
+              96,
+              -188,
+              76,
+              -185,
+              138,
+              155
+            ],
+            [
+              -71,
+              152,
+              177,
+              -99,
+              -73,
+              -186,
+              14,
+              83
+            ],
+            [
+              170,
+              26,
+              -95,
+              -36,
+              -151,
+              -175,
+              -101,
+              -28
+            ]
+          ],
+          "bias": [
+            -1,
+            27,
+            -43
+          ]
+        }
+      ]
+    },
+    "target_model": {
+      "format": "quantized_mlp_v1",
+      "layer_sizes": [
+        2,
+        8,
+        8,
+        3
+      ],
+      "fp_scale": 1000,
+      "layers": [
+        {
+          "weight": [
+            [
+              -150,
+              -111
+            ],
+            [
+              -86,
+              -182
+            ],
+            [
+              -182,
+              54
+            ],
+            [
+              124,
+              33
+            ],
+            [
+              -10,
+              -29
+            ],
+            [
+              -75,
+              -85
+            ],
+            [
+              -31,
+              -64
+            ],
+            [
+              -111,
+              -158
+            ]
+          ],
+          "bias": [
+            28,
+            6,
+            -22,
+            17,
+            -32,
+            -42,
+            -31,
+            -12
+          ]
+        },
+        {
+          "weight": [
+            [
+              115,
+              -147,
+              -56,
+              -75,
+              -148,
+              160,
+              123,
+              -32
+            ],
+            [
+              -81,
+              -83,
+              -9,
+              113,
+              14,
+              79,
+              75,
+              -123
+            ],
+            [
+              104,
+              -177,
+              199,
+              165,
+              131,
+              42,
+              -123,
+              -175
+            ],
+            [
+              158,
+              143,
+              164,
+              -150,
+              -186,
+              -101,
+              -17,
+              67
+            ],
+            [
+              -108,
+              6,
+              87,
+              144,
+              -38,
+              83,
+              18,
+              -147
+            ],
+            [
+              -116,
+              -132,
+              92,
+              -115,
+              142,
+              86,
+              -139,
+              123
+            ],
+            [
+              -50,
+              178,
+              -170,
+              -122,
+              47,
+              47,
+              -151,
+              91
+            ],
+            [
+              53,
+              20,
+              157,
+              -168,
+              184,
+              22,
+              28,
+              3
+            ]
+          ],
+          "bias": [
+            -29,
+            12,
+            28,
+            -5,
+            -30,
+            24,
+            -48,
+            32
+          ]
+        },
+        {
+          "weight": [
+            [
+              -110,
+              -77,
+              -173,
+              -76,
+              119,
+              49,
+              -130,
+              141
+            ],
+            [
+              17,
+              81,
+              182,
+              -128,
+              46,
+              6,
+              156,
+              161
+            ],
+            [
+              92,
+              44,
+              -15,
+              188,
+              57,
+              61,
+              -87,
+              149
+            ]
+          ],
+          "bias": [
+            -45,
+            -46,
+            -36
+          ]
+        }
+      ]
+    },
+    "items": [
+      {
+        "index": 0,
+        "transition": {
+          "obs": [
+            -0.4452087879180908,
+            0.0
+          ],
+          "action": 0,
+          "reward": -1.0,
+          "next_obs": [
+            -0.44679132103919983,
+            -0.0015825206646695733
+          ],
+          "done": 0
+        },
+        "leaf": [
+          -445,
+          0,
+          0,
+          -1000,
+          -447,
+          -2,
+          0
+        ],
+        "leaf_hash": "0a614d5a33af253923a5bf76ced30af444c63fd41f5b22782f20096bfa91775d",
+        "merkle_path": [
+          {
+            "level": 0,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "5e378f8c9e11eee5061a84f3aa5cb0dd1b39a29d9e1ce59ee318eefcebd3f6f2",
+            "current_is_left": true
+          },
+          {
+            "level": 1,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "c6f0cf954b222cbd6955d13aaf262a86e91afb66197b230baad45becbc4b53f1",
+            "current_is_left": true
+          },
+          {
+            "level": 2,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "690283bcdb33fb56f58dd6d9c325ac8c16d2940cca45ceb0df2a0c38b2030f75",
+            "current_is_left": true
+          },
+          {
+            "level": 3,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "f93be7685b4d9e540e2f94aeac13f7eb4d5fa64640128b264930fff55504322f",
+            "current_is_left": true
+          },
+          {
+            "level": 4,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a27be3872b73abc9705501c1225cfa4e223e683db31dafe896d6c9e1131c9569",
+            "current_is_left": true
+          },
+          {
+            "level": 5,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "f4ac55fb2d5ded5685809b4dfa21c5c34ac0a2486b2c299c9ef70716f079f879",
+            "current_is_left": true
+          }
+        ],
+        "forward_witness": {
+          "online_obs": {
+            "pre_activations": [
+              [
+                26,
+                -87,
+                -25,
+                12,
+                -38,
+                80,
+                62,
+                -30
+              ],
+              [
+                -11,
+                43,
+                12,
+                28,
+                -5,
+                -60,
+                -8,
+                -26
+              ]
+            ],
+            "relu_masks": [
+              [
+                1,
+                0,
+                0,
+                1,
+                0,
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "outputs": [
+              -4,
+              33,
+              -44
+            ]
+          },
+          "online_next": {
+            "pre_activations": [
+              [
+                26,
+                -88,
+                -25,
+                12,
+                -38,
+                80,
+                62,
+                -30
+              ],
+              [
+                -11,
+                43,
+                12,
+                28,
+                -5,
+                -60,
+                -8,
+                -26
+              ]
+            ],
+            "relu_masks": [
+              [
+                1,
+                0,
+                0,
+                1,
+                0,
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "outputs": [
+              -4,
+              33,
+              -44
+            ]
+          },
+          "target_next": {
+            "pre_activations": [
+              [
+                95,
+                44,
+                59,
+                -38,
+                -28,
+                -9,
+                -18,
+                37
+              ],
+              [
+                -29,
+                -2,
+                35,
+                27,
+                -40,
+                17,
+                -52,
+                46
+              ]
+            ],
+            "relu_masks": [
+              [
+                1,
+                1,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                0,
+                1,
+                1,
+                0,
+                1,
+                0,
+                1
+              ]
+            ],
+            "outputs": [
+              -47,
+              -36,
+              -24
+            ]
+          },
+          "q_online_action_fp": -4,
+          "next_action_online": 2,
+          "q_target_max_fp": -36,
+          "target_fp": -1035,
+          "td_error_fp": 1031,
+          "loss_fp": 531
+        },
+        "td_witness": {
+          "q_online_fp": -4,
+          "next_action_online": 1,
+          "q_target_max_fp": -36,
+          "target_fp": -1035,
+          "td_error_fp": 1031,
+          "loss_fp": 531
+        }
+      }
+    ]
+  },
+  "relation": {
+    "checks": [
+      "transition serializes canonically",
+      "Merkle path authenticates to public dataset_root",
+      "online weights hash to online_model_commitment",
+      "target weights hash to target_model_commitment",
+      "online MLP computes Q_online(s)",
+      "online MLP computes Q_online(s')",
+      "target MLP computes Q_target(s')",
+      "q_online_action == Q_online(s)[action]",
+      "next_action_online == first argmax_a Q_online(s')[a]",
+      "q_target_max == Q_target(s')[next_action_online]",
+      "Bellman target and SmoothL1 loss match public claims"
+    ],
+    "non_goals": [
+      "does not prove gradient computation",
+      "does not prove optimizer update",
+      "does not prove full DQN training"
+    ]
+  }
+}

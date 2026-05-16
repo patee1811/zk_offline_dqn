@@ -11,8 +11,11 @@ from typing import Any, Dict, Iterable, List, Optional
 ROOT = Path(__file__).resolve().parents[2]
 REGRESSION_SUMMARY = ROOT / "artifacts/regression_summary.json"
 FINAL_NDSS_SUMMARY = ROOT / "artifacts/benchmarks/final_ndss/summary.json"
-KAGGLE_VALIDATION_GLOB = "kaggle_phase6_outputs/**/kaggle_sp1_validation_summary.json"
-KAGGLE_SETUP_GLOB = "kaggle_phase6_outputs/**/kaggle_sp1_setup_summary.json"
+SP1_PROVENANCE_DIR = ROOT / "artifacts/reports/provenance/sp1"
+SP1_VALIDATION_SUMMARY = SP1_PROVENANCE_DIR / "kaggle_sp1_validation_summary.json"
+SP1_SETUP_SUMMARY = SP1_PROVENANCE_DIR / "kaggle_sp1_setup_summary.json"
+LEGACY_KAGGLE_VALIDATION_GLOB = "kaggle_phase6_outputs/**/kaggle_sp1_validation_summary.json"
+LEGACY_KAGGLE_SETUP_GLOB = "kaggle_phase6_outputs/**/kaggle_sp1_setup_summary.json"
 
 
 def rel(path: Path) -> str:
@@ -48,12 +51,18 @@ def latest_existing(paths: Iterable[Path]) -> Optional[Path]:
 
 def latest_kaggle_validation_summary(root: Path | None = None) -> Optional[Path]:
     base = root or ROOT
-    return latest_existing(base.glob(KAGGLE_VALIDATION_GLOB))
+    preferred = base / "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+    if preferred.exists():
+        return preferred
+    return latest_existing(base.glob(LEGACY_KAGGLE_VALIDATION_GLOB))
 
 
 def latest_kaggle_setup_summary(root: Path | None = None) -> Optional[Path]:
     base = root or ROOT
-    return latest_existing(base.glob(KAGGLE_SETUP_GLOB))
+    preferred = base / "artifacts/reports/provenance/sp1/kaggle_sp1_setup_summary.json"
+    if preferred.exists():
+        return preferred
+    return latest_existing(base.glob(LEGACY_KAGGLE_SETUP_GLOB))
 
 
 def command_result(summary: Dict[str, Any], label: str) -> Optional[Dict[str, Any]]:

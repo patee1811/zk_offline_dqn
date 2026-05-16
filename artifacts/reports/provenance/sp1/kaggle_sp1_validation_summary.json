@@ -1,0 +1,252 @@
+{
+  "status": "completed",
+  "source_mode": "archive",
+  "git_branch": "cleanup-project-structure",
+  "git_commit": "26122619ddc3d25c1c03bb4a45f34db4ca923d00",
+  "git_metadata": {
+    "is_git": true,
+    "git_commit": "26122619ddc3d25c1c03bb4a45f34db4ca923d00",
+    "git_branch": "cleanup-project-structure",
+    "git_status_short": "M .gitignore\n M README.md\n M artifacts/minibatch_td_from_dataset.json\n M docs/README.md\n M docs/artifact_schema.md\n M docs/backend_choice.md\n M docs/backend_selection_v0_12.md\n M docs/current_benchmark_snapshot.md\n M docs/dev_commands.md\n M docs/forward_td_mlp_result.md\n M docs/one_step_field_classification.md\n M docs/one_step_sgd_tiny_result.md\n M docs/second_environment_forward_td_result.md\n M docs/threat_model.md\n M docs/zk_backend_mvp.md\n M scripts/analysis/analyze_cql_log.py\n M scripts/analysis/analyze_offline_log.py\n M scripts/analysis/analyze_transition_dataset.py\n M scripts/analysis/inspect_all_leaves.py\n M scripts/analysis/inspect_dataset.py\n M scripts/analysis/inspect_transition_dataset.py\n M scripts/artifacts_export/export_forward_td_mlp_test_vector.py\n M scripts/artifacts_export/export_minibatch_td_artifact.py\n M scripts/artifacts_export/export_minibatch_td_artifact_from_dataset.py\n M scripts/artifacts_export/export_one_step_sgd_tiny_test_vector.py\n M scripts/artifacts_export/export_one_step_update_artifact.py\n M scripts/artifacts_export/export_short_trace_update_artifact.py\n M scripts/artifacts_export/export_td_mvp_batch_test_vector.py\n M scripts/artifacts_export/export_td_mvp_test_vector.py\n M scripts/artifacts_export/export_td_sample_artifact.py\n M scripts/artifacts_export/export_td_sample_artifact_from_dataset.py\n M scripts/artifacts_export/export_transition_membership_artifact.py\n M scripts/artifacts_export/verify_forward_td_consistency.py\n M scripts/artifacts_export/verify_forward_td_mlp_test_vector.py\n M scripts/artifacts_export/verify_minibatch_td_artifact.py\n M scripts/artifacts_export/verify_one_step_sgd_tiny_test_vector.py\n M scripts/artifacts_export/verify_one_step_update_artifact.py\n M scripts/artifacts_export/verify_short_trace_update_artifact.py\n M scripts/artifacts_export/verify_td_mvp_test_vector.py\n M scripts/artifacts_export/verify_td_sample_artifact.py\n M scripts/artifacts_export/verify_transition_membership_artifact.py\n M scripts/data_gen/flatten_episode_dataset.py\n M scripts/data_gen/generate_cartpole_dataset.py\n M scripts/data_gen/generate_cartpole_dataset_from_dqn.py\n M scripts/data_gen/generate_dataset_from_dqn_until_transitions.py\n M scripts/data_gen/generate_random_dataset_until_transitions.py\n M scripts/data_gen/mix_transition_datasets.py\n M scripts/evaluation/evaluate_bc_checkpoint.py\n M scripts/evaluation/evaluate_checkpoint.py\n M scripts/evaluation/smoke_test_env.py\n M scripts/evaluation/test_trained_dqn.py\n M scripts/experiments/benchmark_distinct_td_sp1.py\n M scripts/experiments/benchmark_forward_td_mlp_sp1.py\n M scripts/experiments/benchmark_mountaincar_forward_td_sp1.py\n M scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py\n M scripts/experiments/benchmark_one_step_update.py\n M scripts/experiments/benchmark_short_trace_update.py\n M scripts/experiments/benchmark_sp1_td_mvp.py\n M scripts/experiments/check_paper_numbers_against_final_ndss.py\n M scripts/experiments/run_final_ndss_regression.py\n M scripts/experiments/run_full_regression.py\n M scripts/experiments/run_negative_verification_tests.py\n M scripts/experiments/run_one_step_negative_tests.py\n M scripts/experiments/run_short_trace_negative_tests.py\n M scripts/experiments/run_td_mvp_test_vector_negative_tests.py\n M scripts/training/train_bc.py\n M scripts/training/train_cartpole_dqn.py\n M scripts/training/train_cql.py\n M scripts/training/train_offline_dqn.py\n M scripts/zk_proofs/build_leaf_hashes.py\n M scripts/zk_proofs/build_merkle_root.py\n M scripts/zk_proofs/check_merkle_membership.py\n M scripts/zk_proofs/check_real_transition.py\n M zk_backend/README.md\n M zk_backend/td_mvp/README.md\n M zk_backend/td_mvp/sp1/Cargo.lock\n M zk_backend/td_mvp/sp1/Cargo.toml\n M zk_backend/td_mvp/sp1/README.md\n M zk_backend/td_mvp/sp1/guest/Cargo.toml\n M zk_backend/td_mvp/sp1/guest/README.md\n M zk_backend/td_mvp/sp1/guest/src/main.rs\n M zk_backend/td_mvp/sp1/host/Cargo.toml\n M zk_backend/td_mvp/sp1/host/README.md\n M zk_backend/td_mvp/sp1/host/build.rs\n M zk_backend/td_mvp/sp1/host/src/main.rs\n M zk_backend/td_mvp/sp1/run_negative_cases.sh\n M zk_backend/td_mvp/sp1/shared/Cargo.toml\n M zk_backend/td_mvp/sp1/shared/README.md\n M zk_backend/td_mvp/sp1/shared/src/lib.rs\n M zk_backend/td_mvp/sp1/tamper_checklist.md\n M zk_backend/td_mvp/sp1/toolchain.md\n M zk_backend/test_vectors/README.md\n M zk_backend/test_vectors/td_mvp_case_0.json\n M zk_offline_dqn/artifact_export_utils.py\n M zk_offline_dqn/artifact_schema_versions.py\n M zk_offline_dqn/commitments.py\n M zk_offline_dqn/forward_td_mlp.py\n M zk_offline_dqn/sampling_rules.py\n M zk_offline_dqn/zk_specs.py\n?? Makefile\n?? docs/refactor_phase1a_status.md\n?? docs/refactor_phase1b_status.md\n?? docs/refactor_phase2a_membership_status.md\n?? docs/refactor_phase2b_td_mvp_status.md\n?? docs/refactor_phase2c_forward_td_mlp_status.md\n?? docs/refactor_phase2d_one_step_sgd_tiny_status.md\n?? docs/refactor_phase2e_minibatch_td_status.md\n?? docs/refactor_phase2f_one_step_update_status.md\n?? docs/refactor_phase2g_short_trace_status.md\n?? docs/refactor_phase3_artifact_schema_status.md\n?? docs/refactor_phase4_cli_status.md\n?? docs/refactor_phase5_tests_regression_status.md\n?? docs/refactor_phase6_sp1_alignment_status.md\n?? docs/sp1_python_alignment.md\n?? scripts/experiments/check_sp1_environment.py\n?? scripts/experiments/kaggle_sp1_validation.py\n?? scripts/experiments/run_phase6_kaggle_validation.py\n?? scripts/experiments/setup_sp1_on_kaggle.sh\n?? src/\n?? tests/\n?? zk_offline_dqn/artifacts/\n?? zk_offline_dqn/backends/\n?? zk_offline_dqn/cli/\n?? zk_offline_dqn/core/\n?? zk_offline_dqn/experiments/\n?? zk_offline_dqn/exporters/\n?? zk_offline_dqn/relations/\n?? zk_offline_dqn/rl/\n?? zk_offline_dqn/verifiers/"
+  },
+  "python": "3.12.12 (main, Oct 10 2025, 08:52:57) [GCC 11.4.0]",
+  "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+  "cwd": "/kaggle/working",
+  "repo_root": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+  "cargo_status": {
+    "cargo_available_before": false,
+    "cargo_available_after": true,
+    "sp1_dir_exists": true,
+    "host_package": "td-mvp-host",
+    "guest_package": "td-mvp-guest",
+    "shared_package": "td-mvp-shared"
+  },
+  "cargo_available_before": false,
+  "cargo_available_after": true,
+  "cargo_test_status": "passed",
+  "sp1_execute_status": "passed",
+  "sp1_prove_status": "passed",
+  "commands": [
+    {
+      "label": "extract_archive",
+      "command": [
+        "extract",
+        "/kaggle/working/zk_offline_dqn_phase6b_workspace.zip",
+        "/kaggle/working/zk_offline_dqn_phase6b_archive"
+      ],
+      "cwd": "/kaggle/working",
+      "returncode": 0,
+      "duration_sec": 0.0446,
+      "stdout_tail": "cloned branch cleanup-project-structure and overlaid /kaggle/working/zk_offline_dqn_phase6b_workspace.zip onto /kaggle/working/zk_offline_dqn_phase6b_archive",
+      "stderr_tail": "",
+      "status": "passed",
+      "clone_event": {
+        "label": "git_clone",
+        "command": [
+          "git",
+          "clone",
+          "-b",
+          "cleanup-project-structure",
+          "https://github.com/patee1811/zk_offline_dqn.git",
+          "/kaggle/working/zk_offline_dqn_phase6b_archive"
+        ],
+        "cwd": "/kaggle/working",
+        "returncode": 0,
+        "duration_sec": 1.4035,
+        "stdout_tail": "",
+        "stderr_tail": "Cloning into '/kaggle/working/zk_offline_dqn_phase6b_archive'...",
+        "status": "passed"
+      }
+    },
+    {
+      "label": "compileall",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "compileall",
+        "zk_offline_dqn",
+        "scripts",
+        "src",
+        "tests"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 0.3243,
+      "stdout_tail": "Compiling 'src/zk_offline_dqn/core/td_arithmetic.py'...\nListing 'src/zk_offline_dqn/experiments'...\nCompiling 'src/zk_offline_dqn/experiments/__init__.py'...\nListing 'src/zk_offline_dqn/exporters'...\nCompiling 'src/zk_offline_dqn/exporters/__init__.py'...\nListing 'src/zk_offline_dqn/relations'...\nCompiling 'src/zk_offline_dqn/relations/__init__.py'...\nListing 'src/zk_offline_dqn/rl'...\nCompiling 'src/zk_offline_dqn/rl/__init__.py'...\nListing 'src/zk_offline_dqn/verifiers'...\nCompiling 'src/zk_offline_dqn/verifiers/__init__.py'...\nListing 'tests'...\nCompiling 'tests/__init__.py'...\nListing 'tests/golden'...\nCompiling 'tests/golden/__init__.py'...\nCompiling 'tests/golden/test_artifact_manifest.py'...\nCompiling 'tests/golden/test_forward_td_mlp_verifier.py'...\nCompiling 'tests/golden/test_minibatch_td_verifier.py'...\nCompiling 'tests/golden/test_one_step_sgd_tiny_verifier.py'...\nCompiling 'tests/golden/test_one_step_update_verifier.py'...\nCompiling 'tests/golden/test_short_trace_verifier.py'...\nCompiling 'tests/golden/test_td_mvp_verifier.py'...\nCompiling 'tests/golden/test_transition_membership_verifier.py'...\nListing 'tests/negative'...\nCompiling 'tests/negative/__init__.py'...\nCompiling 'tests/negative/test_minibatch_td_tamper.py'...\nCompiling 'tests/negative/test_one_step_update_tamper.py'...\nCompiling 'tests/negative/test_short_trace_tamper.py'...\nListing 'tests/regression'...\nCompiling 'tests/regression/__init__.py'...\nCompiling 'tests/regression/test_cli_smoke.py'...\nCompiling 'tests/regression/test_full_regression_wrapper.py'...\nCompiling 'tests/regression/test_sp1_python_schema_alignment.py'...\nListing 'tests/unit'...\nCompiling 'tests/unit/__init__.py'...\nCompiling 'tests/unit/test_active_import_surface.py'...\nCompiling 'tests/unit/test_artifact_io.py'...\nCompiling 'tests/unit/test_artifact_schemas.py'...\nCompiling 'tests/unit/test_core_helpers.py'...\nCompiling 'tests/unit/test_core_wrappers.py'...",
+      "stderr_tail": "",
+      "status": "passed"
+    },
+    {
+      "label": "unittest_regression",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "tests/regression"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 28.8505,
+      "stdout_tail": "",
+      "stderr_tail": "..............\n----------------------------------------------------------------------\nRan 14 tests in 28.372s\n\nOK",
+      "status": "passed"
+    },
+    {
+      "label": "td_mvp_cli",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "zk_offline_dqn.cli.main",
+        "verify",
+        "td-mvp",
+        "--input",
+        "zk_backend/test_vectors/td_mvp_case_0.json"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 2.2003,
+      "stdout_tail": "=== TD MVP TEST VECTOR VERIFICATION ===\ninput_path = zk_backend/test_vectors/td_mvp_case_0.json\nleaf_encoding_ok = True\nleaf_hash_ok = True\nmerkle_ok = True\ntarget_ok = True\ntd_error_ok = True\nloss_ok = True\nclaimed_target_ok = True\nclaimed_loss_ok = True\nbatch_size_ok = None\nleaf_indices_ok = None\ndistinct_indices_ok = None\nclaimed_batch_loss_ok = None\nverification_passed = True\n\n=== DETAILS ===\nclaimed_leaf_hash = 280f8d10abd9111a2628b01fac3c378418015565402afd151f71632c5c3433d0\nprovided_leaf = [18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0]\nrecomputed_leaf = [18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0]\nprovided_leaf_hash = 280f8d10abd9111a2628b01fac3c378418015565402afd151f71632c5c3433d0\nrecomputed_leaf_hash = 280f8d10abd9111a2628b01fac3c378418015565402afd151f71632c5c3433d0\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nrecomputed_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nindex_ok = True\npath_metadata_ok = True\nreward_fp = 1000\ndone = False\nq_online_action_fp = 1361\nq_target_max_fp = 769\ntarget_fp = 1761\nexpected_target_fp = 1761\ntd_error_fp = -400\nexpected_td_error_fp = -400\nloss_fp = 80\nexpected_loss_fp = 80\nclaimed_target_fp = 1761\nclaimed_loss_fp = 80\naccepted = True",
+      "stderr_tail": "",
+      "status": "passed"
+    },
+    {
+      "label": "distinct_td_python_smoke",
+      "command": [
+        "/usr/bin/python3",
+        "scripts/experiments/benchmark_distinct_td_sp1.py",
+        "--skip-sp1",
+        "--out-dir",
+        "artifacts/benchmarks/distinct_td_sp1_python_smoke"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 24.2451,
+      "stdout_tail": "=== DISTINCT TD SP1 BENCHMARK ===\ndata_path = /kaggle/working/zk_offline_dqn_phase6b_archive/data/cartpole_dqn_eps010_transitions.pkl\nmerkle_path = /kaggle/working/zk_offline_dqn_phase6b_archive/artifacts/cartpole_dqn_eps010_merkle.json\ncheckpoint_path = /kaggle/working/zk_offline_dqn_phase6b_archive/models/offline_dqn_with_target_seed42_best.pt\nout_dir = /kaggle/working/zk_offline_dqn_phase6b_archive/artifacts/benchmarks/distinct_td_sp1_python_smoke\nbatch_sizes = [1, 2, 4, 8]\nskip_sp1 = True\nprove = False\n\nTD-1: expected_accept=True python_accept=True sp1_accept=None passed=True\nTD-2: expected_accept=True python_accept=True sp1_accept=None passed=True\nTD-4: expected_accept=True python_accept=True sp1_accept=None passed=True\nTD-8: expected_accept=True python_accept=True sp1_accept=None passed=True\ntamper_duplicate_index: expected_accept=False python_accept=False sp1_accept=None passed=True\ntamper_wrong_item_index: expected_accept=False python_accept=False sp1_accept=None passed=True\ntamper_swapped_item_order: expected_accept=False python_accept=False sp1_accept=None passed=True\ntamper_wrong_item_loss: expected_accept=False python_accept=False sp1_accept=None passed=True\ntamper_wrong_claimed_batch_average: expected_accept=False python_accept=False sp1_accept=None passed=True\ntamper_wrong_path_order: expected_accept=False python_accept=False sp1_accept=None passed=True\n\nsummary_json_path = artifacts/benchmarks/distinct_td_sp1_python_smoke/summary.json\nbenchmark_matrix_csv_path = artifacts/benchmarks/distinct_td_sp1_python_smoke/benchmark_matrix.csv\nsummary_md_path = artifacts/benchmarks/distinct_td_sp1_python_smoke/summary.md\nall_python_expected = True\nall_sp1_expected = None\npython_sp1_agreement = None\nall_passed = True",
+      "stderr_tail": "",
+      "status": "passed"
+    },
+    {
+      "label": "forward_td_mlp_python_smoke",
+      "command": [
+        "/usr/bin/python3",
+        "scripts/experiments/benchmark_forward_td_mlp_sp1.py",
+        "--skip-sp1",
+        "--out-dir",
+        "artifacts/benchmarks/forward_td_mlp_sp1_python_smoke"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 20.5505,
+      "stdout_tail": "=== FORWARD TD MLP SP1 BENCHMARK ===\ninput_path = /kaggle/working/zk_offline_dqn_phase6b_archive/artifacts/minibatch_td_from_dataset.json\nout_dir = /kaggle/working/zk_offline_dqn_phase6b_archive/artifacts/benchmarks/forward_td_mlp_sp1_python_smoke\nbatch_sizes = [1, 2]\nlayer_sizes = 4,16,16,2\nskip_sp1 = True\nprove = False\n\nforward-TD-1: python_accept=True sp1_accept=None passed=True\nforward-TD-2: python_accept=True sp1_accept=None passed=True\ntamper_online_model_weight: python_accept=False sp1_accept=None passed=True\ntamper_target_model_weight: python_accept=False sp1_accept=None passed=True\ntamper_activation: python_accept=False sp1_accept=None passed=True\ntamper_relu_mask: python_accept=False sp1_accept=None passed=True\ntamper_argmax: python_accept=False sp1_accept=None passed=True\ntamper_selected_target_value: python_accept=False sp1_accept=None passed=True\ntamper_claimed_batch_loss: python_accept=False sp1_accept=None passed=True\n\nsummary_json_path = artifacts/benchmarks/forward_td_mlp_sp1_python_smoke/summary.json\nbenchmark_matrix_csv_path = artifacts/benchmarks/forward_td_mlp_sp1_python_smoke/benchmark_matrix.csv\nsummary_md_path = artifacts/benchmarks/forward_td_mlp_sp1_python_smoke/summary.md\nall_python_expected = True\nall_sp1_expected = None\npython_sp1_agreement = None\nall_passed = True",
+      "stderr_tail": "",
+      "status": "passed"
+    },
+    {
+      "label": "one_step_sgd_tiny_python_smoke",
+      "command": [
+        "/usr/bin/python3",
+        "scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py",
+        "--skip-sp1",
+        "--out-dir",
+        "artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 15.6955,
+      "stdout_tail": "=== ONE STEP SGD TINY SP1 BENCHMARK ===\ninput_path = /kaggle/working/zk_offline_dqn_phase6b_archive/artifacts/minibatch_td_from_dataset.json\nout_dir = /kaggle/working/zk_offline_dqn_phase6b_archive/artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke\nlayer_sizes = 4,8,2\nlearning_rate_fp = 100\nskip_sp1 = True\nprove = False\n\none-step-SGD-tiny-1: python_accept=True sp1_accept=None passed=True\ntamper_gradient_tensor: python_accept=False sp1_accept=None passed=True\ntamper_delta_tensor: python_accept=False sp1_accept=None passed=True\ntamper_learning_rate_fp: python_accept=False sp1_accept=None passed=True\ntamper_post_model_weight: python_accept=False sp1_accept=None passed=True\ntamper_post_model_commitment: python_accept=False sp1_accept=None passed=True\ntamper_smooth_l1_grad: python_accept=False sp1_accept=None passed=True\n\nsummary_json_path = artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke/summary.json\nbenchmark_matrix_csv_path = artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke/benchmark_matrix.csv\nsummary_md_path = artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke/summary.md\nall_python_expected = True\nall_sp1_expected = None\npython_sp1_agreement = None\nall_passed = True",
+      "stderr_tail": "",
+      "status": "passed"
+    },
+    {
+      "label": "check_sp1_environment_before_setup",
+      "command": [
+        "/usr/bin/python3",
+        "scripts/experiments/check_sp1_environment.py"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 0.1602,
+      "stdout_tail": "    \"cargo_prove\": {\n      \"command\": [\n        \"cargo\",\n        \"prove\",\n        \"--version\"\n      ],\n      \"available\": false,\n      \"returncode\": null,\n      \"stdout\": \"\",\n      \"stderr\": \"cargo not found on PATH\"\n    },\n    \"sp1up\": {\n      \"command\": [\n        \"sp1up\",\n        \"--help\"\n      ],\n      \"available\": false,\n      \"returncode\": null,\n      \"stdout\": \"\",\n      \"stderr\": \"sp1up not found on PATH\"\n    }\n  },\n  \"workspace\": {\n    \"sp1_dir\": \"/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1\",\n    \"sp1_dir_exists\": true,\n    \"workspace_cargo_toml\": true,\n    \"host_package\": \"td-mvp-host\",\n    \"guest_package\": \"td-mvp-guest\",\n    \"shared_package\": \"td-mvp-shared\",\n    \"expected_test_vector_exists\": true\n  },\n  \"recommended_commands\": [\n    \"python -m compileall zk_offline_dqn scripts src tests\",\n    \"python -m unittest discover tests/regression\",\n    \"python -m zk_offline_dqn.cli.main verify td-mvp --input zk_backend/test_vectors/td_mvp_case_0.json\",\n    \"cd zk_backend/td_mvp/sp1 && cargo test\",\n    \"cd zk_backend/td_mvp/sp1 && cargo run --release -p td-mvp-host -- --execute\",\n    \"cd zk_backend/td_mvp/sp1 && RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove\"\n  ]\n}",
+      "stderr_tail": "",
+      "status": "passed"
+    },
+    {
+      "label": "sp1_setup",
+      "command": [
+        "bash",
+        "/kaggle/working/zk_offline_dqn_phase6b_archive/scripts/experiments/setup_sp1_on_kaggle.sh"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 115.8539,
+      "stdout_tail": "▶ source /root/.bashrc\n▶ sp1up\n\n🎉 Enjoy using sp1up! For help, type 'sp1up --help'\ncargo prove missing after installer; running sp1up to install SP1 toolchain.\n\n.______  ._______ ._______ ._______ ._______ ._______ ._______ ._______ ._______\n\n   _____  ____  ___\n  / ___/ / __ \\<  /\n  \\__ \\ / /_/ // /                        A performant, 100% open-source,\n ___/ // ____// /                              general-purpose zkVM.  \n/____//_/    /_/   \n\n._______ ._______ ._______ ._______ ._______ ._______ ._______ ._______ ._______ \n\nRepo       : https://github.com/succinctlabs/sp1\nBook       : https://docs.succinct.xyz/\nTelegram   : https://t.me/+AzG4ws-kD24yMGYx\n\n._______ ._______ ._______ ._______ ._______ ._______ ._______ ._______ ._______ \n\nsp1up: installing SP1 (version v6.1.0, tag v6.1.0)\nsp1up: downloading cargo_prove_v6.1.0_linux_amd64.tar.gz\nsp1up: installed - cargo-prove sp1 (d454975 2026-04-11T01:54:01.305546215Z)\nsp1up: installing rust toolchain\nSuccessfully cleaned up ~/.sp1 directory.\nSuccessfully created ~/.sp1 directory.\nSuccessfully removed existing toolchain.\nSuccessfully linked toolchain to rustup.\nsp1up: installed rust toolchain\nsp1up: done!\ncargo_prove_version = cargo-prove sp1 (d454975 2026-04-11T01:54:01.305546215Z)\nsp1up_version = \nprotoc_path = /usr/bin/protoc\nprotoc_include = /usr/include\npath_after = /root/.cargo/bin:/root/.sp1/bin:/root/.cargo/bin:/root/.sp1/bin:/root/.cargo/bin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/tools/node/bin:/tools/google-cloud-sdk/bin\nSP1 execute skipped; set RUN_SP1_EXECUTE=1 to run cargo test and execute.\nSP1 proof skipped; set RUN_SP1_PROVE=1 to prove.\nsetup_summary_path = artifacts/reports/kaggle_sp1_setup_summary.json",
+      "stderr_tail": "W: Skipping acquire of configured file 'main/source/Sources' as repository 'https://r2u.stat.illinois.edu/ubuntu jammy InRelease' does not seem to provide it (sources.list entry misspelt?)\ndebconf: unable to initialize frontend: Dialog\ndebconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 78, <> line 62.)\ndebconf: falling back to frontend: Readline\ndebconf: unable to initialize frontend: Readline\ndebconf: (This frontend requires a controlling tty.)\ndebconf: falling back to frontend: Teletype\ndpkg-preconfigure: unable to re-open stdin: \ninfo: downloading installer\nwarn: It looks like you have an existing rustup settings file at:\nwarn: /root/.rustup/settings.toml\nwarn: Rustup will install the default toolchain as specified in the settings file,\nwarn: instead of the one inferred from the default host triple.\ninfo: profile set to default\ninfo: default host triple is x86_64-unknown-linux-gnu\ninfo: syncing channel updates for stable-x86_64-unknown-linux-gnu\ninfo: latest update on 2026-04-16 for version 1.95.0 (59807616e 2026-04-14)\ninfo: downloading 6 components\ninfo: default toolchain set to stable-x86_64-unknown-linux-gnu\n  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\n  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\n100    15    0    15    0     0     83      0 --:--:-- --:--:-- --:--:--    83\n\n100  2234  100  2234    0     0   6627      0 --:--:-- --:--:-- --:--:--  6627\n#=#=#                                                                         \n\n######################################################################## 100.0%\n#=#=#                                                                         \n##O#-#                                                                        \n\n#                                                                          1.8%\n######                                                                     9.1%\n##############                                                            20.5%\n########################                                                  34.5%\n########################################                                  56.8%\n#############################################################             84.8%\n######################################################################## 100.0%\ninfo: no toolchain installed for 'succinct'",
+      "status": "passed"
+    },
+    {
+      "label": "check_sp1_environment_after_setup",
+      "command": [
+        "/usr/bin/python3",
+        "scripts/experiments/check_sp1_environment.py"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive",
+      "returncode": 0,
+      "duration_sec": 0.2419,
+      "stdout_tail": "    \"cargo_prove\": {\n      \"command\": [\n        \"cargo\",\n        \"prove\",\n        \"--version\"\n      ],\n      \"available\": true,\n      \"returncode\": 0,\n      \"stdout\": \"cargo-prove sp1 (d454975 2026-04-11T01:54:01.305546215Z)\",\n      \"stderr\": \"\"\n    },\n    \"sp1up\": {\n      \"command\": [\n        \"sp1up\",\n        \"--help\"\n      ],\n      \"available\": true,\n      \"returncode\": 0,\n      \"stdout\": \"\",\n      \"stderr\": \"The installer for the SP1.\\n\\nUpdate or revert to a specific SP1 version with ease.\\n\\nUSAGE:\\n    sp1up <OPTIONS>\\n\\nOPTIONS:\\n    -h, --help        Print help information\\n    -v, --version     Install a specific version\\n    -b, --branch      Install a specific branch\\n    -P, --pr          Install a specific Pull Request\\n    -C, --commit      Install a specific commit\\n    -r, --repo        Install from a remote GitHub repo (uses default branch if no other options are set)\\n    -p, --path        Install a local repository\\n    -c, --c-toolchain Install a C++ toolchain for RISC-V (needed building programs that bind to C code)\\n    --arch            Install a specific architecture (supports amd64 and arm64)\\n    --platform        Install a specific platform (supports win32, linux, and darwin)\\n    --private-release Install a cargo-prove using github API (needs a github token and explicit version)\\n    -t, --token       GitHub token to use for avoiding API rate limits\"\n    }\n  },\n  \"workspace\": {\n    \"sp1_dir\": \"/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1\",\n    \"sp1_dir_exists\": true,\n    \"workspace_cargo_toml\": true,\n    \"host_package\": \"td-mvp-host\",\n    \"guest_package\": \"td-mvp-guest\",\n    \"shared_package\": \"td-mvp-shared\",\n    \"expected_test_vector_exists\": true\n  },\n  \"recommended_commands\": [\n    \"python -m compileall zk_offline_dqn scripts src tests\",\n    \"python -m unittest discover tests/regression\",\n    \"python -m zk_offline_dqn.cli.main verify td-mvp --input zk_backend/test_vectors/td_mvp_case_0.json\",\n    \"cd zk_backend/td_mvp/sp1 && cargo test\",\n    \"cd zk_backend/td_mvp/sp1 && cargo run --release -p td-mvp-host -- --execute\",\n    \"cd zk_backend/td_mvp/sp1 && RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove\"\n  ]\n}",
+      "stderr_tail": "",
+      "status": "passed"
+    },
+    {
+      "label": "cargo_test",
+      "command": [
+        "cargo",
+        "test"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1",
+      "returncode": 0,
+      "duration_sec": 451.6216,
+      "stdout_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n",
+      "stderr_tail": "   Compiling sp1-verifier v6.1.0\n   Compiling async-scoped v0.9.0\n   Compiling serial_test_derive v3.4.0\n   Compiling number_prefix v0.4.0\n   Compiling symlink v0.1.0\n   Compiling minimal-lexical v0.2.1\n   Compiling getrandom v0.3.4\n   Compiling const-default v1.0.0\n   Compiling libm v0.2.16\n   Compiling rlsf v0.2.2\n   Compiling nom v7.1.3\n   Compiling tracing-appender v0.2.5\n   Compiling indicatif v0.17.11\n   Compiling serial_test v3.4.0\n   Compiling reqwest v0.12.28\n   Compiling lru v0.12.5\n   Compiling sp1-build v6.1.0\n   Compiling td-mvp-shared v0.1.0 (/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1/shared)\n   Compiling opentelemetry v0.23.0\n   Compiling critical-section v1.2.0\n   Compiling sp1-zkvm v6.1.0\n   Compiling linked_list_allocator v0.10.6\n   Compiling embedded-alloc v0.6.0\n   Compiling td-mvp-host v0.1.0 (/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1/host)\n   Compiling eventsource-stream v0.2.3\n   Compiling sp1-lib v6.1.0\n   Compiling td-mvp-guest v0.1.0 (/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1/guest)\n   Compiling sp1-core-machine v6.1.0\n   Compiling sp1-recursion-compiler v6.1.0\n   Compiling sp1-recursion-circuit v6.1.0\n   Compiling sp1-prover v6.1.0\n   Compiling sp1-sdk v6.1.0\nwarning: td-mvp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: td-mvp-host@0.1.0: td-mvp-guest built at 2026-05-15 04:59:47\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 7m 31s\n     Running unittests src/main.rs (target/debug/deps/td_mvp_guest-7fec19a5349d4f63)\nNot running in zkVM, skipping entrypoint\n     Running unittests src/main.rs (target/debug/deps/td_mvp_host-580605604c7bb764)\n     Running unittests src/lib.rs (target/debug/deps/td_mvp_shared-ecd2426da81a6485)\n   Doc-tests td_mvp_shared",
+      "status": "passed"
+    },
+    {
+      "label": "sp1_execute",
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "-p",
+        "td-mvp-host",
+        "--",
+        "--execute"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1",
+      "returncode": 0,
+      "duration_sec": 995.1853,
+      "stdout_tail": "input_path = ../../test_vectors/td_mvp_case_0.json\ncase_name = valid_control\nhost_precheck = true\nclaimed_target_fp = 1761\nclaimed_loss_fp = 80\nexecution_ok = true\nexecution_time_sec = 0.058318\ncycle_count = 385048\nexit_code = 0",
+      "stderr_tail": "   Compiling time-core v0.1.8\n   Compiling sdd v3.0.10\n   Compiling num-conv v0.2.1\n   Compiling unicode-width v0.2.2\n   Compiling scc v2.4.0\n   Compiling console v0.15.11\n   Compiling time v0.3.47\n   Compiling mti v1.1.1\n   Compiling serde_urlencoded v0.7.1\n   Compiling hashbrown v0.15.5\n   Compiling tonic v0.12.3\n   Compiling hyper-rustls v0.27.9\n   Compiling tower-http v0.6.10\n   Compiling dirs v5.0.1\n   Compiling sp1-verifier v6.1.0\n   Compiling async-scoped v0.9.0\n   Compiling serial_test_derive v3.4.0\n   Compiling number_prefix v0.4.0\n   Compiling minimal-lexical v0.2.1\n   Compiling symlink v0.1.0\n   Compiling tracing-appender v0.2.5\n   Compiling nom v7.1.3\n   Compiling indicatif v0.17.11\n   Compiling serial_test v3.4.0\n   Compiling sp1-build v6.1.0\n   Compiling reqwest v0.12.28\n   Compiling lru v0.12.5\n   Compiling opentelemetry v0.23.0\n   Compiling td-mvp-host v0.1.0 (/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1/host)\n   Compiling eventsource-stream v0.2.3\nwarning: td-mvp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: td-mvp-host@0.1.0: td-mvp-guest built at 2026-05-15 05:06:03\n   Compiling td-mvp-shared v0.1.0 (/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1/shared)\n   Compiling sp1-core-machine v6.1.0\n   Compiling sp1-recursion-compiler v6.1.0\n   Compiling sp1-recursion-circuit v6.1.0\n   Compiling sp1-prover v6.1.0\n   Compiling sp1-sdk v6.1.0\n    Finished `release` profile [optimized] target(s) in 13m 35s\n     Running `target/release/td-mvp-host --execute`",
+      "status": "passed"
+    },
+    {
+      "label": "sp1_prove",
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "-p",
+        "td-mvp-host",
+        "--",
+        "--prove"
+      ],
+      "cwd": "/kaggle/working/zk_offline_dqn_phase6b_archive/zk_backend/td_mvp/sp1",
+      "returncode": 0,
+      "duration_sec": 351.4856,
+      "stdout_tail": "input_path = ../../test_vectors/td_mvp_case_0.json\ncase_name = valid_control\nhost_precheck = true\nclaimed_target_fp = 1761\nclaimed_loss_fp = 80\nproof_generated = true\nproof_verified = true\nproving_time_sec = 167.726006\nverification_time_sec = 0.190326\nproof_size_bytes = 2783869",
+      "stderr_tail": "warning: td-mvp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: td-mvp-host@0.1.0: td-mvp-guest built at 2026-05-15 05:06:03\n    Finished `release` profile [optimized] target(s) in 2.29s\n     Running `target/release/td-mvp-host --prove`",
+      "status": "passed"
+    }
+  ],
+  "all_required_python_passed": true,
+  "sp1_prove_requested": true
+}

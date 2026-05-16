@@ -23,11 +23,10 @@ ENV/
 # Data & Model Artifacts
 # =============================================================================
 data/
-models/
+models/*
+!models/offline_dqn_with_target_seed42_best.pt
 !zk_offline_dqn/artifacts/
 !zk_offline_dqn/artifacts/__init__.py
-!src/zk_offline_dqn/artifacts/
-!src/zk_offline_dqn/artifacts/__init__.py
 logs/
 plots/
 
@@ -41,6 +40,9 @@ artifacts/regression_summary.md
 artifacts/reports/*
 !artifacts/reports/final_ndss/
 !artifacts/reports/final_ndss/**
+!artifacts/reports/provenance/
+!artifacts/reports/provenance/**
+artifacts/archive/manual_review/
 artifacts/kaggle*/
 artifacts/cleanup_artifact_schema_commit_log.txt
 artifacts/negative_tests/
@@ -94,6 +96,7 @@ paper/*.pdf
 kaggle_phase6_zkp_drl/
 kaggle_phase6_zkp_drl_backup/
 kaggle_phase6_zkp_drl_backup_*/
+kaggle_phase6_sp1_validation/
 kaggle_phase6_outputs/
 zk_offline_dqn_phase6b_workspace.zip
 *_phase6b_workspace.zip

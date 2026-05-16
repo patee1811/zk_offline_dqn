@@ -16,7 +16,7 @@ from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
-CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/sample_transition_membership.json"
+CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/fixtures/membership/sample_transition_membership.json"
 
 
 def make_tiny_membership_artifact():
@@ -101,7 +101,7 @@ class TransitionMembershipVerifierTests(unittest.TestCase):
             format_transition_membership_report(
                 artifact,
                 result,
-                "artifacts/sample_transition_membership.json",
+                "artifacts/fixtures/membership/sample_transition_membership.json",
             )
             + "\n"
         )

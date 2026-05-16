@@ -7,7 +7,7 @@ from zk_offline_dqn.artifacts.io import load_json_artifact, write_json_artifact
 
 class ArtifactIoTests(unittest.TestCase):
     def test_load_json_artifact_reads_existing_artifact(self):
-        artifact = load_json_artifact("artifacts/minibatch_td_from_dataset.json")
+        artifact = load_json_artifact("artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json")
 
         self.assertEqual(artifact["schema_version"], "minibatch_td_v1")
         self.assertIn("public", artifact)

@@ -6,7 +6,7 @@
       "component_id": "distinct_td",
       "relation_id": "td_batch_distinct_v1",
       "environment": "CartPole-v1",
-      "summary_path": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "summary_path": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,
@@ -18,7 +18,7 @@
       "component_id": "forward_td_cartpole",
       "relation_id": "forward_td_mlp_v1",
       "environment": "CartPole-v1",
-      "summary_path": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "summary_path": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,
@@ -30,7 +30,7 @@
       "component_id": "forward_td_mountaincar",
       "relation_id": "forward_td_mlp_v1",
       "environment": "MountainCar-v0",
-      "summary_path": "artifacts/benchmarks/second_env_mountaincar/summary.json",
+      "summary_path": "artifacts/benchmarks/final_ndss/source_summaries/second_env_mountaincar/summary.json",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,
@@ -42,7 +42,7 @@
       "component_id": "one_step_sgd_tiny",
       "relation_id": "one_step_sgd_tiny_v1",
       "environment": "CartPole-v1",
-      "summary_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "summary_path": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "all_passed": true,
       "all_python_expected": true,
       "all_sp1_expected": true,
@@ -72,9 +72,9 @@
       "cycle_count": 385048,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "TD-1",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/td_distinct_batch_size_1.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/td_distinct_batch_size_1.json",
       "backend": "SP1 proof",
       "status": "accepted"
     },
@@ -92,9 +92,9 @@
       "cycle_count": 730778,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "TD-2",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/td_distinct_batch_size_2.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/td_distinct_batch_size_2.json",
       "backend": "SP1 proof",
       "status": "accepted"
     },
@@ -112,9 +112,9 @@
       "cycle_count": 1435787,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "TD-4",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/td_distinct_batch_size_4.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/td_distinct_batch_size_4.json",
       "backend": "SP1 proof",
       "status": "accepted"
     },
@@ -132,9 +132,9 @@
       "cycle_count": 2845813,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "TD-8",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/td_distinct_batch_size_8.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/td_distinct_batch_size_8.json",
       "backend": "SP1 proof",
       "status": "accepted"
     },
@@ -152,9 +152,9 @@
       "cycle_count": 55202,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "tamper_duplicate_index",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_duplicate_index.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_duplicate_index.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -172,9 +172,9 @@
       "cycle_count": 55616,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "tamper_wrong_item_index",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_item_index.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_item_index.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -192,9 +192,9 @@
       "cycle_count": 55616,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "tamper_swapped_item_order",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_swapped_item_order.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_swapped_item_order.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -212,9 +212,9 @@
       "cycle_count": 381602,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "tamper_wrong_item_loss",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_item_loss.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_item_loss.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -232,9 +232,9 @@
       "cycle_count": 709917,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "tamper_wrong_claimed_batch_average",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_claimed_batch_average.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_claimed_batch_average.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -252,9 +252,9 @@
       "cycle_count": 55629,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json",
       "source_case": "tamper_wrong_path_order",
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_path_order.json",
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_path_order.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -272,9 +272,9 @@
       "cycle_count": 1543753,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "forward-TD-1",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json",
       "backend": "SP1 proof",
       "status": "accepted"
     },
@@ -292,9 +292,9 @@
       "cycle_count": 1957958,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "forward-TD-2",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_2.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_2.json",
       "backend": "SP1 execute",
       "status": "accepted"
     },
@@ -312,9 +312,9 @@
       "cycle_count": 633034,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "tamper_online_model_weight",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_online_model_weight.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_online_model_weight.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -332,9 +332,9 @@
       "cycle_count": 1119666,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "tamper_target_model_weight",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_target_model_weight.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_target_model_weight.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -352,9 +352,9 @@
       "cycle_count": 1498908,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "tamper_activation",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_activation.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_activation.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -372,9 +372,9 @@
       "cycle_count": 1498210,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "tamper_relu_mask",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_relu_mask.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_relu_mask.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -392,9 +392,9 @@
       "cycle_count": 1481808,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "tamper_argmax",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_argmax.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_argmax.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -412,9 +412,9 @@
       "cycle_count": 1481943,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "tamper_selected_target_value",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_selected_target_value.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_selected_target_value.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -432,9 +432,9 @@
       "cycle_count": 1488117,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json",
       "source_case": "tamper_claimed_batch_loss",
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_claimed_batch_loss.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_claimed_batch_loss.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -452,9 +452,9 @@
       "cycle_count": 683942,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/second_env_mountaincar/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/second_env_mountaincar/summary.json",
       "source_case": "mountaincar-forward-TD-1",
-      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/mountaincar_forward_td_mlp_batch_size_1.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/mountaincar/mountaincar_forward_td_mlp_batch_size_1.json",
       "backend": "SP1 proof",
       "status": "accepted"
     },
@@ -472,9 +472,9 @@
       "cycle_count": 630657,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/second_env_mountaincar/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/second_env_mountaincar/summary.json",
       "source_case": "tamper_selected_target_value",
-      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_selected_target_value.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/mountaincar/tamper_selected_target_value.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -492,9 +492,9 @@
       "cycle_count": 630523,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/second_env_mountaincar/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/second_env_mountaincar/summary.json",
       "source_case": "tamper_argmax",
-      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_argmax.json",
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/mountaincar/tamper_argmax.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -512,9 +512,9 @@
       "cycle_count": 862136,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "source_case": "one-step-SGD-tiny-1",
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json",
       "backend": "SP1 proof",
       "status": "accepted"
     },
@@ -532,9 +532,9 @@
       "cycle_count": 816177,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "source_case": "tamper_gradient_tensor",
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_gradient_tensor.json",
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_gradient_tensor.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -552,9 +552,9 @@
       "cycle_count": 818750,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "source_case": "tamper_delta_tensor",
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_delta_tensor.json",
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_delta_tensor.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -572,9 +572,9 @@
       "cycle_count": 798867,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "source_case": "tamper_learning_rate_fp",
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_learning_rate_fp.json",
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_learning_rate_fp.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -592,9 +592,9 @@
       "cycle_count": 312479,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "source_case": "tamper_post_model_weight",
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_weight.json",
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_post_model_weight.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -612,9 +612,9 @@
       "cycle_count": 312479,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "source_case": "tamper_post_model_commitment",
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_commitment.json",
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_post_model_commitment.json",
       "backend": "SP1 execute",
       "status": "rejected"
     },
@@ -632,9 +632,9 @@
       "cycle_count": 786499,
       "platform": "Kaggle Linux SP1",
       "command": "python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json",
       "source_case": "tamper_smooth_l1_grad",
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_smooth_l1_grad.json",
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_smooth_l1_grad.json",
       "backend": "SP1 execute",
       "status": "rejected"
     }
@@ -650,8 +650,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_duplicate_index.json",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_duplicate_index.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json"
     },
     {
       "relation_id": "td_batch_distinct_v1",
@@ -663,8 +663,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_item_index.json",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_item_index.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json"
     },
     {
       "relation_id": "td_batch_distinct_v1",
@@ -676,8 +676,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_swapped_item_order.json",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_swapped_item_order.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json"
     },
     {
       "relation_id": "td_batch_distinct_v1",
@@ -689,8 +689,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_item_loss.json",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_item_loss.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json"
     },
     {
       "relation_id": "td_batch_distinct_v1",
@@ -702,8 +702,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_claimed_batch_average.json",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_claimed_batch_average.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json"
     },
     {
       "relation_id": "td_batch_distinct_v1",
@@ -715,8 +715,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/distinct_td_sp1/fixtures/tamper_wrong_path_order.json",
-      "source_summary": "artifacts/benchmarks/distinct_td_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/minibatch_td/distinct_td_sp1/tamper_wrong_path_order.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -728,8 +728,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_online_model_weight.json",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_online_model_weight.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -741,8 +741,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_target_model_weight.json",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_target_model_weight.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -754,8 +754,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_activation.json",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_activation.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -767,8 +767,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_relu_mask.json",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_relu_mask.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -780,8 +780,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_argmax.json",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_argmax.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -793,8 +793,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_selected_target_value.json",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_selected_target_value.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -806,8 +806,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/tamper_claimed_batch_loss.json",
-      "source_summary": "artifacts/benchmarks/forward_td_mlp_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/tamper_claimed_batch_loss.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -819,8 +819,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_selected_target_value.json",
-      "source_summary": "artifacts/benchmarks/second_env_mountaincar/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/mountaincar/tamper_selected_target_value.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/second_env_mountaincar/summary.json"
     },
     {
       "relation_id": "forward_td_mlp_v1",
@@ -832,8 +832,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/second_env_mountaincar/fixtures/tamper_argmax.json",
-      "source_summary": "artifacts/benchmarks/second_env_mountaincar/summary.json"
+      "fixture_path": "artifacts/fixtures/forward_td_mlp/mountaincar/tamper_argmax.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/second_env_mountaincar/summary.json"
     },
     {
       "relation_id": "one_step_sgd_tiny_v1",
@@ -845,8 +845,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_gradient_tensor.json",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_gradient_tensor.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json"
     },
     {
       "relation_id": "one_step_sgd_tiny_v1",
@@ -858,8 +858,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_delta_tensor.json",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_delta_tensor.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json"
     },
     {
       "relation_id": "one_step_sgd_tiny_v1",
@@ -871,8 +871,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_learning_rate_fp.json",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_learning_rate_fp.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json"
     },
     {
       "relation_id": "one_step_sgd_tiny_v1",
@@ -884,8 +884,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_weight.json",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_post_model_weight.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json"
     },
     {
       "relation_id": "one_step_sgd_tiny_v1",
@@ -897,8 +897,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_post_model_commitment.json",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_post_model_commitment.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json"
     },
     {
       "relation_id": "one_step_sgd_tiny_v1",
@@ -910,8 +910,8 @@
       "python_outcome": "rejected",
       "sp1_outcome": "rejected",
       "passed": true,
-      "fixture_path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/tamper_smooth_l1_grad.json",
-      "source_summary": "artifacts/benchmarks/one_step_sgd_tiny_sp1/summary.json"
+      "fixture_path": "artifacts/fixtures/one_step_sgd_tiny/tamper_smooth_l1_grad.json",
+      "source_summary": "artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json"
     }
   ]
 }

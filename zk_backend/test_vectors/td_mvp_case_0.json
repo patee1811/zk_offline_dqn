@@ -1,7 +1,7 @@
 {
   "schema_version": "td_mvp_test_vector_v1",
   "source": {
-    "artifact_path": "artifacts/minibatch_td_from_dataset.json",
+    "artifact_path": "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json",
     "artifact_schema_version": "minibatch_td_v1",
     "item_index_in_artifact": 0,
     "transition_index": 0
@@ -180,7 +180,7 @@
       "td_error_fp": -400,
       "loss_fp": 80
     },
-    "artifact_path": "artifacts/minibatch_td_from_dataset.json"
+    "artifact_path": "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json"
   },
   "relation": {
     "checks": [

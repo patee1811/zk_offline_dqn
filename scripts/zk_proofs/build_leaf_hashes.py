@@ -11,7 +11,7 @@ from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
 DATASET_PATH = "data/cartpole_dqn_eps010_transitions.pkl"
-OUTPUT_PATH = "artifacts/cartpole_dqn_eps010_leaf_hashes.json"
+OUTPUT_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_leaf_hashes.json"
 
 
 def load_dataset(path):

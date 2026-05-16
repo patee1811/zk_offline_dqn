@@ -12,7 +12,7 @@ from zk_offline_dqn.io_utils import file_sha256
 from zk_offline_dqn.relations.minibatch_td import check_minibatch_td_artifact
 
 
-DEFAULT_ARTIFACT_PATH = "artifacts/minibatch_td_from_dataset.json"
+DEFAULT_ARTIFACT_PATH = "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json"
 DEFAULT_CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 
 

@@ -10,7 +10,7 @@ from zk_offline_dqn.verifiers.minibatch_td import (
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
-CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/minibatch_td_from_dataset.json"
+CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json"
 
 
 def load_canonical_artifact():
@@ -24,7 +24,7 @@ class MinibatchTdTamperTests(unittest.TestCase):
         return verify_minibatch_td_artifact(
             artifact,
             checkpoint_path=DEFAULT_CHECKPOINT_PATH,
-            artifact_path="artifacts/minibatch_td_from_dataset.json",
+            artifact_path="artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json",
         )
 
     def test_duplicate_batch_indices_rejected(self):

@@ -12,7 +12,7 @@ from zk_offline_dqn.verifiers.one_step_update import (
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
-CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/one_step_update_artifact.json"
+CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/fixtures/one_step_update/one_step_update_artifact.json"
 
 
 def load_canonical_artifact():
@@ -44,7 +44,7 @@ class OneStepUpdateTamperTests(unittest.TestCase):
     def verify_tampered(self, artifact):
         return verify_one_step_update_artifact(
             artifact,
-            artifact_path="artifacts/one_step_update_artifact.json",
+            artifact_path="artifacts/fixtures/one_step_update/one_step_update_artifact.json",
             merkle_path=DEFAULT_MERKLE_PATH,
             checkpoint_path=DEFAULT_CHECKPOINT_PATH,
             post_checkpoint_path=DEFAULT_POST_CHECKPOINT_PATH,

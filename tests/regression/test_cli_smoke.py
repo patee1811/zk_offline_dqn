@@ -52,13 +52,13 @@ class CliSmokeTests(unittest.TestCase):
                 "verify",
                 "forward-td-mlp",
                 "--input",
-                "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json",
+                "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json",
             ],
             [
                 "verify",
                 "one-step-sgd-tiny",
                 "--input",
-                "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+                "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json",
             ],
             ["verify", "minibatch-td"],
         ]
@@ -105,11 +105,11 @@ class CliSmokeTests(unittest.TestCase):
         env = os.environ.copy()
         env.update(
             {
-                "SHORT_TRACE_ARTIFACT_PATH": "artifacts/short_trace_update_artifact.json",
-                "SHORT_TRACE_MERKLE_PATH": "artifacts/cartpole_dqn_eps010_merkle.json",
+                "SHORT_TRACE_ARTIFACT_PATH": "artifacts/fixtures/short_trace/short_trace_update_artifact.json",
+                "SHORT_TRACE_MERKLE_PATH": "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json",
                 "SHORT_TRACE_INITIAL_CHECKPOINT_PATH": "models/offline_dqn_with_target_seed42_best.pt",
-                "SHORT_TRACE_FINAL_CHECKPOINT_PATH": "artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt",
-                "SHORT_TRACE_WORK_DIR": "artifacts/short_trace_work",
+                "SHORT_TRACE_FINAL_CHECKPOINT_PATH": "artifacts/fixtures/short_trace/short_trace_work/step_1_post_synced_4_5_6_7.pt",
+                "SHORT_TRACE_WORK_DIR": "artifacts/fixtures/short_trace/short_trace_work",
             }
         )
         completed = subprocess.run(

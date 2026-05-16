@@ -11,7 +11,7 @@ from zk_offline_dqn.relations.membership import (
 
 
 DEFAULT_TRANSITION_MEMBERSHIP_ARTIFACT_PATH = (
-    "artifacts/sample_transition_membership.json"
+    "artifacts/fixtures/membership/sample_transition_membership.json"
 )
 
 

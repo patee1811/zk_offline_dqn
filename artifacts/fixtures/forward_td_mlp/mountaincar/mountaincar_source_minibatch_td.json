@@ -1,0 +1,90 @@
+{
+  "schema_version": "minibatch_td_v1",
+  "public": {
+    "dataset_root": "e6b5cd64f0a687b67334403b2aacff84fb8dd604cc39e19f1e116354fb1ae133",
+    "fp_scale": 1000,
+    "gamma_fp": 990,
+    "batch_size": 1,
+    "batch_mode": "distinct",
+    "leaf_indices": [
+      0
+    ],
+    "loss_type": "smooth_l1"
+  },
+  "items": [
+    {
+      "index": 0,
+      "transition": {
+        "obs": [
+          -0.4452087879180908,
+          0.0
+        ],
+        "action": 0,
+        "reward": -1.0,
+        "next_obs": [
+          -0.44679132103919983,
+          -0.0015825206646695733
+        ],
+        "done": 0
+      },
+      "leaf": [
+        -445,
+        0,
+        0,
+        -1000,
+        -447,
+        -2,
+        0
+      ],
+      "leaf_hash": "0a614d5a33af253923a5bf76ced30af444c63fd41f5b22782f20096bfa91775d",
+      "merkle_path": [
+        {
+          "level": 0,
+          "current_index": 0,
+          "sibling_index": 1,
+          "sibling_hash": "5e378f8c9e11eee5061a84f3aa5cb0dd1b39a29d9e1ce59ee318eefcebd3f6f2",
+          "current_is_left": true
+        },
+        {
+          "level": 1,
+          "current_index": 0,
+          "sibling_index": 1,
+          "sibling_hash": "c6f0cf954b222cbd6955d13aaf262a86e91afb66197b230baad45becbc4b53f1",
+          "current_is_left": true
+        },
+        {
+          "level": 2,
+          "current_index": 0,
+          "sibling_index": 1,
+          "sibling_hash": "690283bcdb33fb56f58dd6d9c325ac8c16d2940cca45ceb0df2a0c38b2030f75",
+          "current_is_left": true
+        },
+        {
+          "level": 3,
+          "current_index": 0,
+          "sibling_index": 1,
+          "sibling_hash": "f93be7685b4d9e540e2f94aeac13f7eb4d5fa64640128b264930fff55504322f",
+          "current_is_left": true
+        },
+        {
+          "level": 4,
+          "current_index": 0,
+          "sibling_index": 1,
+          "sibling_hash": "a27be3872b73abc9705501c1225cfa4e223e683db31dafe896d6c9e1131c9569",
+          "current_is_left": true
+        },
+        {
+          "level": 5,
+          "current_index": 0,
+          "sibling_index": 1,
+          "sibling_hash": "f4ac55fb2d5ded5685809b4dfa21c5c34ac0a2486b2c299c9ef70716f079f879",
+          "current_is_left": true
+        }
+      ]
+    }
+  ],
+  "notes": {
+    "env": "MountainCar-v0",
+    "purpose": "source minibatch for second-environment forward-TD fixture"
+  }
+}

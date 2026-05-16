@@ -13,8 +13,8 @@ from zk_offline_dqn.verifiers.minibatch_td import (
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
-CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/minibatch_td_from_dataset.json"
-CANONICAL_ARTIFACT_ARG = "artifacts/minibatch_td_from_dataset.json"
+CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json"
+CANONICAL_ARTIFACT_ARG = "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json"
 
 
 def load_canonical_artifact():

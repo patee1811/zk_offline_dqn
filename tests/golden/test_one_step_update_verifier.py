@@ -14,8 +14,8 @@ from zk_offline_dqn.verifiers.one_step_update import (
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
-CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/one_step_update_artifact.json"
-CANONICAL_ARTIFACT_ARG = "artifacts/one_step_update_artifact.json"
+CANONICAL_ARTIFACT = REPO_ROOT / "artifacts/fixtures/one_step_update/one_step_update_artifact.json"
+CANONICAL_ARTIFACT_ARG = "artifacts/fixtures/one_step_update/one_step_update_artifact.json"
 
 
 def load_canonical_artifact():

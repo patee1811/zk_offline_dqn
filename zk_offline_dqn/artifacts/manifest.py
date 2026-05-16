@@ -15,32 +15,32 @@ OPTIONAL_LOCAL_OUTPUT = "optional_local_output"
 
 KNOWN_ARTIFACTS: List[Dict[str, str]] = [
     {
-        "path": "artifacts/sample_transition_membership.json",
+        "path": "artifacts/fixtures/membership/sample_transition_membership.json",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "transition_membership",
     },
     {
-        "path": "artifacts/minibatch_td_from_dataset.json",
+        "path": "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "minibatch_td",
     },
     {
-        "path": "artifacts/one_step_update_artifact.json",
+        "path": "artifacts/fixtures/one_step_update/one_step_update_artifact.json",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "one_step_update",
     },
     {
-        "path": "artifacts/short_trace_update_artifact.json",
+        "path": "artifacts/fixtures/short_trace/short_trace_update_artifact.json",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "short_trace_update",
     },
     {
-        "path": "artifacts/short_trace_seeded_artifact.json",
+        "path": "artifacts/fixtures/short_trace/short_trace_seeded_artifact.json",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "short_trace_update",
     },
     {
-        "path": "artifacts/cartpole_dqn_eps010_merkle.json",
+        "path": "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "merkle_tree",
     },
@@ -50,17 +50,17 @@ KNOWN_ARTIFACTS: List[Dict[str, str]] = [
         "artifact_type": "checkpoint",
     },
     {
-        "path": "artifacts/one_step_post_checkpoint.pt",
+        "path": "artifacts/fixtures/one_step_update/one_step_post_checkpoint.pt",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "checkpoint",
     },
     {
-        "path": "artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt",
+        "path": "artifacts/fixtures/short_trace/short_trace_work/step_1_post_synced_4_5_6_7.pt",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "checkpoint",
     },
     {
-        "path": "artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt",
+        "path": "artifacts/fixtures/short_trace/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt",
         "classification": CANONICAL_FIXTURE,
         "artifact_type": "checkpoint",
     },
@@ -70,17 +70,17 @@ KNOWN_ARTIFACTS: List[Dict[str, str]] = [
         "artifact_type": "td_mvp_test_vector",
     },
     {
-        "path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json",
+        "path": "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json",
         "classification": BENCHMARK_FIXTURE,
         "artifact_type": "forward_td_mlp_test_vector",
     },
     {
-        "path": "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_2.json",
+        "path": "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_2.json",
         "classification": BENCHMARK_FIXTURE,
         "artifact_type": "forward_td_mlp_test_vector",
     },
     {
-        "path": "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+        "path": "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json",
         "classification": BENCHMARK_FIXTURE,
         "artifact_type": "one_step_sgd_tiny_test_vector",
     },

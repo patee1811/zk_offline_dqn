@@ -457,8 +457,8 @@ def main() -> None:
     fixtures_dir = out_dir / "fixtures"
     data_path = ROOT / "data/mountaincar_random_seed42_transitions.pkl"
     data_summary_path = ROOT / "data/mountaincar_random_seed42_transitions.summary.json"
-    leaf_hashes_path = ROOT / "artifacts/mountaincar_random_seed42_leaf_hashes.json"
-    merkle_path = ROOT / "artifacts/mountaincar_random_seed42_merkle.json"
+    leaf_hashes_path = ROOT / "artifacts/fixtures/forward_td_mlp/mountaincar/mountaincar_random_seed42_leaf_hashes.json"
+    merkle_path = ROOT / "artifacts/fixtures/forward_td_mlp/mountaincar/mountaincar_random_seed42_merkle.json"
     source_path = fixtures_dir / "mountaincar_source_minibatch_td.json"
 
     batch_sizes = parse_batch_sizes(args.batch_sizes)

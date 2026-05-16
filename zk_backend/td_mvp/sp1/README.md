@@ -69,9 +69,9 @@ python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
 This writes:
 
 ```text
-artifacts/benchmarks/distinct_td_sp1/summary.json
-artifacts/benchmarks/distinct_td_sp1/benchmark_matrix.csv
-artifacts/benchmarks/distinct_td_sp1/summary.md
+artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json
+artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/benchmark_matrix.csv
+artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.md
 ```
 
 The runner checks the Python verifier as the semantic oracle and the SP1 host

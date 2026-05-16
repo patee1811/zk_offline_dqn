@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-DEFAULT_ARTIFACT = "artifacts/minibatch_td_from_dataset.json"
-DEFAULT_MERKLE = "artifacts/cartpole_dqn_eps010_merkle.json"
+DEFAULT_ARTIFACT = "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json"
+DEFAULT_MERKLE = "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json"
 DEFAULT_CHECKPOINT = "models/offline_dqn_with_target_seed42_best.pt"
 DEFAULT_OUT_DIR = "artifacts/negative_tests"
 

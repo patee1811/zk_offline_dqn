@@ -93,7 +93,7 @@ def main() -> int:
     workspace = inspect_sp1_workspace()
     host_package = workspace.get("host_package") or "td-mvp-host"
     recommended_commands = [
-        "python -m compileall zk_offline_dqn scripts src tests",
+        "python -m compileall zk_offline_dqn scripts tests",
         "python -m unittest discover tests/regression",
         "python -m zk_offline_dqn.cli.main verify td-mvp --input zk_backend/test_vectors/td_mvp_case_0.json",
         "cd zk_backend/td_mvp/sp1 && cargo test",
@@ -112,7 +112,7 @@ def main() -> int:
             "rustc": command_version(["rustc", "--version"]),
             "cargo": command_version(["cargo", "--version"]),
             "cargo_prove": command_version(["cargo", "prove", "--version"]),
-            "sp1up": command_version(["sp1up", "--version"]),
+            "sp1up": command_version(["sp1up", "--help"]),
         },
         "workspace": workspace,
         "recommended_commands": recommended_commands,

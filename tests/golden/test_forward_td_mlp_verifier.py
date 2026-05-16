@@ -15,10 +15,10 @@ from zk_offline_dqn.verifiers.forward_td_mlp import (
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 CANONICAL_FIXTURE = (
     REPO_ROOT
-    / "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json"
+    / "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json"
 )
 CANONICAL_FIXTURE_ARG = (
-    "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json"
+    "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json"
 )
 
 

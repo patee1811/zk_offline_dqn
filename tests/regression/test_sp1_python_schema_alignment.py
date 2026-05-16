@@ -41,11 +41,11 @@ class Sp1PythonSchemaAlignmentTests(unittest.TestCase):
             pathlib.Path("zk_backend/test_vectors/td_mvp_case_0.json"):
                 schemas.SCHEMA_TD_MVP_TEST_VECTOR_V1,
             pathlib.Path(
-                "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/"
+                "artifacts/fixtures/forward_td_mlp/"
                 "forward_td_mlp_batch_size_1.json"
             ): schemas.SCHEMA_FORWARD_TD_MLP_V1,
             pathlib.Path(
-                "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/"
+                "artifacts/fixtures/one_step_sgd_tiny/"
                 "one_step_sgd_tiny_valid.json"
             ): schemas.SCHEMA_ONE_STEP_SGD_TINY_V1,
         }

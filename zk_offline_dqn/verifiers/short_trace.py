@@ -21,7 +21,7 @@ from zk_offline_dqn.verifiers.one_step_update import (
 )
 
 
-DEFAULT_ARTIFACT_PATH = "artifacts/short_trace_update_artifact.json"
+DEFAULT_ARTIFACT_PATH = "artifacts/fixtures/short_trace/short_trace_update_artifact.json"
 
 
 def load_json(path: str) -> Dict[str, Any]:

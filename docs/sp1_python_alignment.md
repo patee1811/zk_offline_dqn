@@ -100,7 +100,7 @@ Known schema strings are centralized in `zk_offline_dqn/artifacts/schemas.py`:
 Local Python checks:
 
 ```text
-python -m compileall zk_offline_dqn scripts src tests
+python -m compileall zk_offline_dqn scripts tests
 python -m unittest discover tests/regression
 python -m zk_offline_dqn.cli.main verify td-mvp --input zk_backend/test_vectors/td_mvp_case_0.json
 python scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1 --out-dir artifacts/benchmarks/distinct_td_sp1_python_smoke

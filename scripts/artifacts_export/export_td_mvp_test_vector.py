@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 
-DEFAULT_INPUT = Path("artifacts/minibatch_td_from_dataset.json")
+DEFAULT_INPUT = Path("artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json")
 DEFAULT_OUTPUT = Path("zk_backend/test_vectors/td_mvp_case_0.json")
 
 # Fallback values matching the current CartPole TD artifact convention.

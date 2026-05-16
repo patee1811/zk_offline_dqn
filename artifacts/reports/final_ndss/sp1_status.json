@@ -5,21 +5,21 @@
     "cargo_available_after": {
       "provenance": {
         "field": "cargo_available_after",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": true
     },
     "cargo_prove_version": {
       "provenance": {
         "field": "cargo_prove_version",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_setup_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_setup_summary.json"
       },
       "value": "cargo-prove sp1 (d454975 2026-04-11T01:54:01.305546215Z)"
     },
     "cargo_test_status": {
       "provenance": {
         "field": "cargo_test_status",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "passed"
     },
@@ -27,129 +27,129 @@
     "cycle_count": {
       "provenance": {
         "field": "commands.sp1_execute.stdout_tail.cycle_count",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": 385048
     },
     "execute_command": {
       "provenance": {
         "field": "commands.sp1_execute.command",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "cargo run --release -p td-mvp-host -- --execute"
     },
     "execute_duration_sec": {
       "provenance": {
         "field": "commands.sp1_execute.duration_sec",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": 995.1853
     },
     "execute_status": {
       "provenance": {
         "field": "sp1_execute_status",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "passed"
     },
     "execution_ok": {
       "provenance": {
         "field": "commands.sp1_execute.stdout_tail.execution_ok",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": true
     },
     "git_branch": {
       "provenance": {
         "field": "git_branch",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "cleanup-project-structure"
     },
     "git_commit": {
       "provenance": {
         "field": "git_commit",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "26122619ddc3d25c1c03bb4a45f34db4ca923d00"
     },
     "kernel": {
       "provenance": {
         "field": "kernel",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "nypate9999/zkp-drl"
     },
     "proof_artifact_path": {
       "provenance": {
         "field": "commands.sp1_prove.stdout_tail",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": null
     },
     "proof_generated": {
       "provenance": {
         "field": "commands.sp1_prove.stdout_tail.proof_generated",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": true
     },
     "proof_size_bytes": {
       "provenance": {
         "field": "commands.sp1_prove.stdout_tail.proof_size_bytes",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": 2783869
     },
     "proof_verified": {
       "provenance": {
         "field": "commands.sp1_prove.stdout_tail.proof_verified",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": true
     },
     "prove_command": {
       "provenance": {
         "field": "commands.sp1_prove.command",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "cargo run --release -p td-mvp-host -- --prove"
     },
     "prove_duration_sec": {
       "provenance": {
         "field": "commands.sp1_prove.duration_sec",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": 351.4856
     },
     "prove_status": {
       "provenance": {
         "field": "sp1_prove_status",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "passed"
     },
     "proving_time_sec": {
       "provenance": {
         "field": "commands.sp1_prove.stdout_tail.proving_time_sec",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": 167.726006
     },
-    "setup_summary_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_setup_summary.json",
+    "setup_summary_path": "artifacts/reports/provenance/sp1/kaggle_sp1_setup_summary.json",
     "source_mode": {
       "provenance": {
         "field": "source_mode",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": "archive"
     },
     "status": "validated",
-    "validation_summary_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json",
+    "validation_summary_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json",
     "verification_time_sec": {
       "provenance": {
         "field": "commands.sp1_prove.stdout_tail.verification_time_sec",
-        "source_path": "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/artifacts/reports/kaggle_sp1_validation_summary.json"
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
       },
       "value": 0.190326
     }

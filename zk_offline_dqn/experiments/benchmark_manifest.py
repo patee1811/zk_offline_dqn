@@ -60,7 +60,7 @@ BENCHMARK_REPORT_ENTRIES: tuple[BenchmarkReportEntry, ...] = (
             "--out-dir artifacts/benchmarks/forward_td_mlp_sp1_python_smoke"
         ),
         fixture_path=(
-            "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/"
+            "artifacts/fixtures/forward_td_mlp/"
             "forward_td_mlp_batch_size_1.json"
         ),
         expected_output_path="artifacts/benchmarks/forward_td_mlp_sp1_python_smoke/summary.json",
@@ -75,7 +75,7 @@ BENCHMARK_REPORT_ENTRIES: tuple[BenchmarkReportEntry, ...] = (
             "--out-dir artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke"
         ),
         fixture_path=(
-            "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/"
+            "artifacts/fixtures/one_step_sgd_tiny/"
             "one_step_sgd_tiny_valid.json"
         ),
         expected_output_path="artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke/summary.json",
@@ -86,7 +86,7 @@ BENCHMARK_REPORT_ENTRIES: tuple[BenchmarkReportEntry, ...] = (
     BenchmarkReportEntry(
         entry_id="minibatch_td",
         command="python -m unittest tests.golden.test_minibatch_td_verifier",
-        fixture_path="artifacts/minibatch_td_from_dataset.json",
+        fixture_path="artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json",
         expected_output_path="artifacts/regression_summary.json",
         status_type="canonical",
         paper_relevance="Canonical minibatch TD verifier coverage through regression.",
@@ -95,7 +95,7 @@ BENCHMARK_REPORT_ENTRIES: tuple[BenchmarkReportEntry, ...] = (
     BenchmarkReportEntry(
         entry_id="one_step_update",
         command="python -m unittest tests.golden.test_one_step_update_verifier",
-        fixture_path="artifacts/one_step_update_artifact.json",
+        fixture_path="artifacts/fixtures/one_step_update/one_step_update_artifact.json",
         expected_output_path="artifacts/regression_summary.json",
         status_type="canonical",
         paper_relevance="Canonical one-step update verifier coverage through regression.",
@@ -104,7 +104,7 @@ BENCHMARK_REPORT_ENTRIES: tuple[BenchmarkReportEntry, ...] = (
     BenchmarkReportEntry(
         entry_id="short_trace",
         command="python -m unittest tests.golden.test_short_trace_verifier",
-        fixture_path="artifacts/short_trace_update_artifact.json",
+        fixture_path="artifacts/fixtures/short_trace/short_trace_update_artifact.json",
         expected_output_path="artifacts/regression_summary.json",
         status_type="canonical",
         paper_relevance="Canonical short-trace verifier coverage through regression.",
@@ -114,10 +114,7 @@ BENCHMARK_REPORT_ENTRIES: tuple[BenchmarkReportEntry, ...] = (
         entry_id="sp1_td_mvp_execute",
         command="cargo run --release -p td-mvp-host -- --execute",
         fixture_path="zk_backend/test_vectors/td_mvp_case_0.json",
-        expected_output_path=(
-            "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/"
-            "artifacts/reports/kaggle_sp1_validation_summary.json"
-        ),
+        expected_output_path="artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json",
         status_type="optional",
         paper_relevance="Kaggle SP1 execute validation for TD MVP canonical vector only.",
         required=False,
@@ -126,10 +123,7 @@ BENCHMARK_REPORT_ENTRIES: tuple[BenchmarkReportEntry, ...] = (
         entry_id="sp1_td_mvp_prove",
         command="cargo run --release -p td-mvp-host -- --prove",
         fixture_path="zk_backend/test_vectors/td_mvp_case_0.json",
-        expected_output_path=(
-            "kaggle_phase6_outputs/zk_offline_dqn_phase6b_archive/"
-            "artifacts/reports/kaggle_sp1_validation_summary.json"
-        ),
+        expected_output_path="artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json",
         status_type="proof_required",
         paper_relevance="Kaggle SP1 proof validation for TD MVP canonical vector only.",
         required=False,

@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument(
         "--artifact",
-        default="artifacts/minibatch_td_from_dataset.json",
+        default="artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json",
         help="Path to minibatch TD artifact.",
     )
 

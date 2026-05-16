@@ -9,10 +9,8 @@ is not edited by cleanup phases unless explicitly approved.
 - `architecture.md` - current code and workflow architecture.
 - `reproducibility.md` - regression, SP1 validation, and report regeneration.
 - `sp1_python_alignment.md` - Python/SP1 field and command alignment.
-- `dev_commands.md` - developer command reference.
-- `legacy_status.md` - active vs compatibility entrypoints.
-- `reporting_policy.md` - generated report commit policy.
-- `refactor_final_summary.md` - completed phases and remaining limitations.
+- `release_checklist.md` - final release and validation checklist.
+- `paper_alignment_audit.md` - paper claim support and risk notes.
 
 ## Scope
 
@@ -23,23 +21,31 @@ scoped to the TD MVP backend and
 
 ## Artifact Contracts
 
-- `artifact_schema.md` - schema notes for TD, one-step, and short-trace
+- `archive/internal_manifests/artifact_schema.md` - schema notes for TD,
+  one-step, and short-trace
   artifacts.
-- `one_step_field_classification.md` - older one-step field audit retained as
-  background.
+- `archive/internal_manifests/reporting_policy.md` - generated report commit
+  policy.
+- `archive/internal_manifests/legacy_usage_manifest.md` - active vs
+  compatibility entrypoints.
+- `archive/internal_manifests/dev_commands.md` - developer command reference.
 
 ## Backend And Threat Model
 
-- `zk_backend_mvp.md` - TD MVP statement and public/private field split.
-- `backend_selection_v0_12.md` - historical SP1 selection decision.
-- `backend_choice.md` - backend comparison notes and deferred alternatives.
-- `threat_model.md` - prover/verifier assumptions, non-goals, and boundaries.
+- `archive/internal_manifests/zk_backend_mvp.md` - TD MVP statement and
+  public/private field split.
+- `archive/internal_manifests/backend_selection_v0_12.md` - historical SP1
+  selection decision.
+- `archive/internal_manifests/backend_choice.md` - backend comparison notes and
+  deferred alternatives.
+- `archive/internal_manifests/threat_model.md` - prover/verifier assumptions,
+  non-goals, and boundaries.
 
 ## Migration Logs
 
-`refactor_phase*.md` files are internal migration logs. They are useful for
-auditing how the repository reached its current layout, but reviewer-facing
-workflows should start with the docs listed above.
+Internal refactor logs are archived under `docs/archive/refactor_history/`.
+They are useful for auditing how the repository reached its current layout, but
+reviewer-facing workflows should start with the docs listed above.
 
 ## Core Commands
 

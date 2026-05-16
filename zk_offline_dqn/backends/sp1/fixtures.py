@@ -33,7 +33,7 @@ KNOWN_SP1_FIXTURES: tuple[Sp1Fixture, ...] = (
     ),
     Sp1Fixture(
         path=Path(
-            "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/"
+            "artifacts/fixtures/forward_td_mlp/"
             "forward_td_mlp_batch_size_1.json"
         ),
         purpose=FORWARD_TD_MLP_PYTHON_SMOKE,
@@ -42,7 +42,7 @@ KNOWN_SP1_FIXTURES: tuple[Sp1Fixture, ...] = (
     ),
     Sp1Fixture(
         path=Path(
-            "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/"
+            "artifacts/fixtures/one_step_sgd_tiny/"
             "one_step_sgd_tiny_valid.json"
         ),
         purpose=ONE_STEP_SGD_TINY_PYTHON_SMOKE,

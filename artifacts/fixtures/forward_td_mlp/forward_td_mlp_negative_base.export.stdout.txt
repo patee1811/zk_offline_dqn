@@ -1,0 +1,8 @@
+wrote_test_vector = /kaggle/working/zk_offline_dqn/artifacts/fixtures/forward_td_mlp/forward_td_mlp_negative_base.json
+schema_version = forward_td_mlp_v1
+batch_size = 1
+network_layer_sizes = [4, 16, 16, 2]
+network_spec_hash = 0131e97e09367b80598558b6a101342f9204d826480f9d9c266e33b4cd71fdac
+online_model_commitment = ee57bfe691a1799eb9f49e1cc7a7577be3eeddb0070ef17196a6b3ca4e54112c
+target_model_commitment = 5783660949916829caa4dbe136a6910b1862e3f85579411172f438b27ee9a65b
+claimed_batch_loss_fp = 496

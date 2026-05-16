@@ -13,8 +13,8 @@ class DocsAndHygieneTests(unittest.TestCase):
             "README.md",
             "docs/architecture.md",
             "docs/reproducibility.md",
-            "docs/legacy_status.md",
-            "docs/reporting_policy.md",
+            "docs/archive/internal_manifests/legacy_status.md",
+            "docs/archive/internal_manifests/reporting_policy.md",
         ]:
             self.assertTrue((ROOT / relative).exists(), relative)
 

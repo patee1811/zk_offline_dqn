@@ -33,16 +33,16 @@ class ArtifactManifestTests(unittest.TestCase):
         canonical_paths = set(paths_by_classification(CANONICAL_FIXTURE))
         benchmark_paths = set(paths_by_classification(BENCHMARK_FIXTURE))
 
-        self.assertIn("artifacts/minibatch_td_from_dataset.json", canonical_paths)
-        self.assertIn("artifacts/one_step_update_artifact.json", canonical_paths)
-        self.assertIn("artifacts/short_trace_update_artifact.json", canonical_paths)
+        self.assertIn("artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json", canonical_paths)
+        self.assertIn("artifacts/fixtures/one_step_update/one_step_update_artifact.json", canonical_paths)
+        self.assertIn("artifacts/fixtures/short_trace/short_trace_update_artifact.json", canonical_paths)
         self.assertIn("zk_backend/test_vectors/td_mvp_case_0.json", canonical_paths)
         self.assertIn(
-            "artifacts/benchmarks/forward_td_mlp_sp1/fixtures/forward_td_mlp_batch_size_1.json",
+            "artifacts/fixtures/forward_td_mlp/forward_td_mlp_batch_size_1.json",
             benchmark_paths,
         )
         self.assertIn(
-            "artifacts/benchmarks/one_step_sgd_tiny_sp1/fixtures/one_step_sgd_tiny_valid.json",
+            "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json",
             benchmark_paths,
         )
 
