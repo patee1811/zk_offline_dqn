@@ -12,18 +12,17 @@ one-step SGD update extension.
 
 The implemented artifact pipeline commits replay transitions with SHA-256
 Merkle roots, exports canonical fixed-point witnesses, checks adversarially
-tampered fixtures with a Python semantic oracle, and proves selected relations
-in an SP1 zkVM backend. The benchmark aggregate contains 29
-benchmark rows and 21 tamper rows. SP1 proofs are recorded for CartPole
-distinct TD batch sizes 1, 2, 4, and 8, with proving times from 97.96 s to
-202.92 s, verification times from 0.125 s to 0.127 s, and proof sizes from
-2.78 MB to 2.81 MB. Model-grounded forward-TD MLP proofs are also recorded for
-CartPole with a 4-16-16-2 network and MountainCar with a 2-8-8-3 network,
-taking 148.42 s and 107.93 s to prove, respectively. Finally, a tiny CartPole
-one-step SGD proof for a 4-8-2 network takes 115.49 s to prove.
+tampered fixtures with a Python semantic oracle, and validates one SP1 zkVM
+proof path for the canonical TD MVP vector. The generated report aggregate
+contains 29 benchmark rows and 21 tamper rows, with provenance in
+\path{artifacts/reports/final_ndss/paper_numbers.json}. The supported SP1
+proof claim is deliberately narrow: on Kaggle, the TD MVP SP1 backend proves
+and verifies \path{zk_backend/test_vectors/td_mvp_case_0.json}, with
+167.726006 s guest proving time, 0.190326 s verification time, 2,783,869 proof
+bytes, and 385,048 cycles.
 
 The contribution is therefore a reproducible security/systems artifact rather
 than an ML performance claim. It formalizes which public claims and private
 witnesses are checked at each layer, identifies the exact backend used by each
 relation, and packages reviewer-facing reproduction commands for fast Python
-smoke tests and full SP1 runs on Linux, WSL2 Ubuntu, or Kaggle.
+smoke tests and opt-in TD MVP SP1 validation on Linux, WSL2 Ubuntu, or Kaggle.

@@ -6,8 +6,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from zk_offline_dqn.merkle import build_merkle_path, verify_merkle_path
 
-MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
-LEAF_HASHES_PATH = "artifacts/cartpole_dqn_eps010_leaf_hashes.json"
+MERKLE_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json"
+LEAF_HASHES_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_leaf_hashes.json"
 TARGET_INDEX = 0
 
 

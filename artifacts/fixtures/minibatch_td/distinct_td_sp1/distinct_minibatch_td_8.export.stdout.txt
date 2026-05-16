@@ -1,0 +1,23 @@
+=== MINIBATCH TD ARTIFACT EXPORTED FROM DATASET ===
+output_path = /kaggle/working/zk_offline_dqn/artifacts/fixtures/minibatch_td/distinct_td_sp1/distinct_minibatch_td_8.json
+data_path = /kaggle/working/zk_offline_dqn/data/cartpole_dqn_eps010_transitions.pkl
+merkle_path = /kaggle/working/zk_offline_dqn/artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json
+dataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4
+checkpoint_path = /kaggle/working/zk_offline_dqn/models/offline_dqn_with_target_seed42_best.pt
+checkpoint_sha256 = 6f0fea11038d5f9bd69f48d8a4ee46523ce5d9772de6babf3570144576a79392
+checkpoint_commitment_type = sha256_file_and_canonical_state_dicts
+online_state_dict_key = model_state_dict
+online_state_dict_sha256 = 3adf014de9e0d2ce1661a798fff2cd837adb4d2612e7469b730ed09681acd72a
+target_state_dict_sha256 = 327fb49b4dfdad6ff525d0fcc10e047cf88bf988002b6aba0aca2d3cde2a01f5
+batch_size = 8
+batch_loss_fp = 99
+
+=== PER-ITEM SUMMARY ===
+item[0] index=0 next_action_online=1 q_online_fp=1361 q_target_max_fp=769 target_fp=1761 loss_fp=80 path_length=16
+item[1] index=1 next_action_online=1 q_online_fp=1237 q_target_max_fp=824 target_fp=1815 loss_fp=167 path_length=16
+item[2] index=2 next_action_online=1 q_online_fp=1397 q_target_max_fp=770 target_fp=1762 loss_fp=66 path_length=16
+item[3] index=3 next_action_online=0 q_online_fp=1314 q_target_max_fp=802 target_fp=1793 loss_fp=114 path_length=16
+item[4] index=4 next_action_online=1 q_online_fp=1383 q_target_max_fp=770 target_fp=1762 loss_fp=71 path_length=16
+item[5] index=5 next_action_online=0 q_online_fp=1314 q_target_max_fp=805 target_fp=1796 loss_fp=116 path_length=16
+item[6] index=6 next_action_online=1 q_online_fp=1388 q_target_max_fp=770 target_fp=1762 loss_fp=69 path_length=16
+item[7] index=7 next_action_online=0 q_online_fp=1315 q_target_max_fp=806 target_fp=1797 loss_fp=116 path_length=16

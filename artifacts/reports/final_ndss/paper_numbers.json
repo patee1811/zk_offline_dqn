@@ -1,0 +1,235 @@
+{
+  "artifact_id": "phase7_paper_numbers_v1",
+  "final_ndss_existing": {
+    "all_components_passed": {
+      "provenance": {
+        "field": "all_components_passed",
+        "source_path": "artifacts/benchmarks/final_ndss/summary.json"
+      },
+      "value": true
+    },
+    "artifact_id": {
+      "provenance": {
+        "field": "artifact_id",
+        "source_path": "artifacts/benchmarks/final_ndss/summary.json"
+      },
+      "value": "achieved_relation_benchmark_v1"
+    },
+    "benchmark_rows": {
+      "provenance": {
+        "field": "benchmark_rows",
+        "source_path": "artifacts/benchmarks/final_ndss/summary.json"
+      },
+      "value": 29
+    },
+    "component_count": {
+      "provenance": {
+        "field": "components",
+        "source_path": "artifacts/benchmarks/final_ndss/summary.json"
+      },
+      "value": 4
+    },
+    "status": "available",
+    "tamper_rows": {
+      "provenance": {
+        "field": "tamper_rows",
+        "source_path": "artifacts/benchmarks/final_ndss/summary.json"
+      },
+      "value": 21
+    }
+  },
+  "regression": {
+    "all_passed": {
+      "provenance": {
+        "field": "all_passed",
+        "source_path": "artifacts/regression_summary.json"
+      },
+      "value": true
+    },
+    "num_checks": {
+      "provenance": {
+        "field": "num_checks",
+        "source_path": "artifacts/regression_summary.json"
+      },
+      "value": 15
+    },
+    "num_failed": {
+      "provenance": {
+        "field": "num_failed",
+        "source_path": "artifacts/regression_summary.json"
+      },
+      "value": 0
+    },
+    "num_passed": {
+      "provenance": {
+        "field": "num_passed",
+        "source_path": "artifacts/regression_summary.json"
+      },
+      "value": 15
+    },
+    "status": "available"
+  },
+  "scope": {
+    "excluded_claims": [
+      "full DQN training proof",
+      "proof coverage for all relations",
+      "recursive proof aggregation",
+      "new benchmark methodology"
+    ],
+    "project": "relation-level verification of selected offline DQN artifacts",
+    "sp1_proof_claim": "SP1 proof generation and verification for the TD MVP backend on zk_backend/test_vectors/td_mvp_case_0.json only"
+  },
+  "sp1_td_mvp_proof": {
+    "cargo_available_after": {
+      "provenance": {
+        "field": "cargo_available_after",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": true
+    },
+    "cargo_prove_version": {
+      "provenance": {
+        "field": "cargo_prove_version",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_setup_summary.json"
+      },
+      "value": "cargo-prove sp1 (d454975 2026-04-11T01:54:01.305546215Z)"
+    },
+    "cargo_test_status": {
+      "provenance": {
+        "field": "cargo_test_status",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "passed"
+    },
+    "claim_scope": "td_mvp_canonical_vector_only",
+    "cycle_count": {
+      "provenance": {
+        "field": "commands.sp1_execute.stdout_tail.cycle_count",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": 385048
+    },
+    "execute_command": {
+      "provenance": {
+        "field": "commands.sp1_execute.command",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "cargo run --release -p td-mvp-host -- --execute"
+    },
+    "execute_duration_sec": {
+      "provenance": {
+        "field": "commands.sp1_execute.duration_sec",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": 995.1853
+    },
+    "execute_status": {
+      "provenance": {
+        "field": "sp1_execute_status",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "passed"
+    },
+    "execution_ok": {
+      "provenance": {
+        "field": "commands.sp1_execute.stdout_tail.execution_ok",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": true
+    },
+    "git_branch": {
+      "provenance": {
+        "field": "git_branch",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "cleanup-project-structure"
+    },
+    "git_commit": {
+      "provenance": {
+        "field": "git_commit",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "26122619ddc3d25c1c03bb4a45f34db4ca923d00"
+    },
+    "kernel": {
+      "provenance": {
+        "field": "kernel",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "nypate9999/zkp-drl"
+    },
+    "proof_artifact_path": {
+      "provenance": {
+        "field": "commands.sp1_prove.stdout_tail",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": null
+    },
+    "proof_generated": {
+      "provenance": {
+        "field": "commands.sp1_prove.stdout_tail.proof_generated",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": true
+    },
+    "proof_size_bytes": {
+      "provenance": {
+        "field": "commands.sp1_prove.stdout_tail.proof_size_bytes",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": 2783869
+    },
+    "proof_verified": {
+      "provenance": {
+        "field": "commands.sp1_prove.stdout_tail.proof_verified",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": true
+    },
+    "prove_command": {
+      "provenance": {
+        "field": "commands.sp1_prove.command",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "cargo run --release -p td-mvp-host -- --prove"
+    },
+    "prove_duration_sec": {
+      "provenance": {
+        "field": "commands.sp1_prove.duration_sec",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": 351.4856
+    },
+    "prove_status": {
+      "provenance": {
+        "field": "sp1_prove_status",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "passed"
+    },
+    "proving_time_sec": {
+      "provenance": {
+        "field": "commands.sp1_prove.stdout_tail.proving_time_sec",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": 167.726006
+    },
+    "setup_summary_path": "artifacts/reports/provenance/sp1/kaggle_sp1_setup_summary.json",
+    "source_mode": {
+      "provenance": {
+        "field": "source_mode",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": "archive"
+    },
+    "status": "validated",
+    "validation_summary_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json",
+    "verification_time_sec": {
+      "provenance": {
+        "field": "commands.sp1_prove.stdout_tail.verification_time_sec",
+        "source_path": "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
+      },
+      "value": 0.190326
+    }
+  }
+}

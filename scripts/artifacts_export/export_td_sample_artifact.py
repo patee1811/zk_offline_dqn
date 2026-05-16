@@ -15,9 +15,9 @@ from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
 )
 
-MEMBERSHIP_ARTIFACT_PATH = "artifacts/sample_transition_membership.json"
+MEMBERSHIP_ARTIFACT_PATH = "artifacts/fixtures/membership/sample_transition_membership.json"
 CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
-OUTPUT_PATH = "artifacts/sample_td_artifact.json"
+OUTPUT_PATH = "artifacts/fixtures/td_mvp/sample_td_artifact.json"
 
 
 def main():

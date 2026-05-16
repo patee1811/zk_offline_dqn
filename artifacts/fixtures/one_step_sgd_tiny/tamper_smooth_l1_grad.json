@@ -1,0 +1,804 @@
+{
+  "schema_version": "one_step_sgd_tiny_v1",
+  "source": {
+    "artifact_path": "/kaggle/working/zk_offline_dqn/artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json",
+    "output_path": "/kaggle/working/zk_offline_dqn/artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json",
+    "construction": "single committed replay transition with synthetic 4-8-2 fixed-point MLP SGD update"
+  },
+  "statement": {
+    "name": "one_step_sgd_tiny_v1",
+    "description": "Micro one-step SGD relation over a one-hidden-layer fixed-point Q-network. Includes committed transition membership, forward-TD, SmoothL1 derivative, backprop gradients, SGD deltas, and pre/post model commitments."
+  },
+  "public": {
+    "dataset_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+    "fp_scale": 1000,
+    "gamma_fp": 990,
+    "loss_type": "smooth_l1",
+    "optimizer_type": "sgd",
+    "learning_rate_fp": 100,
+    "batch_size": 1,
+    "batch_mode": "distinct",
+    "leaf_indices": [
+      0
+    ],
+    "network_spec_hash": "103c527f4e2ff39d2eecb71522a1b7e4e85e20c2dfdf3e985f5723c7fc5a28e6",
+    "network_layer_sizes": [
+      4,
+      8,
+      2
+    ],
+    "pre_model_commitment": "2f630e5b3dac38f89d32ad2a55ab2d42ee5901347c68b4678f4d7555eceba800",
+    "post_model_commitment": "bbf63fa4fde94f33b52daaf44622931963e0bbd8464bd125d70736d1f0afdb65",
+    "target_model_commitment": "3e8c6edf6ed4b2a4857c385cdfc609675c5f2a18f7dfc2f785ef25c058e81240",
+    "claimed_batch_loss_fp": 556
+  },
+  "private": {
+    "online_model": {
+      "format": "quantized_mlp_v1",
+      "layer_sizes": [
+        4,
+        8,
+        2
+      ],
+      "fp_scale": 1000,
+      "layers": [
+        {
+          "weight": [
+            [
+              175,
+              -145,
+              46,
+              -113
+            ],
+            [
+              169,
+              -134,
+              167,
+              0
+            ],
+            [
+              116,
+              -15,
+              93,
+              -92
+            ],
+            [
+              -61,
+              -74,
+              39,
+              184
+            ],
+            [
+              -150,
+              -6,
+              196,
+              12
+            ],
+            [
+              -169,
+              -104,
+              164,
+              -168
+            ],
+            [
+              -7,
+              62,
+              -176,
+              -133
+            ],
+            [
+              -41,
+              -57,
+              75,
+              35
+            ]
+          ],
+          "bias": [
+            -23,
+            49,
+            13,
+            49,
+            39,
+            31,
+            2,
+            37
+          ]
+        },
+        {
+          "weight": [
+            [
+              141,
+              -60,
+              86,
+              199,
+              -48,
+              25,
+              -50,
+              30
+            ],
+            [
+              -10,
+              -149,
+              -58,
+              -120,
+              112,
+              -173,
+              64,
+              -145
+            ]
+          ],
+          "bias": [
+            -29,
+            -19
+          ]
+        }
+      ]
+    },
+    "target_model": {
+      "format": "quantized_mlp_v1",
+      "layer_sizes": [
+        4,
+        8,
+        2
+      ],
+      "fp_scale": 1000,
+      "layers": [
+        {
+          "weight": [
+            [
+              13,
+              -95,
+              -197,
+              -62
+            ],
+            [
+              -94,
+              -40,
+              -47,
+              -50
+            ],
+            [
+              82,
+              110,
+              158,
+              -126
+            ],
+            [
+              51,
+              188,
+              -165,
+              161
+            ],
+            [
+              -92,
+              -185,
+              119,
+              129
+            ],
+            [
+              -130,
+              -14,
+              52,
+              -143
+            ],
+            [
+              -43,
+              -62,
+              161,
+              -160
+            ],
+            [
+              -151,
+              -60,
+              -78,
+              -2
+            ]
+          ],
+          "bias": [
+            37,
+            -3,
+            28,
+            38,
+            -36,
+            -13,
+            17,
+            -39
+          ]
+        },
+        {
+          "weight": [
+            [
+              60,
+              164,
+              -189,
+              15,
+              -192,
+              42,
+              -147,
+              168
+            ],
+            [
+              80,
+              -131,
+              198,
+              -24,
+              -80,
+              -173,
+              -40,
+              83
+            ]
+          ],
+          "bias": [
+            38,
+            14
+          ]
+        }
+      ]
+    },
+    "post_online_model": {
+      "format": "quantized_mlp_v1",
+      "layer_sizes": [
+        4,
+        8,
+        2
+      ],
+      "fp_scale": 1000,
+      "layers": [
+        {
+          "weight": [
+            [
+              175,
+              -145,
+              46,
+              -113
+            ],
+            [
+              169,
+              -134,
+              167,
+              0
+            ],
+            [
+              116,
+              -15,
+              93,
+              -92
+            ],
+            [
+              -61,
+              -74,
+              39,
+              184
+            ],
+            [
+              -150,
+              -6,
+              196,
+              12
+            ],
+            [
+              -169,
+              -104,
+              164,
+              -168
+            ],
+            [
+              -7,
+              62,
+              -176,
+              -133
+            ],
+            [
+              -41,
+              -57,
+              75,
+              35
+            ]
+          ],
+          "bias": [
+            -23,
+            43,
+            21,
+            68,
+            35,
+            33,
+            -3,
+            40
+          ]
+        },
+        {
+          "weight": [
+            [
+              141,
+              -55,
+              87,
+              203,
+              -45,
+              28,
+              -50,
+              33
+            ],
+            [
+              -10,
+              -149,
+              -58,
+              -120,
+              112,
+              -173,
+              64,
+              -145
+            ]
+          ],
+          "bias": [
+            71,
+            -19
+          ]
+        }
+      ]
+    },
+    "items": [
+      {
+        "index": 0,
+        "transition": {
+          "obs": [
+            0.018235186114907265,
+            -0.044617898762226105,
+            -0.027964012697339058,
+            -0.031562820076942444
+          ],
+          "action": 0,
+          "reward": 1.0,
+          "next_obs": [
+            0.01734282821416855,
+            -0.23932790756225586,
+            -0.028595268726348877,
+            0.25216764211654663
+          ],
+          "done": 0
+        },
+        "leaf": [
+          18,
+          -45,
+          -28,
+          -32,
+          0,
+          1000,
+          17,
+          -239,
+          -29,
+          252,
+          0
+        ],
+        "leaf_hash": "280f8d10abd9111a2628b01fac3c378418015565402afd151f71632c5c3433d0",
+        "merkle_path": [
+          {
+            "level": 0,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "3af0ee8ec4f10da877c8d49d7b0b89d6fda8789e664dd3b44282b704841ccb03",
+            "current_is_left": true
+          },
+          {
+            "level": 1,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "b8a78d24c075bf55bb946cd6e7b4812fe83b150bd405095bc1ec32ba8a6b6479",
+            "current_is_left": true
+          },
+          {
+            "level": 2,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "f99a6ddcde9c8822544663c56e4b10212dcb241c40a526212d1905da353fa30e",
+            "current_is_left": true
+          },
+          {
+            "level": 3,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "d7a7d50e48b56b2e49cc25b24d94504b1ba53f5c6a12f2283c736ab7ea0a3e2a",
+            "current_is_left": true
+          },
+          {
+            "level": 4,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "9811ca4a05703df5964b8eb8f664ff3fb5465cb659e3c2d2103347e37ea94a08",
+            "current_is_left": true
+          },
+          {
+            "level": 5,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "883ec894d356530b2b2e416379f68811f79ffdb9a215e8ae65de5979574f1c26",
+            "current_is_left": true
+          },
+          {
+            "level": 6,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "7c067fcadb04e941e1a83529bb1ce262c15e042d66b094a38813691fa4ad9c24",
+            "current_is_left": true
+          },
+          {
+            "level": 7,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "b4b09b85fb8fa5c80b9b11dc6adcc86650bfeb20da70fa8ade95b551f9f45223",
+            "current_is_left": true
+          },
+          {
+            "level": 8,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "7c07c3873a7cfc06a2ff60f16ab5e3eaf5904c4866b31d51dc4c34600de559eb",
+            "current_is_left": true
+          },
+          {
+            "level": 9,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a6a9e6e8687cc52ea67c3e2848de4061b6278bd1d34d42d39587a44a292b3bbc",
+            "current_is_left": true
+          },
+          {
+            "level": 10,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "091908af09d677261831aa7636cd6749f21fbb3d45cf23a07e81ee280116bb08",
+            "current_is_left": true
+          },
+          {
+            "level": 11,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "41c3d942ad2c9a46984c8f667ac8e65f3718092f0b25e0f359dfbc3072bd45d1",
+            "current_is_left": true
+          },
+          {
+            "level": 12,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a7bce1c61f5e1aa4ca7637b64a88700a1f0d40963754e296b09eec12fe7fffb5",
+            "current_is_left": true
+          },
+          {
+            "level": 13,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a28998671e11402f496eab594da26260c1b25fc6f0129e8e0439b406adc07d61",
+            "current_is_left": true
+          },
+          {
+            "level": 14,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "154554c11348c80803d4f427183eaf2c0a9c4243152cb38ceadb349436766318",
+            "current_is_left": true
+          },
+          {
+            "level": 15,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "92b8d2de423a2dbc3ee7ad6922a2a84bddc12cbd361aea97acc7a4790732eb41",
+            "current_is_left": true
+          }
+        ],
+        "forward_witness": {
+          "online_obs": {
+            "pre_activations": [
+              [
+                -12,
+                54,
+                15,
+                45,
+                32,
+                33,
+                8,
+                36
+              ]
+            ],
+            "relu_masks": [
+              [
+                0,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputs": [
+              -23,
+              -39
+            ]
+          },
+          "online_next": {
+            "pre_activations": [
+              [
+                -16,
+                79,
+                -8,
+                110,
+                36,
+                7,
+                -40,
+                56
+              ]
+            ],
+            "relu_masks": [
+              [
+                0,
+                1,
+                0,
+                1,
+                1,
+                1,
+                0,
+                1
+              ]
+            ],
+            "outputs": [
+              -12,
+              -48
+            ]
+          },
+          "target_next": {
+            "pre_activations": [
+              [
+                49,
+                -6,
+                -32,
+                38,
+                36,
+                -49,
+                -13,
+                -25
+              ]
+            ],
+            "relu_masks": [
+              [
+                1,
+                0,
+                0,
+                1,
+                1,
+                0,
+                0,
+                0
+              ]
+            ],
+            "outputs": [
+              34,
+              15
+            ]
+          },
+          "q_online_action_fp": -23,
+          "next_action_online": 0,
+          "q_target_max_fp": 34,
+          "target_fp": 1033,
+          "td_error_fp": -1056,
+          "loss_fp": 556
+        },
+        "td_witness": {
+          "q_online_fp": -23,
+          "next_action_online": 0,
+          "q_target_max_fp": 34,
+          "target_fp": 1033,
+          "td_error_fp": -1056,
+          "loss_fp": 556
+        }
+      }
+    ],
+    "update_witness": {
+      "batch_loss_fp": 556,
+      "smooth_l1_grad_fp": -999,
+      "gradient_tensors": {
+        "layers": [
+          {
+            "weight": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                -2,
+                -1,
+                -1
+              ],
+              [
+                -1,
+                3,
+                2,
+                2
+              ],
+              [
+                -3,
+                8,
+                5,
+                6
+              ],
+              [
+                0,
+                -2,
+                -1,
+                -1
+              ],
+              [
+                0,
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                -2,
+                -1,
+                -1
+              ],
+              [
+                0,
+                1,
+                0,
+                0
+              ]
+            ],
+            "bias": [
+              0,
+              60,
+              -86,
+              -199,
+              48,
+              -25,
+              50,
+              -30
+            ]
+          },
+          {
+            "weight": [
+              [
+                0,
+                -54,
+                -15,
+                -45,
+                -32,
+                -33,
+                -8,
+                -36
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "bias": [
+              -1000,
+              0
+            ]
+          }
+        ]
+      },
+      "delta_tensors": {
+        "layers": [
+          {
+            "weight": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "bias": [
+              0,
+              -6,
+              8,
+              19,
+              -4,
+              2,
+              -5,
+              3
+            ]
+          },
+          {
+            "weight": [
+              [
+                0,
+                5,
+                1,
+                4,
+                3,
+                3,
+                0,
+                3
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "bias": [
+              100,
+              0
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "relation": {
+    "checks": [
+      "forward_td_mlp_v1 holds for the single committed transition",
+      "SmoothL1 derivative branch is correct",
+      "one-hidden-layer backprop gradients are correct",
+      "delta == -learning_rate * gradient for every parameter",
+      "post_model == pre_model + delta for every parameter",
+      "post_model hashes to public post_model_commitment"
+    ],
+    "non_goals": [
+      "does not prove Adam",
+      "does not prove target synchronization",
+      "does not prove a long training trace",
+      "does not prove full DQN training"
+    ]
+  }
+}

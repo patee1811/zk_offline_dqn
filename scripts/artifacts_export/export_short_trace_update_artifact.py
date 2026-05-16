@@ -81,7 +81,7 @@ def parse_args():
     parser.add_argument(
         "--work-dir",
         type=str,
-        default="artifacts/short_trace_work",
+        default="artifacts/fixtures/short_trace/short_trace_work",
         help="Directory for intermediate per-step artifacts/checkpoints.",
     )
     parser.add_argument(

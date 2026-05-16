@@ -1,27 +1,23 @@
 The backend lives under \path{zk_backend/td_mvp/sp1/} and follows the standard
 host/guest/shared split. The shared crate defines typed public inputs, private
-witnesses, Merkle steps, model layers, fixed-point helpers, SHA-256 hashing, TD
-arithmetic, MLP forward checks, and update checks. The guest reads a typed input
+witnesses, Merkle steps, fixed-point helpers, SHA-256 hashing, and TD
+arithmetic for the backend-validated TD MVP path. The guest reads a typed input
 and calls the shared verifier. The host loads JSON fixtures, selects execution
 or proof mode, optionally disables host prechecks for tamper cases, verifies
 proofs for accepted cases, and records metrics.
 
-The distinct TD relation proves membership and arithmetic over ordered replay
-minibatches. For each item, the guest recomputes the leaf, leaf hash, Merkle
-root, terminal branch, target, TD error, and SmoothL1 loss. It rejects duplicate
-indices when the public batch mode is distinct, rejects reordered items against
-the public leaf-index list, and checks the public integer batch-average loss.
+The validated SP1 proof claim is scoped to the canonical TD MVP vector
+\path{zk_backend/test_vectors/td_mvp_case_0.json}. For that vector, the guest
+recomputes the leaf, leaf hash, Merkle root, terminal branch, target, TD error,
+and SmoothL1 loss, and the host records proof generation and verification
+status.
 
-The forward-TD MLP relation adds model-grounded Q-values. The witness contains
-quantized online and target model weights plus intermediate activations and
-ReLU masks. The relation hashes model weights to public commitments, evaluates
-the online network on $s$ and $s'$, evaluates the target network on $s'$,
-selects the online argmax action, reads the corresponding target value, and
-then runs the same Bellman and SmoothL1 checks as TD.
+The Python artifact layer also contains distinct minibatch TD, forward-TD MLP,
+and tiny one-step SGD relations. Those layers are checked by deterministic
+Python oracles and represented in report matrices, but they are not claimed
+here as validated SP1 proofs unless a separate backend validation summary
+records proof generation and verification for the corresponding fixture.
 
-The tiny one-step SGD relation checks a one-item, small-network SGD update with
-public pre/post model commitments and private gradient/delta tensors. The SP1
-guest checks the forward-TD subrelation, the SmoothL1 derivative branch,
-gradient and delta tensors, the fixed-point SGD update equation, and the post
-model commitment. The current proof is intentionally micro-scale: batch 1,
-network 4-8-2, SGD only, and no long trace or Adam state.
+The current proof is intentionally micro-scale and relation-level. It does not
+cover a long training trace, target-network synchronization, Adam state,
+sampling over a full run, or model selection.

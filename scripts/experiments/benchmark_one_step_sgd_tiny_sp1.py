@@ -13,7 +13,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_INPUT = ROOT / "artifacts/minibatch_td_from_dataset.json"
+DEFAULT_INPUT = ROOT / "artifacts/fixtures/minibatch_td/minibatch_td_from_dataset.json"
 DEFAULT_OUT_DIR = ROOT / "artifacts/benchmarks/one_step_sgd_tiny_sp1"
 EXPORTER = ROOT / "scripts/artifacts_export/export_one_step_sgd_tiny_test_vector.py"
 PYTHON_VERIFIER = ROOT / "scripts/artifacts_export/verify_one_step_sgd_tiny_test_vector.py"

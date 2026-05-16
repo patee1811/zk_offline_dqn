@@ -15,9 +15,9 @@ from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
 )
 
-TEMPLATE_ARTIFACT_PATH = "artifacts/sample_minibatch_td_artifact.json"
+TEMPLATE_ARTIFACT_PATH = "artifacts/fixtures/minibatch_td/sample_minibatch_td_artifact.json"
 CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
-OUTPUT_PATH = "artifacts/sample_minibatch_td_artifact.json"
+OUTPUT_PATH = "artifacts/fixtures/minibatch_td/sample_minibatch_td_artifact.json"
 
 
 def main():

@@ -10,9 +10,9 @@ from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
 DATASET_PATH = "data/cartpole_dqn_eps010_transitions.pkl"
-LEAF_HASHES_PATH = "artifacts/cartpole_dqn_eps010_leaf_hashes.json"
-MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
-OUTPUT_PATH = "artifacts/sample_transition_membership.json"
+LEAF_HASHES_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_leaf_hashes.json"
+MERKLE_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json"
+OUTPUT_PATH = "artifacts/fixtures/membership/sample_transition_membership.json"
 
 TARGET_INDEX = 0
 

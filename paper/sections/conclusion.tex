@@ -2,16 +2,17 @@
 
 This paper presents a layered artifact system for ZK-verifiable offline DQN
 computation over committed replay data. The central claim is deliberately
-bounded: the system proves selected relation layers, not a full training trace.
-The strongest current SP1 result is distinct minibatch TD over CartPole replay
-data, including membership, ordered distinct indices, Bellman/TD arithmetic,
-SmoothL1 loss, and batch-average loss. The artifact also records a
-CartPole forward-TD MLP SP1 proof, a second-environment MountainCar forward-TD
-MLP SP1 proof, and a micro-scale CartPole one-step SGD SP1 proof.
+bounded: the system checks selected relation layers, not a full training trace.
+The validated SP1 result is the TD MVP backend on the canonical test vector,
+including membership, Bellman/TD arithmetic, SmoothL1 loss, and public
+target/loss claims. The artifact also records Python semantic-oracle coverage
+for distinct minibatch TD, model-grounded forward-TD MLP, and a micro-scale
+CartPole one-step SGD relation.
 
 The aggregate package hardens the result into reviewer-facing artifacts:
 normalized benchmark and tamper matrices, machine-readable summaries, and
-reproduction commands for both fast Python smoke checks and full SP1 proof runs.
+reproduction commands for both fast Python smoke checks and scoped TD MVP SP1
+validation.
 This makes every reported number traceable to a JSON or CSV source.
 
 The next technical step is clear: scale the current one-step update proof into

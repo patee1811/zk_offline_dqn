@@ -1,0 +1,372 @@
+{
+  "schema_version": "td_mvp_batch_test_vector_v1",
+  "source": {
+    "artifact_path": "/kaggle/working/zk_offline_dqn/artifacts/fixtures/minibatch_td/distinct_td_sp1/distinct_minibatch_td_8.json",
+    "artifact_schema_version": "minibatch_td_v1",
+    "construction": "distinct committed replay transitions from minibatch_td_v1",
+    "batch_size": 2
+  },
+  "statement": {
+    "name": "td_batch_distinct_v1",
+    "description": "Distinct-replay minibatch TD vector for multiple committed transition memberships, per-sample Bellman/SmoothL1 checks, ordered public leaf indices, and integer average batch loss."
+  },
+  "public": {
+    "dataset_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+    "fp_scale": 1000,
+    "gamma_fp": 990,
+    "loss_type": "smooth_l1",
+    "batch_size": 2,
+    "batch_mode": "distinct",
+    "leaf_indices": [
+      0,
+      1
+    ],
+    "claimed_batch_loss_fp": 123,
+    "checkpoint_commitments": {
+      "checkpoint_sha256": "6f0fea11038d5f9bd69f48d8a4ee46523ce5d9772de6babf3570144576a79392",
+      "checkpoint_commitment_type": "sha256_file_and_canonical_state_dicts",
+      "online_state_dict_key": "model_state_dict",
+      "online_state_dict_sha256": "3adf014de9e0d2ce1661a798fff2cd837adb4d2612e7469b730ed09681acd72a",
+      "target_state_dict_sha256": "327fb49b4dfdad6ff525d0fcc10e047cf88bf988002b6aba0aca2d3cde2a01f5"
+    }
+  },
+  "private": {
+    "items": [
+      {
+        "index": 1,
+        "transition": {
+          "obs": [
+            0.018235186114907265,
+            -0.044617898762226105,
+            -0.027964012697339058,
+            -0.031562820076942444
+          ],
+          "action": 0,
+          "reward": 1.0,
+          "next_obs": [
+            0.01734282821416855,
+            -0.23932790756225586,
+            -0.028595268726348877,
+            0.25216764211654663
+          ],
+          "done": 0
+        },
+        "leaf": [
+          18,
+          -45,
+          -28,
+          -32,
+          0,
+          1000,
+          17,
+          -239,
+          -29,
+          252,
+          0
+        ],
+        "leaf_hash": "280f8d10abd9111a2628b01fac3c378418015565402afd151f71632c5c3433d0",
+        "merkle_path": [
+          {
+            "level": 0,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "3af0ee8ec4f10da877c8d49d7b0b89d6fda8789e664dd3b44282b704841ccb03",
+            "current_is_left": true
+          },
+          {
+            "level": 1,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "b8a78d24c075bf55bb946cd6e7b4812fe83b150bd405095bc1ec32ba8a6b6479",
+            "current_is_left": true
+          },
+          {
+            "level": 2,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "f99a6ddcde9c8822544663c56e4b10212dcb241c40a526212d1905da353fa30e",
+            "current_is_left": true
+          },
+          {
+            "level": 3,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "d7a7d50e48b56b2e49cc25b24d94504b1ba53f5c6a12f2283c736ab7ea0a3e2a",
+            "current_is_left": true
+          },
+          {
+            "level": 4,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "9811ca4a05703df5964b8eb8f664ff3fb5465cb659e3c2d2103347e37ea94a08",
+            "current_is_left": true
+          },
+          {
+            "level": 5,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "883ec894d356530b2b2e416379f68811f79ffdb9a215e8ae65de5979574f1c26",
+            "current_is_left": true
+          },
+          {
+            "level": 6,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "7c067fcadb04e941e1a83529bb1ce262c15e042d66b094a38813691fa4ad9c24",
+            "current_is_left": true
+          },
+          {
+            "level": 7,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "b4b09b85fb8fa5c80b9b11dc6adcc86650bfeb20da70fa8ade95b551f9f45223",
+            "current_is_left": true
+          },
+          {
+            "level": 8,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "7c07c3873a7cfc06a2ff60f16ab5e3eaf5904c4866b31d51dc4c34600de559eb",
+            "current_is_left": true
+          },
+          {
+            "level": 9,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a6a9e6e8687cc52ea67c3e2848de4061b6278bd1d34d42d39587a44a292b3bbc",
+            "current_is_left": true
+          },
+          {
+            "level": 10,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "091908af09d677261831aa7636cd6749f21fbb3d45cf23a07e81ee280116bb08",
+            "current_is_left": true
+          },
+          {
+            "level": 11,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "41c3d942ad2c9a46984c8f667ac8e65f3718092f0b25e0f359dfbc3072bd45d1",
+            "current_is_left": true
+          },
+          {
+            "level": 12,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a7bce1c61f5e1aa4ca7637b64a88700a1f0d40963754e296b09eec12fe7fffb5",
+            "current_is_left": true
+          },
+          {
+            "level": 13,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a28998671e11402f496eab594da26260c1b25fc6f0129e8e0439b406adc07d61",
+            "current_is_left": true
+          },
+          {
+            "level": 14,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "154554c11348c80803d4f427183eaf2c0a9c4243152cb38ceadb349436766318",
+            "current_is_left": true
+          },
+          {
+            "level": 15,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "92b8d2de423a2dbc3ee7ad6922a2a84bddc12cbd361aea97acc7a4790732eb41",
+            "current_is_left": true
+          }
+        ],
+        "td_witness": {
+          "q_online_action_fp": 1361,
+          "next_action_online": 1,
+          "q_target_max_fp": 769,
+          "target_fp": 1761,
+          "td_error_fp": -400,
+          "loss_fp": 80
+        }
+      },
+      {
+        "index": 1,
+        "transition": {
+          "obs": [
+            0.01734282821416855,
+            -0.23932790756225586,
+            -0.028595268726348877,
+            0.25216764211654663
+          ],
+          "action": 0,
+          "reward": 1.0,
+          "next_obs": [
+            0.012556270696222782,
+            -0.43403011560440063,
+            -0.02355191670358181,
+            0.5356956720352173
+          ],
+          "done": 0
+        },
+        "leaf": [
+          17,
+          -239,
+          -29,
+          252,
+          0,
+          1000,
+          13,
+          -434,
+          -24,
+          536,
+          0
+        ],
+        "leaf_hash": "3af0ee8ec4f10da877c8d49d7b0b89d6fda8789e664dd3b44282b704841ccb03",
+        "merkle_path": [
+          {
+            "level": 0,
+            "current_index": 1,
+            "sibling_index": 0,
+            "sibling_hash": "280f8d10abd9111a2628b01fac3c378418015565402afd151f71632c5c3433d0",
+            "current_is_left": false
+          },
+          {
+            "level": 1,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "b8a78d24c075bf55bb946cd6e7b4812fe83b150bd405095bc1ec32ba8a6b6479",
+            "current_is_left": true
+          },
+          {
+            "level": 2,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "f99a6ddcde9c8822544663c56e4b10212dcb241c40a526212d1905da353fa30e",
+            "current_is_left": true
+          },
+          {
+            "level": 3,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "d7a7d50e48b56b2e49cc25b24d94504b1ba53f5c6a12f2283c736ab7ea0a3e2a",
+            "current_is_left": true
+          },
+          {
+            "level": 4,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "9811ca4a05703df5964b8eb8f664ff3fb5465cb659e3c2d2103347e37ea94a08",
+            "current_is_left": true
+          },
+          {
+            "level": 5,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "883ec894d356530b2b2e416379f68811f79ffdb9a215e8ae65de5979574f1c26",
+            "current_is_left": true
+          },
+          {
+            "level": 6,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "7c067fcadb04e941e1a83529bb1ce262c15e042d66b094a38813691fa4ad9c24",
+            "current_is_left": true
+          },
+          {
+            "level": 7,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "b4b09b85fb8fa5c80b9b11dc6adcc86650bfeb20da70fa8ade95b551f9f45223",
+            "current_is_left": true
+          },
+          {
+            "level": 8,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "7c07c3873a7cfc06a2ff60f16ab5e3eaf5904c4866b31d51dc4c34600de559eb",
+            "current_is_left": true
+          },
+          {
+            "level": 9,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a6a9e6e8687cc52ea67c3e2848de4061b6278bd1d34d42d39587a44a292b3bbc",
+            "current_is_left": true
+          },
+          {
+            "level": 10,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "091908af09d677261831aa7636cd6749f21fbb3d45cf23a07e81ee280116bb08",
+            "current_is_left": true
+          },
+          {
+            "level": 11,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "41c3d942ad2c9a46984c8f667ac8e65f3718092f0b25e0f359dfbc3072bd45d1",
+            "current_is_left": true
+          },
+          {
+            "level": 12,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a7bce1c61f5e1aa4ca7637b64a88700a1f0d40963754e296b09eec12fe7fffb5",
+            "current_is_left": true
+          },
+          {
+            "level": 13,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "a28998671e11402f496eab594da26260c1b25fc6f0129e8e0439b406adc07d61",
+            "current_is_left": true
+          },
+          {
+            "level": 14,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "154554c11348c80803d4f427183eaf2c0a9c4243152cb38ceadb349436766318",
+            "current_is_left": true
+          },
+          {
+            "level": 15,
+            "current_index": 0,
+            "sibling_index": 1,
+            "sibling_hash": "92b8d2de423a2dbc3ee7ad6922a2a84bddc12cbd361aea97acc7a4790732eb41",
+            "current_is_left": true
+          }
+        ],
+        "td_witness": {
+          "q_online_action_fp": 1237,
+          "next_action_online": 1,
+          "q_target_max_fp": 824,
+          "target_fp": 1815,
+          "td_error_fp": -578,
+          "loss_fp": 167
+        }
+      }
+    ]
+  },
+  "relation": {
+    "checks": [
+      "batch_mode == distinct",
+      "leaf_indices are public, ordered, and duplicate-free",
+      "for each position i: items[i].index == leaf_indices[i]",
+      "for each item: leaf == SerializeTransition(transition)",
+      "for each item: leaf_hash == SHA256(CanonicalLeafEncoding(leaf))",
+      "for each item: Merkle path metadata starts at item.index and advances by level",
+      "for each item: MerkleVerify(leaf_hash, merkle_path, dataset_root) == true",
+      "for each item: target_fp == reward_fp if done else reward_fp + FixedPointMul(gamma_fp, q_target_max_fp, fp_scale)",
+      "for each item: td_error_fp == q_online_action_fp - target_fp when provided",
+      "for each item: loss_fp == SmoothL1(td_error_fp)",
+      "batch_size == len(items)",
+      "claimed_batch_loss_fp == floor(sum(loss_fp) / batch_size)"
+    ],
+    "non_goals": [
+      "does not prove neural-network forward pass",
+      "does not prove argmax action selection",
+      "does not prove gradient computation",
+      "does not prove optimizer update",
+      "does not prove full DQN training"
+    ]
+  }
+}

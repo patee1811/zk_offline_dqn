@@ -8,8 +8,10 @@ oracle is \path{scripts/artifacts_export/verify_td_mvp_test_vector.py}. The
 SP1 backend is the Rust workspace in \path{zk_backend/td_mvp/sp1/}.
 
 The concrete environments are CartPole-v1 and MountainCar-v0~\cite{brockman2016gym}.
-The SP1 backend proves distinct TD, forward-TD MLP, and tiny one-step SGD
-relations at the scales reported in the final benchmark matrix.
+The Python artifact layer checks distinct TD, forward-TD MLP, and tiny
+one-step SGD relations at the scales reported in the final benchmark matrix.
+The validated SP1 proof run is the TD MVP canonical vector recorded in
+\path{artifacts/reports/final_ndss/paper_numbers.json}.
 
 \subsection{Reproducibility Commands}
 
@@ -22,25 +24,23 @@ python scripts/experiments/run_full_regression.py
 It performs compile checks, TD/minibatch verification, forward TD consistency,
 one-step verification, short-trace verification, and negative tests.
 
-The SP1 benchmark is run on Linux, WSL2 Ubuntu, macOS, or Kaggle with:
+The Python benchmark/report path is:
 {\scriptsize
 \begin{verbatim}
-python3 scripts/experiments/benchmark_distinct_td_sp1.py --prove
-python3 scripts/experiments/benchmark_forward_td_mlp_sp1.py --prove
-python3 scripts/experiments/benchmark_mountaincar_forward_td_sp1.py --prove
-python3 scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --prove
-python3 scripts/experiments/run_final_ndss_regression.py
+python scripts/experiments/check_report_sources.py
+python scripts/experiments/generate_paper_reports.py
 \end{verbatim}
 }
-The runners generate accepted fixtures, prove the selected accepted cases,
-execute tampered cases, compare Python and SP1 outcomes, and write JSON, CSV,
-and Markdown summaries.
+The report generator reads existing summaries and writes JSON, CSV, and
+Markdown report files with provenance.
 
-The SP1 negative suite can also be run directly from the SP1 workspace:
+The TD MVP SP1 validation path can be run on Kaggle or Linux/WSL2 with:
 {\scriptsize
 \begin{verbatim}
 cd zk_backend/td_mvp/sp1
-bash run_negative_cases.sh
+cargo test
+cargo run --release -p td-mvp-host -- --execute
+RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove
 \end{verbatim}
 }
 
@@ -48,7 +48,7 @@ bash run_negative_cases.sh
 
 The accepted benchmark matrix contains:
 \begin{itemize}[leftmargin=1.5em]
-    \item TD-1: one Merkle membership plus one TD/SmoothL1 check;
+    \item TD MVP: one Merkle membership plus one TD/SmoothL1 check;
     \item TD-2, TD-4, TD-8: distinct replay minibatches with multiple Merkle
     memberships, public ordered leaf indices, per-item TD/SmoothL1 checks, and
     integer batch-average loss;

@@ -9,21 +9,21 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-DEFAULT_CONTIGUOUS_ARTIFACT = "artifacts/short_trace_update_artifact.json"
-DEFAULT_SEEDED_ARTIFACT = "artifacts/short_trace_seeded_artifact.json"
+DEFAULT_CONTIGUOUS_ARTIFACT = "artifacts/fixtures/short_trace/short_trace_update_artifact.json"
+DEFAULT_SEEDED_ARTIFACT = "artifacts/fixtures/short_trace/short_trace_seeded_artifact.json"
 
-DEFAULT_MERKLE_PATH = "artifacts/cartpole_dqn_eps010_merkle.json"
+DEFAULT_MERKLE_PATH = "artifacts/fixtures/membership/cartpole_dqn_eps010_merkle.json"
 DEFAULT_INITIAL_CHECKPOINT_PATH = "models/offline_dqn_with_target_seed42_best.pt"
 
 DEFAULT_CONTIGUOUS_FINAL_CHECKPOINT_PATH = (
-    "artifacts/short_trace_work/step_1_post_synced_4_5_6_7.pt"
+    "artifacts/fixtures/short_trace/short_trace_work/step_1_post_synced_4_5_6_7.pt"
 )
 DEFAULT_SEEDED_FINAL_CHECKPOINT_PATH = (
-    "artifacts/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
+    "artifacts/fixtures/short_trace/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt"
 )
 
-DEFAULT_CONTIGUOUS_WORK_DIR = "artifacts/short_trace_work"
-DEFAULT_SEEDED_WORK_DIR = "artifacts/short_trace_seeded_work"
+DEFAULT_CONTIGUOUS_WORK_DIR = "artifacts/fixtures/short_trace/short_trace_work"
+DEFAULT_SEEDED_WORK_DIR = "artifacts/fixtures/short_trace/short_trace_seeded_work"
 
 DEFAULT_OUT_DIR = "artifacts/short_trace_negative_tests"
 
