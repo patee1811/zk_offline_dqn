@@ -22,7 +22,7 @@ ENV/
 # =============================================================================
 # Data & Model Artifacts
 # =============================================================================
-data/
+/data/
 models/*
 !models/offline_dqn_with_target_seed42_best.pt
 !zk_offline_dqn/artifacts/
@@ -34,6 +34,8 @@ plots/
 # Generated Benchmark Smoke Outputs
 # =============================================================================
 artifacts/benchmarks/*_python_smoke/
+artifacts/datasets/
+artifacts/data_sources/
 artifacts/full_regression/
 artifacts/regression_summary.json
 artifacts/regression_summary.md

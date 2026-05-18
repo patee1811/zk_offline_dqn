@@ -105,6 +105,48 @@ python scripts/experiments/check_paper_claims.py
 python scripts/experiments/check_paper_numbers_against_final_ndss.py
 ```
 
+## Dataset Provenance Pipeline
+
+Dataset commitments should flow through collection/import, audit, manifest, and
+then Merkle commitment. Generated canonical datasets live under
+`artifacts/datasets/<dataset_id>/`; manually downloaded source files live under
+`artifacts/data_sources/<dataset_id>/source.jsonl` or `source.npz`. Both
+directories are ignored and should not be committed.
+
+Self-collected audited CartPole smoke path:
+
+```text
+python scripts/data/collect_audited_dataset.py --env-id CartPole-v1 --dataset-id cartpole-random-v1 --policy random --num-episodes 2 --base-seed 12345 --max-steps-per-episode 200 --out-dir artifacts/datasets/cartpole-random-v1
+python scripts/data/audit_replay_dataset.py --dataset-dir artifacts/datasets/cartpole-random-v1
+python scripts/data/commit_audited_dataset.py --dataset-dir artifacts/datasets/cartpole-random-v1
+```
+
+Self-collected audited MountainCar smoke path:
+
+```text
+python scripts/data/collect_audited_dataset.py --env-id MountainCar-v0 --dataset-id mountaincar-random-v1 --policy random --num-episodes 2 --base-seed 22345 --max-steps-per-episode 200 --out-dir artifacts/datasets/mountaincar-random-v1
+python scripts/data/audit_replay_dataset.py --dataset-dir artifacts/datasets/mountaincar-random-v1
+python scripts/data/commit_audited_dataset.py --dataset-dir artifacts/datasets/mountaincar-random-v1
+```
+
+Public benchmark imports are source-integrity commitments, not honest-collection
+proofs:
+
+```text
+python scripts/data/import_public_dataset.py --source-jsonl artifacts/data_sources/public-cartpole-jsonl-v1/source.jsonl --dataset-id public-cartpole-jsonl-v1 --env-id CartPole-v1 --out-dir artifacts/datasets/public-cartpole-jsonl-v1
+python scripts/data/import_public_dataset.py --source-npz artifacts/data_sources/public-npz-example-v1/source.npz --dataset-id public-npz-example-v1 --env-id CartPole-v1 --out-dir artifacts/datasets/public-npz-example-v1
+python scripts/data/import_public_dataset.py --minari-dataset-id D4RL/pointmaze/umaze-v2 --dataset-id minari-pointmaze-umaze-v2-100 --out-dir artifacts/datasets/minari-pointmaze-umaze-v2-100 --max-transitions 100
+```
+
+Recommended later subsets are 10k/50k/100k transitions for Minari/D4RL
+PointMaze imports such as `D4RL/pointmaze/umaze-v2`,
+`D4RL/pointmaze/umaze-dense-v2`, `D4RL/pointmaze/medium-v2`, and
+`D4RL/pointmaze/open-v2`. For self-collected data, use 10k transitions for
+`cartpole-random-v1` and `mountaincar-random-v1`; future policy support may add
+10k `cartpole-medium-v1`, 10k `cartpole-expert-v1`, 50k
+`cartpole-mixed-v1`, 10k `mountaincar-medium-v1`, and 50k
+`mountaincar-mixed-v1`.
+
 ## SP1 Validation
 
 Kaggle validation can run from a pushed branch or from a local workspace
