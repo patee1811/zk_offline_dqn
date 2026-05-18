@@ -1,8 +1,9 @@
 \section{Conclusion}
 
-This paper presents a layered artifact system for ZK-verifiable offline DQN
-computation over committed replay data. The central claim is deliberately
-bounded: the system checks selected relation layers, not a full training trace.
+This paper presents a layered artifact system for proof-oriented verification
+of selected offline-DQN computation over committed replay data. The central
+claim is deliberately bounded: the system checks selected relation layers, not
+a full training trace.
 The validated SP1 result is the TD MVP backend on the canonical test vector,
 including membership, Bellman/TD arithmetic, SmoothL1 loss, and public
 target/loss claims. The artifact also records Python semantic-oracle coverage
@@ -11,8 +12,8 @@ CartPole one-step SGD relation.
 
 The aggregate package hardens the result into reviewer-facing artifacts:
 normalized benchmark and tamper matrices, machine-readable summaries, and
-reproduction commands for both fast Python smoke checks and scoped TD MVP SP1
-validation.
+reproduction commands for both fast Python semantic-oracle checks and scoped TD
+MVP SP1 validation.
 This makes every reported number traceable to a JSON or CSV source.
 
 The next technical step is clear: scale the current one-step update proof into

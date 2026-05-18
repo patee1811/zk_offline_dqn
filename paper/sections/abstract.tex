@@ -2,8 +2,8 @@ Offline reinforcement learning creates a verification problem that is different
 from supervised proof-of-training: a dishonest prover can tamper not only with
 model parameters or losses, but also with replay membership, terminal flags,
 Bellman targets, action selection, target-network values, and minibatch
-aggregation. We present a layered artifact system for zero-knowledge-verifiable
-offline DQN over committed replay data. The system is intentionally scoped: it
+aggregation. We present proof-oriented verification of selected offline-DQN
+artifacts over committed replay data. The system is intentionally scoped: it
 does not claim a full proof of training from initialization to final checkpoint.
 Instead, it decomposes the DQN training stack into auditable relations for
 committed transition membership, fixed-point Bellman/TD computation, distinct
@@ -25,4 +25,5 @@ The contribution is therefore a reproducible security/systems artifact rather
 than an ML performance claim. It formalizes which public claims and private
 witnesses are checked at each layer, identifies the exact backend used by each
 relation, and packages reviewer-facing reproduction commands for fast Python
-smoke tests and opt-in TD MVP SP1 validation on Linux, WSL2 Ubuntu, or Kaggle.
+semantic-oracle checks and opt-in TD MVP SP1 validation on Linux, WSL2 Ubuntu,
+or Kaggle.

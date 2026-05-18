@@ -15,6 +15,9 @@ SP1 proof generation and verification passed on Kaggle for the TD MVP SP1
 backend using zk_backend/test_vectors/td_mvp_case_0.json.
 ```
 
+Extension relations are checked by Python semantic oracles unless a separate
+backend validation artifact is explicitly cited.
+
 ## Architecture
 
 - `zk_offline_dqn/relations/`: pure relation checks for membership, TD MVP,
@@ -37,7 +40,9 @@ backend using zk_backend/test_vectors/td_mvp_case_0.json.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
   orchestration scripts.
 
-See `docs/architecture.md` for a fuller layer-by-layer map.
+See `docs/architecture.md` for a fuller layer-by-layer map. See
+`docs/claim_matrix.md` and `docs/backend_coverage.md` for current claim
+boundaries and backend coverage.
 
 ## Quick Start
 
@@ -125,6 +130,10 @@ Python regression.
 
 - `docs/reproducibility.md`: regression, SP1 validation, and report
   regeneration workflow.
+- `docs/claim_matrix.md`: supported, oracle-only, and unsupported claim
+  boundaries.
+- `docs/backend_coverage.md`: relation-by-relation Python oracle and SP1
+  coverage.
 - `docs/sp1_python_alignment.md`: Python/SP1 field and command alignment.
 - `docs/archive/internal_manifests/dev_commands.md`: developer command reference.
 - `docs/archive/internal_manifests/legacy_status.md`: active vs compatibility entrypoints.

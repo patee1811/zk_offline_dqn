@@ -1,7 +1,8 @@
 The system does not prove a full DQN training run. It does not prove that a
 final checkpoint follows from an initialization through all replay batches,
 target-network synchronizations, optimizer states, or model-selection decisions.
-It also does not prove Adam; the tiny update extension is scoped to simple SGD.
+It also does not prove Adam or full optimizer-state correctness; the tiny update
+extension is scoped to simple SGD.
 
 The current backend coverage is still uneven by design. The validated SP1
 proof claim is the TD MVP canonical vector. Distinct TD, forward-TD MLP, and
@@ -21,8 +22,8 @@ set was collected honestly or that it covers a desired behavior distribution.
 The Python verifier path also reveals or processes witness data directly and
 therefore should not be treated as a privacy-preserving verifier.
 
-Finally, the SP1 proof cost is still prototype-scale. Verification is fast, but
-proving takes minutes for the reported cases. Scaling to practical
-proof-of-update or proof-of-training will require more efficient neural-network
-proofs, aggregation or recursion over repeated updates, and careful treatment
-of optimizer and sampling semantics.
+Finally, the current artifact has no recursive aggregation. The SP1 proof cost
+is still prototype-scale: verification is fast, but proving takes minutes for
+the reported TD MVP case. Scaling beyond this scoped relation will require more
+efficient neural-network proofs, aggregation or recursion over repeated updates,
+and careful treatment of optimizer and sampling semantics.
