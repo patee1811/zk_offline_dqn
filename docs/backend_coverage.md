@@ -6,9 +6,9 @@
 | Provenance-bound dataset commitment | yes | no | artifact-level binding from dataset root to manifest, audit report, raw trajectory, and collection-log hashes when available | Self-collected data can be replay/reward audited before commitment; public benchmark data remains source-integrity-only. |
 | TD MVP canonical vector | yes | yes | SP1 proof generation and verification for the TD MVP canonical vector | Baseline fixture: `zk_backend/test_vectors/td_mvp_case_0.json`. |
 | Distinct minibatch TD | yes | no current paper-level claim | checked by Python semantic oracles/report matrices | Do not describe as proof-backed without separate backend validation provenance. |
-| Forward-TD MLP | yes | no current paper-level claim | checked by Python semantic oracles/report matrices | Do not describe as proof-backed without separate backend validation provenance. |
-| One-step SGD tiny | yes | no current paper-level claim | checked by Python semantic oracles/report matrices | Simple SGD update fragment, not Adam or optimizer-state correctness. |
-| Short trace / checkpoint chaining | yes | no | Python semantic-oracle checked training fragment | Not an end-to-end trace from initialization to final checkpoint. |
+| Forward-TD MLP | yes | yes for canonical tiny vector | SP1 proof-backed fixed-point Forward-TD MLP for canonical tiny vector | Not full training or backpropagation. |
+| One-step SGD tiny | yes | yes for canonical vector | SP1 proof-backed tiny fixed-point SGD update | Not Adam or full optimizer-state correctness. |
+| Short trace / checkpoint chaining | yes | yes for canonical tiny vector | SP1 proof-backed tiny checkpoint-chain validation | Not end-to-end DQN training from initialization to final checkpoint. |
 | Backpropagation | partial / relation-local | no | future work | No full backend proof for a small MLP backpropagation path. |
 | Adam / optimizer-state proof | no | no | unsupported / future work | Current tiny update scope is simple SGD only. |
 | Self-collected replay/reward audit | yes | no | replay/reward audit before Merkle commitment | This is dataset provenance support, not SP1 proof coverage. |

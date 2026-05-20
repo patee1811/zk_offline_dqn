@@ -17,10 +17,16 @@ backend using zk_backend/test_vectors/td_mvp_case_0.json.
 SP1 proof generation and verification passed on Kaggle for Merkle membership
 of a canonical leaf hash against a provenance-bound dataset root using
 zk_backend/test_vectors/merkle_membership_case_0.json.
+
+SP1 proof generation and verification passed on Kaggle for canonical tiny
+vectors for Forward-TD MLP, one-step SGD tiny, and short trace checkpoint
+chaining using the corresponding cases under zk_backend/test_vectors/.
 ```
 
 Extension relations are checked by Python semantic oracles unless a separate
-backend validation artifact is explicitly cited.
+backend validation artifact is explicitly cited. The Forward-TD MLP,
+one-step SGD tiny, and short trace SP1 claims are canonical-vector coverage,
+not full DQN training, backpropagation, Adam, or recursive aggregation.
 
 ## Architecture
 
@@ -41,6 +47,9 @@ backend validation artifact is explicitly cited.
   MVP backend.
 - `zk_backend/merkle_membership/sp1/`: Rust SP1 host, guest, and shared crates
   for canonical leaf-hash membership against a provenance-bound dataset root.
+- `zk_backend/forward_td_mlp/sp1/`, `zk_backend/one_step_sgd_tiny/sp1/`, and
+  `zk_backend/short_trace/sp1/`: Rust SP1 host, guest, and shared crates for
+  canonical tiny relation vectors.
 - `scripts/artifacts_export/`: legacy exporters/verifiers retained for
   compatibility and regression reproducibility.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
@@ -182,6 +191,21 @@ cd zk_backend/merkle_membership/sp1
 cargo test
 cargo run --release -p merkle-membership-host -- --execute --case ../../test_vectors/merkle_membership_case_0.json
 RUN_SP1_PROVE=1 cargo run --release -p merkle-membership-host -- --prove --case ../../test_vectors/merkle_membership_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/merkle_membership
+
+cd zk_backend/forward_td_mlp/sp1
+cargo test
+cargo run --release -p forward-td-mlp-host -- --execute --case ../../test_vectors/forward_td_mlp_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p forward-td-mlp-host -- --prove --case ../../test_vectors/forward_td_mlp_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/forward_td_mlp
+
+cd zk_backend/one_step_sgd_tiny/sp1
+cargo test
+cargo run --release -p one-step-sgd-tiny-host -- --execute --case ../../test_vectors/one_step_sgd_tiny_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p one-step-sgd-tiny-host -- --prove --case ../../test_vectors/one_step_sgd_tiny_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/one_step_sgd_tiny
+
+cd zk_backend/short_trace/sp1
+cargo test
+cargo run --release -p short-trace-host -- --execute --case ../../test_vectors/short_trace_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p short-trace-host -- --prove --case ../../test_vectors/short_trace_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/short_trace
 ```
 
 Proof commands require the Rust/SP1 toolchain and are not part of the default

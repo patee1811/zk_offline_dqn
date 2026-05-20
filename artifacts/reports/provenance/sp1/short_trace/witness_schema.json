@@ -1,0 +1,24 @@
+{
+  "notes": [
+    "Verifies a tiny fixed-point SGD checkpoint chain, step order, and trace hash."
+  ],
+  "private_witness": {
+    "steps": [
+      {
+        "gradients": "[i64]",
+        "new_checkpoint_hash": "sha256",
+        "new_weights": "[i64]",
+        "old_checkpoint_hash": "sha256",
+        "old_weights": "[i64]"
+      }
+    ]
+  },
+  "public_inputs": {
+    "final_checkpoint_hash": "sha256",
+    "num_steps": "usize",
+    "start_checkpoint_hash": "sha256",
+    "trace_hash": "sha256"
+  },
+  "relation": "short_trace",
+  "schema_version": "sp1_short_trace_witness_schema_v1"
+}

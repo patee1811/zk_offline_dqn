@@ -1,0 +1,70 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "case": "tamper_intermediate_checkpoint",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: new checkpoint hash mismatch"
+    },
+    {
+      "case": "tamper_step_order",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: start checkpoint mismatch"
+    },
+    {
+      "case": "tamper_gradient_inside_step",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: trace hash mismatch"
+    },
+    {
+      "case": "tamper_new_weight_inside_step",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: new checkpoint hash mismatch"
+    },
+    {
+      "case": "tamper_start_checkpoint_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: start checkpoint mismatch"
+    },
+    {
+      "case": "tamper_final_checkpoint_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: final checkpoint mismatch"
+    },
+    {
+      "case": "tamper_trace_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: trace hash mismatch"
+    },
+    {
+      "case": "tamper_num_steps_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: num_steps mismatch"
+    }
+  ],
+  "relation": "short_trace"
+}

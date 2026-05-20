@@ -1,0 +1,9 @@
+{
+  "notes": [
+    "Mirrors td_mvp_shared one_step_sgd_tiny_v1 arithmetic; not Adam and not full optimizer-state proof."
+  ],
+  "private_witness": "one_step_sgd_tiny_v1 private section: transition, Merkle path, pre/target/post quantized MLPs, forward witness, gradients, and deltas",
+  "public_inputs": "one_step_sgd_tiny_v1 public section",
+  "relation": "one_step_sgd_tiny",
+  "schema_version": "sp1_one_step_sgd_tiny_witness_schema_v1"
+}
