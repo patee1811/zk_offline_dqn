@@ -131,16 +131,19 @@ def main() -> int:
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    case = load_case(args.case)
+    case_path = Path(args.case)
+    if not case_path.is_absolute():
+        case_path = ROOT / case_path
+    case = load_case(case_path)
     reference = verify_case_reference(case)
     execute = None
     if args.run_execute or args.run_prove or args.prove:
-        execute = run_command(cargo_command(case_path=args.case, mode="execute"))
+        execute = run_command(cargo_command(case_path=case_path, mode="execute"))
     proof = None
     should_prove = args.run_prove or args.prove or os.environ.get("RUN_SP1_PROVE") == "1"
     if should_prove:
         proof = run_command(
-            cargo_command(case_path=args.case, mode="prove", out_dir=out_dir),
+            cargo_command(case_path=case_path, mode="prove", out_dir=out_dir),
             env={"RUN_SP1_PROVE": "1"},
         )
         proof_path = out_dir / "proof.bin"

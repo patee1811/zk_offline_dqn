@@ -6,3 +6,9 @@ edition.workspace = true
 [dependencies]
 sp1-zkvm = "=6.1.0"
 training-update-shared = { path = "../shared" }
+
+[[bin]]
+name = "training-update-guest"
+path = "src/main.rs"
+test = false
+bench = false
