@@ -44,6 +44,7 @@ artifacts/reports/*
 !artifacts/reports/final_ndss/**
 !artifacts/reports/provenance/
 !artifacts/reports/provenance/**
+artifacts/reports/provenance/sp1/**/proof.bin
 artifacts/archive/manual_review/
 artifacts/kaggle*/
 artifacts/cleanup_artifact_schema_commit_log.txt

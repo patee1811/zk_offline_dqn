@@ -8,11 +8,15 @@ of DQN training from initialization to final checkpoint, and it does not claim
 honest data collection, model selection, recursive aggregation, or proof
 coverage for every relation.
 
-The supported SP1 proof claim is scoped to one backend validation result:
+The supported SP1 proof claims are scoped to backend validation artifacts:
 
 ```text
 SP1 proof generation and verification passed on Kaggle for the TD MVP SP1
 backend using zk_backend/test_vectors/td_mvp_case_0.json.
+
+SP1 proof generation and verification passed on Kaggle for Merkle membership
+of a canonical leaf hash against a provenance-bound dataset root using
+zk_backend/test_vectors/merkle_membership_case_0.json.
 ```
 
 Extension relations are checked by Python semantic oracles unless a separate
@@ -35,6 +39,8 @@ backend validation artifact is explicitly cited.
   generation from existing outputs.
 - `zk_backend/td_mvp/sp1/`: Rust SP1 host, guest, and shared crates for the TD
   MVP backend.
+- `zk_backend/merkle_membership/sp1/`: Rust SP1 host, guest, and shared crates
+  for canonical leaf-hash membership against a provenance-bound dataset root.
 - `scripts/artifacts_export/`: legacy exporters/verifiers retained for
   compatibility and regression reproducibility.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
@@ -171,6 +177,11 @@ cd zk_backend/td_mvp/sp1
 cargo test
 cargo run --release -p td-mvp-host -- --execute
 RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove
+
+cd zk_backend/merkle_membership/sp1
+cargo test
+cargo run --release -p merkle-membership-host -- --execute --case ../../test_vectors/merkle_membership_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p merkle-membership-host -- --prove --case ../../test_vectors/merkle_membership_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/merkle_membership
 ```
 
 Proof commands require the Rust/SP1 toolchain and are not part of the default
