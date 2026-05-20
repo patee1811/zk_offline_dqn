@@ -1,0 +1,306 @@
+{
+  "private_witness": {
+    "intermediates": {
+      "deltas": {
+        "layers": [
+          {
+            "bias": [
+              -1,
+              0
+            ],
+            "weight": [
+              [
+                -1,
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "bias": [
+              0,
+              29
+            ],
+            "weight": [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "gradients": {
+        "layers": [
+          {
+            "bias": [
+              17,
+              0
+            ],
+            "weight": [
+              [
+                17,
+                -8,
+                4,
+                12
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "bias": [
+              0,
+              -294
+            ],
+            "weight": [
+              [
+                0,
+                0
+              ],
+              [
+                -86,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "h1_online": [
+        294,
+        0
+      ],
+      "h1_target": [
+        201,
+        0
+      ],
+      "q_online": [
+        40,
+        -24
+      ],
+      "q_target": [
+        21,
+        1
+      ],
+      "z1_online": [
+        294,
+        -267
+      ],
+      "z1_target": [
+        201,
+        -171
+      ]
+    },
+    "merkle_path": [],
+    "online_model_t": {
+      "format": "quantized_mlp_v1",
+      "fp_scale": 1000,
+      "layer_sizes": [
+        4,
+        2,
+        2
+      ],
+      "layers": [
+        {
+          "bias": [
+            10,
+            20
+          ],
+          "weight": [
+            [
+              200,
+              -100,
+              50,
+              30
+            ],
+            [
+              -150,
+              250,
+              100,
+              -50
+            ]
+          ]
+        },
+        {
+          "bias": [
+            5,
+            -7
+          ],
+          "weight": [
+            [
+              120,
+              -80
+            ],
+            [
+              -60,
+              140
+            ]
+          ]
+        }
+      ]
+    },
+    "online_model_t_plus_1": {
+      "format": "quantized_mlp_v1",
+      "fp_scale": 1000,
+      "layer_sizes": [
+        4,
+        2,
+        2
+      ],
+      "layers": [
+        {
+          "bias": [
+            9,
+            20
+          ],
+          "weight": [
+            [
+              199,
+              -100,
+              50,
+              29
+            ],
+            [
+              -150,
+              250,
+              100,
+              -50
+            ]
+          ]
+        },
+        {
+          "bias": [
+            5,
+            22
+          ],
+          "weight": [
+            [
+              120,
+              -80
+            ],
+            [
+              -52,
+              140
+            ]
+          ]
+        }
+      ]
+    },
+    "provenance": {
+      "audit_report_hash": "4b96de4e8ceb7da474cfc021f79bf6a09d659148149cfdcc1fa19a7b4b13a426",
+      "collection_log_final_hash": "01fd5aead2a8cebdbcfb38c3f11c71052823be72ad579c48d751fee0182fe2f7",
+      "dataset_id_hash": "2d0b67eb9faf7044e9a5762822cce762da2892de2c7c0bcdce6b83696ad79028",
+      "dataset_type": "self_collected_replay_audited",
+      "manifest_hash": "f3bc99eb57bbb691581d8082d7ef8545d88c9ea1e24e383fbd8e7b198d8860e3",
+      "raw_trajectory_hash": "af04d4bfc6fd83ecfe8323319ecbb28b8ef0262466effc38dd322dd141a51d89"
+    },
+    "target_model": {
+      "format": "quantized_mlp_v1",
+      "fp_scale": 1000,
+      "layer_sizes": [
+        4,
+        2,
+        2
+      ],
+      "layers": [
+        {
+          "bias": [
+            15,
+            -10
+          ],
+          "weight": [
+            [
+              100,
+              -120,
+              80,
+              40
+            ],
+            [
+              -90,
+              200,
+              60,
+              -30
+            ]
+          ]
+        },
+        {
+          "bias": [
+            3,
+            9
+          ],
+          "weight": [
+            [
+              90,
+              -50
+            ],
+            [
+              -40,
+              110
+            ]
+          ]
+        }
+      ]
+    },
+    "transition": {
+      "action": 1,
+      "next_state": [
+        900,
+        -400,
+        300,
+        600
+      ],
+      "reward": 250,
+      "state": [
+        1000,
+        -500,
+        250,
+        750
+      ],
+      "terminated": false,
+      "truncated": false
+    }
+  },
+  "public_inputs": {
+    "audit_report_hash": "4b96de4e8ceb7da474cfc021f79bf6a09d659148149cfdcc1fa19a7b4b13a426",
+    "batch_size": 1,
+    "case_id": "training_update_case_0",
+    "checkpoint_hash_t": "42843cc406725ef62cbe50012a581714a029aaa592a50906fe1c5cd2f770c238",
+    "checkpoint_hash_t_plus_1": "af787ece7043b5e8de537df4ba84ea068b541bf655507c9f316215aac0b45c07",
+    "claimed_gradient_hash": "9338ad81406f98007b0ca13f6094136534ec310e652dfb74912be77e3547ef23",
+    "claimed_loss": 43,
+    "claimed_q_online_action": -24,
+    "claimed_q_target_next": 21,
+    "claimed_td_error": -294,
+    "claimed_td_target": 270,
+    "claimed_update_hash": "3e114369e488239478d170f8cf63ecc1f462a950db9ebb538fdf284a86008c8e",
+    "collection_log_final_hash": "01fd5aead2a8cebdbcfb38c3f11c71052823be72ad579c48d751fee0182fe2f7",
+    "dataset_id_hash": "2d0b67eb9faf7044e9a5762822cce762da2892de2c7c0bcdce6b83696ad79028",
+    "dataset_root": "33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4",
+    "dataset_type": "self_collected_replay_audited",
+    "fixed_point_scale": 1000,
+    "gamma": 990,
+    "leaf_hash": "33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4",
+    "leaf_index": 0,
+    "learning_rate": 100,
+    "manifest_hash": "f3bc99eb57bbb691581d8082d7ef8545d88c9ea1e24e383fbd8e7b198d8860e3",
+    "raw_trajectory_hash": "af04d4bfc6fd83ecfe8323319ecbb28b8ef0262466effc38dd322dd141a51d89",
+    "relation": "training_update",
+    "target_checkpoint_hash": "9e7bf7499289d23627b786fea63f81c514b32be47cf3646ba99bc4aa9d98c5d3"
+  },
+  "schema_version": "sp1_training_update_case_v1"
+}

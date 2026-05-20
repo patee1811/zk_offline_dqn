@@ -1,0 +1,8 @@
+[package]
+name = "training-update-guest"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sp1-zkvm = "=6.1.0"
+training-update-shared = { path = "../shared" }
