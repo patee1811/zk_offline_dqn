@@ -17,6 +17,7 @@ from zk_offline_dqn.data_pipeline import (
     load_manifest,
     sha256_file,
     validate_collection_log,
+    verify_dataset_commitment,
 )
 
 
@@ -38,6 +39,8 @@ def verify_commit_preconditions(dataset_dir: Path) -> None:
             raise ValueError("replay_audit_passed must be true before commitment")
         if manifest.get("reward_audit_passed") is not True:
             raise ValueError("reward_audit_passed must be true before commitment")
+        if manifest.get("collection_log_final_hash") is None:
+            raise ValueError("collection_log_final_hash is required before self-collected commitment")
         log_ok, log_value = validate_collection_log(raw_path, dataset_dir / COLLECTION_LOG_NAME)
         if not log_ok:
             raise ValueError(f"collection log invalid: {log_value}")
@@ -52,14 +55,22 @@ def verify_commit_preconditions(dataset_dir: Path) -> None:
 
 def commit_dataset(dataset_dir: Path):
     verify_commit_preconditions(dataset_dir)
-    return build_dataset_merkle_commitment(dataset_dir)
+    commitment = build_dataset_merkle_commitment(dataset_dir)
+    ok, errors = verify_dataset_commitment(dataset_dir)
+    if not ok:
+        raise ValueError("dataset commitment verification failed: " + "; ".join(errors))
+    return commitment
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset-dir", required=True)
     args = parser.parse_args()
-    commitment = commit_dataset(Path(args.dataset_dir))
+    try:
+        commitment = commit_dataset(Path(args.dataset_dir))
+    except ValueError as exc:
+        print(f"commit_failed = {exc}", file=sys.stderr)
+        return 1
     manifest = load_manifest(args.dataset_dir)
     print(f"dataset_id = {commitment['dataset_id']}")
     print(f"dataset_type = {commitment['dataset_type']}")

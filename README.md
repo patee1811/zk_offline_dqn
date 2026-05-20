@@ -113,12 +113,20 @@ then Merkle commitment. Generated canonical datasets live under
 `artifacts/data_sources/<dataset_id>/source.jsonl` or `source.npz`. Both
 directories are ignored and should not be committed.
 
+The dataset Merkle commitment is provenance-bound: `merkle_tree.json` stores
+`dataset_root`, `manifest_hash`, `audit_report_hash`, `raw_trajectory_hash`,
+and `collection_log_final_hash` when available. Use
+`scripts/data/verify_dataset_commitment.py` to verify that the commitment still
+matches the manifest, audit report, raw transitions, collection log, and Merkle
+leaves.
+
 Self-collected audited CartPole smoke path:
 
 ```text
 python scripts/data/collect_audited_dataset.py --env-id CartPole-v1 --dataset-id cartpole-random-v1 --policy random --num-episodes 2 --base-seed 12345 --max-steps-per-episode 200 --out-dir artifacts/datasets/cartpole-random-v1
 python scripts/data/audit_replay_dataset.py --dataset-dir artifacts/datasets/cartpole-random-v1
 python scripts/data/commit_audited_dataset.py --dataset-dir artifacts/datasets/cartpole-random-v1
+python scripts/data/verify_dataset_commitment.py --dataset-dir artifacts/datasets/cartpole-random-v1
 ```
 
 Self-collected audited MountainCar smoke path:

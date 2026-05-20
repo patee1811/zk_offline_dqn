@@ -15,9 +15,11 @@ from zk_offline_dqn.data_pipeline import (
     canonical_json_bytes,
     hash_jsonl_transitions,
     load_manifest,
+    manifest_commitment_hash,
     sha256_file,
     transition_hash,
     validate_collection_log,
+    verify_dataset_commitment,
     write_audit_report,
     write_collection_log,
     write_jsonl,
@@ -86,6 +88,12 @@ class DataPipelineTests(unittest.TestCase):
             self.assertEqual(commitment["num_leaves"], 1)
             manifest = load_manifest(dataset_dir)
             self.assertEqual(manifest["merkle_root"], commitment["dataset_root"])
+            self.assertTrue(verify_dataset_commitment(dataset_dir)[0])
+
+    def test_manifest_commitment_hash_ignores_volatile_commitment_fields(self):
+        manifest = {"dataset_id": "synthetic-v1", "merkle_root": None}
+        committed = {"dataset_id": "synthetic-v1", "merkle_root": "abc", "manifest_hash": "def"}
+        self.assertEqual(manifest_commitment_hash(manifest), manifest_commitment_hash(committed))
 
     def test_public_dataset_audit_sets_source_integrity_only_flags(self):
         with tempfile.TemporaryDirectory() as tmp:

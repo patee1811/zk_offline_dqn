@@ -3,6 +3,7 @@
 | Relation / component | Python semantic oracle | SP1 proof-backed | Current safe claim | Notes |
 | --- | --- | --- | --- | --- |
 | Dataset membership / Merkle membership | yes | only inside TD MVP canonical vector | membership relative to a committed replay set | Does not prove honest collection before commitment. |
+| Provenance-bound dataset commitment | yes | no | artifact-level binding from dataset root to manifest, audit report, raw trajectory, and collection-log hashes when available | Self-collected data can be replay/reward audited before commitment; public benchmark data remains source-integrity-only. |
 | TD MVP canonical vector | yes | yes | SP1 proof generation and verification for the TD MVP canonical vector | Baseline fixture: `zk_backend/test_vectors/td_mvp_case_0.json`. |
 | Distinct minibatch TD | yes | no current paper-level claim | checked by Python semantic oracles/report matrices | Do not describe as proof-backed without separate backend validation provenance. |
 | Forward-TD MLP | yes | no current paper-level claim | checked by Python semantic oracles/report matrices | Do not describe as proof-backed without separate backend validation provenance. |
