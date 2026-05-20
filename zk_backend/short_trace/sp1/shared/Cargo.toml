@@ -1,0 +1,10 @@
+[package]
+name = "short-trace-shared"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+hex.workspace = true
+serde.workspace = true
+sha2.workspace = true
+

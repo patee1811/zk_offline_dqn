@@ -1,0 +1,9 @@
+[package]
+name = "one-step-sgd-tiny-shared"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+serde.workspace = true
+td-mvp-shared = { path = "../../../td_mvp/sp1/shared" }
+

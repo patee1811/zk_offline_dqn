@@ -1,0 +1,10 @@
+[package]
+name = "forward-td-mlp-guest"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+forward-td-mlp-shared = { path = "../shared" }
+sp1-zkvm.workspace = true
+td-mvp-shared = { path = "../../../td_mvp/sp1/shared" }
+

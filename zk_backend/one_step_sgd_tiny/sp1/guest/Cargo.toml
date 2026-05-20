@@ -1,0 +1,10 @@
+[package]
+name = "one-step-sgd-tiny-guest"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+one-step-sgd-tiny-shared = { path = "../shared" }
+sp1-zkvm.workspace = true
+td-mvp-shared = { path = "../../../td_mvp/sp1/shared" }
+

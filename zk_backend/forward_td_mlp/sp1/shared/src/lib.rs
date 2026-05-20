@@ -1,0 +1,60 @@
+use serde::{Deserialize, Serialize};
+use td_mvp_shared::{TdItemOutput, TdMvpInput};
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ForwardTdMlpOutput {
+    pub schema_version: String,
+    pub relation: String,
+    pub dataset_root: String,
+    pub fp_scale: i64,
+    pub gamma_fp: i64,
+    pub batch_size: usize,
+    pub leaf_indices: Vec<i64>,
+    pub network_spec_hash: String,
+    pub online_model_commitment: String,
+    pub target_model_commitment: String,
+    pub claimed_batch_loss_fp: i64,
+    pub items: Vec<TdItemOutput>,
+}
+
+pub fn verify_forward_td_mlp(input: &TdMvpInput) -> ForwardTdMlpOutput {
+    assert_eq!(
+        input.schema_version, "forward_td_mlp_v1",
+        "unexpected schema_version"
+    );
+    let output = td_mvp_shared::verify_td_mvp(input);
+    ForwardTdMlpOutput {
+        schema_version: "sp1_forward_td_mlp_public_v1".to_owned(),
+        relation: "forward_td_mlp".to_owned(),
+        dataset_root: input.public.dataset_root.clone(),
+        fp_scale: input.public.fp_scale,
+        gamma_fp: input.public.gamma_fp,
+        batch_size: input.public.batch_size.expect("missing batch_size"),
+        leaf_indices: input
+            .public
+            .leaf_indices
+            .clone()
+            .expect("missing leaf_indices"),
+        network_spec_hash: input
+            .public
+            .network_spec_hash
+            .clone()
+            .expect("missing network_spec_hash"),
+        online_model_commitment: input
+            .public
+            .online_model_commitment
+            .clone()
+            .expect("missing online_model_commitment"),
+        target_model_commitment: input
+            .public
+            .target_model_commitment
+            .clone()
+            .expect("missing target_model_commitment"),
+        claimed_batch_loss_fp: input
+            .public
+            .claimed_batch_loss_fp
+            .expect("missing claimed_batch_loss_fp"),
+        items: output.items,
+    }
+}
+

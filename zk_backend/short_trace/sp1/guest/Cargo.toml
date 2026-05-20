@@ -1,0 +1,9 @@
+[package]
+name = "short-trace-guest"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+short-trace-shared = { path = "../shared" }
+sp1-zkvm.workspace = true
+
