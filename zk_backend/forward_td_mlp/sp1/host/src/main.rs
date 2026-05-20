@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
             .await
             .context("SP1 execution failed")?;
         let output = public_values.read::<ForwardTdMlpOutput>();
-        if output != expected {
+        if serde_json::to_value(&output)? != serde_json::to_value(&expected)? {
             return Err(anyhow!("SP1 public output did not match expected output"));
         }
         cycle_count = Some(report.total_instruction_count());
@@ -224,4 +224,3 @@ fn git_commit() -> Option<String> {
     }
     Some(String::from_utf8_lossy(&output.stdout).trim().to_owned())
 }
-

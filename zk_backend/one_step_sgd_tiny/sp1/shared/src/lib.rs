@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use td_mvp_shared::{TdItemOutput, TdMvpInput};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OneStepSgdTinyOutput {
     pub schema_version: String,
     pub relation: String,
@@ -63,4 +63,3 @@ pub fn verify_one_step_sgd_tiny(input: &TdMvpInput) -> OneStepSgdTinyOutput {
         item: output.items[0].clone(),
     }
 }
-

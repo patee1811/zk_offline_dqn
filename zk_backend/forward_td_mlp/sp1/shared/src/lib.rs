@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use td_mvp_shared::{TdItemOutput, TdMvpInput};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ForwardTdMlpOutput {
     pub schema_version: String,
     pub relation: String,
@@ -57,4 +57,3 @@ pub fn verify_forward_td_mlp(input: &TdMvpInput) -> ForwardTdMlpOutput {
         items: output.items,
     }
 }
-
