@@ -1,0 +1,18 @@
+{
+  "backend_version": "0.1.0",
+  "batch_size": 1,
+  "cycle_count": 469460,
+  "git_commit": "c81a2d921c3b807aa0184ba457679bdedd3bea94",
+  "notes": [
+    "SP1 proof-backed one-step training update for canonical batch-size-1 tiny MLP vector; not full training, Adam, or recursive aggregation."
+  ],
+  "proof_generated": true,
+  "proof_size_bytes": 2785287,
+  "proof_verified": true,
+  "prove_time_seconds": 104.785579262,
+  "public_inputs_sha256": "68d13327e446f770ae98f0e27df3f3340e6283826b9f6555ff7c94eb375ecaeb",
+  "relation": "training_update",
+  "sp1_version": "6.1.0",
+  "test_vector_sha256": "4234b61a958584bef877b738e766ab8d265ef4a2e9ff40ca75b19022eae783a6",
+  "verify_time_seconds": 0.125128546
+}

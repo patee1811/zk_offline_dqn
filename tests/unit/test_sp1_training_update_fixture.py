@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import tempfile
@@ -12,6 +13,17 @@ from zk_offline_dqn.backends.sp1.training_update import (
     verify_case_reference,
 )
 from zk_offline_dqn.relations.training_update import compute_training_update
+
+
+PROVENANCE_DIR = Path("artifacts/reports/provenance/sp1/training_update")
+PROVENANCE_FILES = [
+    "public_inputs.json",
+    "witness_schema.json",
+    "metrics.json",
+    "verify_report.json",
+    "tamper_report.json",
+    "proof_artifact_policy.json",
+]
 
 
 class Sp1TrainingUpdateFixtureTests(unittest.TestCase):
@@ -62,6 +74,19 @@ class Sp1TrainingUpdateFixtureTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr[-2000:])
             for name in ["public_inputs.json", "witness_schema.json", "metrics.json", "verify_report.json"]:
                 self.assertTrue((Path(tmp) / name).exists(), name)
+
+    def test_committed_provenance_is_complete(self):
+        for name in PROVENANCE_FILES:
+            self.assertTrue((PROVENANCE_DIR / name).exists(), name)
+        metrics = json.loads((PROVENANCE_DIR / "metrics.json").read_text(encoding="utf-8"))
+        self.assertEqual(metrics["relation"], "training_update")
+        self.assertEqual(metrics["batch_size"], 1)
+        self.assertTrue(metrics["proof_generated"])
+        self.assertTrue(metrics["proof_verified"])
+        self.assertIsInstance(metrics["proof_size_bytes"], int)
+        self.assertIsInstance(metrics["cycle_count"], int)
+        tamper = json.loads((PROVENANCE_DIR / "tamper_report.json").read_text(encoding="utf-8"))
+        self.assertTrue(tamper["all_passed"])
 
 
 if __name__ == "__main__":

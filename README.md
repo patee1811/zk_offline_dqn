@@ -21,12 +21,20 @@ zk_backend/test_vectors/merkle_membership_case_0.json.
 SP1 proof generation and verification passed on Kaggle for canonical tiny
 vectors for Forward-TD MLP, one-step SGD tiny, and short trace checkpoint
 chaining using the corresponding cases under zk_backend/test_vectors/.
+
+SP1 proof generation and verification passed on Kaggle for a canonical
+batch-size-1 one-step Offline-DQN training update using
+zk_backend/test_vectors/training_update_case_0.json. The relation includes
+replay membership, forward TD computation, SmoothL1 loss, backpropagated
+gradient through a tiny Linear-ReLU-Linear MLP, fixed-point SGD, and the
+checkpoint transition.
 ```
 
 Extension relations are checked by Python semantic oracles unless a separate
 backend validation artifact is explicitly cited. The Forward-TD MLP,
-one-step SGD tiny, and short trace SP1 claims are canonical-vector coverage,
-not full DQN training, backpropagation, Adam, or recursive aggregation.
+one-step SGD tiny, short trace, and training-update SP1 claims are
+canonical-vector coverage, not full DQN training, Adam, recursive aggregation,
+model selection, or all replay batches.
 
 ## Architecture
 
@@ -50,6 +58,8 @@ not full DQN training, backpropagation, Adam, or recursive aggregation.
 - `zk_backend/forward_td_mlp/sp1/`, `zk_backend/one_step_sgd_tiny/sp1/`, and
   `zk_backend/short_trace/sp1/`: Rust SP1 host, guest, and shared crates for
   canonical tiny relation vectors.
+- `zk_backend/training_update/sp1/`: Rust SP1 host, guest, and shared crates
+  for the canonical batch-size-1 one-step training update vector.
 - `scripts/artifacts_export/`: legacy exporters/verifiers retained for
   compatibility and regression reproducibility.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
@@ -206,6 +216,11 @@ cd zk_backend/short_trace/sp1
 cargo test
 cargo run --release -p short-trace-host -- --execute --case ../../test_vectors/short_trace_case_0.json
 RUN_SP1_PROVE=1 cargo run --release -p short-trace-host -- --prove --case ../../test_vectors/short_trace_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/short_trace
+
+cd zk_backend/training_update/sp1
+cargo test
+cargo run --release -p training-update-host -- --execute --case ../../test_vectors/training_update_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p training-update-host -- --prove --case ../../test_vectors/training_update_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/training_update
 ```
 
 Proof commands require the Rust/SP1 toolchain and are not part of the default
