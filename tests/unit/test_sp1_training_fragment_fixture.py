@@ -26,8 +26,8 @@ PROVENANCE_FILES = [
 
 
 class Sp1TrainingFragmentFixtureTests(unittest.TestCase):
-    def test_k1_k4_k8_fixtures_load_and_match_reference(self):
-        for k in [1, 4, 8]:
+    def test_k1_k4_k8_k16_fixtures_load_and_match_reference(self):
+        for k in [1, 4, 8, 16]:
             with self.subTest(k=k):
                 case = load_case(case_path_for_k(k))
                 self.assertEqual(case["schema_version"], "sp1_training_fragment_case_v1")
@@ -38,7 +38,7 @@ class Sp1TrainingFragmentFixtureTests(unittest.TestCase):
                 self.assertTrue(result.accepted, result.reason)
 
     def test_reference_recomputes_every_step_and_trace_hashes(self):
-        for k in [1, 4, 8]:
+        for k in [1, 4, 8, 16]:
             with self.subTest(k=k):
                 case = load_case(case_path_for_k(k))
                 public = case["public_inputs"]
@@ -76,6 +76,17 @@ class Sp1TrainingFragmentFixtureTests(unittest.TestCase):
             case["private_witness"]["steps"][3]["online_model_after"],
         )
 
+    def test_k16_fixture_includes_four_target_syncs(self):
+        case = load_case(case_path_for_k(16))
+        computed = recompute_fragment(case)
+        sync_steps = [
+            step["step_id"]
+            for step in case["private_witness"]["steps"]
+            if step["intermediates"]["target_sync_applied"]
+        ]
+        self.assertEqual(computed["target_sync_events"], 4)
+        self.assertEqual(sync_steps, [3, 7, 11, 15])
+
     def test_cargo_execute_command_shape(self):
         command = cargo_command(case_path=case_path_for_k(1), max_steps=1)
         self.assertIn("training-fragment-host", command)
@@ -109,7 +120,7 @@ class Sp1TrainingFragmentFixtureTests(unittest.TestCase):
                 self.assertTrue((Path(tmp) / name).exists(), name)
 
     def test_committed_provenance_if_present_is_complete(self):
-        for k in [1, 4, 8, 32, 128]:
+        for k in [1, 4, 8, 16, 32, 128]:
             provenance_dir = Path(f"artifacts/reports/provenance/sp1/training_fragment_k{k}")
             if not provenance_dir.exists():
                 continue

@@ -1,3 +1,4 @@
+import copy
 import os
 import shutil
 import tempfile
@@ -24,6 +25,13 @@ class Sp1TrainingFragmentTamperTests(unittest.TestCase):
             with self.subTest(name=name):
                 result = verify_case_reference(tampered_case(case, name))
                 self.assertFalse(result.accepted, name)
+
+    def test_k16_middle_step_tamper_rejected_by_reference(self):
+        case = load_case(case_path_for_k(16))
+        mutated = copy.deepcopy(case)
+        mutated["private_witness"]["steps"][8]["checkpoint_hash_before"] = "00" * 32
+        result = verify_case_reference(mutated)
+        self.assertFalse(result.accepted)
 
     def test_core_tamper_cases_rejected_by_execute_mode_when_enabled(self):
         if os.environ.get("RUN_SP1_EXECUTE") != "1":
