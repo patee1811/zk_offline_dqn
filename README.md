@@ -42,6 +42,9 @@ backend validation artifact is explicitly cited. The Forward-TD MLP,
 one-step SGD tiny, short trace, and training-update SP1 claims are
 canonical-vector coverage, not full DQN training, Adam, recursive aggregation,
 model selection, or all replay batches.
+The same multi-step fragment path has reference and execute-mode validation for
+k in {16, 32, 128}, but those lengths are not SP1 proof-backed without verified
+proof provenance.
 
 ## Architecture
 
