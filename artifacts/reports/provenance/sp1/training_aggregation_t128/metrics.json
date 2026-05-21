@@ -1,0 +1,24 @@
+{
+  "aggregation_mode": "proof_manifest_chain",
+  "backend_version": "0.1.0",
+  "child_proof_count": 16,
+  "child_proof_verification_inside_guest": false,
+  "chunk_count": 16,
+  "chunk_size": 8,
+  "cycle_count": 2465680,
+  "git_commit": "713544d45d2e8d75860b0fa41894eb2bac6b4d1a",
+  "notes": [
+    "SP1 proof-backed proof-manifest chunk-chain aggregation; child proof cryptography is not recursively verified inside SP1."
+  ],
+  "proof_generated": true,
+  "proof_size_bytes": 2812038,
+  "proof_verified": true,
+  "prove_time_seconds": 253.231674938,
+  "public_inputs_sha256": "6e4a0c1e6b9323e80ad9a0b9ab1dfed00c07ceb5248797eb8e2d20aea5927f1c",
+  "relation": "training_aggregation",
+  "sp1_version": "6.1.0",
+  "step_end": 128,
+  "step_start": 0,
+  "test_vector_sha256": "89dc751f574726ac826ce7f552026b14381e175c2763afe4e2d6f073c7eca510",
+  "verify_time_seconds": 0.154249751
+}

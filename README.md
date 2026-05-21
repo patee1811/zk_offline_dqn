@@ -35,6 +35,12 @@ Offline-DQN training fragments for canonical tiny MLP vectors with k in
 replay membership, forward TD computation, SmoothL1 loss, backpropagated
 gradients, fixed-point SGD updates, target-network hard sync, and checkpoint
 chaining.
+
+SP1 proof generation and verification passed on Kaggle for proof-manifest
+chunk-chain aggregation over externally verified k=8 training-fragment proof
+manifests for W_0 -> W_T with T in {32, 64, 128}. The aggregation binds child
+proof-manifest hashes, dataset/config consistency, and online/target checkpoint
+links, but it does not recursively verify child proofs inside SP1.
 ```
 
 Extension relations are checked by Python semantic oracles unless a separate
@@ -73,6 +79,9 @@ proof provenance.
 - `zk_backend/training_fragment/sp1/`: Rust SP1 host, guest, and shared crates
   for canonical multi-step training-fragment vectors. Current compact SP1 proof
   provenance covers k in `{1, 4, 8}`.
+- `zk_backend/training_aggregation/sp1/`: Rust SP1 host, guest, and shared
+  crates for proof-manifest chunk-chain aggregation over k=8 child fragment
+  records. This does not recursively verify child proofs.
 - `scripts/artifacts_export/`: legacy exporters/verifiers retained for
   compatibility and regression reproducibility.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
