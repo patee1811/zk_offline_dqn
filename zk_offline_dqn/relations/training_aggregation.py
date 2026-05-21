@@ -24,6 +24,13 @@ CHUNK_RELATION_ID = "training_fragment_k8"
 CLAIM_SCOPE = "chunk-chain aggregation over externally verified proof manifests"
 RECURSIVE_CLAIM_SCOPE = "true recursive SP1 aggregation over child training-fragment proofs"
 CHILD_PROOF_MODE = "native_sp1"
+GROTH16_CHILD_PROOF_MODE = "groth16_bn254"
+PLONK_CHILD_PROOF_MODE = "plonk_bn254"
+RECURSIVE_CHILD_PROOF_MODES = {
+    CHILD_PROOF_MODE,
+    GROTH16_CHILD_PROOF_MODE,
+    PLONK_CHILD_PROOF_MODE,
+}
 CHUNK_FIELDS = [
     "chunk_id",
     "step_start",
@@ -171,12 +178,15 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
     elif recursive:
         if public["claim_scope"] != RECURSIVE_CLAIM_SCOPE:
             raise AssertionError("claim_scope mismatch")
-        if public.get("child_proof_mode") != CHILD_PROOF_MODE:
+        if public.get("child_proof_mode") not in RECURSIVE_CHILD_PROOF_MODES:
             raise AssertionError("child proof mode mismatch")
         assert_vkey_hash(public.get("expected_child_vkey_hash"), "expected_child_vkey_hash")
-        assert_vkey_digest_words(
-            public.get("expected_child_vkey_digest_words"), "expected_child_vkey_digest_words"
-        )
+        if public["child_proof_mode"] == CHILD_PROOF_MODE:
+            assert_vkey_digest_words(
+                public.get("expected_child_vkey_digest_words"), "expected_child_vkey_digest_words"
+            )
+        elif "expected_child_vkey_digest_words" in public:
+            raise AssertionError("unexpected expected_child_vkey_digest_words")
         assert_nonzero_hex_32(public.get("chunk_vkey_root"), "chunk_vkey_root")
         _verify_recursive_metadata(public, witness)
     else:
@@ -248,18 +258,25 @@ def _verify_recursive_metadata(public: Mapping[str, Any], witness: Mapping[str, 
     for index, (chunk, child) in enumerate(zip(chunks, child_proofs)):
         if int(child["chunk_id"]) != index:
             raise AssertionError("child proof order mismatch")
-        if child["proof_mode"] != CHILD_PROOF_MODE or chunk["child_proof_mode"] != CHILD_PROOF_MODE:
+        proof_mode = public["child_proof_mode"]
+        if child["proof_mode"] != proof_mode or chunk["child_proof_mode"] != proof_mode:
             raise AssertionError("child proof mode mismatch")
         if child["vkey_hash"] != public["expected_child_vkey_hash"]:
             raise AssertionError("unexpected child verification key")
-        if child["vkey_digest_words"] != public["expected_child_vkey_digest_words"]:
-            raise AssertionError("unexpected child verification key digest")
         if chunk["child_vkey_hash"] != child["vkey_hash"]:
             raise AssertionError("chunk child vkey hash mismatch")
         assert_vkey_hash(child["vkey_hash"], "child_vkey_hash")
-        assert_vkey_digest_words(child["vkey_digest_words"], "child_vkey_digest_words")
-        if not child["vkey_bytes"]:
-            raise AssertionError("missing child vkey bytes")
+        if proof_mode == CHILD_PROOF_MODE:
+            if child.get("vkey_digest_words") != public["expected_child_vkey_digest_words"]:
+                raise AssertionError("unexpected child verification key digest")
+            assert_vkey_digest_words(child["vkey_digest_words"], "child_vkey_digest_words")
+            if not child.get("vkey_bytes"):
+                raise AssertionError("missing child vkey bytes")
+        else:
+            if child.get("vkey_digest_words"):
+                raise AssertionError("unexpected child vkey digest words")
+            if child.get("vkey_bytes"):
+                raise AssertionError("unexpected child vkey bytes")
         proof_hash = sha256_hex_bytes(child["proof_bytes"], "child proof bytes")
         public_values_hash = sha256_hex_bytes(child["public_values_bytes"], "child public values")
         if chunk["child_proof_hash"] != proof_hash or chunk["proof_hash"] != proof_hash:
@@ -319,9 +336,12 @@ def public_output(
                 "chunk_vkey_root": roots["chunk_vkey_root"],
                 "child_proof_mode": public["child_proof_mode"],
                 "expected_child_vkey_hash": public["expected_child_vkey_hash"],
-                "expected_child_vkey_digest_words": public["expected_child_vkey_digest_words"],
             }
         )
+        if "expected_child_vkey_digest_words" in public:
+            output["expected_child_vkey_digest_words"] = public[
+                "expected_child_vkey_digest_words"
+            ]
     return output
 
 
@@ -397,11 +417,14 @@ def generate_recursive_case(
     step_end: int,
     *,
     child_materials: Sequence[Mapping[str, Any]] | None = None,
+    child_proof_mode: str = CHILD_PROOF_MODE,
     chunk_size: int = 8,
 ) -> Dict[str, Any]:
+    if child_proof_mode not in RECURSIVE_CHILD_PROOF_MODES:
+        raise AssertionError("unsupported recursive child proof mode")
     child_cases = generate_recursive_child_cases(step_end, chunk_size=chunk_size)
     materials = list(child_materials) if child_materials is not None else [
-        placeholder_child_material(child_case, chunk_id)
+        placeholder_child_material(child_case, chunk_id, proof_mode=child_proof_mode)
         for chunk_id, child_case in enumerate(child_cases)
     ]
     if len(materials) != len(child_cases):
@@ -412,7 +435,7 @@ def generate_recursive_case(
     first_public = child_cases[0]["public_inputs"]
     config_hash = config_hash_from_fragment_public(first_public)
     expected_vkey_hash = str(materials[0]["vkey_hash"])
-    expected_vkey_digest_words = list(materials[0]["vkey_digest_words"])
+    expected_vkey_digest_words = list(materials[0].get("vkey_digest_words", []))
     for chunk_id, (child_case, material) in enumerate(zip(child_cases, materials)):
         result = verify_fragment_case(child_case)
         if not result.accepted or result.public_output is None:
@@ -421,7 +444,9 @@ def generate_recursive_case(
         child_output = result.public_output
         if str(material["vkey_hash"]) != expected_vkey_hash:
             raise AssertionError("recursive child vkey mismatch")
-        if list(material["vkey_digest_words"]) != expected_vkey_digest_words:
+        if str(material["proof_mode"]) != child_proof_mode:
+            raise AssertionError("recursive child proof mode mismatch")
+        if list(material.get("vkey_digest_words", [])) != expected_vkey_digest_words:
             raise AssertionError("recursive child vkey digest mismatch")
         proof_hash = sha256_hex_bytes(str(material["proof_bytes"]), "child proof bytes")
         public_hash = sha256_hex_bytes(
@@ -454,7 +479,7 @@ def generate_recursive_case(
             "child_public_inputs_hash": public_hash,
             "child_vkey_hash": str(material["vkey_hash"]),
             "child_proof_hash": proof_hash,
-            "child_proof_mode": CHILD_PROOF_MODE,
+            "child_proof_mode": child_proof_mode,
             "child_verify_report_hash": str(
                 material.get("verify_report_hash", provenance_hashes["verify_report_hash"])
             ),
@@ -466,12 +491,18 @@ def generate_recursive_case(
         child_proofs.append(
             {
                 "chunk_id": chunk_id,
-                "proof_mode": CHILD_PROOF_MODE,
+                "proof_mode": child_proof_mode,
                 "proof_bytes": str(material["proof_bytes"]),
                 "public_values_bytes": str(material["public_values_bytes"]),
                 "vkey_hash": str(material["vkey_hash"]),
-                "vkey_digest_words": list(material["vkey_digest_words"]),
-                "vkey_bytes": str(material["vkey_bytes"]),
+                **(
+                    {
+                        "vkey_digest_words": list(material["vkey_digest_words"]),
+                        "vkey_bytes": str(material["vkey_bytes"]),
+                    }
+                    if child_proof_mode == CHILD_PROOF_MODE
+                    else {}
+                ),
             }
         )
     roots = recompute_roots(chunks, recursive=True)
@@ -487,12 +518,13 @@ def generate_recursive_case(
     )
     vector["public_inputs"].update(
         {
-            "child_proof_mode": CHILD_PROOF_MODE,
+            "child_proof_mode": child_proof_mode,
             "expected_child_vkey_hash": expected_vkey_hash,
-            "expected_child_vkey_digest_words": expected_vkey_digest_words,
             "chunk_vkey_root": roots["chunk_vkey_root"],
         }
     )
+    if child_proof_mode == CHILD_PROOF_MODE:
+        vector["public_inputs"]["expected_child_vkey_digest_words"] = expected_vkey_digest_words
     return vector
 
 
@@ -519,7 +551,12 @@ def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> Lis
     return child_cases
 
 
-def placeholder_child_material(child_case: Mapping[str, Any], chunk_id: int) -> Dict[str, str]:
+def placeholder_child_material(
+    child_case: Mapping[str, Any],
+    chunk_id: int,
+    *,
+    proof_mode: str = CHILD_PROOF_MODE,
+) -> Dict[str, Any]:
     output = verify_fragment_case(child_case).public_output
     if output is None:
         raise AssertionError("placeholder child case rejected")
@@ -527,16 +564,28 @@ def placeholder_child_material(child_case: Mapping[str, Any], chunk_id: int) -> 
     proof_bytes = hashlib.sha256(
         f"recursive_child_placeholder_proof_{chunk_id}".encode("utf-8")
     ).digest().hex()
-    return {
+    material: Dict[str, Any] = {
+        "proof_mode": proof_mode,
         "proof_bytes": proof_bytes,
         "public_values_bytes": public_values,
         "vkey_hash": "0x" + hashlib.sha256(b"recursive_training_fragment_vkey").hexdigest(),
-        "vkey_digest_words": [
-            int.from_bytes(hashlib.sha256(f"recursive_vkey_{index}".encode("utf-8")).digest()[:4], "big")
-            for index in range(8)
-        ],
-        "vkey_bytes": hashlib.sha256(b"recursive_training_fragment_vkey_bytes").digest().hex(),
     }
+    if proof_mode == CHILD_PROOF_MODE:
+        material.update(
+            {
+                "vkey_digest_words": [
+                    int.from_bytes(
+                        hashlib.sha256(f"recursive_vkey_{index}".encode("utf-8")).digest()[:4],
+                        "big",
+                    )
+                    for index in range(8)
+                ],
+                "vkey_bytes": hashlib.sha256(b"recursive_training_fragment_vkey_bytes")
+                .digest()
+                .hex(),
+            }
+        )
+    return material
 
 
 def config_hash_from_fragment_public(fragment_public: Mapping[str, Any]) -> str:

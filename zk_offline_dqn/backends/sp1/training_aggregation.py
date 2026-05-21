@@ -49,12 +49,17 @@ def write_generated_recursive_case(
     path: str | Path | None = None,
     *,
     child_materials: List[Dict[str, Any]] | None = None,
+    child_proof_mode: str | None = None,
 ) -> Path:
     out_path = Path(path) if path is not None else recursive_case_path_for_target(target)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
         json.dumps(
-            generate_recursive_case(target, child_materials=child_materials),
+            generate_recursive_case(
+                target,
+                child_materials=child_materials,
+                **({"child_proof_mode": child_proof_mode} if child_proof_mode else {}),
+            ),
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -73,6 +78,7 @@ def cargo_command(
     case_path: str | Path = DEFAULT_CASE_PATH,
     mode: str = "execute",
     aggregation_mode: str = "proof_manifest_chain",
+    child_proof_mode: str | None = None,
     out_dir: str | Path | None = None,
 ) -> List[str]:
     command = [
@@ -90,6 +96,8 @@ def cargo_command(
     ]
     if out_dir is not None:
         command.extend(["--out-dir", str(out_dir)])
+    if child_proof_mode is not None:
+        command.extend(["--child-proof-mode", child_proof_mode])
     return command
 
 
@@ -98,6 +106,7 @@ def run_cargo(
     case_path: str | Path = DEFAULT_CASE_PATH,
     mode: str = "execute",
     aggregation_mode: str = "proof_manifest_chain",
+    child_proof_mode: str | None = None,
     out_dir: str | Path | None = None,
     timeout: int = 1200,
 ) -> subprocess.CompletedProcess[str]:
@@ -109,6 +118,7 @@ def run_cargo(
             case_path=case_path,
             mode=mode,
             aggregation_mode=aggregation_mode,
+            child_proof_mode=child_proof_mode,
             out_dir=out_dir,
         ),
         cwd=BACKEND_DIR,
@@ -176,15 +186,29 @@ def tampered_case(case: Dict[str, Any], name: str) -> Dict[str, Any]:
         public["chunk_public_inputs_root"] = _flip_hex(public["chunk_public_inputs_root"])
     elif name == "tamper_chunk_proof_root":
         public["chunk_proof_root"] = _flip_hex(public["chunk_proof_root"])
-    elif name == "tamper_child_proof_bytes":
+    elif name in {
+        "tamper_child_proof_bytes",
+        "tamper_groth16_child_proof_bytes",
+        "tamper_plonk_child_proof_bytes",
+    }:
         mutated["private_witness"]["child_proofs"][0]["proof_bytes"] = _flip_hex(
             mutated["private_witness"]["child_proofs"][0]["proof_bytes"]
         )
-    elif name == "tamper_child_public_values":
+    elif name in {
+        "tamper_child_public_values",
+        "tamper_groth16_child_public_values",
+        "tamper_plonk_child_public_values",
+        "tamper_groth16_child_public_values_hash",
+        "tamper_plonk_child_public_values_hash",
+    }:
         mutated["private_witness"]["child_proofs"][0]["public_values_bytes"] = _flip_hex(
             mutated["private_witness"]["child_proofs"][0]["public_values_bytes"]
         )
-    elif name == "tamper_child_vkey_hash":
+    elif name in {
+        "tamper_child_vkey_hash",
+        "tamper_groth16_child_vkey_hash",
+        "tamper_plonk_child_vkey_hash",
+    }:
         mutated["private_witness"]["child_proofs"][0]["vkey_hash"] = _flip_vkey(
             mutated["private_witness"]["child_proofs"][0]["vkey_hash"]
         )
@@ -207,10 +231,18 @@ def tampered_case(case: Dict[str, Any], name: str) -> Dict[str, Any]:
         first["dataset_root"] = _flip_hex(first["dataset_root"])
     elif name == "tamper_child_config_hash":
         first["config_hash"] = _flip_hex(first["config_hash"])
-    elif name == "tamper_valid_child_proof_wrong_position":
+    elif name in {
+        "tamper_valid_child_proof_wrong_position",
+        "tamper_groth16_valid_child_proof_wrong_position",
+        "tamper_plonk_valid_child_proof_wrong_position",
+    }:
         proofs = mutated["private_witness"]["child_proofs"]
         proofs[0]["chunk_id"], proofs[1]["chunk_id"] = proofs[1]["chunk_id"], proofs[0]["chunk_id"]
-    elif name == "tamper_individually_valid_child_proofs_broken_chain":
+    elif name in {
+        "tamper_individually_valid_child_proofs_broken_chain",
+        "tamper_groth16_individually_valid_child_proofs_broken_chain",
+        "tamper_plonk_individually_valid_child_proofs_broken_chain",
+    }:
         chunks[1]["input_checkpoint_hash"] = _flip_hex(chunks[1]["input_checkpoint_hash"])
     else:
         raise ValueError(f"unknown tamper case: {name}")

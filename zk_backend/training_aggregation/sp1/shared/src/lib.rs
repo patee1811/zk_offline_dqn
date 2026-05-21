@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use sp1_verifier::{Groth16Verifier, PlonkVerifier, GROTH16_VK_BYTES, PLONK_VK_BYTES};
 use training_fragment_shared::TrainingFragmentOutput;
+
+const NATIVE_CHILD_PROOF_MODE: &str = "native_sp1";
+const GROTH16_CHILD_PROOF_MODE: &str = "groth16_bn254";
+const PLONK_CHILD_PROOF_MODE: &str = "plonk_bn254";
 
 const MANIFEST_CHUNK_FIELDS: [&str; 19] = [
     "chunk_id",
@@ -115,7 +120,9 @@ pub struct RecursiveChildProof {
     pub proof_bytes: String,
     pub public_values_bytes: String,
     pub vkey_hash: String,
+    #[serde(default)]
     pub vkey_digest_words: Vec<u32>,
+    #[serde(default)]
     pub vkey_bytes: String,
 }
 
@@ -230,10 +237,11 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
                 "true recursive SP1 aggregation over child training-fragment proofs",
                 "claim_scope mismatch"
             );
-            assert_eq!(
-                public.child_proof_mode.as_deref(),
-                Some("native_sp1"),
-                "child proof mode mismatch"
+            assert_child_proof_mode(
+                public
+                    .child_proof_mode
+                    .as_deref()
+                    .expect("missing child_proof_mode"),
             );
             assert_eq!(
                 public.chunk_count,
@@ -245,11 +253,18 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
                 .as_deref()
                 .expect("missing expected child vkey hash");
             assert_vkey_hash(expected_vkey, "expected_child_vkey_hash");
-            let expected_vkey_digest = public
-                .expected_child_vkey_digest_words
-                .as_deref()
-                .expect("missing expected child vkey digest");
-            assert_vkey_digest_words(expected_vkey_digest, "expected_child_vkey_digest_words");
+            if public.child_proof_mode.as_deref() == Some(NATIVE_CHILD_PROOF_MODE) {
+                let expected_vkey_digest = public
+                    .expected_child_vkey_digest_words
+                    .as_deref()
+                    .expect("missing expected child vkey digest");
+                assert_vkey_digest_words(expected_vkey_digest, "expected_child_vkey_digest_words");
+            } else {
+                assert!(
+                    public.expected_child_vkey_digest_words.is_none(),
+                    "unexpected expected child vkey digest"
+                );
+            }
             assert_nonzero_hex_32(
                 public
                     .chunk_vkey_root
@@ -443,6 +458,7 @@ fn verify_recursive_children(
     witness: &TrainingAggregationWitness,
 ) {
     let expected_vkey = public.expected_child_vkey_hash.as_ref().unwrap();
+    let proof_mode = public.child_proof_mode.as_deref().unwrap();
     for (idx, (chunk, child)) in witness
         .chunks
         .iter()
@@ -451,12 +467,12 @@ fn verify_recursive_children(
     {
         assert_eq!(child.chunk_id, idx, "child proof order mismatch");
         assert_eq!(
-            child.proof_mode, "native_sp1",
+            child.proof_mode, proof_mode,
             "child proof material mode mismatch"
         );
         assert_eq!(
             chunk.child_proof_mode.as_deref(),
-            Some("native_sp1"),
+            Some(proof_mode),
             "chunk child proof mode mismatch"
         );
         assert_eq!(
@@ -468,14 +484,22 @@ fn verify_recursive_children(
             &child.vkey_hash, expected_vkey,
             "unexpected child verification key"
         );
-        assert_eq!(
-            public.expected_child_vkey_digest_words.as_ref().unwrap(),
-            &child.vkey_digest_words,
-            "unexpected child verification key digest"
-        );
         assert_vkey_hash(&child.vkey_hash, "child_vkey_hash");
-        assert_vkey_digest_words(&child.vkey_digest_words, "child_vkey_digest_words");
-        assert!(!child.vkey_bytes.is_empty(), "missing child vkey bytes");
+        if proof_mode == NATIVE_CHILD_PROOF_MODE {
+            assert_eq!(
+                public.expected_child_vkey_digest_words.as_ref().unwrap(),
+                &child.vkey_digest_words,
+                "unexpected child verification key digest"
+            );
+            assert_vkey_digest_words(&child.vkey_digest_words, "child_vkey_digest_words");
+            assert!(!child.vkey_bytes.is_empty(), "missing child vkey bytes");
+        } else {
+            assert!(
+                child.vkey_digest_words.is_empty(),
+                "unexpected child vkey digest words"
+            );
+            assert!(child.vkey_bytes.is_empty(), "unexpected child vkey bytes");
+        }
         let proof_bytes = decode_hex(&child.proof_bytes, "child proof bytes");
         let public_values = decode_hex(&child.public_values_bytes, "child public values");
         assert_eq!(
@@ -525,7 +549,24 @@ fn verify_recursive_children(
         ] {
             assert_nonzero_hex_32(value, label);
         }
-        verify_native_child_proof(child, &public_values);
+        match proof_mode {
+            NATIVE_CHILD_PROOF_MODE => verify_native_child_proof(child, &public_values),
+            GROTH16_CHILD_PROOF_MODE => Groth16Verifier::verify(
+                &proof_bytes,
+                &public_values,
+                &child.vkey_hash,
+                &GROTH16_VK_BYTES,
+            )
+            .expect("child Groth16 proof verification failed"),
+            PLONK_CHILD_PROOF_MODE => PlonkVerifier::verify(
+                &proof_bytes,
+                &public_values,
+                &child.vkey_hash,
+                &PLONK_VK_BYTES,
+            )
+            .expect("child Plonk proof verification failed"),
+            _ => panic!("unsupported child proof mode"),
+        }
         let child_output: TrainingFragmentOutput =
             bincode::deserialize(&public_values).expect("child public values decode failed");
         assert_child_output(public, chunk, &child_output);
@@ -784,5 +825,15 @@ fn assert_vkey_digest_words(words: &[u32], label: &str) {
     assert!(
         words.iter().any(|item| *item != 0),
         "{label} must be nonzero"
+    );
+}
+
+fn assert_child_proof_mode(mode: &str) {
+    assert!(
+        matches!(
+            mode,
+            NATIVE_CHILD_PROOF_MODE | GROTH16_CHILD_PROOF_MODE | PLONK_CHILD_PROOF_MODE
+        ),
+        "unsupported child proof mode"
     );
 }

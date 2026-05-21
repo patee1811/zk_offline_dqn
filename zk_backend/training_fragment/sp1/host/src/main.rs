@@ -107,6 +107,11 @@ async fn main() -> Result<()> {
                 .groth16()
                 .await
                 .context("SP1 Groth16 proof generation failed")?,
+            "plonk_bn254" => client
+                .prove(&pk, stdin)
+                .plonk()
+                .await
+                .context("SP1 Plonk proof generation failed")?,
             "native_sp1" => client
                 .prove(&pk, stdin)
                 .compressed()
@@ -114,7 +119,7 @@ async fn main() -> Result<()> {
                 .context("SP1 compressed proof generation failed")?,
             mode => {
                 return Err(anyhow!(
-                    "unsupported --proof-mode {mode}; expected core, groth16_bn254, or native_sp1"
+                    "unsupported --proof-mode {mode}; expected core, groth16_bn254, plonk_bn254, or native_sp1"
                 ))
             }
         };
@@ -129,8 +134,14 @@ async fn main() -> Result<()> {
             .save(&proof_path)
             .with_context(|| format!("failed to save {}", proof_path.display()))?;
         let proof_size_bytes = fs::metadata(&proof_path)?.len();
-        if args.proof_mode == "groth16_bn254" {
-            write_groth16_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+        if matches!(args.proof_mode.as_str(), "groth16_bn254" | "plonk_bn254") {
+            write_snark_recursive_child_material(
+                &out_dir,
+                &proof,
+                &pk,
+                &expected,
+                &args.proof_mode,
+            )?;
         }
         if args.proof_mode == "native_sp1" {
             write_native_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
@@ -155,19 +166,25 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn write_groth16_recursive_child_material(
+fn write_snark_recursive_child_material(
     out_dir: &Path,
     proof: &sp1_sdk::SP1ProofWithPublicValues,
     pk: &impl ProvingKey,
     expected: &TrainingFragmentOutput,
+    proof_mode: &str,
 ) -> Result<()> {
+    let proof_bytes = proof.bytes();
+    let public_values = proof.public_values.to_vec();
     write_json(
         out_dir.join("recursive_child_proof_material.json"),
         &json!({
-            "proof_mode": "groth16_bn254",
-            "proof_bytes": hex::encode(proof.bytes()),
-            "public_values_bytes": hex::encode(proof.public_values.to_vec()),
+            "proof_mode": proof_mode,
+            "proof_bytes": hex::encode(&proof_bytes),
+            "public_values_bytes": hex::encode(&public_values),
             "vkey_hash": pk.verifying_key().bytes32(),
+            "child_proof_hash": hex_sha256(&proof_bytes),
+            "child_public_values_hash": hex_sha256(&public_values),
+            "child_public_inputs_hash": hex_sha256(&public_values),
             "public_output": expected,
         }),
     )

@@ -61,6 +61,10 @@ artifacts/kaggle_phase7_kernel/
 artifacts/kaggle_phase7_outputs/
 artifacts/kaggle_phase7_recursive_kernel/
 artifacts/kaggle_phase7_recursive_outputs/
+artifacts/kaggle_phase7_groth16_t16_t32_kernel/
+artifacts/kaggle_phase7_groth16_t16_t32_outputs/
+artifacts/kaggle_phase7_plonk_t16_t32_kernel/
+artifacts/kaggle_phase7_plonk_t16_t32_outputs/
 
 # =============================================================================
 # IDE / Editor

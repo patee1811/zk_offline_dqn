@@ -30,7 +30,10 @@ from zk_offline_dqn.backends.sp1.training_fragment import (  # noqa: E402
 )
 from zk_offline_dqn.relations.training_aggregation import (  # noqa: E402
     CHILD_PROOF_MODE,
+    GROTH16_CHILD_PROOF_MODE,
+    PLONK_CHILD_PROOF_MODE,
     RECURSIVE_AGGREGATION_MODE,
+    RECURSIVE_CHILD_PROOF_MODES,
     generate_recursive_child_cases,
     placeholder_child_material,
     recompute_roots,
@@ -82,6 +85,24 @@ RECURSIVE_TAMPER_CASES = [
     "tamper_individually_valid_child_proofs_broken_chain",
 ]
 
+GROTH16_RECURSIVE_TAMPER_CASES = [
+    "tamper_groth16_child_proof_bytes",
+    "tamper_groth16_child_public_values",
+    "tamper_groth16_child_vkey_hash",
+    "tamper_groth16_child_public_values_hash",
+    "tamper_groth16_valid_child_proof_wrong_position",
+    "tamper_groth16_individually_valid_child_proofs_broken_chain",
+]
+
+PLONK_RECURSIVE_TAMPER_CASES = [
+    "tamper_plonk_child_proof_bytes",
+    "tamper_plonk_child_public_values",
+    "tamper_plonk_child_vkey_hash",
+    "tamper_plonk_child_public_values_hash",
+    "tamper_plonk_valid_child_proof_wrong_position",
+    "tamper_plonk_individually_valid_child_proofs_broken_chain",
+]
+
 CORE_RUST_TAMPER_CASES = [
     "tamper_chunk_order",
     "tamper_intermediate_checkpoint_link",
@@ -128,10 +149,28 @@ def run_command(
     }
 
 
+def public_child_proof_mode(case: Mapping[str, Any]) -> str | None:
+    return case["public_inputs"].get("child_proof_mode")
+
+
+def output_dir_name(public: Mapping[str, Any]) -> str:
+    if public["aggregation_mode"] != RECURSIVE_AGGREGATION_MODE:
+        return f"training_aggregation_t{public['step_end']}"
+    if public.get("child_proof_mode") == GROTH16_CHILD_PROOF_MODE:
+        return f"training_aggregation_groth16_t{public['step_end']}"
+    if public.get("child_proof_mode") == PLONK_CHILD_PROOF_MODE:
+        return f"training_aggregation_plonk_t{public['step_end']}"
+    return f"training_aggregation_recursive_t{public['step_end']}"
+
+
 def run_tamper_checks(case_path: Path, out_dir: Path, run_execute: bool) -> Dict[str, Any]:
     case = load_case(case_path)
     recursive = case["public_inputs"]["aggregation_mode"] == RECURSIVE_AGGREGATION_MODE
     names = TAMPER_CASES + (RECURSIVE_TAMPER_CASES if recursive else [])
+    if public_child_proof_mode(case) == GROTH16_CHILD_PROOF_MODE:
+        names += GROTH16_RECURSIVE_TAMPER_CASES
+    if public_child_proof_mode(case) == PLONK_CHILD_PROOF_MODE:
+        names += PLONK_RECURSIVE_TAMPER_CASES
     rust_names = CORE_RUST_TAMPER_CASES + (RECURSIVE_CORE_RUST_TAMPER_CASES if recursive else [])
     checks = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -148,6 +187,7 @@ def run_tamper_checks(case_path: Path, out_dir: Path, run_execute: bool) -> Dict
                         case_path=path,
                         mode="execute",
                         aggregation_mode=case["public_inputs"]["aggregation_mode"],
+                        child_proof_mode=public_child_proof_mode(case),
                     )
                 )
             passed = not reference.accepted
@@ -187,11 +227,7 @@ def validate_case(
     public = case["public_inputs"]
     recursive = public["aggregation_mode"] == RECURSIVE_AGGREGATION_MODE
     target = int(public["step_end"])
-    out_dir = out_root / (
-        f"training_aggregation_recursive_t{target}"
-        if recursive
-        else f"training_aggregation_t{target}"
-    )
+    out_dir = out_root / output_dir_name(public)
     out_dir.mkdir(parents=True, exist_ok=True)
     reference = verify_case_reference(case)
     roots = (
@@ -206,6 +242,7 @@ def validate_case(
                 case_path=case_path,
                 mode="execute",
                 aggregation_mode=aggregation_mode,
+                child_proof_mode=public.get("child_proof_mode"),
             )
         )
     proof = None
@@ -216,6 +253,7 @@ def validate_case(
                 case_path=case_path,
                 mode="prove",
                 aggregation_mode=aggregation_mode,
+                child_proof_mode=public.get("child_proof_mode"),
                 out_dir=out_dir,
             ),
             env={"RUN_SP1_PROVE": "1"},
@@ -286,8 +324,8 @@ def prepare_recursive_case(
     child_proof_mode: str,
     run_child_proves: bool,
 ) -> tuple[Path, List[Dict[str, Any]]]:
-    if child_proof_mode != CHILD_PROOF_MODE:
-        raise SystemExit(f"Phase 7B currently supports --child-proof-mode {CHILD_PROOF_MODE}")
+    if child_proof_mode not in RECURSIVE_CHILD_PROOF_MODES:
+        raise SystemExit(f"unsupported --child-proof-mode {child_proof_mode}")
     child_cases = generate_recursive_child_cases(target)
     work_dir = out_root / "_recursive_child_work" / f"t{target}"
     case_dir = work_dir / "cases"
@@ -321,7 +359,11 @@ def prepare_recursive_case(
             if proof_path.exists():
                 proof_path.unlink()
         else:
-            material = placeholder_child_material(child_case, chunk_id)
+            material = placeholder_child_material(
+                child_case,
+                chunk_id,
+                proof_mode=child_proof_mode,
+            )
             prove = None
         materials.append(material)
         child_statuses.append(
@@ -335,7 +377,12 @@ def prepare_recursive_case(
             }
         )
     case_path = out_root / "_recursive_cases" / f"training_aggregation_recursive_t{target}_case_0.json"
-    write_generated_recursive_case(target, case_path, child_materials=materials)
+    write_generated_recursive_case(
+        target,
+        case_path,
+        child_materials=materials,
+        child_proof_mode=child_proof_mode,
+    )
     write_json(work_dir / "child_proof_status.json", {"children": child_statuses})
     return case_path, child_statuses
 
@@ -355,6 +402,7 @@ def main() -> int:
     parser.add_argument("--run-child-proves", action="store_true")
     parser.add_argument("--run-execute", action="store_true")
     parser.add_argument("--run-prove", action="store_true")
+    parser.add_argument("--continue-on-failure", action="store_true")
     args = parser.parse_args()
     if args.chunk_size != 8:
         raise SystemExit("Phase 7 requires --chunk-size 8")
@@ -395,6 +443,7 @@ def main() -> int:
             and (args.run_execute or args.run_prove)
             and not status["proof_verified"]
             and args.run_prove
+            and not args.continue_on_failure
         ):
             break
     summary = {"relation": "training_aggregation", "cases": statuses}

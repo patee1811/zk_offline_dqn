@@ -27,6 +27,8 @@ struct Args {
     #[arg(long, default_value = "proof_manifest_chain")]
     mode: String,
     #[arg(long)]
+    child_proof_mode: Option<String>,
+    #[arg(long)]
     skip_host_precheck: bool,
 }
 
@@ -43,6 +45,13 @@ async fn main() -> Result<()> {
     let input = load_input(&case_path)?;
     if input.public_inputs.aggregation_mode != args.mode {
         return Err(anyhow!("--mode does not match case aggregation_mode"));
+    }
+    if let Some(child_proof_mode) = args.child_proof_mode.as_deref() {
+        if input.public_inputs.child_proof_mode.as_deref() != Some(child_proof_mode) {
+            return Err(anyhow!(
+                "--child-proof-mode does not match case child_proof_mode"
+            ));
+        }
     }
     println!("case_path = {}", case_path.display());
     let expected = verify_training_aggregation(&input);
@@ -148,9 +157,7 @@ fn build_stdin(input: &TrainingAggregationInput) -> Result<SP1Stdin> {
     if input.public_inputs.aggregation_mode == "recursive_sp1" {
         for child in &input.private_witness.child_proofs {
             if child.proof_mode != "native_sp1" {
-                return Err(anyhow!(
-                    "recursive SP1 stdin requires native_sp1 child proofs"
-                ));
+                continue;
             }
             let proof_bytes = hex::decode(&child.proof_bytes)
                 .context("failed to decode native child proof bytes")?;
@@ -246,9 +253,12 @@ fn write_provenance(
             "child_proof_count": input.public_inputs.chunk_count,
             "child_proof_verification_inside_guest": recursive,
             "notes": [if recursive {
-                "SP1 true recursive aggregation; native compressed child training-fragment proofs are verified inside the aggregate guest."
+                format!(
+                    "SP1 true recursive aggregation; {} child training-fragment proofs are verified inside the aggregate guest.",
+                    input.public_inputs.child_proof_mode.as_deref().unwrap_or("unknown")
+                )
             } else {
-                "SP1 proof-backed proof-manifest chunk-chain aggregation; child proof cryptography is not recursively verified inside SP1."
+                "SP1 proof-backed proof-manifest chunk-chain aggregation; child proof cryptography is not recursively verified inside SP1.".to_owned()
             }]
         }),
     )?;
@@ -283,7 +293,7 @@ fn write_provenance(
             "proof_binary_committed": false,
             "reason": "proof binary is generated artifact and may be large",
             "expected_runtime_location": if recursive {
-                format!("artifacts/kaggle_phase7_recursive_outputs/extracted/phase7_recursive_outputs/sp1/training_aggregation_recursive_t{}/proof.bin", input.public_inputs.step_end)
+                recursive_proof_runtime_location(input)
             } else {
                 format!("artifacts/kaggle_phase7_outputs/extracted/phase7_outputs/sp1/training_aggregation_t{}/proof.bin", input.public_inputs.step_end)
             }
@@ -310,7 +320,7 @@ fn write_provenance(
             "child_proof_verification_inside_guest": recursive,
             "claim_scope": input.public_inputs.claim_scope,
             "proof_hash_note": if recursive {
-                "chunk child_proof_hash values bind native compressed child proof material supplied to SP1 deferred verification."
+                "chunk child_proof_hash values bind recursive child proof material verified inside the aggregate guest."
             } else {
                 "chunk proof_hash values bind child proof-manifest metadata derived from externally verified k=8 proof provenance; proof bytes are not recursively verified here."
             }
@@ -362,19 +372,19 @@ fn witness_schema(recursive: bool) -> serde_json::Value {
                     "input_checkpoint_hash": "must match child public start checkpoint",
                     "output_checkpoint_hash": "must match child public final checkpoint",
                     "child_public_inputs_hash": "sha256 of child public-values bytes",
-                    "child_vkey_hash": "SP1 training-fragment vkey hash for native deferred verification",
-                    "child_proof_hash": "sha256 of child native compressed proof bytes"
+                    "child_vkey_hash": "SP1 training-fragment vkey hash checked by the child verifier",
+                    "child_proof_hash": "sha256 of recursive child proof bytes"
                 }],
                 "child_proofs": [{
-                    "proof_bytes": "private native compressed SP1 proof bytes attached to the deferred proof stream",
+                    "proof_bytes": "private native compressed, Groth16, or Plonk SP1 proof bytes",
                     "public_values_bytes": "private SP1 public values hashed, verified, and decoded in guest",
                     "vkey_hash": "private proof vkey hash checked against aggregation public input",
-                    "vkey_digest_words": "native SP1 vkey digest passed to verify_sp1_proof",
-                    "vkey_bytes": "private serialized child SP1 verifying key used by the host to attach the child proof"
+                    "vkey_digest_words": "native SP1 only: vkey digest passed to verify_sp1_proof",
+                    "vkey_bytes": "native SP1 only: serialized child verifying key used by the host to attach the child proof"
                 }]
             },
-            "public_inputs": "aggregate boundaries, recursive child roots, and expected child vkey digest",
-            "notes": ["The aggregate guest verifies each child native SP1 proof and the online/target checkpoint chain."]
+            "public_inputs": "aggregate boundaries, recursive child roots, and expected child vkey material",
+            "notes": ["The aggregate guest verifies each recursive child proof and the online/target checkpoint chain."]
         });
     }
     json!({
@@ -430,4 +440,21 @@ fn git_commit() -> Option<String> {
         return None;
     }
     Some(String::from_utf8_lossy(&output.stdout).trim().to_owned())
+}
+
+fn recursive_proof_runtime_location(input: &TrainingAggregationInput) -> String {
+    match input.public_inputs.child_proof_mode.as_deref() {
+        Some("groth16_bn254") => format!(
+            "artifacts/kaggle_phase7_groth16_t16_t32_outputs/extracted/phase7_groth16_t16_t32_outputs/sp1/training_aggregation_groth16_t{}/proof.bin",
+            input.public_inputs.step_end
+        ),
+        Some("plonk_bn254") => format!(
+            "artifacts/kaggle_phase7_plonk_t16_t32_outputs/extracted/phase7_plonk_t16_t32_outputs/sp1/training_aggregation_plonk_t{}/proof.bin",
+            input.public_inputs.step_end
+        ),
+        _ => format!(
+            "artifacts/kaggle_phase7_recursive_outputs/extracted/phase7_recursive_outputs/sp1/training_aggregation_recursive_t{}/proof.bin",
+            input.public_inputs.step_end
+        ),
+    }
 }

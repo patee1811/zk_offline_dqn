@@ -6,6 +6,8 @@ from pathlib import Path
 
 from scripts.experiments.run_phase7_sp1_training_aggregation_validation import (
     CORE_RUST_TAMPER_CASES,
+    GROTH16_RECURSIVE_TAMPER_CASES,
+    PLONK_RECURSIVE_TAMPER_CASES,
     RECURSIVE_TAMPER_CASES,
     TAMPER_CASES,
 )
@@ -16,7 +18,11 @@ from zk_offline_dqn.backends.sp1.training_aggregation import (
     tampered_case,
     verify_case_reference,
 )
-from zk_offline_dqn.relations.training_aggregation import generate_recursive_case
+from zk_offline_dqn.relations.training_aggregation import (
+    GROTH16_CHILD_PROOF_MODE,
+    PLONK_CHILD_PROOF_MODE,
+    generate_recursive_case,
+)
 
 
 class Sp1TrainingAggregationTamperTests(unittest.TestCase):
@@ -33,6 +39,18 @@ class Sp1TrainingAggregationTamperTests(unittest.TestCase):
             with self.subTest(name=name):
                 result = verify_case_reference(tampered_case(case, name))
                 self.assertFalse(result.accepted, name)
+
+    def test_snark_recursive_tamper_aliases_rejected_by_reference(self):
+        cases = [
+            (GROTH16_CHILD_PROOF_MODE, GROTH16_RECURSIVE_TAMPER_CASES),
+            (PLONK_CHILD_PROOF_MODE, PLONK_RECURSIVE_TAMPER_CASES),
+        ]
+        for proof_mode, names in cases:
+            case = generate_recursive_case(16, child_proof_mode=proof_mode)
+            for name in names:
+                with self.subTest(proof_mode=proof_mode, name=name):
+                    result = verify_case_reference(tampered_case(case, name))
+                    self.assertFalse(result.accepted, name)
 
     def test_core_tamper_cases_rejected_by_execute_mode_when_enabled(self):
         if os.environ.get("RUN_SP1_EXECUTE") != "1":

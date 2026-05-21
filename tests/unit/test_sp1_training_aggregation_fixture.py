@@ -14,6 +14,8 @@ from zk_offline_dqn.backends.sp1.training_aggregation import (
 )
 from zk_offline_dqn.relations.training_aggregation import (
     CHUNK_RELATION_ID,
+    GROTH16_CHILD_PROOF_MODE,
+    PLONK_CHILD_PROOF_MODE,
     RECURSIVE_AGGREGATION_MODE,
     generate_recursive_case,
     recompute_roots,
@@ -84,6 +86,19 @@ class Sp1TrainingAggregationFixtureTests(unittest.TestCase):
         self.assertEqual(case["public_inputs"]["chunk_vkey_root"], roots["chunk_vkey_root"])
         self.assertTrue(result.public_output["child_proof_verification_inside_guest"])
 
+    def test_snark_recursive_t16_t32_generated_cases_validate_metadata(self):
+        for proof_mode in [GROTH16_CHILD_PROOF_MODE, PLONK_CHILD_PROOF_MODE]:
+            for target, chunk_count in [(16, 2), (32, 4)]:
+                with self.subTest(proof_mode=proof_mode, target=target):
+                    case = generate_recursive_case(target, child_proof_mode=proof_mode)
+                    public = case["public_inputs"]
+                    self.assertEqual(public["aggregation_mode"], RECURSIVE_AGGREGATION_MODE)
+                    self.assertEqual(public["child_proof_mode"], proof_mode)
+                    self.assertEqual(public["chunk_count"], chunk_count)
+                    self.assertNotIn("expected_child_vkey_digest_words", public)
+                    result = verify_case_reference(case)
+                    self.assertTrue(result.accepted, result.reason)
+
     def test_cargo_execute_command_shape(self):
         command = cargo_command(case_path=case_path_for_target(32))
         self.assertIn("training-aggregation-host", command)
@@ -145,6 +160,22 @@ class Sp1TrainingAggregationFixtureTests(unittest.TestCase):
                 self.assertTrue(metrics["proof_generated"])
                 self.assertTrue(metrics["proof_verified"])
                 self.assertTrue(metrics["child_proof_verification_inside_guest"])
+
+        for mode in ["groth16", "plonk"]:
+            for target in [16, 32]:
+                provenance_dir = Path(
+                    f"artifacts/reports/provenance/sp1/training_aggregation_{mode}_t{target}"
+                )
+                if not provenance_dir.exists():
+                    continue
+                with self.subTest(mode=mode, target=target):
+                    for name in RECURSIVE_PROVENANCE_FILES:
+                        self.assertTrue((provenance_dir / name).exists(), name)
+                    metrics = json.loads((provenance_dir / "metrics.json").read_text(encoding="utf-8"))
+                    self.assertEqual(metrics["aggregation_mode"], "recursive_sp1")
+                    self.assertTrue(metrics["proof_generated"])
+                    self.assertTrue(metrics["proof_verified"])
+                    self.assertTrue(metrics["child_proof_verification_inside_guest"])
 
 
 if __name__ == "__main__":
