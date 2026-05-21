@@ -60,6 +60,10 @@ model selection, or all replay batches.
   canonical tiny relation vectors.
 - `zk_backend/training_update/sp1/`: Rust SP1 host, guest, and shared crates
   for the canonical batch-size-1 one-step training update vector.
+- `zk_backend/training_fragment/sp1/`: Rust SP1 host, guest, and shared crates
+  for canonical multi-step training-fragment vectors. These are not
+  paper-level proof-backed claims unless compact SP1 provenance exists for the
+  specific k value.
 - `scripts/artifacts_export/`: legacy exporters/verifiers retained for
   compatibility and regression reproducibility.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
@@ -221,6 +225,11 @@ cd zk_backend/training_update/sp1
 cargo test
 cargo run --release -p training-update-host -- --execute --case ../../test_vectors/training_update_case_0.json
 RUN_SP1_PROVE=1 cargo run --release -p training-update-host -- --prove --case ../../test_vectors/training_update_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/training_update
+
+cd zk_backend/training_fragment/sp1
+cargo test
+cargo run --release -p training-fragment-host -- --execute --case ../../test_vectors/training_fragment_k4_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p training-fragment-host -- --prove --case ../../test_vectors/training_fragment_k4_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/training_fragment_k4
 ```
 
 Proof commands require the Rust/SP1 toolchain and are not part of the default

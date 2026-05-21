@@ -53,6 +53,8 @@ artifacts/one_step_negative_tests/
 artifacts/short_trace_negative_tests/
 artifacts/td_mvp_test_vector_negative_tests/
 artifacts/short_trace_negative_test_work/
+artifacts/kaggle_phase6_kernel/
+artifacts/kaggle_phase6_outputs/
 
 # =============================================================================
 # IDE / Editor
