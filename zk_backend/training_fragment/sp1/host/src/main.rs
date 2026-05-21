@@ -6,7 +6,7 @@ use std::time::Instant;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use serde_json::json;
-use sp1_sdk::{include_elf, Prover, ProverClient, SP1Stdin};
+use sp1_sdk::{include_elf, Prover, ProverClient, ProvingKey, SP1Stdin};
 use training_fragment_shared::{
     verify_training_fragment, TrainingFragmentInput, TrainingFragmentOutput,
 };
