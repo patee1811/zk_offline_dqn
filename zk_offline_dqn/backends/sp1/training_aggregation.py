@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 
 from zk_offline_dqn.relations.training_aggregation import (
     VerificationResult,
+    generate_binary_native_case,
     generate_case,
     generate_recursive_case,
     verify_case,
@@ -28,6 +29,15 @@ def case_path_for_target(target: int) -> Path:
 
 def recursive_case_path_for_target(target: int) -> Path:
     return ROOT / "zk_backend" / "test_vectors" / f"training_aggregation_recursive_t{target}_case_0.json"
+
+
+def binary_native_case_path_for_target(target: int) -> Path:
+    return (
+        ROOT
+        / "zk_backend"
+        / "test_vectors"
+        / f"training_aggregation_binary_native_t{target}_case_0.json"
+    )
 
 
 def load_case(path: str | Path = DEFAULT_CASE_PATH) -> Dict[str, Any]:
@@ -69,6 +79,20 @@ def write_generated_recursive_case(
     return out_path
 
 
+def write_generated_binary_native_case(
+    target: int,
+    path: str | Path | None = None,
+) -> Path:
+    out_path = Path(path) if path is not None else binary_native_case_path_for_target(target)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(
+        json.dumps(generate_binary_native_case(target), sort_keys=True, separators=(",", ":"))
+        + "\n",
+        encoding="utf-8",
+    )
+    return out_path
+
+
 def verify_case_reference(case: Dict[str, Any]) -> VerificationResult:
     return verify_case(case)
 
@@ -79,6 +103,7 @@ def cargo_command(
     mode: str = "execute",
     aggregation_mode: str = "proof_manifest_chain",
     child_proof_mode: str | None = None,
+    topology: str | None = None,
     out_dir: str | Path | None = None,
 ) -> List[str]:
     command = [
@@ -98,6 +123,8 @@ def cargo_command(
         command.extend(["--out-dir", str(out_dir)])
     if child_proof_mode is not None:
         command.extend(["--child-proof-mode", child_proof_mode])
+    if topology is not None:
+        command.extend(["--topology", topology])
     return command
 
 
@@ -107,6 +134,7 @@ def run_cargo(
     mode: str = "execute",
     aggregation_mode: str = "proof_manifest_chain",
     child_proof_mode: str | None = None,
+    topology: str | None = None,
     out_dir: str | Path | None = None,
     timeout: int = 1200,
 ) -> subprocess.CompletedProcess[str]:
@@ -119,6 +147,7 @@ def run_cargo(
             mode=mode,
             aggregation_mode=aggregation_mode,
             child_proof_mode=child_proof_mode,
+            topology=topology,
             out_dir=out_dir,
         ),
         cwd=BACKEND_DIR,
@@ -244,6 +273,58 @@ def tampered_case(case: Dict[str, Any], name: str) -> Dict[str, Any]:
         "tamper_plonk_individually_valid_child_proofs_broken_chain",
     }:
         chunks[1]["input_checkpoint_hash"] = _flip_hex(chunks[1]["input_checkpoint_hash"])
+    elif name == "tamper_binary_native_left_child_proof_bytes":
+        mutated["private_witness"]["child_proofs"][0]["proof_bytes"] = _flip_hex(
+            mutated["private_witness"]["child_proofs"][0]["proof_bytes"]
+        )
+    elif name == "tamper_binary_native_right_child_proof_bytes":
+        mutated["private_witness"]["child_proofs"][1]["proof_bytes"] = _flip_hex(
+            mutated["private_witness"]["child_proofs"][1]["proof_bytes"]
+        )
+    elif name == "tamper_binary_native_left_public_values":
+        mutated["private_witness"]["child_proofs"][0]["public_values_bytes"] = _flip_hex(
+            mutated["private_witness"]["child_proofs"][0]["public_values_bytes"]
+        )
+    elif name == "tamper_binary_native_right_public_values":
+        mutated["private_witness"]["child_proofs"][1]["public_values_bytes"] = _flip_hex(
+            mutated["private_witness"]["child_proofs"][1]["public_values_bytes"]
+        )
+    elif name == "tamper_binary_native_left_vkey_hash":
+        mutated["private_witness"]["child_proofs"][0]["vkey_hash"] = _flip_vkey(
+            mutated["private_witness"]["child_proofs"][0]["vkey_hash"]
+        )
+    elif name == "tamper_binary_native_right_vkey_hash":
+        mutated["private_witness"]["child_proofs"][1]["vkey_hash"] = _flip_vkey(
+            mutated["private_witness"]["child_proofs"][1]["vkey_hash"]
+        )
+    elif name in {"tamper_binary_native_swap_left_right", "tamper_binary_native_t32_level1_manifests_swapped"}:
+        proofs = mutated["private_witness"]["child_proofs"]
+        chunks[0], chunks[1] = chunks[1], chunks[0]
+        proofs[0], proofs[1] = proofs[1], proofs[0]
+    elif name == "tamper_binary_native_broken_checkpoint_link":
+        chunks[1]["input_checkpoint_hash"] = _flip_hex(chunks[1]["input_checkpoint_hash"])
+    elif name == "tamper_binary_native_broken_target_checkpoint_link":
+        chunks[1]["input_target_checkpoint_hash"] = _flip_hex(
+            chunks[1]["input_target_checkpoint_hash"]
+        )
+    elif name == "tamper_binary_native_duplicate_child":
+        chunks[1] = copy.deepcopy(chunks[0])
+        mutated["private_witness"]["child_proofs"][1] = copy.deepcopy(
+            mutated["private_witness"]["child_proofs"][0]
+        )
+    elif name == "tamper_binary_native_missing_child":
+        chunks.pop()
+        mutated["private_witness"]["child_proofs"].pop()
+    elif name == "tamper_binary_native_wrong_dataset_root":
+        chunks[0]["dataset_root"] = _flip_hex(chunks[0]["dataset_root"])
+    elif name == "tamper_binary_native_wrong_config_hash":
+        chunks[0]["config_hash"] = _flip_hex(chunks[0]["config_hash"])
+    elif name == "tamper_binary_native_wrong_node_range":
+        public["node_range_end"] -= 1
+    elif name == "tamper_binary_native_wrong_child_relation_id":
+        chunks[0]["relation_id"] = "training_fragment_k4"
+    elif name == "tamper_binary_native_t32_root_uses_leaf_instead_of_level1":
+        chunks[0]["relation_id"] = "training_fragment_k8"
     else:
         raise ValueError(f"unknown tamper case: {name}")
     return mutated

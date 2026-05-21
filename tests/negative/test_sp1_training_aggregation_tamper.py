@@ -6,6 +6,8 @@ from pathlib import Path
 
 from scripts.experiments.run_phase7_sp1_training_aggregation_validation import (
     CORE_RUST_TAMPER_CASES,
+    BINARY_NATIVE_T32_TAMPER_CASES,
+    BINARY_NATIVE_TAMPER_CASES,
     GROTH16_RECURSIVE_TAMPER_CASES,
     PLONK_RECURSIVE_TAMPER_CASES,
     RECURSIVE_TAMPER_CASES,
@@ -21,6 +23,7 @@ from zk_offline_dqn.backends.sp1.training_aggregation import (
 from zk_offline_dqn.relations.training_aggregation import (
     GROTH16_CHILD_PROOF_MODE,
     PLONK_CHILD_PROOF_MODE,
+    generate_binary_native_case,
     generate_recursive_case,
 )
 
@@ -49,6 +52,17 @@ class Sp1TrainingAggregationTamperTests(unittest.TestCase):
             case = generate_recursive_case(16, child_proof_mode=proof_mode)
             for name in names:
                 with self.subTest(proof_mode=proof_mode, name=name):
+                    result = verify_case_reference(tampered_case(case, name))
+                    self.assertFalse(result.accepted, name)
+
+    def test_binary_native_tamper_cases_rejected_by_reference(self):
+        for target, names in [
+            (16, BINARY_NATIVE_TAMPER_CASES),
+            (32, [*BINARY_NATIVE_TAMPER_CASES, *BINARY_NATIVE_T32_TAMPER_CASES]),
+        ]:
+            case = generate_binary_native_case(target)
+            for name in names:
+                with self.subTest(target=target, name=name):
                     result = verify_case_reference(tampered_case(case, name))
                     self.assertFalse(result.accepted, name)
 

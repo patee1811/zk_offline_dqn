@@ -29,6 +29,8 @@ struct Args {
     #[arg(long)]
     child_proof_mode: Option<String>,
     #[arg(long)]
+    topology: Option<String>,
+    #[arg(long)]
     skip_host_precheck: bool,
 }
 
@@ -50,6 +52,13 @@ async fn main() -> Result<()> {
         if input.public_inputs.child_proof_mode.as_deref() != Some(child_proof_mode) {
             return Err(anyhow!(
                 "--child-proof-mode does not match case child_proof_mode"
+            ));
+        }
+    }
+    if let Some(topology) = args.topology.as_deref() {
+        if input.public_inputs.aggregation_topology.as_deref() != Some(topology) {
+            return Err(anyhow!(
+                "--topology does not match case aggregation_topology"
             ));
         }
     }
@@ -92,17 +101,24 @@ async fn main() -> Result<()> {
 
     if args.prove {
         let out_dir = args.out_dir.clone().unwrap_or_else(|| {
-            PathBuf::from(if input.public_inputs.aggregation_mode == "recursive_sp1" {
-                format!(
-                    "artifacts/reports/provenance/sp1/training_aggregation_recursive_t{}",
-                    input.public_inputs.step_end
-                )
-            } else {
-                format!(
-                    "artifacts/reports/provenance/sp1/training_aggregation_t{}",
-                    input.public_inputs.step_end
-                )
-            })
+            PathBuf::from(
+                if input.public_inputs.aggregation_topology.as_deref() == Some("binary_tree") {
+                    format!(
+                        "artifacts/reports/provenance/sp1/training_aggregation_binary_native_t{}",
+                        input.public_inputs.step_end
+                    )
+                } else if input.public_inputs.aggregation_mode == "recursive_sp1" {
+                    format!(
+                        "artifacts/reports/provenance/sp1/training_aggregation_recursive_t{}",
+                        input.public_inputs.step_end
+                    )
+                } else {
+                    format!(
+                        "artifacts/reports/provenance/sp1/training_aggregation_t{}",
+                        input.public_inputs.step_end
+                    )
+                },
+            )
         });
         fs::create_dir_all(&out_dir)
             .with_context(|| format!("failed to create {}", out_dir.display()))?;
@@ -134,6 +150,12 @@ async fn main() -> Result<()> {
             .save(&proof_path)
             .with_context(|| format!("failed to save {}", proof_path.display()))?;
         let proof_size_bytes = fs::metadata(&proof_path)?.len();
+        if input.public_inputs.aggregation_topology.as_deref() == Some("binary_tree")
+            && input.public_inputs.child_proof_mode.as_deref() == Some("native_sp1")
+            && input.public_inputs.node_id.as_deref() != Some("root")
+        {
+            write_native_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+        }
         write_provenance(
             &out_dir,
             &input,
@@ -151,6 +173,31 @@ async fn main() -> Result<()> {
         println!("proof_size_bytes = {}", proof_size_bytes);
     }
     Ok(())
+}
+
+fn write_native_recursive_child_material(
+    out_dir: &Path,
+    proof: &SP1ProofWithPublicValues,
+    pk: &impl ProvingKey,
+    expected: &TrainingAggregationOutput,
+) -> Result<()> {
+    if !matches!(&proof.proof, SP1Proof::Compressed(_)) {
+        return Err(anyhow!(
+            "native recursive aggregation child material requires a compressed SP1 proof"
+        ));
+    }
+    write_json(
+        out_dir.join("recursive_child_proof_material.json"),
+        &json!({
+            "proof_mode": "native_sp1",
+            "proof_bytes": hex::encode(bincode::serialize(proof)?),
+            "public_values_bytes": hex::encode(proof.public_values.to_vec()),
+            "vkey_hash": pk.verifying_key().bytes32(),
+            "vkey_digest_words": pk.verifying_key().hash_u32(),
+            "vkey_bytes": hex::encode(bincode::serialize(pk.verifying_key())?),
+            "public_output": expected,
+        }),
+    )
 }
 
 fn build_stdin(input: &TrainingAggregationInput) -> Result<SP1Stdin> {
@@ -226,6 +273,7 @@ fn write_provenance(
     case_path: &Path,
 ) -> Result<()> {
     let recursive = input.public_inputs.aggregation_mode == "recursive_sp1";
+    let binary = input.public_inputs.aggregation_topology.as_deref() == Some("binary_tree");
     write_json(out_dir.join("public_inputs.json"), &input.public_inputs)?;
     write_json(
         out_dir.join("witness_schema.json"),
@@ -236,9 +284,12 @@ fn write_provenance(
         &json!({
             "relation": "training_aggregation",
             "aggregation_mode": input.public_inputs.aggregation_mode,
+            "aggregation_topology": input.public_inputs.aggregation_topology,
             "child_proof_mode": input.public_inputs.child_proof_mode,
             "chunk_size": input.public_inputs.chunk_size,
             "chunk_count": input.public_inputs.chunk_count,
+            "leaf_chunk_count": input.public_inputs.leaf_chunk_count,
+            "tree_depth": input.public_inputs.node_depth,
             "step_start": input.public_inputs.step_start,
             "step_end": input.public_inputs.step_end,
             "proof_generated": true,
@@ -252,8 +303,13 @@ fn write_provenance(
             "git_commit": git_commit(),
             "test_vector_sha256": sha256_file(case_path)?,
             "public_inputs_sha256": sha256_json(&input.public_inputs)?,
-            "child_proof_count": input.public_inputs.chunk_count,
+            "child_proof_count": input.private_witness.child_proofs.len(),
             "child_proof_verification_inside_guest": recursive,
+            "binary_tree_internal_node_count": if binary {
+                input.public_inputs.leaf_chunk_count.unwrap_or(0).saturating_sub(1)
+            } else {
+                0
+            },
             "notes": [if recursive {
                 format!(
                     "SP1 true recursive aggregation; {} child training-fragment proofs are verified inside the aggregate guest.",
@@ -269,6 +325,7 @@ fn write_provenance(
         &json!({
             "relation": "training_aggregation",
             "aggregation_mode": input.public_inputs.aggregation_mode,
+            "aggregation_topology": input.public_inputs.aggregation_topology,
             "chunk_size": input.public_inputs.chunk_size,
             "chunk_count": input.public_inputs.chunk_count,
             "step_start": input.public_inputs.step_start,
@@ -306,6 +363,7 @@ fn write_provenance(
         &json!({
             "relation": "training_aggregation",
             "aggregation_mode": input.public_inputs.aggregation_mode,
+            "aggregation_topology": input.public_inputs.aggregation_topology,
             "chunk_relation_id": input.public_inputs.chunk_relation_id,
             "chunk_size": input.public_inputs.chunk_size,
             "chunk_count": input.public_inputs.chunk_count,
@@ -319,6 +377,7 @@ fn write_provenance(
             "child_proof_mode": input.public_inputs.child_proof_mode,
             "expected_child_vkey_hash": input.public_inputs.expected_child_vkey_hash,
             "expected_child_vkey_digest_words": input.public_inputs.expected_child_vkey_digest_words,
+            "tree_root_hash": input.public_inputs.tree_root_hash,
             "child_proof_verification_inside_guest": recursive,
             "claim_scope": input.public_inputs.claim_scope,
             "proof_hash_note": if recursive {
@@ -357,6 +416,33 @@ fn write_provenance(
             }),
         )?;
     }
+    if binary {
+        write_json(
+            out_dir.join("binary_tree_manifest.json"),
+            &json!({
+                "relation": "training_aggregation",
+                "aggregation_mode": "recursive_sp1",
+                "aggregation_topology": "binary_tree",
+                "child_proof_mode": "native_sp1",
+                "node_id": input.public_inputs.node_id,
+                "node_depth": input.public_inputs.node_depth,
+                "node_range_start": input.public_inputs.node_range_start,
+                "node_range_end": input.public_inputs.node_range_end,
+                "leaf_chunk_count": input.public_inputs.leaf_chunk_count,
+                "binary_tree_fan_in": 2,
+                "tree_root_hash": input.public_inputs.tree_root_hash,
+                "children": input.private_witness.chunks.iter().map(|chunk| json!({
+                    "chunk_id": chunk.chunk_id,
+                    "relation_id": chunk.relation_id,
+                    "step_start": chunk.step_start,
+                    "step_end": chunk.step_end,
+                    "child_public_inputs_hash": chunk.child_public_inputs_hash,
+                    "child_proof_hash": chunk.child_proof_hash,
+                    "child_vkey_hash": chunk.child_vkey_hash
+                })).collect::<Vec<_>>()
+            }),
+        )?;
+    }
     Ok(())
 }
 
@@ -366,6 +452,7 @@ fn witness_schema(recursive: bool) -> serde_json::Value {
             "schema_version": "sp1_training_aggregation_recursive_witness_schema_v1",
             "relation": "training_aggregation",
             "aggregation_mode": "recursive_sp1",
+            "aggregation_topology": "recursive aggregate cases may opt into binary_tree",
             "private_witness": {
                 "chunks": [{
                     "chunk_id": "sequential k=8 child chunk id checked by guest",
@@ -454,6 +541,14 @@ fn recursive_proof_runtime_location(input: &TrainingAggregationInput) -> String 
             "artifacts/kaggle_phase7_plonk_t16_t32_outputs/extracted/phase7_plonk_t16_t32_outputs/sp1/training_aggregation_plonk_t{}/proof.bin",
             input.public_inputs.step_end
         ),
+        Some("native_sp1")
+            if input.public_inputs.aggregation_topology.as_deref() == Some("binary_tree") =>
+        {
+            format!(
+                "artifacts/kaggle_phase7_binary_native_outputs/extracted/phase7_binary_native_outputs/sp1/training_aggregation_binary_native_t{}/proof.bin",
+                input.public_inputs.step_end
+            )
+        }
         _ => format!(
             "artifacts/kaggle_phase7_recursive_outputs/extracted/phase7_recursive_outputs/sp1/training_aggregation_recursive_t{}/proof.bin",
             input.public_inputs.step_end

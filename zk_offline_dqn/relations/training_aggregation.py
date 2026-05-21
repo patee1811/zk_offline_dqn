@@ -21,8 +21,11 @@ PUBLIC_SCHEMA_VERSION = "sp1_training_aggregation_public_v1"
 AGGREGATION_MODE = "proof_manifest_chain"
 RECURSIVE_AGGREGATION_MODE = "recursive_sp1"
 CHUNK_RELATION_ID = "training_fragment_k8"
+BINARY_NODE_RELATION_ID = "training_aggregation_binary_node"
 CLAIM_SCOPE = "chunk-chain aggregation over externally verified proof manifests"
 RECURSIVE_CLAIM_SCOPE = "true recursive SP1 aggregation over child training-fragment proofs"
+BINARY_CLAIM_SCOPE = "true recursive binary-tree native SP1 aggregation"
+BINARY_AGGREGATION_TOPOLOGY = "binary_tree"
 CHILD_PROOF_MODE = "native_sp1"
 GROTH16_CHILD_PROOF_MODE = "groth16_bn254"
 PLONK_CHILD_PROOF_MODE = "plonk_bn254"
@@ -133,7 +136,8 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
     chunks = witness["chunks"]
     if public["relation"] != "training_aggregation":
         raise AssertionError("relation mismatch")
-    if public["chunk_relation_id"] != CHUNK_RELATION_ID:
+    binary = public.get("aggregation_topology") == BINARY_AGGREGATION_TOPOLOGY
+    if public["chunk_relation_id"] != (chunks[0]["relation_id"] if binary else CHUNK_RELATION_ID):
         raise AssertionError("chunk relation mismatch")
     if int(public["chunk_size"]) != 8:
         raise AssertionError("chunk_size mismatch")
@@ -141,7 +145,13 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
         raise AssertionError("chunk_count mismatch")
     if not chunks:
         raise AssertionError("at least one chunk is required")
-    if int(public["step_end"]) - int(public["step_start"]) != int(public["chunk_size"]) * len(chunks):
+    span = int(public["step_end"]) - int(public["step_start"])
+    expected_span = (
+        int(public.get("leaf_chunk_count", 0)) * int(public["chunk_size"])
+        if binary
+        else int(public["chunk_size"]) * len(chunks)
+    )
+    if span != expected_span:
         raise AssertionError("aggregate step span mismatch")
     for field in [
         "input_checkpoint_hash",
@@ -160,7 +170,9 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
         "chunk_verify_report_root",
     ]:
         assert_nonzero_hex_32(public[field], field)
-    _verify_chunk_chain(public, chunks)
+    if binary:
+        _verify_binary_public(public, chunks)
+    _verify_chunk_chain(public, chunks, binary=binary)
     recursive = public["aggregation_mode"] == RECURSIVE_AGGREGATION_MODE
     if public["aggregation_mode"] == AGGREGATION_MODE:
         if public["claim_scope"] != CLAIM_SCOPE:
@@ -176,7 +188,8 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
             if field in public:
                 raise AssertionError(f"unexpected {field}")
     elif recursive:
-        if public["claim_scope"] != RECURSIVE_CLAIM_SCOPE:
+        expected_claim_scope = BINARY_CLAIM_SCOPE if binary else RECURSIVE_CLAIM_SCOPE
+        if public["claim_scope"] != expected_claim_scope:
             raise AssertionError("claim_scope mismatch")
         if public.get("child_proof_mode") not in RECURSIVE_CHILD_PROOF_MODES:
             raise AssertionError("child proof mode mismatch")
@@ -207,16 +220,62 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
     for key, value in roots.items():
         if public.get(key) != value:
             raise AssertionError(f"{key} mismatch")
-    return public_output(vector, roots, recursive=recursive)
+    return public_output(vector, roots, recursive=recursive, binary=binary)
 
 
-def _verify_chunk_chain(public: Mapping[str, Any], chunks: Sequence[Mapping[str, Any]]) -> None:
+def _verify_binary_public(public: Mapping[str, Any], chunks: Sequence[Mapping[str, Any]]) -> None:
+    if public["aggregation_mode"] != RECURSIVE_AGGREGATION_MODE:
+        raise AssertionError("binary tree aggregation must be recursive")
+    if public.get("child_proof_mode") != CHILD_PROOF_MODE:
+        raise AssertionError("binary tree aggregation must use native_sp1")
+    if len(chunks) != 2 or int(public.get("chunk_count", 0)) != 2:
+        raise AssertionError("binary tree fan-in mismatch")
+    if int(public.get("child_count", 0)) != 2:
+        raise AssertionError("binary child_count mismatch")
+    if int(public.get("leaf_chunk_count", 0)) not in {2, 4}:
+        raise AssertionError("binary leaf_chunk_count mismatch")
+    if int(public.get("node_depth", 0)) < 1:
+        raise AssertionError("binary node_depth mismatch")
+    if int(public.get("node_range_start", -1)) != int(public["step_start"]):
+        raise AssertionError("binary node_range_start mismatch")
+    if int(public.get("node_range_end", -1)) != int(public["step_end"]):
+        raise AssertionError("binary node_range_end mismatch")
+    if not public.get("node_id"):
+        raise AssertionError("binary node_id mismatch")
+    left, right = chunks
+    for public_field, value in [
+        ("left_child_public_values_hash", left["child_public_inputs_hash"]),
+        ("right_child_public_values_hash", right["child_public_inputs_hash"]),
+        ("left_child_proof_hash", left["child_proof_hash"]),
+        ("right_child_proof_hash", right["child_proof_hash"]),
+        ("left_child_vkey_hash", left["child_vkey_hash"]),
+        ("right_child_vkey_hash", right["child_vkey_hash"]),
+    ]:
+        if public.get(public_field) != value:
+            raise AssertionError(f"{public_field} mismatch")
+    if public.get("tree_root_hash") != binary_tree_root(chunks):
+        raise AssertionError("tree_root_hash mismatch")
+
+
+def _verify_chunk_chain(
+    public: Mapping[str, Any], chunks: Sequence[Mapping[str, Any]], *, binary: bool = False
+) -> None:
     for index, chunk in enumerate(chunks):
         if int(chunk["chunk_id"]) != index:
             raise AssertionError("chunk order mismatch")
-        if int(chunk["step_end"]) - int(chunk["step_start"]) != int(public["chunk_size"]):
+        child_span = int(chunk["step_end"]) - int(chunk["step_start"])
+        if binary:
+            if child_span <= 0 or child_span % int(public["chunk_size"]) != 0:
+                raise AssertionError("chunk step span mismatch")
+            if chunk["relation_id"] != public["chunk_relation_id"]:
+                raise AssertionError("chunk relation_id mismatch")
+            if chunk["relation_id"] == CHUNK_RELATION_ID and child_span != int(public["chunk_size"]):
+                raise AssertionError("leaf chunk step span mismatch")
+            if chunk["relation_id"] not in {CHUNK_RELATION_ID, BINARY_NODE_RELATION_ID}:
+                raise AssertionError("binary child relation_id mismatch")
+        elif child_span != int(public["chunk_size"]):
             raise AssertionError("chunk step span mismatch")
-        if chunk["relation_id"] != CHUNK_RELATION_ID:
+        if not binary and chunk["relation_id"] != CHUNK_RELATION_ID:
             raise AssertionError("chunk relation_id mismatch")
         for field in [
             "dataset_root",
@@ -301,6 +360,7 @@ def public_output(
     roots: Mapping[str, str],
     *,
     recursive: bool,
+    binary: bool = False,
 ) -> Dict[str, Any]:
     public = vector["public_inputs"]
     output = {
@@ -342,6 +402,24 @@ def public_output(
             output["expected_child_vkey_digest_words"] = public[
                 "expected_child_vkey_digest_words"
             ]
+    if binary:
+        for field in [
+            "aggregation_topology",
+            "node_id",
+            "node_depth",
+            "node_range_start",
+            "node_range_end",
+            "leaf_chunk_count",
+            "child_count",
+            "left_child_public_values_hash",
+            "right_child_public_values_hash",
+            "left_child_proof_hash",
+            "right_child_proof_hash",
+            "left_child_vkey_hash",
+            "right_child_vkey_hash",
+            "tree_root_hash",
+        ]:
+            output[field] = public[field]
     return output
 
 
@@ -528,6 +606,159 @@ def generate_recursive_case(
     return vector
 
 
+def generate_binary_native_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
+    if step_end not in {16, 32}:
+        raise AssertionError("binary native fixtures target T=16 or T=32")
+    child_cases = generate_recursive_child_cases(step_end, chunk_size=chunk_size)
+    if step_end == 16:
+        return build_binary_native_case(
+            child_cases,
+            [
+                placeholder_child_material(child_case, index)
+                for index, child_case in enumerate(child_cases)
+            ],
+            node_id="root",
+            node_depth=1,
+            leaf_chunk_count=2,
+        )
+    left = build_binary_native_case(
+        child_cases[:2],
+        [placeholder_child_material(child_case, index) for index, child_case in enumerate(child_cases[:2])],
+        node_id="level1_left",
+        node_depth=1,
+        leaf_chunk_count=2,
+    )
+    right = build_binary_native_case(
+        child_cases[2:],
+        [
+            placeholder_child_material(child_case, index + 2)
+            for index, child_case in enumerate(child_cases[2:])
+        ],
+        node_id="level1_right",
+        node_depth=1,
+        leaf_chunk_count=2,
+    )
+    return build_binary_native_case(
+        [left, right],
+        [
+            placeholder_aggregation_child_material(left, 0),
+            placeholder_aggregation_child_material(right, 1),
+        ],
+        node_id="root",
+        node_depth=2,
+        leaf_chunk_count=4,
+    )
+
+
+def build_binary_native_case(
+    child_cases: Sequence[Mapping[str, Any]],
+    child_materials: Sequence[Mapping[str, Any]],
+    *,
+    node_id: str,
+    node_depth: int,
+    leaf_chunk_count: int,
+) -> Dict[str, Any]:
+    if len(child_cases) != 2 or len(child_materials) != 2:
+        raise AssertionError("binary aggregation requires exactly two children")
+    provenance_hashes = load_k8_provenance_hashes()
+    chunks = []
+    child_proofs = []
+    expected_vkey_hash = str(child_materials[0]["vkey_hash"])
+    expected_vkey_digest_words = list(child_materials[0].get("vkey_digest_words", []))
+    first_context: Mapping[str, Any] | None = None
+    for chunk_id, (child_case, material) in enumerate(zip(child_cases, child_materials)):
+        boundary, child_context = _binary_child_boundary(child_case, chunk_id)
+        if first_context is None:
+            first_context = child_context
+        if str(material["proof_mode"]) != CHILD_PROOF_MODE:
+            raise AssertionError("binary native child proof mode mismatch")
+        if str(material["vkey_hash"]) != expected_vkey_hash:
+            raise AssertionError("binary native child vkey mismatch")
+        if list(material.get("vkey_digest_words", [])) != expected_vkey_digest_words:
+            raise AssertionError("binary native child vkey digest mismatch")
+        proof_hash = sha256_hex_bytes(str(material["proof_bytes"]), "child proof bytes")
+        public_hash = sha256_hex_bytes(
+            str(material["public_values_bytes"]), "child public values"
+        )
+        chunk = {
+            **boundary,
+            "public_inputs_hash": public_hash,
+            "proof_hash": proof_hash,
+            "metrics_hash": str(material.get("metrics_hash", provenance_hashes["metrics_hash"])),
+            "verify_report_hash": str(
+                material.get("verify_report_hash", provenance_hashes["verify_report_hash"])
+            ),
+            "tamper_report_hash": str(
+                material.get("tamper_report_hash", provenance_hashes["tamper_report_hash"])
+            ),
+            "child_public_inputs_hash": public_hash,
+            "child_vkey_hash": expected_vkey_hash,
+            "child_proof_hash": proof_hash,
+            "child_proof_mode": CHILD_PROOF_MODE,
+            "child_verify_report_hash": str(
+                material.get("verify_report_hash", provenance_hashes["verify_report_hash"])
+            ),
+            "child_tamper_report_hash": str(
+                material.get("tamper_report_hash", provenance_hashes["tamper_report_hash"])
+            ),
+        }
+        chunks.append(chunk)
+        child_proofs.append(
+            {
+                "chunk_id": chunk_id,
+                "proof_mode": CHILD_PROOF_MODE,
+                "proof_bytes": str(material["proof_bytes"]),
+                "public_values_bytes": str(material["public_values_bytes"]),
+                "vkey_hash": expected_vkey_hash,
+                "vkey_digest_words": expected_vkey_digest_words,
+                "vkey_bytes": str(material["vkey_bytes"]),
+            }
+        )
+    if first_context is None:
+        raise AssertionError("binary child context missing")
+    roots = recompute_roots(chunks, recursive=True)
+    vector = _aggregation_vector(
+        chunks[-1]["step_end"],
+        chunks,
+        first_context,
+        chunks[0]["config_hash"],
+        roots,
+        aggregation_mode=RECURSIVE_AGGREGATION_MODE,
+        claim_scope=BINARY_CLAIM_SCOPE,
+        child_proofs=child_proofs,
+    )
+    left, right = chunks
+    vector["public_inputs"].update(
+        {
+            "case_id": (
+                f"training_aggregation_binary_native_t{chunks[-1]['step_end']}_case_0"
+                if node_id == "root"
+                else f"training_aggregation_binary_native_{node_id}_steps_{chunks[0]['step_start']}_{chunks[-1]['step_end']}_case_0"
+            ),
+            "aggregation_topology": BINARY_AGGREGATION_TOPOLOGY,
+            "child_proof_mode": CHILD_PROOF_MODE,
+            "expected_child_vkey_hash": expected_vkey_hash,
+            "expected_child_vkey_digest_words": expected_vkey_digest_words,
+            "chunk_relation_id": chunks[0]["relation_id"],
+            "chunk_vkey_root": roots["chunk_vkey_root"],
+            "node_id": node_id,
+            "node_depth": node_depth,
+            "node_range_start": chunks[0]["step_start"],
+            "node_range_end": chunks[-1]["step_end"],
+            "leaf_chunk_count": leaf_chunk_count,
+            "child_count": 2,
+            "left_child_public_values_hash": left["child_public_inputs_hash"],
+            "right_child_public_values_hash": right["child_public_inputs_hash"],
+            "left_child_proof_hash": left["child_proof_hash"],
+            "right_child_proof_hash": right["child_proof_hash"],
+            "left_child_vkey_hash": left["child_vkey_hash"],
+            "right_child_vkey_hash": right["child_vkey_hash"],
+            "tree_root_hash": binary_tree_root(chunks),
+        }
+    )
+    return vector
+
+
 def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> List[Dict[str, Any]]:
     if chunk_size != 8:
         raise AssertionError("Phase 7B recursively aggregates k=8 child proofs")
@@ -586,6 +817,117 @@ def placeholder_child_material(
             }
         )
     return material
+
+
+def placeholder_aggregation_child_material(
+    child_case: Mapping[str, Any], child_id: int
+) -> Dict[str, Any]:
+    output = verify_case(child_case).public_output
+    if output is None:
+        raise AssertionError("placeholder aggregation child case rejected")
+    return {
+        "proof_mode": CHILD_PROOF_MODE,
+        "proof_bytes": hashlib.sha256(
+            f"recursive_binary_aggregation_placeholder_proof_{child_id}".encode("utf-8")
+        ).digest().hex(),
+        "public_values_bytes": json.dumps(
+            output, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8").hex(),
+        "vkey_hash": "0x"
+        + hashlib.sha256(b"recursive_binary_training_aggregation_vkey").hexdigest(),
+        "vkey_digest_words": [
+            int.from_bytes(
+                hashlib.sha256(f"recursive_binary_vkey_{index}".encode("utf-8")).digest()[:4],
+                "big",
+            )
+            for index in range(8)
+        ],
+        "vkey_bytes": hashlib.sha256(b"recursive_binary_training_aggregation_vkey_bytes")
+        .digest()
+        .hex(),
+    }
+
+
+def _binary_child_boundary(
+    child_case: Mapping[str, Any], chunk_id: int
+) -> tuple[Dict[str, Any], Mapping[str, Any]]:
+    child_public = child_case["public_inputs"]
+    if child_public["relation"] == "training_fragment":
+        result = verify_fragment_case(child_case)
+        if not result.accepted or result.public_output is None:
+            raise AssertionError(f"binary leaf child {chunk_id} rejected: {result.reason}")
+        output = result.public_output
+        config_hash = config_hash_from_fragment_public(child_public)
+        return (
+            {
+                "chunk_id": chunk_id,
+                "step_start": output["global_step_start"],
+                "step_end": output["global_step_start"] + output["num_steps"],
+                "input_checkpoint_hash": output["start_checkpoint_hash"],
+                "output_checkpoint_hash": output["final_checkpoint_hash"],
+                "input_target_checkpoint_hash": output["start_target_checkpoint_hash"],
+                "output_target_checkpoint_hash": output["final_target_checkpoint_hash"],
+                "dataset_root": output["dataset_root"],
+                "manifest_hash": output["manifest_hash"],
+                "audit_report_hash": output["audit_report_hash"],
+                "collection_log_final_hash": output["collection_log_final_hash"],
+                "raw_trajectory_hash": output["raw_trajectory_hash"],
+                "config_hash": config_hash,
+                "relation_id": CHUNK_RELATION_ID,
+            },
+            child_public,
+        )
+    if child_public["relation"] == "training_aggregation":
+        result = verify_case(child_case)
+        if not result.accepted or result.public_output is None:
+            raise AssertionError(f"binary node child {chunk_id} rejected: {result.reason}")
+        output = result.public_output
+        return (
+            {
+                "chunk_id": chunk_id,
+                "step_start": output["step_start"],
+                "step_end": output["step_end"],
+                "input_checkpoint_hash": output["input_checkpoint_hash"],
+                "output_checkpoint_hash": output["output_checkpoint_hash"],
+                "input_target_checkpoint_hash": output["input_target_checkpoint_hash"],
+                "output_target_checkpoint_hash": output["output_target_checkpoint_hash"],
+                "dataset_root": output["dataset_root"],
+                "manifest_hash": output["manifest_hash"],
+                "audit_report_hash": output["audit_report_hash"],
+                "collection_log_final_hash": output["collection_log_final_hash"],
+                "raw_trajectory_hash": output["raw_trajectory_hash"],
+                "config_hash": output["config_hash"],
+                "relation_id": BINARY_NODE_RELATION_ID,
+            },
+            output,
+        )
+    raise AssertionError("unsupported binary child relation")
+
+
+def binary_tree_root(chunks: Sequence[Mapping[str, Any]]) -> str:
+    if len(chunks) != 2:
+        raise AssertionError("binary tree root requires two children")
+    return hash_rows(
+        "training_aggregation_binary_tree_node_v1",
+        [
+            "|".join(
+                [
+                    side,
+                    str(chunk["relation_id"]),
+                    str(chunk["step_start"]),
+                    str(chunk["step_end"]),
+                    str(chunk["child_public_inputs_hash"]),
+                    str(chunk["child_proof_hash"]),
+                    str(chunk["child_vkey_hash"]),
+                    str(chunk["input_checkpoint_hash"]),
+                    str(chunk["output_checkpoint_hash"]),
+                    str(chunk["input_target_checkpoint_hash"]),
+                    str(chunk["output_target_checkpoint_hash"]),
+                ]
+            )
+            for side, chunk in zip(["left", "right"], chunks)
+        ],
+    )
 
 
 def config_hash_from_fragment_public(fragment_public: Mapping[str, Any]) -> str:

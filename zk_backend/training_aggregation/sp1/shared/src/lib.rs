@@ -6,6 +6,9 @@ use training_fragment_shared::TrainingFragmentOutput;
 const NATIVE_CHILD_PROOF_MODE: &str = "native_sp1";
 const GROTH16_CHILD_PROOF_MODE: &str = "groth16_bn254";
 const PLONK_CHILD_PROOF_MODE: &str = "plonk_bn254";
+const LEAF_CHILD_RELATION_ID: &str = "training_fragment_k8";
+const BINARY_NODE_RELATION_ID: &str = "training_aggregation_binary_node";
+const BINARY_TOPOLOGY: &str = "binary_tree";
 
 const MANIFEST_CHUNK_FIELDS: [&str; 19] = [
     "chunk_id",
@@ -68,6 +71,34 @@ pub struct TrainingAggregationPublicInputs {
     pub expected_child_vkey_hash: Option<String>,
     #[serde(default)]
     pub expected_child_vkey_digest_words: Option<Vec<u32>>,
+    #[serde(default)]
+    pub aggregation_topology: Option<String>,
+    #[serde(default)]
+    pub node_id: Option<String>,
+    #[serde(default)]
+    pub node_depth: Option<u64>,
+    #[serde(default)]
+    pub node_range_start: Option<u64>,
+    #[serde(default)]
+    pub node_range_end: Option<u64>,
+    #[serde(default)]
+    pub leaf_chunk_count: Option<usize>,
+    #[serde(default)]
+    pub child_count: Option<usize>,
+    #[serde(default)]
+    pub left_child_public_values_hash: Option<String>,
+    #[serde(default)]
+    pub right_child_public_values_hash: Option<String>,
+    #[serde(default)]
+    pub left_child_proof_hash: Option<String>,
+    #[serde(default)]
+    pub right_child_proof_hash: Option<String>,
+    #[serde(default)]
+    pub left_child_vkey_hash: Option<String>,
+    #[serde(default)]
+    pub right_child_vkey_hash: Option<String>,
+    #[serde(default)]
+    pub tree_root_hash: Option<String>,
     pub claim_scope: String,
 }
 
@@ -159,6 +190,34 @@ pub struct TrainingAggregationOutput {
     pub expected_child_vkey_hash: Option<String>,
     #[serde(default)]
     pub expected_child_vkey_digest_words: Option<Vec<u32>>,
+    #[serde(default)]
+    pub aggregation_topology: Option<String>,
+    #[serde(default)]
+    pub node_id: Option<String>,
+    #[serde(default)]
+    pub node_depth: Option<u64>,
+    #[serde(default)]
+    pub node_range_start: Option<u64>,
+    #[serde(default)]
+    pub node_range_end: Option<u64>,
+    #[serde(default)]
+    pub leaf_chunk_count: Option<usize>,
+    #[serde(default)]
+    pub child_count: Option<usize>,
+    #[serde(default)]
+    pub left_child_public_values_hash: Option<String>,
+    #[serde(default)]
+    pub right_child_public_values_hash: Option<String>,
+    #[serde(default)]
+    pub left_child_proof_hash: Option<String>,
+    #[serde(default)]
+    pub right_child_proof_hash: Option<String>,
+    #[serde(default)]
+    pub left_child_vkey_hash: Option<String>,
+    #[serde(default)]
+    pub right_child_vkey_hash: Option<String>,
+    #[serde(default)]
+    pub tree_root_hash: Option<String>,
     pub claim_scope: String,
     pub child_proof_verification_inside_guest: bool,
 }
@@ -183,8 +242,19 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
         public.relation, "training_aggregation",
         "unexpected relation"
     );
+    let binary = public.aggregation_topology.as_deref() == Some(BINARY_TOPOLOGY);
+    let first_relation = witness
+        .chunks
+        .first()
+        .map(|chunk| chunk.relation_id.as_str())
+        .unwrap_or(LEAF_CHILD_RELATION_ID);
     assert_eq!(
-        public.chunk_relation_id, "training_fragment_k8",
+        public.chunk_relation_id,
+        if binary {
+            first_relation
+        } else {
+            LEAF_CHILD_RELATION_ID
+        },
         "chunk relation mismatch"
     );
     assert_eq!(public.chunk_size, 8, "chunk_size mismatch");
@@ -194,13 +264,21 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
         "chunk_count mismatch"
     );
     assert!(!witness.chunks.is_empty(), "at least one chunk is required");
+    let expected_span = if binary {
+        public.leaf_chunk_count.expect("missing leaf_chunk_count") as u64 * public.chunk_size
+    } else {
+        public.chunk_size * witness.chunks.len() as u64
+    };
     assert_eq!(
         public.step_end - public.step_start,
-        public.chunk_size * witness.chunks.len() as u64,
+        expected_span,
         "aggregate step span mismatch"
     );
     assert_public_hashes(public);
-    verify_chunk_chain(public, &witness.chunks);
+    if binary {
+        verify_binary_public(public, &witness.chunks);
+    }
+    verify_chunk_chain(public, &witness.chunks, binary);
 
     let recursive = match public.aggregation_mode.as_str() {
         "proof_manifest_chain" => {
@@ -234,7 +312,11 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
         "recursive_sp1" => {
             assert_eq!(
                 public.claim_scope,
-                "true recursive SP1 aggregation over child training-fragment proofs",
+                if binary {
+                    "true recursive binary-tree native SP1 aggregation"
+                } else {
+                    "true recursive SP1 aggregation over child training-fragment proofs"
+                },
                 "claim_scope mismatch"
             );
             assert_child_proof_mode(
@@ -348,6 +430,20 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
         child_proof_mode: public.child_proof_mode.clone(),
         expected_child_vkey_hash: public.expected_child_vkey_hash.clone(),
         expected_child_vkey_digest_words: public.expected_child_vkey_digest_words.clone(),
+        aggregation_topology: public.aggregation_topology.clone(),
+        node_id: public.node_id.clone(),
+        node_depth: public.node_depth,
+        node_range_start: public.node_range_start,
+        node_range_end: public.node_range_end,
+        leaf_chunk_count: public.leaf_chunk_count,
+        child_count: public.child_count,
+        left_child_public_values_hash: public.left_child_public_values_hash.clone(),
+        right_child_public_values_hash: public.right_child_public_values_hash.clone(),
+        left_child_proof_hash: public.left_child_proof_hash.clone(),
+        right_child_proof_hash: public.right_child_proof_hash.clone(),
+        left_child_vkey_hash: public.left_child_vkey_hash.clone(),
+        right_child_vkey_hash: public.right_child_vkey_hash.clone(),
+        tree_root_hash: public.tree_root_hash.clone(),
         claim_scope: public.claim_scope.clone(),
         child_proof_verification_inside_guest: recursive,
     }
@@ -383,18 +479,122 @@ fn assert_public_hashes(public: &TrainingAggregationPublicInputs) {
     }
 }
 
-fn verify_chunk_chain(public: &TrainingAggregationPublicInputs, chunks: &[ChunkRecord]) {
+fn verify_binary_public(public: &TrainingAggregationPublicInputs, chunks: &[ChunkRecord]) {
+    assert_eq!(
+        public.aggregation_mode, "recursive_sp1",
+        "binary tree aggregation must be recursive"
+    );
+    assert_eq!(
+        public.child_proof_mode.as_deref(),
+        Some(NATIVE_CHILD_PROOF_MODE),
+        "binary tree aggregation must use native_sp1"
+    );
+    assert_eq!(chunks.len(), 2, "binary tree fan-in mismatch");
+    assert_eq!(public.chunk_count, 2, "binary chunk_count mismatch");
+    assert_eq!(public.child_count, Some(2), "binary child_count mismatch");
+    assert!(
+        matches!(public.leaf_chunk_count, Some(2) | Some(4)),
+        "binary leaf_chunk_count mismatch"
+    );
+    assert!(
+        public.node_depth.unwrap_or_default() >= 1,
+        "binary node_depth mismatch"
+    );
+    assert_eq!(
+        public.node_range_start,
+        Some(public.step_start),
+        "binary node_range_start mismatch"
+    );
+    assert_eq!(
+        public.node_range_end,
+        Some(public.step_end),
+        "binary node_range_end mismatch"
+    );
+    assert!(
+        public
+            .node_id
+            .as_deref()
+            .is_some_and(|node_id| !node_id.is_empty()),
+        "binary node_id mismatch"
+    );
+    let left = &chunks[0];
+    let right = &chunks[1];
+    for (actual, expected, label) in [
+        (
+            public.left_child_public_values_hash.as_ref(),
+            left.child_public_inputs_hash.as_ref(),
+            "left_child_public_values_hash",
+        ),
+        (
+            public.right_child_public_values_hash.as_ref(),
+            right.child_public_inputs_hash.as_ref(),
+            "right_child_public_values_hash",
+        ),
+        (
+            public.left_child_proof_hash.as_ref(),
+            left.child_proof_hash.as_ref(),
+            "left_child_proof_hash",
+        ),
+        (
+            public.right_child_proof_hash.as_ref(),
+            right.child_proof_hash.as_ref(),
+            "right_child_proof_hash",
+        ),
+        (
+            public.left_child_vkey_hash.as_ref(),
+            left.child_vkey_hash.as_ref(),
+            "left_child_vkey_hash",
+        ),
+        (
+            public.right_child_vkey_hash.as_ref(),
+            right.child_vkey_hash.as_ref(),
+            "right_child_vkey_hash",
+        ),
+    ] {
+        assert_eq!(actual, expected, "{label} mismatch");
+    }
+    let tree_root_hash = binary_tree_root(chunks);
+    assert_eq!(
+        public.tree_root_hash.as_deref(),
+        Some(tree_root_hash.as_str()),
+        "tree_root_hash mismatch"
+    );
+}
+
+fn verify_chunk_chain(
+    public: &TrainingAggregationPublicInputs,
+    chunks: &[ChunkRecord],
+    binary: bool,
+) {
     for (idx, chunk) in chunks.iter().enumerate() {
         assert_eq!(chunk.chunk_id, idx, "chunk order mismatch");
-        assert_eq!(
-            chunk.step_end - chunk.step_start,
-            public.chunk_size,
-            "chunk step span mismatch"
-        );
-        assert_eq!(
-            chunk.relation_id, "training_fragment_k8",
-            "chunk relation_id mismatch"
-        );
+        let span = chunk.step_end - chunk.step_start;
+        if binary {
+            assert!(
+                span > 0 && span % public.chunk_size == 0,
+                "chunk step span mismatch"
+            );
+            assert_eq!(
+                chunk.relation_id, public.chunk_relation_id,
+                "chunk relation_id mismatch"
+            );
+            assert!(
+                matches!(
+                    chunk.relation_id.as_str(),
+                    LEAF_CHILD_RELATION_ID | BINARY_NODE_RELATION_ID
+                ),
+                "binary child relation_id mismatch"
+            );
+            if chunk.relation_id == LEAF_CHILD_RELATION_ID {
+                assert_eq!(span, public.chunk_size, "leaf chunk step span mismatch");
+            }
+        } else {
+            assert_eq!(span, public.chunk_size, "chunk step span mismatch");
+            assert_eq!(
+                chunk.relation_id, LEAF_CHILD_RELATION_ID,
+                "chunk relation_id mismatch"
+            );
+        }
         assert_eq!(
             chunk.dataset_root, public.dataset_root,
             "dataset_root mismatch"
@@ -567,9 +767,19 @@ fn verify_recursive_children(
             .expect("child Plonk proof verification failed"),
             _ => panic!("unsupported child proof mode"),
         }
-        let child_output: TrainingFragmentOutput =
-            bincode::deserialize(&public_values).expect("child public values decode failed");
-        assert_child_output(public, chunk, &child_output);
+        match chunk.relation_id.as_str() {
+            LEAF_CHILD_RELATION_ID => {
+                let child_output: TrainingFragmentOutput = bincode::deserialize(&public_values)
+                    .expect("child public values decode failed");
+                assert_fragment_child_output(public, chunk, &child_output);
+            }
+            BINARY_NODE_RELATION_ID => {
+                let child_output: TrainingAggregationOutput = bincode::deserialize(&public_values)
+                    .expect("child public values decode failed");
+                assert_aggregation_child_output(public, chunk, &child_output);
+            }
+            _ => panic!("unsupported recursive child relation"),
+        }
     }
 }
 
@@ -591,7 +801,7 @@ fn verify_native_child_proof(child: &RecursiveChildProof, public_values: &[u8]) 
     }
 }
 
-fn assert_child_output(
+fn assert_fragment_child_output(
     public: &TrainingAggregationPublicInputs,
     chunk: &ChunkRecord,
     child: &TrainingFragmentOutput,
@@ -652,6 +862,84 @@ fn assert_child_output(
     assert_eq!(
         child_config_hash(child),
         public.config_hash,
+        "child config hash mismatch"
+    );
+}
+
+fn assert_aggregation_child_output(
+    public: &TrainingAggregationPublicInputs,
+    chunk: &ChunkRecord,
+    child: &TrainingAggregationOutput,
+) {
+    assert_eq!(
+        child.relation, "training_aggregation",
+        "child relation mismatch"
+    );
+    assert_eq!(
+        child.aggregation_mode, "recursive_sp1",
+        "child aggregation mode mismatch"
+    );
+    assert_eq!(
+        child.aggregation_topology.as_deref(),
+        Some(BINARY_TOPOLOGY),
+        "child aggregation topology mismatch"
+    );
+    assert_eq!(
+        child.child_proof_mode.as_deref(),
+        Some(NATIVE_CHILD_PROOF_MODE),
+        "child proof mode mismatch"
+    );
+    assert!(
+        child.child_proof_verification_inside_guest,
+        "child aggregation must verify proofs inside guest"
+    );
+    assert_eq!(
+        child.chunk_size, public.chunk_size,
+        "child chunk size mismatch"
+    );
+    assert_eq!(
+        child.step_start, chunk.step_start,
+        "child step_start mismatch"
+    );
+    assert_eq!(child.step_end, chunk.step_end, "child step_end mismatch");
+    assert_eq!(
+        child.input_checkpoint_hash, chunk.input_checkpoint_hash,
+        "child input checkpoint mismatch"
+    );
+    assert_eq!(
+        child.output_checkpoint_hash, chunk.output_checkpoint_hash,
+        "child output checkpoint mismatch"
+    );
+    assert_eq!(
+        child.input_target_checkpoint_hash, chunk.input_target_checkpoint_hash,
+        "child input target checkpoint mismatch"
+    );
+    assert_eq!(
+        child.output_target_checkpoint_hash, chunk.output_target_checkpoint_hash,
+        "child output target checkpoint mismatch"
+    );
+    assert_eq!(
+        child.dataset_root, public.dataset_root,
+        "child dataset_root mismatch"
+    );
+    assert_eq!(
+        child.manifest_hash, public.manifest_hash,
+        "child manifest_hash mismatch"
+    );
+    assert_eq!(
+        child.audit_report_hash, public.audit_report_hash,
+        "child audit_report_hash mismatch"
+    );
+    assert_eq!(
+        child.collection_log_final_hash, public.collection_log_final_hash,
+        "child collection_log_final_hash mismatch"
+    );
+    assert_eq!(
+        child.raw_trajectory_hash, public.raw_trajectory_hash,
+        "child raw_trajectory_hash mismatch"
+    );
+    assert_eq!(
+        child.config_hash, public.config_hash,
         "child config hash mismatch"
     );
 }
@@ -790,6 +1078,33 @@ fn child_config_hash(child: &TrainingFragmentOutput) -> String {
 fn hash_rows(format_name: &str, rows: Vec<String>) -> String {
     let payload = format!("{}\n{}", format_name, rows.join("\n"));
     sha256_hex(payload.as_bytes())
+}
+
+fn binary_tree_root(chunks: &[ChunkRecord]) -> String {
+    assert_eq!(chunks.len(), 2, "binary tree root requires two children");
+    hash_rows(
+        "training_aggregation_binary_tree_node_v1",
+        ["left", "right"]
+            .iter()
+            .zip(chunks.iter())
+            .map(|(side, chunk)| {
+                [
+                    side.to_string(),
+                    chunk.relation_id.clone(),
+                    chunk.step_start.to_string(),
+                    chunk.step_end.to_string(),
+                    chunk.child_public_inputs_hash.clone().unwrap(),
+                    chunk.child_proof_hash.clone().unwrap(),
+                    chunk.child_vkey_hash.clone().unwrap(),
+                    chunk.input_checkpoint_hash.clone(),
+                    chunk.output_checkpoint_hash.clone(),
+                    chunk.input_target_checkpoint_hash.clone(),
+                    chunk.output_target_checkpoint_hash.clone(),
+                ]
+                .join("|")
+            })
+            .collect(),
+    )
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {

@@ -65,6 +65,8 @@ artifacts/kaggle_phase7_groth16_t16_t32_kernel/
 artifacts/kaggle_phase7_groth16_t16_t32_outputs/
 artifacts/kaggle_phase7_plonk_t16_t32_kernel/
 artifacts/kaggle_phase7_plonk_t16_t32_outputs/
+artifacts/kaggle_phase7_binary_native_kernel/
+artifacts/kaggle_phase7_binary_native_outputs/
 
 # =============================================================================
 # IDE / Editor
