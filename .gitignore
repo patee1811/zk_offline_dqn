@@ -42,8 +42,13 @@ artifacts/regression_summary.md
 artifacts/reports/*
 !artifacts/reports/final_ndss/
 !artifacts/reports/final_ndss/**
+!artifacts/reports/phase8_1_rl_benchmark/
+!artifacts/reports/phase8_1_rl_benchmark/**
 !artifacts/reports/provenance/
 !artifacts/reports/provenance/**
+artifacts/reports/phase8_1_rl_benchmark/checkpoints/
+artifacts/reports/phase8_1_rl_benchmark/tensorboard/
+artifacts/reports/phase8_1_rl_benchmark/wandb/
 artifacts/reports/provenance/sp1/**/proof.bin
 artifacts/archive/manual_review/
 artifacts/kaggle*/
@@ -67,6 +72,11 @@ artifacts/kaggle_phase7_plonk_t16_t32_kernel/
 artifacts/kaggle_phase7_plonk_t16_t32_outputs/
 artifacts/kaggle_phase7_binary_native_kernel/
 artifacts/kaggle_phase7_binary_native_outputs/
+artifacts/kaggle_phase8_1_rl_kernel/
+artifacts/kaggle_phase8_1_rl_outputs/
+*.pt
+*.pth
+*.ckpt
 
 # =============================================================================
 # IDE / Editor

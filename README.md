@@ -130,6 +130,15 @@ python scripts/experiments/generate_paper_reports.py
 python -m zk_offline_dqn.cli.main report generate
 ```
 
+Generate the RL-performance-only Table 1 benchmark separately:
+
+```text
+python scripts/experiments/run_phase8_1_rl_benchmark.py --paper
+```
+
+Table 1 is RL performance only. It does not add an SP1 proof-cost table,
+tamper table, or proof-of-training claim.
+
 Generated final reports live under:
 
 ```text
