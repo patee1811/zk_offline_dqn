@@ -109,7 +109,9 @@ async fn main() -> Result<()> {
         let stdin = build_stdin(&input)?;
         let pk = client.setup(elf).await.context("SP1 setup failed")?;
         let prove_start = Instant::now();
-        let proof = if input.public_inputs.aggregation_mode == "recursive_sp1" {
+        let proof = if input.public_inputs.aggregation_mode == "recursive_sp1"
+            && input.public_inputs.child_proof_mode.as_deref() == Some("native_sp1")
+        {
             client
                 .prove(&pk, stdin)
                 .compressed()
