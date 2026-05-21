@@ -9,7 +9,12 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List
 
-from zk_offline_dqn.relations.training_aggregation import VerificationResult, generate_case, verify_case
+from zk_offline_dqn.relations.training_aggregation import (
+    VerificationResult,
+    generate_case,
+    generate_recursive_case,
+    verify_case,
+)
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -21,6 +26,10 @@ def case_path_for_target(target: int) -> Path:
     return ROOT / "zk_backend" / "test_vectors" / f"training_aggregation_t{target}_case_0.json"
 
 
+def recursive_case_path_for_target(target: int) -> Path:
+    return ROOT / "zk_backend" / "test_vectors" / f"training_aggregation_recursive_t{target}_case_0.json"
+
+
 def load_case(path: str | Path = DEFAULT_CASE_PATH) -> Dict[str, Any]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -30,6 +39,26 @@ def write_generated_case(target: int, path: str | Path | None = None) -> Path:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
         json.dumps(generate_case(target), sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+    return out_path
+
+
+def write_generated_recursive_case(
+    target: int,
+    path: str | Path | None = None,
+    *,
+    child_materials: List[Dict[str, Any]] | None = None,
+) -> Path:
+    out_path = Path(path) if path is not None else recursive_case_path_for_target(target)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(
+        json.dumps(
+            generate_recursive_case(target, child_materials=child_materials),
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n",
         encoding="utf-8",
     )
     return out_path
@@ -147,6 +176,42 @@ def tampered_case(case: Dict[str, Any], name: str) -> Dict[str, Any]:
         public["chunk_public_inputs_root"] = _flip_hex(public["chunk_public_inputs_root"])
     elif name == "tamper_chunk_proof_root":
         public["chunk_proof_root"] = _flip_hex(public["chunk_proof_root"])
+    elif name == "tamper_child_proof_bytes":
+        mutated["private_witness"]["child_proofs"][0]["proof_bytes"] = _flip_hex(
+            mutated["private_witness"]["child_proofs"][0]["proof_bytes"]
+        )
+    elif name == "tamper_child_public_values":
+        mutated["private_witness"]["child_proofs"][0]["public_values_bytes"] = _flip_hex(
+            mutated["private_witness"]["child_proofs"][0]["public_values_bytes"]
+        )
+    elif name == "tamper_child_vkey_hash":
+        mutated["private_witness"]["child_proofs"][0]["vkey_hash"] = _flip_vkey(
+            mutated["private_witness"]["child_proofs"][0]["vkey_hash"]
+        )
+    elif name == "tamper_child_proof_hash":
+        first["child_proof_hash"] = _flip_hex(first["child_proof_hash"])
+    elif name == "tamper_child_proof_order":
+        proofs = mutated["private_witness"]["child_proofs"]
+        proofs[0], proofs[1] = proofs[1], proofs[0]
+    elif name == "tamper_child_step_start":
+        first["step_start"] += 1
+    elif name == "tamper_child_step_end":
+        first["step_end"] -= 1
+    elif name == "tamper_child_input_checkpoint_hash":
+        first["input_checkpoint_hash"] = _flip_hex(first["input_checkpoint_hash"])
+    elif name == "tamper_child_output_checkpoint_hash":
+        first["output_checkpoint_hash"] = _flip_hex(first["output_checkpoint_hash"])
+    elif name == "tamper_child_target_checkpoint_hash":
+        first["output_target_checkpoint_hash"] = _flip_hex(first["output_target_checkpoint_hash"])
+    elif name == "tamper_child_dataset_root":
+        first["dataset_root"] = _flip_hex(first["dataset_root"])
+    elif name == "tamper_child_config_hash":
+        first["config_hash"] = _flip_hex(first["config_hash"])
+    elif name == "tamper_valid_child_proof_wrong_position":
+        proofs = mutated["private_witness"]["child_proofs"]
+        proofs[0]["chunk_id"], proofs[1]["chunk_id"] = proofs[1]["chunk_id"], proofs[0]["chunk_id"]
+    elif name == "tamper_individually_valid_child_proofs_broken_chain":
+        chunks[1]["input_checkpoint_hash"] = _flip_hex(chunks[1]["input_checkpoint_hash"])
     else:
         raise ValueError(f"unknown tamper case: {name}")
     return mutated
@@ -155,3 +220,7 @@ def tampered_case(case: Dict[str, Any], name: str) -> Dict[str, Any]:
 def _flip_hex(value: str) -> str:
     replacement = "0" if value[0] != "0" else "1"
     return replacement + value[1:]
+
+
+def _flip_vkey(value: str) -> str:
+    return "0x" + _flip_hex(value[2:])

@@ -1,4 +1,4 @@
-"""Reference checker and fixture generator for training-fragment aggregation."""
+"""Reference checker and fixture generators for training-fragment aggregation."""
 
 from __future__ import annotations
 
@@ -7,17 +7,23 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping
+from typing import Any, Dict, Iterable, List, Mapping, Sequence
 
-from zk_offline_dqn.relations.training_fragment import generate_case as generate_fragment_case
+from zk_offline_dqn.relations.training_fragment import (
+    generate_case as generate_fragment_case,
+    verify_case as verify_fragment_case,
+)
 from zk_offline_dqn.relations.training_update import sha256_json
 
 
 SCHEMA_VERSION = "sp1_training_aggregation_case_v1"
 PUBLIC_SCHEMA_VERSION = "sp1_training_aggregation_public_v1"
 AGGREGATION_MODE = "proof_manifest_chain"
+RECURSIVE_AGGREGATION_MODE = "recursive_sp1"
 CHUNK_RELATION_ID = "training_fragment_k8"
 CLAIM_SCOPE = "chunk-chain aggregation over externally verified proof manifests"
+RECURSIVE_CLAIM_SCOPE = "true recursive SP1 aggregation over child training-fragment proofs"
+CHILD_PROOF_MODE = "groth16_bn254"
 CHUNK_FIELDS = [
     "chunk_id",
     "step_start",
@@ -39,6 +45,15 @@ CHUNK_FIELDS = [
     "verify_report_hash",
     "tamper_report_hash",
 ]
+RECURSIVE_CHUNK_FIELDS = [
+    *CHUNK_FIELDS,
+    "child_public_inputs_hash",
+    "child_vkey_hash",
+    "child_proof_hash",
+    "child_proof_mode",
+    "child_verify_report_hash",
+    "child_tamper_report_hash",
+]
 
 
 @dataclass(frozen=True)
@@ -48,8 +63,9 @@ class VerificationResult:
     public_output: Dict[str, Any] | None = None
 
 
-def chunk_record_row(chunk: Mapping[str, Any]) -> str:
-    return "|".join(str(chunk[field]) for field in CHUNK_FIELDS)
+def chunk_record_row(chunk: Mapping[str, Any], *, recursive: bool = False) -> str:
+    fields = RECURSIVE_CHUNK_FIELDS if recursive else CHUNK_FIELDS
+    return "|".join(str(chunk[field]) for field in fields)
 
 
 def hash_rows(format_name: str, rows: Iterable[str]) -> str:
@@ -57,7 +73,31 @@ def hash_rows(format_name: str, rows: Iterable[str]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def recompute_roots(chunks: List[Mapping[str, Any]]) -> Dict[str, str]:
+def recompute_roots(chunks: List[Mapping[str, Any]], *, recursive: bool | None = None) -> Dict[str, str]:
+    recursive = bool(chunks and "child_vkey_hash" in chunks[0]) if recursive is None else recursive
+    if recursive:
+        return {
+            "aggregate_root": hash_rows(
+                "training_aggregation_recursive_chunk_records_v1",
+                [chunk_record_row(chunk, recursive=True) for chunk in chunks],
+            ),
+            "chunk_public_inputs_root": hash_rows(
+                "training_aggregation_recursive_public_inputs_root_v1",
+                [str(chunk["child_public_inputs_hash"]) for chunk in chunks],
+            ),
+            "chunk_proof_root": hash_rows(
+                "training_aggregation_recursive_proof_root_v1",
+                [str(chunk["child_proof_hash"]) for chunk in chunks],
+            ),
+            "chunk_verify_report_root": hash_rows(
+                "training_aggregation_recursive_verify_report_root_v1",
+                [str(chunk["child_verify_report_hash"]) for chunk in chunks],
+            ),
+            "chunk_vkey_root": hash_rows(
+                "training_aggregation_recursive_vkey_root_v1",
+                [str(chunk["child_vkey_hash"]) for chunk in chunks],
+            ),
+        }
     return {
         "aggregate_root": hash_rows(
             "training_aggregation_chunk_records_v1",
@@ -86,10 +126,6 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
     chunks = witness["chunks"]
     if public["relation"] != "training_aggregation":
         raise AssertionError("relation mismatch")
-    if public["aggregation_mode"] != AGGREGATION_MODE:
-        raise AssertionError("aggregation mode does not recursively verify child proofs")
-    if public["claim_scope"] != CLAIM_SCOPE:
-        raise AssertionError("claim_scope mismatch")
     if public["chunk_relation_id"] != CHUNK_RELATION_ID:
         raise AssertionError("chunk relation mismatch")
     if int(public["chunk_size"]) != 8:
@@ -98,8 +134,6 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
         raise AssertionError("chunk_count mismatch")
     if not chunks:
         raise AssertionError("at least one chunk is required")
-    if witness.get("child_proofs") != []:
-        raise AssertionError("manifest-chain mode must not claim child proof bytes")
     if int(public["step_end"]) - int(public["step_start"]) != int(public["chunk_size"]) * len(chunks):
         raise AssertionError("aggregate step span mismatch")
     for field in [
@@ -119,6 +153,46 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
         "chunk_verify_report_root",
     ]:
         assert_nonzero_hex_32(public[field], field)
+    _verify_chunk_chain(public, chunks)
+    recursive = public["aggregation_mode"] == RECURSIVE_AGGREGATION_MODE
+    if public["aggregation_mode"] == AGGREGATION_MODE:
+        if public["claim_scope"] != CLAIM_SCOPE:
+            raise AssertionError("claim_scope mismatch")
+        if witness.get("child_proofs") != []:
+            raise AssertionError("manifest-chain mode must not claim child proof bytes")
+        for field in ["child_proof_mode", "expected_child_vkey_hash", "chunk_vkey_root"]:
+            if field in public:
+                raise AssertionError(f"unexpected {field}")
+    elif recursive:
+        if public["claim_scope"] != RECURSIVE_CLAIM_SCOPE:
+            raise AssertionError("claim_scope mismatch")
+        if public.get("child_proof_mode") != CHILD_PROOF_MODE:
+            raise AssertionError("child proof mode mismatch")
+        assert_vkey_hash(public.get("expected_child_vkey_hash"), "expected_child_vkey_hash")
+        assert_nonzero_hex_32(public.get("chunk_vkey_root"), "chunk_vkey_root")
+        _verify_recursive_metadata(public, witness)
+    else:
+        raise AssertionError("unsupported aggregation_mode")
+    first = chunks[0]
+    last = chunks[-1]
+    for public_field, chunk_value in [
+        ("step_start", first["step_start"]),
+        ("step_end", last["step_end"]),
+        ("input_checkpoint_hash", first["input_checkpoint_hash"]),
+        ("output_checkpoint_hash", last["output_checkpoint_hash"]),
+        ("input_target_checkpoint_hash", first["input_target_checkpoint_hash"]),
+        ("output_target_checkpoint_hash", last["output_target_checkpoint_hash"]),
+    ]:
+        if public[public_field] != chunk_value:
+            raise AssertionError(f"{public_field} mismatch")
+    roots = recompute_roots(chunks, recursive=recursive)
+    for key, value in roots.items():
+        if public.get(key) != value:
+            raise AssertionError(f"{key} mismatch")
+    return public_output(vector, roots, recursive=recursive)
+
+
+def _verify_chunk_chain(public: Mapping[str, Any], chunks: Sequence[Mapping[str, Any]]) -> None:
     for index, chunk in enumerate(chunks):
         if int(chunk["chunk_id"]) != index:
             raise AssertionError("chunk order mismatch")
@@ -156,28 +230,50 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
                 raise AssertionError("checkpoint link mismatch")
             if chunk["output_target_checkpoint_hash"] != next_chunk["input_target_checkpoint_hash"]:
                 raise AssertionError("target checkpoint link mismatch")
-    first = chunks[0]
-    last = chunks[-1]
-    for public_field, chunk_value in [
-        ("step_start", first["step_start"]),
-        ("step_end", last["step_end"]),
-        ("input_checkpoint_hash", first["input_checkpoint_hash"]),
-        ("output_checkpoint_hash", last["output_checkpoint_hash"]),
-        ("input_target_checkpoint_hash", first["input_target_checkpoint_hash"]),
-        ("output_target_checkpoint_hash", last["output_target_checkpoint_hash"]),
-    ]:
-        if public[public_field] != chunk_value:
-            raise AssertionError(f"{public_field} mismatch")
-    roots = recompute_roots(chunks)
-    for key, value in roots.items():
-        if public[key] != value:
-            raise AssertionError(f"{key} mismatch")
-    return public_output(vector, roots)
 
 
-def public_output(vector: Mapping[str, Any], roots: Mapping[str, str]) -> Dict[str, Any]:
+def _verify_recursive_metadata(public: Mapping[str, Any], witness: Mapping[str, Any]) -> None:
+    chunks = witness["chunks"]
+    child_proofs = witness.get("child_proofs", [])
+    if len(child_proofs) != len(chunks):
+        raise AssertionError("child proof count mismatch")
+    for index, (chunk, child) in enumerate(zip(chunks, child_proofs)):
+        if int(child["chunk_id"]) != index:
+            raise AssertionError("child proof order mismatch")
+        if child["proof_mode"] != CHILD_PROOF_MODE or chunk["child_proof_mode"] != CHILD_PROOF_MODE:
+            raise AssertionError("child proof mode mismatch")
+        if child["vkey_hash"] != public["expected_child_vkey_hash"]:
+            raise AssertionError("unexpected child verification key")
+        if chunk["child_vkey_hash"] != child["vkey_hash"]:
+            raise AssertionError("chunk child vkey hash mismatch")
+        assert_vkey_hash(child["vkey_hash"], "child_vkey_hash")
+        proof_hash = sha256_hex_bytes(child["proof_bytes"], "child proof bytes")
+        public_values_hash = sha256_hex_bytes(child["public_values_bytes"], "child public values")
+        if chunk["child_proof_hash"] != proof_hash or chunk["proof_hash"] != proof_hash:
+            raise AssertionError("child proof hash mismatch")
+        if chunk["child_public_inputs_hash"] != public_values_hash or chunk["public_inputs_hash"] != public_values_hash:
+            raise AssertionError("child public values hash mismatch")
+        if chunk["child_verify_report_hash"] != chunk["verify_report_hash"]:
+            raise AssertionError("child verify report hash mismatch")
+        if chunk["child_tamper_report_hash"] != chunk["tamper_report_hash"]:
+            raise AssertionError("child tamper report hash mismatch")
+        for field in [
+            "child_public_inputs_hash",
+            "child_proof_hash",
+            "child_verify_report_hash",
+            "child_tamper_report_hash",
+        ]:
+            assert_nonzero_hex_32(chunk[field], field)
+
+
+def public_output(
+    vector: Mapping[str, Any],
+    roots: Mapping[str, str],
+    *,
+    recursive: bool,
+) -> Dict[str, Any]:
     public = vector["public_inputs"]
-    return {
+    output = {
         "schema_version": PUBLIC_SCHEMA_VERSION,
         "relation": public["relation"],
         "case_id": public["case_id"],
@@ -202,8 +298,17 @@ def public_output(vector: Mapping[str, Any], roots: Mapping[str, str]) -> Dict[s
         "chunk_proof_root": roots["chunk_proof_root"],
         "chunk_verify_report_root": roots["chunk_verify_report_root"],
         "claim_scope": public["claim_scope"],
-        "child_proof_verification_inside_guest": False,
+        "child_proof_verification_inside_guest": recursive,
     }
+    if recursive:
+        output.update(
+            {
+                "chunk_vkey_root": roots["chunk_vkey_root"],
+                "child_proof_mode": public["child_proof_mode"],
+                "expected_child_vkey_hash": public["expected_child_vkey_hash"],
+            }
+        )
+    return output
 
 
 def verify_case(vector: Mapping[str, Any]) -> VerificationResult:
@@ -222,40 +327,19 @@ def generate_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
     fragment_public = fragment["public_inputs"]
     steps = fragment["private_witness"]["steps"]
     provenance_hashes = load_k8_provenance_hashes()
-    config_hash = sha256_json(
-        {
-            "batch_size": fragment_public["batch_size"],
-            "chunk_relation_id": CHUNK_RELATION_ID,
-            "dataset_size": fragment_public["dataset_size"],
-            "fixed_point_scale": fragment_public["fixed_point_scale"],
-            "format": "training_aggregation_chunk_config_v1",
-            "gamma": fragment_public["gamma"],
-            "learning_rate": fragment_public["learning_rate"],
-            "sampler_seed": fragment_public["sampler_seed"],
-            "sampler_type": fragment_public["sampler_type"],
-            "target_sync_interval": fragment_public["target_sync_interval"],
-            "target_sync_mode": fragment_public["target_sync_mode"],
-        }
-    )
+    config_hash = config_hash_from_fragment_public(fragment_public)
     chunks = []
     for chunk_id, step_start in enumerate(range(0, step_end, chunk_size)):
         final_step = step_start + chunk_size - 1
-        boundary = {
-            "chunk_id": chunk_id,
-            "step_start": step_start,
-            "step_end": step_start + chunk_size,
-            "input_checkpoint_hash": steps[step_start]["checkpoint_hash_before"],
-            "output_checkpoint_hash": steps[final_step]["checkpoint_hash_after"],
-            "input_target_checkpoint_hash": steps[step_start]["target_checkpoint_hash_before"],
-            "output_target_checkpoint_hash": steps[final_step]["target_checkpoint_hash_after"],
-            "dataset_root": fragment_public["dataset_root"],
-            "manifest_hash": fragment_public["manifest_hash"],
-            "audit_report_hash": fragment_public["audit_report_hash"],
-            "collection_log_final_hash": fragment_public["collection_log_final_hash"],
-            "raw_trajectory_hash": fragment_public["raw_trajectory_hash"],
-            "config_hash": config_hash,
-            "relation_id": CHUNK_RELATION_ID,
-        }
+        boundary = _chunk_boundary(
+            chunk_id,
+            step_start,
+            steps[step_start],
+            steps[final_step],
+            fragment_public,
+            config_hash,
+            chunk_size,
+        )
         public_inputs_hash = sha256_json(
             {
                 "boundary": boundary,
@@ -283,15 +367,222 @@ def generate_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
             }
         )
     roots = recompute_roots(chunks)
+    return _aggregation_vector(
+        step_end,
+        chunks,
+        fragment_public,
+        config_hash,
+        roots,
+        aggregation_mode=AGGREGATION_MODE,
+        claim_scope=CLAIM_SCOPE,
+        child_proofs=[],
+    )
+
+
+def generate_recursive_case(
+    step_end: int,
+    *,
+    child_materials: Sequence[Mapping[str, Any]] | None = None,
+    chunk_size: int = 8,
+) -> Dict[str, Any]:
+    child_cases = generate_recursive_child_cases(step_end, chunk_size=chunk_size)
+    materials = list(child_materials) if child_materials is not None else [
+        placeholder_child_material(child_case, chunk_id)
+        for chunk_id, child_case in enumerate(child_cases)
+    ]
+    if len(materials) != len(child_cases):
+        raise AssertionError("child material count mismatch")
+    provenance_hashes = load_k8_provenance_hashes()
+    chunks = []
+    child_proofs = []
+    first_public = child_cases[0]["public_inputs"]
+    config_hash = config_hash_from_fragment_public(first_public)
+    expected_vkey_hash = str(materials[0]["vkey_hash"])
+    for chunk_id, (child_case, material) in enumerate(zip(child_cases, materials)):
+        result = verify_fragment_case(child_case)
+        if not result.accepted or result.public_output is None:
+            raise AssertionError(f"child case {chunk_id} rejected: {result.reason}")
+        child_public = child_case["public_inputs"]
+        child_output = result.public_output
+        if str(material["vkey_hash"]) != expected_vkey_hash:
+            raise AssertionError("recursive child vkey mismatch")
+        proof_hash = sha256_hex_bytes(str(material["proof_bytes"]), "child proof bytes")
+        public_hash = sha256_hex_bytes(
+            str(material["public_values_bytes"]), "child public values"
+        )
+        chunk = {
+            "chunk_id": chunk_id,
+            "step_start": child_public["global_step_start"],
+            "step_end": child_public["global_step_start"] + child_public["num_steps"],
+            "input_checkpoint_hash": child_output["start_checkpoint_hash"],
+            "output_checkpoint_hash": child_output["final_checkpoint_hash"],
+            "input_target_checkpoint_hash": child_output["start_target_checkpoint_hash"],
+            "output_target_checkpoint_hash": child_output["final_target_checkpoint_hash"],
+            "dataset_root": child_public["dataset_root"],
+            "manifest_hash": child_public["manifest_hash"],
+            "audit_report_hash": child_public["audit_report_hash"],
+            "collection_log_final_hash": child_public["collection_log_final_hash"],
+            "raw_trajectory_hash": child_public["raw_trajectory_hash"],
+            "config_hash": config_hash_from_fragment_public(child_public),
+            "relation_id": CHUNK_RELATION_ID,
+            "public_inputs_hash": public_hash,
+            "proof_hash": proof_hash,
+            "metrics_hash": str(material.get("metrics_hash", provenance_hashes["metrics_hash"])),
+            "verify_report_hash": str(
+                material.get("verify_report_hash", provenance_hashes["verify_report_hash"])
+            ),
+            "tamper_report_hash": str(
+                material.get("tamper_report_hash", provenance_hashes["tamper_report_hash"])
+            ),
+            "child_public_inputs_hash": public_hash,
+            "child_vkey_hash": str(material["vkey_hash"]),
+            "child_proof_hash": proof_hash,
+            "child_proof_mode": CHILD_PROOF_MODE,
+            "child_verify_report_hash": str(
+                material.get("verify_report_hash", provenance_hashes["verify_report_hash"])
+            ),
+            "child_tamper_report_hash": str(
+                material.get("tamper_report_hash", provenance_hashes["tamper_report_hash"])
+            ),
+        }
+        chunks.append(chunk)
+        child_proofs.append(
+            {
+                "chunk_id": chunk_id,
+                "proof_mode": CHILD_PROOF_MODE,
+                "proof_bytes": str(material["proof_bytes"]),
+                "public_values_bytes": str(material["public_values_bytes"]),
+                "vkey_hash": str(material["vkey_hash"]),
+            }
+        )
+    roots = recompute_roots(chunks, recursive=True)
+    vector = _aggregation_vector(
+        step_end,
+        chunks,
+        first_public,
+        config_hash,
+        roots,
+        aggregation_mode=RECURSIVE_AGGREGATION_MODE,
+        claim_scope=RECURSIVE_CLAIM_SCOPE,
+        child_proofs=child_proofs,
+    )
+    vector["public_inputs"].update(
+        {
+            "child_proof_mode": CHILD_PROOF_MODE,
+            "expected_child_vkey_hash": expected_vkey_hash,
+            "chunk_vkey_root": roots["chunk_vkey_root"],
+        }
+    )
+    return vector
+
+
+def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> List[Dict[str, Any]]:
+    if chunk_size != 8:
+        raise AssertionError("Phase 7B recursively aggregates k=8 child proofs")
+    if step_end <= 0 or step_end % chunk_size != 0:
+        raise AssertionError("step_end must be a positive multiple of chunk_size")
+    child_cases = []
+    online = None
+    target = None
+    for chunk_id, step_start in enumerate(range(0, step_end, chunk_size)):
+        child_case = generate_fragment_case(
+            chunk_size,
+            global_step_start=step_start,
+            online_start=online,
+            target_start=target,
+            case_id=f"training_fragment_recursive_chunk_{chunk_id}_steps_{step_start}_{step_start + chunk_size}",
+        )
+        child_cases.append(child_case)
+        last_step = child_case["private_witness"]["steps"][-1]
+        online = last_step["online_model_after"]
+        target = last_step["target_model_after"]
+    return child_cases
+
+
+def placeholder_child_material(child_case: Mapping[str, Any], chunk_id: int) -> Dict[str, str]:
+    output = verify_fragment_case(child_case).public_output
+    if output is None:
+        raise AssertionError("placeholder child case rejected")
+    public_values = json.dumps(output, sort_keys=True, separators=(",", ":")).encode("utf-8").hex()
+    proof_bytes = hashlib.sha256(
+        f"recursive_child_placeholder_proof_{chunk_id}".encode("utf-8")
+    ).digest().hex()
+    return {
+        "proof_bytes": proof_bytes,
+        "public_values_bytes": public_values,
+        "vkey_hash": "0x" + hashlib.sha256(b"recursive_training_fragment_vkey").hexdigest(),
+    }
+
+
+def config_hash_from_fragment_public(fragment_public: Mapping[str, Any]) -> str:
+    return sha256_json(
+        {
+            "batch_size": fragment_public["batch_size"],
+            "chunk_relation_id": CHUNK_RELATION_ID,
+            "dataset_size": fragment_public["dataset_size"],
+            "fixed_point_scale": fragment_public["fixed_point_scale"],
+            "format": "training_aggregation_chunk_config_v1",
+            "gamma": fragment_public["gamma"],
+            "learning_rate": fragment_public["learning_rate"],
+            "sampler_seed": fragment_public["sampler_seed"],
+            "sampler_type": fragment_public["sampler_type"],
+            "target_sync_interval": fragment_public["target_sync_interval"],
+            "target_sync_mode": fragment_public["target_sync_mode"],
+        }
+    )
+
+
+def _chunk_boundary(
+    chunk_id: int,
+    step_start: int,
+    first_step: Mapping[str, Any],
+    final_step: Mapping[str, Any],
+    fragment_public: Mapping[str, Any],
+    config_hash: str,
+    chunk_size: int,
+) -> Dict[str, Any]:
+    return {
+        "chunk_id": chunk_id,
+        "step_start": step_start,
+        "step_end": step_start + chunk_size,
+        "input_checkpoint_hash": first_step["checkpoint_hash_before"],
+        "output_checkpoint_hash": final_step["checkpoint_hash_after"],
+        "input_target_checkpoint_hash": first_step["target_checkpoint_hash_before"],
+        "output_target_checkpoint_hash": final_step["target_checkpoint_hash_after"],
+        "dataset_root": fragment_public["dataset_root"],
+        "manifest_hash": fragment_public["manifest_hash"],
+        "audit_report_hash": fragment_public["audit_report_hash"],
+        "collection_log_final_hash": fragment_public["collection_log_final_hash"],
+        "raw_trajectory_hash": fragment_public["raw_trajectory_hash"],
+        "config_hash": config_hash,
+        "relation_id": CHUNK_RELATION_ID,
+    }
+
+
+def _aggregation_vector(
+    step_end: int,
+    chunks: Sequence[Mapping[str, Any]],
+    fragment_public: Mapping[str, Any],
+    config_hash: str,
+    roots: Mapping[str, str],
+    *,
+    aggregation_mode: str,
+    claim_scope: str,
+    child_proofs: Sequence[Mapping[str, Any]],
+) -> Dict[str, Any]:
     public = {
         "relation": "training_aggregation",
-        "case_id": f"training_aggregation_t{step_end}_case_0",
-        "aggregation_mode": AGGREGATION_MODE,
+        "case_id": (
+            f"training_aggregation_recursive_t{step_end}_case_0"
+            if aggregation_mode == RECURSIVE_AGGREGATION_MODE
+            else f"training_aggregation_t{step_end}_case_0"
+        ),
+        "aggregation_mode": aggregation_mode,
         "chunk_relation_id": CHUNK_RELATION_ID,
-        "chunk_size": chunk_size,
+        "chunk_size": 8,
         "chunk_count": len(chunks),
-        "step_start": 0,
-        "step_end": step_end,
+        "step_start": chunks[0]["step_start"],
+        "step_end": chunks[-1]["step_end"],
         "input_checkpoint_hash": chunks[0]["input_checkpoint_hash"],
         "output_checkpoint_hash": chunks[-1]["output_checkpoint_hash"],
         "input_target_checkpoint_hash": chunks[0]["input_target_checkpoint_hash"],
@@ -303,12 +594,12 @@ def generate_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
         "raw_trajectory_hash": fragment_public["raw_trajectory_hash"],
         "config_hash": config_hash,
         **roots,
-        "claim_scope": CLAIM_SCOPE,
+        "claim_scope": claim_scope,
     }
     return {
         "schema_version": SCHEMA_VERSION,
         "public_inputs": public,
-        "private_witness": {"chunks": chunks, "child_proofs": []},
+        "private_witness": {"chunks": list(chunks), "child_proofs": list(child_proofs)},
     }
 
 
@@ -332,6 +623,22 @@ def assert_nonzero_hex_32(value: Any, field: str) -> None:
         raise AssertionError(f"{field} must be hex") from exc
     if len(raw) != 32 or raw == b"\x00" * 32:
         raise AssertionError(f"{field} must be nonzero")
+
+
+def assert_vkey_hash(value: Any, field: str) -> None:
+    if not isinstance(value, str) or not value.startswith("0x"):
+        raise AssertionError(f"{field} must be 0x-prefixed")
+    assert_nonzero_hex_32(value[2:], field)
+
+
+def sha256_hex_bytes(value: str, field: str) -> str:
+    try:
+        raw = bytes.fromhex(value)
+    except ValueError as exc:
+        raise AssertionError(f"{field} must be hex") from exc
+    if not raw:
+        raise AssertionError(f"{field} must be nonempty")
+    return hashlib.sha256(raw).hexdigest()
 
 
 def sha256_file(path: Path) -> str:

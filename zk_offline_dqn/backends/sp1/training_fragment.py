@@ -46,6 +46,7 @@ def cargo_command(
     mode: str = "execute",
     out_dir: str | Path | None = None,
     max_steps: int | None = None,
+    proof_mode: str | None = None,
 ) -> List[str]:
     command = [
         "cargo",
@@ -62,6 +63,8 @@ def cargo_command(
         command.extend(["--out-dir", str(out_dir)])
     if max_steps is not None:
         command.extend(["--max-steps", str(max_steps)])
+    if proof_mode is not None:
+        command.extend(["--proof-mode", proof_mode])
     return command
 
 
@@ -71,13 +74,20 @@ def run_cargo(
     mode: str = "execute",
     out_dir: str | Path | None = None,
     max_steps: int | None = None,
+    proof_mode: str | None = None,
     timeout: int = 1200,
 ) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     if mode == "prove":
         env["RUN_SP1_PROVE"] = "1"
     return subprocess.run(
-        cargo_command(case_path=case_path, mode=mode, out_dir=out_dir, max_steps=max_steps),
+        cargo_command(
+            case_path=case_path,
+            mode=mode,
+            out_dir=out_dir,
+            max_steps=max_steps,
+            proof_mode=proof_mode,
+        ),
         cwd=BACKEND_DIR,
         env=env,
         capture_output=True,

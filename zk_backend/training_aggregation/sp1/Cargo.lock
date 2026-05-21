@@ -4628,6 +4628,7 @@ dependencies = [
  "libm",
  "rand 0.8.6",
  "sha2",
+ "slop-algebra",
  "sp1-lib",
  "sp1-primitives",
 ]
@@ -5291,6 +5292,18 @@ dependencies = [
 
 [[package]]
 name = "training-aggregation-shared"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "hex",
+ "serde",
+ "sha2",
+ "sp1-verifier",
+ "training-fragment-shared",
+]
+
+[[package]]
+name = "training-fragment-shared"
 version = "0.1.0"
 dependencies = [
  "hex",

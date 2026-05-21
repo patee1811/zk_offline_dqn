@@ -30,9 +30,10 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    if args.mode != "proof_manifest_chain" {
+    if !matches!(args.mode.as_str(), "proof_manifest_chain" | "recursive_sp1") {
         return Err(anyhow!(
-            "recursive_sp1 mode is unavailable because child proofs are not verified inside the guest"
+            "unsupported --mode {}; expected proof_manifest_chain or recursive_sp1",
+            args.mode
         ));
     }
     let case_path = resolve_case_path(args.case)?;
@@ -79,10 +80,17 @@ async fn main() -> Result<()> {
 
     if args.prove {
         let out_dir = args.out_dir.clone().unwrap_or_else(|| {
-            PathBuf::from(format!(
-                "artifacts/reports/provenance/sp1/training_aggregation_t{}",
-                input.public_inputs.step_end
-            ))
+            PathBuf::from(if input.public_inputs.aggregation_mode == "recursive_sp1" {
+                format!(
+                    "artifacts/reports/provenance/sp1/training_aggregation_recursive_t{}",
+                    input.public_inputs.step_end
+                )
+            } else {
+                format!(
+                    "artifacts/reports/provenance/sp1/training_aggregation_t{}",
+                    input.public_inputs.step_end
+                )
+            })
         });
         fs::create_dir_all(&out_dir)
             .with_context(|| format!("failed to create {}", out_dir.display()))?;
@@ -164,13 +172,18 @@ fn write_provenance(
     cycle_count: Option<u64>,
     case_path: &Path,
 ) -> Result<()> {
+    let recursive = input.public_inputs.aggregation_mode == "recursive_sp1";
     write_json(out_dir.join("public_inputs.json"), &input.public_inputs)?;
-    write_json(out_dir.join("witness_schema.json"), &witness_schema())?;
+    write_json(
+        out_dir.join("witness_schema.json"),
+        &witness_schema(recursive),
+    )?;
     write_json(
         out_dir.join("metrics.json"),
         &json!({
             "relation": "training_aggregation",
             "aggregation_mode": input.public_inputs.aggregation_mode,
+            "child_proof_mode": input.public_inputs.child_proof_mode,
             "chunk_size": input.public_inputs.chunk_size,
             "chunk_count": input.public_inputs.chunk_count,
             "step_start": input.public_inputs.step_start,
@@ -187,8 +200,12 @@ fn write_provenance(
             "test_vector_sha256": sha256_file(case_path)?,
             "public_inputs_sha256": sha256_json(&input.public_inputs)?,
             "child_proof_count": input.public_inputs.chunk_count,
-            "child_proof_verification_inside_guest": false,
-            "notes": ["SP1 proof-backed proof-manifest chunk-chain aggregation; child proof cryptography is not recursively verified inside SP1."]
+            "child_proof_verification_inside_guest": recursive,
+            "notes": [if recursive {
+                "SP1 true recursive aggregation; child Groth16 training-fragment proofs are verified inside the aggregate guest."
+            } else {
+                "SP1 proof-backed proof-manifest chunk-chain aggregation; child proof cryptography is not recursively verified inside SP1."
+            }]
         }),
     )?;
     write_json(
@@ -203,7 +220,7 @@ fn write_provenance(
             "proof_generated": true,
             "proof_verified": true,
             "public_output_matches_expected": true,
-            "child_proof_verification_inside_guest": false,
+            "child_proof_verification_inside_guest": recursive,
             "computation_covered": {
                 "chunk_ordering": true,
                 "checkpoint_chaining": true,
@@ -211,7 +228,7 @@ fn write_provenance(
                 "dataset_config_consistency": true,
                 "aggregate_root_binding": true,
                 "proof_provenance_hash_binding": true,
-                "recursive_child_proof_verification": false
+                "recursive_child_proof_verification": recursive
             },
             "public_output": expected,
         }),
@@ -221,14 +238,18 @@ fn write_provenance(
         &json!({
             "proof_binary_committed": false,
             "reason": "proof binary is generated artifact and may be large",
-            "expected_runtime_location": format!("artifacts/kaggle_phase7_outputs/extracted/phase7_outputs/sp1/training_aggregation_t{}/proof.bin", input.public_inputs.step_end)
+            "expected_runtime_location": if recursive {
+                format!("artifacts/kaggle_phase7_recursive_outputs/extracted/phase7_recursive_outputs/sp1/training_aggregation_recursive_t{}/proof.bin", input.public_inputs.step_end)
+            } else {
+                format!("artifacts/kaggle_phase7_outputs/extracted/phase7_outputs/sp1/training_aggregation_t{}/proof.bin", input.public_inputs.step_end)
+            }
         }),
     )?;
     write_json(
         out_dir.join("aggregation_manifest.json"),
         &json!({
             "relation": "training_aggregation",
-            "aggregation_mode": "proof_manifest_chain",
+            "aggregation_mode": input.public_inputs.aggregation_mode,
             "chunk_relation_id": input.public_inputs.chunk_relation_id,
             "chunk_size": input.public_inputs.chunk_size,
             "chunk_count": input.public_inputs.chunk_count,
@@ -238,23 +259,77 @@ fn write_provenance(
             "chunk_public_inputs_root": input.public_inputs.chunk_public_inputs_root,
             "chunk_proof_root": input.public_inputs.chunk_proof_root,
             "chunk_verify_report_root": input.public_inputs.chunk_verify_report_root,
-            "child_proof_verification_inside_guest": false,
+            "chunk_vkey_root": input.public_inputs.chunk_vkey_root,
+            "child_proof_mode": input.public_inputs.child_proof_mode,
+            "expected_child_vkey_hash": input.public_inputs.expected_child_vkey_hash,
+            "child_proof_verification_inside_guest": recursive,
             "claim_scope": input.public_inputs.claim_scope,
-            "proof_hash_note": "chunk proof_hash values bind child proof-manifest metadata derived from externally verified k=8 proof provenance; proof bytes are not recursively verified here."
+            "proof_hash_note": if recursive {
+                "chunk child_proof_hash values bind Groth16 proof bytes that are verified inside the aggregate guest."
+            } else {
+                "chunk proof_hash values bind child proof-manifest metadata derived from externally verified k=8 proof provenance; proof bytes are not recursively verified here."
+            }
         }),
     )?;
     write_json(
         out_dir.join("chunk_manifest.json"),
         &json!({
             "relation": "training_aggregation",
-            "aggregation_mode": "proof_manifest_chain",
+            "aggregation_mode": input.public_inputs.aggregation_mode,
             "chunks": input.private_witness.chunks,
         }),
     )?;
+    if recursive {
+        write_json(
+            out_dir.join("recursive_child_proof_manifest.json"),
+            &json!({
+                "relation": "training_aggregation",
+                "aggregation_mode": "recursive_sp1",
+                "child_proof_mode": input.public_inputs.child_proof_mode,
+                "expected_child_vkey_hash": input.public_inputs.expected_child_vkey_hash,
+                "child_proof_count": input.private_witness.child_proofs.len(),
+                "children": input.private_witness.chunks.iter().map(|chunk| json!({
+                    "chunk_id": chunk.chunk_id,
+                    "step_start": chunk.step_start,
+                    "step_end": chunk.step_end,
+                    "child_public_inputs_hash": chunk.child_public_inputs_hash,
+                    "child_vkey_hash": chunk.child_vkey_hash,
+                    "child_proof_hash": chunk.child_proof_hash,
+                    "proof_bytes_committed": false
+                })).collect::<Vec<_>>()
+            }),
+        )?;
+    }
     Ok(())
 }
 
-fn witness_schema() -> serde_json::Value {
+fn witness_schema(recursive: bool) -> serde_json::Value {
+    if recursive {
+        return json!({
+            "schema_version": "sp1_training_aggregation_recursive_witness_schema_v1",
+            "relation": "training_aggregation",
+            "aggregation_mode": "recursive_sp1",
+            "private_witness": {
+                "chunks": [{
+                    "chunk_id": "sequential k=8 child chunk id checked by guest",
+                    "step_start": "must match child training-fragment public global_step_start",
+                    "step_end": "must match child training-fragment public span",
+                    "input_checkpoint_hash": "must match child public start checkpoint",
+                    "output_checkpoint_hash": "must match child public final checkpoint",
+                    "child_public_inputs_hash": "sha256 of child public-values bytes",
+                    "child_vkey_hash": "SP1 training-fragment vkey hash passed to Groth16 verifier",
+                    "child_proof_hash": "sha256 of child Groth16 proof bytes"
+                }],
+                "child_proofs": [{
+                    "proof_bytes": "private Groth16 proof bytes verified in guest",
+                    "public_values_bytes": "private SP1 public values verified and decoded in guest",
+                    "vkey_hash": "private proof vkey hash checked against aggregation public input"
+                }]
+            },
+            "public_inputs": "aggregate boundaries, recursive child roots, and expected child vkey hash",
+            "notes": ["The aggregate guest verifies each child Groth16 proof and the online/target checkpoint chain."]
+        });
+    }
     json!({
         "schema_version": "sp1_training_aggregation_witness_schema_v1",
         "relation": "training_aggregation",

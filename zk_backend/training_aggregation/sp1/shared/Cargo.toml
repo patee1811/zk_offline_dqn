@@ -7,3 +7,6 @@ edition.workspace = true
 hex = "0.4"
 serde = { version = "1", features = ["derive"] }
 sha2 = "0.10"
+bincode = "1"
+sp1-verifier = "=6.1.0"
+training-fragment-shared = { path = "../../../training_fragment/sp1/shared" }

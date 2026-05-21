@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -21,8 +22,19 @@ from zk_offline_dqn.backends.sp1.training_aggregation import (  # noqa: E402
     tampered_case,
     verify_case_reference,
     write_generated_case,
+    write_generated_recursive_case,
 )
-from zk_offline_dqn.relations.training_aggregation import recompute_roots  # noqa: E402
+from zk_offline_dqn.backends.sp1.training_fragment import (  # noqa: E402
+    BACKEND_DIR as FRAGMENT_BACKEND_DIR,
+    cargo_command as fragment_cargo_command,
+)
+from zk_offline_dqn.relations.training_aggregation import (  # noqa: E402
+    CHILD_PROOF_MODE,
+    RECURSIVE_AGGREGATION_MODE,
+    generate_recursive_child_cases,
+    placeholder_child_material,
+    recompute_roots,
+)
 
 
 TAMPER_CASES = [
@@ -53,6 +65,23 @@ TAMPER_CASES = [
     "tamper_chunk_proof_root",
 ]
 
+RECURSIVE_TAMPER_CASES = [
+    "tamper_child_proof_bytes",
+    "tamper_child_public_values",
+    "tamper_child_vkey_hash",
+    "tamper_child_proof_hash",
+    "tamper_child_proof_order",
+    "tamper_child_step_start",
+    "tamper_child_step_end",
+    "tamper_child_input_checkpoint_hash",
+    "tamper_child_output_checkpoint_hash",
+    "tamper_child_target_checkpoint_hash",
+    "tamper_child_dataset_root",
+    "tamper_child_config_hash",
+    "tamper_valid_child_proof_wrong_position",
+    "tamper_individually_valid_child_proofs_broken_chain",
+]
+
 CORE_RUST_TAMPER_CASES = [
     "tamper_chunk_order",
     "tamper_intermediate_checkpoint_link",
@@ -64,10 +93,23 @@ CORE_RUST_TAMPER_CASES = [
     "tamper_aggregate_root",
 ]
 
+RECURSIVE_CORE_RUST_TAMPER_CASES = [
+    "tamper_child_proof_bytes",
+    "tamper_child_public_values",
+    "tamper_child_vkey_hash",
+    "tamper_child_proof_order",
+    "tamper_valid_child_proof_wrong_position",
+    "tamper_individually_valid_child_proofs_broken_chain",
+]
 
-def write_json(path: Path, data: Any) -> None:
+
+def write_json(path: Path, data: Any, *, compact: bool = False) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if compact:
+        payload = json.dumps(data, sort_keys=True, separators=(",", ":"))
+    else:
+        payload = json.dumps(data, indent=2, sort_keys=True)
+    path.write_text(payload + "\n", encoding="utf-8")
 
 
 def run_command(
@@ -88,17 +130,26 @@ def run_command(
 
 def run_tamper_checks(case_path: Path, out_dir: Path, run_execute: bool) -> Dict[str, Any]:
     case = load_case(case_path)
+    recursive = case["public_inputs"]["aggregation_mode"] == RECURSIVE_AGGREGATION_MODE
+    names = TAMPER_CASES + (RECURSIVE_TAMPER_CASES if recursive else [])
+    rust_names = CORE_RUST_TAMPER_CASES + (RECURSIVE_CORE_RUST_TAMPER_CASES if recursive else [])
     checks = []
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        for name in TAMPER_CASES:
+        for name in names:
             mutated = tampered_case(case, name)
             reference = verify_case_reference(mutated)
             execute = None
-            if run_execute and name in CORE_RUST_TAMPER_CASES:
+            if run_execute and name in rust_names:
                 path = tmp_path / f"{name}.json"
-                write_json(path, mutated)
-                execute = run_command(cargo_command(case_path=path, mode="execute"))
+                write_json(path, mutated, compact=True)
+                execute = run_command(
+                    cargo_command(
+                        case_path=path,
+                        mode="execute",
+                        aggregation_mode=case["public_inputs"]["aggregation_mode"],
+                    )
+                )
             passed = not reference.accepted
             if execute is not None:
                 passed = passed and not execute["passed"]
@@ -134,11 +185,20 @@ def validate_case(
 ) -> Dict[str, Any]:
     case = load_case(case_path)
     public = case["public_inputs"]
+    recursive = public["aggregation_mode"] == RECURSIVE_AGGREGATION_MODE
     target = int(public["step_end"])
-    out_dir = out_root / f"training_aggregation_t{target}"
+    out_dir = out_root / (
+        f"training_aggregation_recursive_t{target}"
+        if recursive
+        else f"training_aggregation_t{target}"
+    )
     out_dir.mkdir(parents=True, exist_ok=True)
     reference = verify_case_reference(case)
-    roots = recompute_roots(case["private_witness"]["chunks"]) if reference.accepted else {}
+    roots = (
+        recompute_roots(case["private_witness"]["chunks"], recursive=recursive)
+        if reference.accepted
+        else {}
+    )
     execute = None
     if run_execute or run_prove:
         execute = run_command(
@@ -174,10 +234,13 @@ def validate_case(
         "aggregation_manifest.json",
         "chunk_manifest.json",
     ]
+    if recursive:
+        required_files.append("recursive_child_proof_manifest.json")
     proof_backed = bool(proof and proof["passed"] and tamper["all_passed"])
     status = {
         "relation": "training_aggregation",
         "aggregation_mode": public["aggregation_mode"],
+        "child_proof_mode": public.get("child_proof_mode"),
         "chunk_size": public["chunk_size"],
         "chunk_count": public["chunk_count"],
         "step_start": public["step_start"],
@@ -194,19 +257,91 @@ def validate_case(
         "proof_artifact_policy_saved": (out_dir / "proof_artifact_policy.json").exists(),
         "aggregation_manifest_saved": (out_dir / "aggregation_manifest.json").exists(),
         "chunk_manifest_saved": (out_dir / "chunk_manifest.json").exists(),
+        "recursive_child_proof_manifest_saved": (
+            out_dir / "recursive_child_proof_manifest.json"
+        ).exists(),
         "tamper_test_passed": bool(tamper["all_passed"]),
-        "child_proof_verification_inside_guest": False,
+        "child_proof_verification_inside_guest": recursive,
         "roots_match_reference": bool(
             roots and all(public[key] == value for key, value in roots.items())
         ),
-        "claim_status": "sp1_proof_backed_manifest_chain_not_true_recursion"
+        "claim_status": (
+            "sp1_true_recursive_aggregation_proof_backed"
+            if recursive
+            else "sp1_proof_backed_manifest_chain_not_true_recursion"
+        )
         if proof_backed and all((out_dir / name).exists() for name in required_files)
         else "not_proof_backed",
         "execute": execute,
         "proof": proof,
     }
-    write_json(out_dir / f"training_aggregation_t{target}_status.json", status)
+    write_json(out_dir / f"{out_dir.name}_status.json", status)
     return status
+
+
+def prepare_recursive_case(
+    target: int,
+    out_root: Path,
+    *,
+    child_proof_mode: str,
+    run_child_proves: bool,
+) -> tuple[Path, List[Dict[str, Any]]]:
+    if child_proof_mode != CHILD_PROOF_MODE:
+        raise SystemExit("Phase 7B currently supports --child-proof-mode groth16_bn254")
+    child_cases = generate_recursive_child_cases(target)
+    work_dir = out_root / "_recursive_child_work" / f"t{target}"
+    case_dir = work_dir / "cases"
+    materials: List[Dict[str, Any]] = []
+    child_statuses = []
+    for chunk_id, child_case in enumerate(child_cases):
+        case_path = case_dir / f"training_fragment_recursive_chunk_{chunk_id}.json"
+        write_json(case_path, child_case, compact=True)
+        if run_child_proves:
+            child_out = work_dir / f"child_{chunk_id}"
+            prove = run_command(
+                fragment_cargo_command(
+                    case_path=case_path,
+                    mode="prove",
+                    out_dir=child_out,
+                    max_steps=8,
+                    proof_mode=child_proof_mode,
+                ),
+                cwd=FRAGMENT_BACKEND_DIR,
+                env={"RUN_SP1_PROVE": "1"},
+            )
+            material_path = child_out / "recursive_child_proof_material.json"
+            if not prove["passed"] or not material_path.exists():
+                raise RuntimeError(
+                    f"child proof {chunk_id} failed: {prove['stderr_tail'] or prove['stdout_tail']}"
+                )
+            material = json.loads(material_path.read_text(encoding="utf-8"))
+            material["metrics_hash"] = sha256_file(child_out / "metrics.json")
+            material["verify_report_hash"] = sha256_file(child_out / "verify_report.json")
+            proof_path = child_out / "proof.bin"
+            if proof_path.exists():
+                proof_path.unlink()
+        else:
+            material = placeholder_child_material(child_case, chunk_id)
+            prove = None
+        materials.append(material)
+        child_statuses.append(
+            {
+                "chunk_id": chunk_id,
+                "step_start": child_case["public_inputs"]["global_step_start"],
+                "step_end": child_case["public_inputs"]["global_step_start"]
+                + child_case["public_inputs"]["num_steps"],
+                "child_proof_material_saved": "proof_bytes" in material,
+                "prove": prove,
+            }
+        )
+    case_path = out_root / "_recursive_cases" / f"training_aggregation_recursive_t{target}_case_0.json"
+    write_generated_recursive_case(target, case_path, child_materials=materials)
+    write_json(work_dir / "child_proof_status.json", {"children": child_statuses})
+    return case_path, child_statuses
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def main() -> int:
@@ -214,34 +349,66 @@ def main() -> int:
     parser.add_argument("--targets", nargs="+", type=int, default=[32, 64, 128])
     parser.add_argument("--chunk-size", type=int, default=8)
     parser.add_argument("--aggregation-mode", default="proof_manifest_chain")
+    parser.add_argument("--child-proof-mode", default=CHILD_PROOF_MODE)
     parser.add_argument("--out-root", default="artifacts/reports/provenance/sp1")
     parser.add_argument("--run-reference", action="store_true")
+    parser.add_argument("--run-child-proves", action="store_true")
     parser.add_argument("--run-execute", action="store_true")
     parser.add_argument("--run-prove", action="store_true")
     args = parser.parse_args()
     if args.chunk_size != 8:
         raise SystemExit("Phase 7 requires --chunk-size 8")
-    if args.aggregation_mode != "proof_manifest_chain":
-        raise SystemExit("recursive_sp1 is not implemented; use --aggregation-mode proof_manifest_chain")
-    case_paths = [write_generated_case(target) for target in args.targets]
+    if args.aggregation_mode not in {"proof_manifest_chain", RECURSIVE_AGGREGATION_MODE}:
+        raise SystemExit("unsupported --aggregation-mode")
+    if (
+        args.aggregation_mode == RECURSIVE_AGGREGATION_MODE
+        and (args.run_execute or args.run_prove)
+        and not args.run_child_proves
+    ):
+        raise SystemExit("recursive execute/prove requires --run-child-proves")
     out_root = Path(args.out_root)
     if not out_root.is_absolute():
         out_root = ROOT / out_root
-    statuses = [
-        validate_case(
-            path,
+    statuses = []
+    for target in args.targets:
+        child_statuses = []
+        if args.aggregation_mode == RECURSIVE_AGGREGATION_MODE:
+            case_path, child_statuses = prepare_recursive_case(
+                target,
+                out_root,
+                child_proof_mode=args.child_proof_mode,
+                run_child_proves=args.run_child_proves,
+            )
+        else:
+            case_path = write_generated_case(target)
+        status = validate_case(
+            case_path,
             out_root,
             aggregation_mode=args.aggregation_mode,
             run_execute=args.run_execute,
             run_prove=args.run_prove,
         )
-        for path in case_paths
-    ]
+        status["child_proves"] = child_statuses
+        statuses.append(status)
+        if (
+            args.aggregation_mode == RECURSIVE_AGGREGATION_MODE
+            and (args.run_execute or args.run_prove)
+            and not status["proof_verified"]
+            and args.run_prove
+        ):
+            break
     summary = {"relation": "training_aggregation", "cases": statuses}
-    write_json(out_root / "phase7_training_aggregation_status.json", summary)
+    status_name = (
+        "phase7_true_recursive_aggregation_status.json"
+        if args.aggregation_mode == RECURSIVE_AGGREGATION_MODE
+        else "phase7_training_aggregation_status.json"
+    )
+    write_json(out_root / status_name, summary)
     print(json.dumps(summary, indent=2, sort_keys=True))
     should_prove = args.run_prove or os.environ.get("RUN_SP1_PROVE") == "1"
     ok = all(item["reference_passed"] and item["tamper_test_passed"] for item in statuses)
+    if args.run_execute:
+        ok = ok and all(item["execute_passed"] for item in statuses)
     if should_prove:
         ok = ok and all(item["proof_verified"] for item in statuses)
     return 0 if ok else 1

@@ -334,6 +334,7 @@ def public_output(vector: Mapping[str, Any], computed: Mapping[str, Any]) -> Dic
         "dataset_size": p["dataset_size"],
         "target_sync_interval": p["target_sync_interval"],
         "target_sync_mode": p["target_sync_mode"],
+        "global_step_start": p.get("global_step_start", 0),
         "trace_hash": computed["trace_hash"],
         "checkpoint_chain_hash": computed["checkpoint_chain_hash"],
         "minibatch_indices_hash": computed["minibatch_indices_hash"],
@@ -351,11 +352,19 @@ def verify_case(vector: Mapping[str, Any]) -> VerificationResult:
         return VerificationResult(False, str(exc), None)
 
 
-def generate_case(num_steps: int, *, dataset_size: int = 128) -> Dict[str, Any]:
+def generate_case(
+    num_steps: int,
+    *,
+    dataset_size: int = 128,
+    global_step_start: int = 0,
+    online_start: Mapping[str, Any] | None = None,
+    target_start: Mapping[str, Any] | None = None,
+    case_id: str | None = None,
+) -> Dict[str, Any]:
     scale = 1000
     public = {
         "relation": "training_fragment",
-        "case_id": f"training_fragment_k{num_steps}_case_0",
+        "case_id": case_id or f"training_fragment_k{num_steps}_case_0",
         "dataset_id_hash": _hash_label("phase6_dataset_id"),
         "dataset_type": "self_collected_replay_audited",
         "dataset_root": "",
@@ -377,7 +386,7 @@ def generate_case(num_steps: int, *, dataset_size: int = 128) -> Dict[str, Any]:
         "dataset_size": dataset_size,
         "target_sync_interval": 4,
         "target_sync_mode": "hard",
-        "global_step_start": 0,
+        "global_step_start": global_step_start,
         "trace_hash": "",
         "checkpoint_chain_hash": "",
         "minibatch_indices_hash": "",
@@ -392,8 +401,8 @@ def generate_case(num_steps: int, *, dataset_size: int = 128) -> Dict[str, Any]:
     ]
     root, paths = _merkle_paths(leaves)
     public["dataset_root"] = root
-    online = _initial_online_model(scale)
-    target = _initial_target_model(scale)
+    online = copy.deepcopy(online_start) if online_start is not None else _initial_online_model(scale)
+    target = copy.deepcopy(target_start) if target_start is not None else _initial_target_model(scale)
     public["start_checkpoint_hash"] = model_commitment(online, scale)
     public["start_target_checkpoint_hash"] = model_commitment(target, scale)
     steps = []
@@ -409,7 +418,7 @@ def generate_case(num_steps: int, *, dataset_size: int = 128) -> Dict[str, Any]:
         target_after = copy.deepcopy(online_after if sync_applied else target)
         step = {
             "step_id": step_id,
-            "global_step": step_id,
+            "global_step": global_step_start + step_id,
             "sample_index": sample_index,
             "transition": transition,
             "leaf_hash": leaves[sample_index],

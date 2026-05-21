@@ -6,6 +6,7 @@ from pathlib import Path
 
 from scripts.experiments.run_phase7_sp1_training_aggregation_validation import (
     CORE_RUST_TAMPER_CASES,
+    RECURSIVE_TAMPER_CASES,
     TAMPER_CASES,
 )
 from zk_offline_dqn.backends.sp1.training_aggregation import (
@@ -15,12 +16,20 @@ from zk_offline_dqn.backends.sp1.training_aggregation import (
     tampered_case,
     verify_case_reference,
 )
+from zk_offline_dqn.relations.training_aggregation import generate_recursive_case
 
 
 class Sp1TrainingAggregationTamperTests(unittest.TestCase):
     def test_all_tamper_cases_rejected_by_reference(self):
         case = load_case(case_path_for_target(32))
         for name in TAMPER_CASES:
+            with self.subTest(name=name):
+                result = verify_case_reference(tampered_case(case, name))
+                self.assertFalse(result.accepted, name)
+
+    def test_recursive_tamper_cases_rejected_by_reference(self):
+        case = generate_recursive_case(32)
+        for name in RECURSIVE_TAMPER_CASES:
             with self.subTest(name=name):
                 result = verify_case_reference(tampered_case(case, name))
                 self.assertFalse(result.accepted, name)

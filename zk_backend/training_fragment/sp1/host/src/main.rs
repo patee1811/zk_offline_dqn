@@ -6,7 +6,7 @@ use std::time::Instant;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use serde_json::json;
-use sp1_sdk::{include_elf, Prover, ProverClient, ProvingKey, SP1Stdin};
+use sp1_sdk::{include_elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey, SP1Stdin};
 use training_fragment_shared::{
     verify_training_fragment, TrainingFragmentInput, TrainingFragmentOutput,
 };
@@ -25,6 +25,8 @@ struct Args {
     max_steps: Option<usize>,
     #[arg(long)]
     skip_host_precheck: bool,
+    #[arg(long, default_value = "core")]
+    proof_mode: String,
 }
 
 #[tokio::main]
@@ -93,10 +95,22 @@ async fn main() -> Result<()> {
         let stdin = build_stdin(&input);
         let pk = client.setup(elf).await.context("SP1 setup failed")?;
         let prove_start = Instant::now();
-        let proof = client
-            .prove(&pk, stdin)
-            .await
-            .context("SP1 proof generation failed")?;
+        let proof = match args.proof_mode.as_str() {
+            "core" => client
+                .prove(&pk, stdin)
+                .await
+                .context("SP1 proof generation failed")?,
+            "groth16_bn254" => client
+                .prove(&pk, stdin)
+                .groth16()
+                .await
+                .context("SP1 Groth16 proof generation failed")?,
+            mode => {
+                return Err(anyhow!(
+                    "unsupported --proof-mode {mode}; expected core or groth16_bn254"
+                ))
+            }
+        };
         let proving_time_sec = prove_start.elapsed().as_secs_f64();
         let verify_start = Instant::now();
         client
@@ -108,6 +122,9 @@ async fn main() -> Result<()> {
             .save(&proof_path)
             .with_context(|| format!("failed to save {}", proof_path.display()))?;
         let proof_size_bytes = fs::metadata(&proof_path)?.len();
+        if args.proof_mode == "groth16_bn254" {
+            write_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+        }
         write_provenance(
             &out_dir,
             &input,
@@ -126,6 +143,24 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn write_recursive_child_material(
+    out_dir: &Path,
+    proof: &sp1_sdk::SP1ProofWithPublicValues,
+    pk: &ProvingKey,
+    expected: &TrainingFragmentOutput,
+) -> Result<()> {
+    write_json(
+        out_dir.join("recursive_child_proof_material.json"),
+        &json!({
+            "proof_mode": "groth16_bn254",
+            "proof_bytes": hex::encode(proof.bytes()),
+            "public_values_bytes": hex::encode(proof.public_values.to_vec()),
+            "vkey_hash": pk.verifying_key().bytes32(),
+            "public_output": expected,
+        }),
+    )
 }
 
 fn build_stdin(input: &TrainingFragmentInput) -> SP1Stdin {

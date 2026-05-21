@@ -12,7 +12,12 @@ from zk_offline_dqn.backends.sp1.training_aggregation import (
     run_cargo,
     verify_case_reference,
 )
-from zk_offline_dqn.relations.training_aggregation import CHUNK_RELATION_ID, recompute_roots
+from zk_offline_dqn.relations.training_aggregation import (
+    CHUNK_RELATION_ID,
+    RECURSIVE_AGGREGATION_MODE,
+    generate_recursive_case,
+    recompute_roots,
+)
 
 
 PROVENANCE_FILES = [
@@ -25,6 +30,7 @@ PROVENANCE_FILES = [
     "aggregation_manifest.json",
     "chunk_manifest.json",
 ]
+RECURSIVE_PROVENANCE_FILES = [*PROVENANCE_FILES, "recursive_child_proof_manifest.json"]
 
 
 class Sp1TrainingAggregationFixtureTests(unittest.TestCase):
@@ -66,6 +72,17 @@ class Sp1TrainingAggregationFixtureTests(unittest.TestCase):
                             chunk["output_target_checkpoint_hash"],
                             next_chunk["input_target_checkpoint_hash"],
                         )
+
+    def test_recursive_t32_generated_case_validates_metadata(self):
+        case = generate_recursive_case(32)
+        self.assertEqual(case["public_inputs"]["aggregation_mode"], RECURSIVE_AGGREGATION_MODE)
+        self.assertEqual(case["public_inputs"]["chunk_count"], 4)
+        self.assertEqual(len(case["private_witness"]["child_proofs"]), 4)
+        result = verify_case_reference(case)
+        self.assertTrue(result.accepted, result.reason)
+        roots = recompute_roots(case["private_witness"]["chunks"], recursive=True)
+        self.assertEqual(case["public_inputs"]["chunk_vkey_root"], roots["chunk_vkey_root"])
+        self.assertTrue(result.public_output["child_proof_verification_inside_guest"])
 
     def test_cargo_execute_command_shape(self):
         command = cargo_command(case_path=case_path_for_target(32))
@@ -112,6 +129,22 @@ class Sp1TrainingAggregationFixtureTests(unittest.TestCase):
                 self.assertTrue(metrics["proof_generated"])
                 self.assertTrue(metrics["proof_verified"])
                 self.assertFalse(metrics["child_proof_verification_inside_guest"])
+
+    def test_recursive_committed_provenance_if_present_is_complete(self):
+        for target in [32, 64, 128]:
+            provenance_dir = Path(
+                f"artifacts/reports/provenance/sp1/training_aggregation_recursive_t{target}"
+            )
+            if not provenance_dir.exists():
+                continue
+            with self.subTest(target=target):
+                for name in RECURSIVE_PROVENANCE_FILES:
+                    self.assertTrue((provenance_dir / name).exists(), name)
+                metrics = json.loads((provenance_dir / "metrics.json").read_text(encoding="utf-8"))
+                self.assertEqual(metrics["aggregation_mode"], "recursive_sp1")
+                self.assertTrue(metrics["proof_generated"])
+                self.assertTrue(metrics["proof_verified"])
+                self.assertTrue(metrics["child_proof_verification_inside_guest"])
 
 
 if __name__ == "__main__":
