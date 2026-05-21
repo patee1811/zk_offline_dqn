@@ -28,6 +28,13 @@ zk_backend/test_vectors/training_update_case_0.json. The relation includes
 replay membership, forward TD computation, SmoothL1 loss, backpropagated
 gradient through a tiny Linear-ReLU-Linear MLP, fixed-point SGD, and the
 checkpoint transition.
+
+SP1 proof generation and verification passed on Kaggle for multi-step
+Offline-DQN training fragments for canonical tiny MLP vectors with k in
+{1, 4, 8}. The fragment relation includes deterministic minibatch sampling,
+replay membership, forward TD computation, SmoothL1 loss, backpropagated
+gradients, fixed-point SGD updates, target-network hard sync, and checkpoint
+chaining.
 ```
 
 Extension relations are checked by Python semantic oracles unless a separate
@@ -61,9 +68,8 @@ model selection, or all replay batches.
 - `zk_backend/training_update/sp1/`: Rust SP1 host, guest, and shared crates
   for the canonical batch-size-1 one-step training update vector.
 - `zk_backend/training_fragment/sp1/`: Rust SP1 host, guest, and shared crates
-  for canonical multi-step training-fragment vectors. These are not
-  paper-level proof-backed claims unless compact SP1 provenance exists for the
-  specific k value.
+  for canonical multi-step training-fragment vectors. Current compact SP1 proof
+  provenance covers k in `{1, 4, 8}`.
 - `scripts/artifacts_export/`: legacy exporters/verifiers retained for
   compatibility and regression reproducibility.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
