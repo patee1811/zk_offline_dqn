@@ -1,0 +1,14 @@
+[package]
+name = "training-aggregation-guest"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sp1-zkvm = "=6.1.0"
+training-aggregation-shared = { path = "../shared" }
+
+[[bin]]
+name = "training-aggregation-guest"
+path = "src/main.rs"
+test = false
+bench = false
