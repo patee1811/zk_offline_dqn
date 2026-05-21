@@ -148,7 +148,7 @@ async fn main() -> Result<()> {
 fn write_recursive_child_material(
     out_dir: &Path,
     proof: &sp1_sdk::SP1ProofWithPublicValues,
-    pk: &ProvingKey,
+    pk: &impl ProvingKey,
     expected: &TrainingFragmentOutput,
 ) -> Result<()> {
     write_json(
