@@ -5262,6 +5262,7 @@ name = "training-aggregation-host"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bincode",
  "clap",
  "hex",
  "serde",
@@ -5298,6 +5299,7 @@ dependencies = [
  "hex",
  "serde",
  "sha2",
+ "sp1-lib",
  "sp1-verifier",
  "training-fragment-shared",
 ]

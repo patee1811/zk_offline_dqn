@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use sp1_verifier::{Groth16Verifier, GROTH16_VK_BYTES};
 use training_fragment_shared::TrainingFragmentOutput;
 
 const MANIFEST_CHUNK_FIELDS: [&str; 19] = [
@@ -62,6 +61,8 @@ pub struct TrainingAggregationPublicInputs {
     pub child_proof_mode: Option<String>,
     #[serde(default)]
     pub expected_child_vkey_hash: Option<String>,
+    #[serde(default)]
+    pub expected_child_vkey_digest_words: Option<Vec<u32>>,
     pub claim_scope: String,
 }
 
@@ -114,6 +115,8 @@ pub struct RecursiveChildProof {
     pub proof_bytes: String,
     pub public_values_bytes: String,
     pub vkey_hash: String,
+    pub vkey_digest_words: Vec<u32>,
+    pub vkey_bytes: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -147,6 +150,8 @@ pub struct TrainingAggregationOutput {
     pub child_proof_mode: Option<String>,
     #[serde(default)]
     pub expected_child_vkey_hash: Option<String>,
+    #[serde(default)]
+    pub expected_child_vkey_digest_words: Option<Vec<u32>>,
     pub claim_scope: String,
     pub child_proof_verification_inside_guest: bool,
 }
@@ -213,6 +218,10 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
                 public.expected_child_vkey_hash.is_none(),
                 "unexpected expected_child_vkey_hash"
             );
+            assert!(
+                public.expected_child_vkey_digest_words.is_none(),
+                "unexpected expected_child_vkey_digest_words"
+            );
             false
         }
         "recursive_sp1" => {
@@ -223,7 +232,7 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
             );
             assert_eq!(
                 public.child_proof_mode.as_deref(),
-                Some("groth16_bn254"),
+                Some("native_sp1"),
                 "child proof mode mismatch"
             );
             assert_eq!(
@@ -236,6 +245,11 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
                 .as_deref()
                 .expect("missing expected child vkey hash");
             assert_vkey_hash(expected_vkey, "expected_child_vkey_hash");
+            let expected_vkey_digest = public
+                .expected_child_vkey_digest_words
+                .as_deref()
+                .expect("missing expected child vkey digest");
+            assert_vkey_digest_words(expected_vkey_digest, "expected_child_vkey_digest_words");
             assert_nonzero_hex_32(
                 public
                     .chunk_vkey_root
@@ -318,6 +332,7 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
         chunk_vkey_root: roots.chunk_vkey_root,
         child_proof_mode: public.child_proof_mode.clone(),
         expected_child_vkey_hash: public.expected_child_vkey_hash.clone(),
+        expected_child_vkey_digest_words: public.expected_child_vkey_digest_words.clone(),
         claim_scope: public.claim_scope.clone(),
         child_proof_verification_inside_guest: recursive,
     }
@@ -436,12 +451,12 @@ fn verify_recursive_children(
     {
         assert_eq!(child.chunk_id, idx, "child proof order mismatch");
         assert_eq!(
-            child.proof_mode, "groth16_bn254",
+            child.proof_mode, "native_sp1",
             "child proof material mode mismatch"
         );
         assert_eq!(
             chunk.child_proof_mode.as_deref(),
-            Some("groth16_bn254"),
+            Some("native_sp1"),
             "chunk child proof mode mismatch"
         );
         assert_eq!(
@@ -453,7 +468,14 @@ fn verify_recursive_children(
             &child.vkey_hash, expected_vkey,
             "unexpected child verification key"
         );
+        assert_eq!(
+            public.expected_child_vkey_digest_words.as_ref().unwrap(),
+            &child.vkey_digest_words,
+            "unexpected child verification key digest"
+        );
         assert_vkey_hash(&child.vkey_hash, "child_vkey_hash");
+        assert_vkey_digest_words(&child.vkey_digest_words, "child_vkey_digest_words");
+        assert!(!child.vkey_bytes.is_empty(), "missing child vkey bytes");
         let proof_bytes = decode_hex(&child.proof_bytes, "child proof bytes");
         let public_values = decode_hex(&child.public_values_bytes, "child public values");
         assert_eq!(
@@ -503,16 +525,28 @@ fn verify_recursive_children(
         ] {
             assert_nonzero_hex_32(value, label);
         }
-        Groth16Verifier::verify(
-            &proof_bytes,
-            &public_values,
-            &child.vkey_hash,
-            &GROTH16_VK_BYTES,
-        )
-        .expect("child Groth16 proof verification failed");
+        verify_native_child_proof(child, &public_values);
         let child_output: TrainingFragmentOutput =
             bincode::deserialize(&public_values).expect("child public values decode failed");
         assert_child_output(public, chunk, &child_output);
+    }
+}
+
+fn verify_native_child_proof(child: &RecursiveChildProof, public_values: &[u8]) {
+    #[cfg(target_os = "zkvm")]
+    {
+        let digest: [u8; 32] = Sha256::digest(public_values).into();
+        let vkey_digest: [u32; 8] = child
+            .vkey_digest_words
+            .clone()
+            .try_into()
+            .expect("child vkey digest length mismatch");
+        sp1_lib::verify::verify_sp1_proof(&vkey_digest, &digest);
+    }
+
+    #[cfg(not(target_os = "zkvm"))]
+    {
+        let _ = (child, public_values);
     }
 }
 
@@ -741,6 +775,14 @@ fn assert_vkey_hash(value: &str, label: &str) {
     assert_eq!(bytes.len(), 32, "{label} must be 32 bytes");
     assert!(
         bytes.iter().any(|item| *item != 0),
+        "{label} must be nonzero"
+    );
+}
+
+fn assert_vkey_digest_words(words: &[u32], label: &str) {
+    assert_eq!(words.len(), 8, "{label} must have eight words");
+    assert!(
+        words.iter().any(|item| *item != 0),
         "{label} must be nonzero"
     );
 }

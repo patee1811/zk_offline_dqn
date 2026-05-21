@@ -6,7 +6,9 @@ use std::time::Instant;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use serde_json::json;
-use sp1_sdk::{include_elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey, SP1Stdin};
+use sp1_sdk::{
+    include_elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey, SP1Proof, SP1Stdin,
+};
 use training_fragment_shared::{
     verify_training_fragment, TrainingFragmentInput, TrainingFragmentOutput,
 };
@@ -105,9 +107,14 @@ async fn main() -> Result<()> {
                 .groth16()
                 .await
                 .context("SP1 Groth16 proof generation failed")?,
+            "native_sp1" => client
+                .prove(&pk, stdin)
+                .compressed()
+                .await
+                .context("SP1 compressed proof generation failed")?,
             mode => {
                 return Err(anyhow!(
-                    "unsupported --proof-mode {mode}; expected core or groth16_bn254"
+                    "unsupported --proof-mode {mode}; expected core, groth16_bn254, or native_sp1"
                 ))
             }
         };
@@ -123,7 +130,10 @@ async fn main() -> Result<()> {
             .with_context(|| format!("failed to save {}", proof_path.display()))?;
         let proof_size_bytes = fs::metadata(&proof_path)?.len();
         if args.proof_mode == "groth16_bn254" {
-            write_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+            write_groth16_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+        }
+        if args.proof_mode == "native_sp1" {
+            write_native_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
         }
         write_provenance(
             &out_dir,
@@ -145,7 +155,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn write_recursive_child_material(
+fn write_groth16_recursive_child_material(
     out_dir: &Path,
     proof: &sp1_sdk::SP1ProofWithPublicValues,
     pk: &impl ProvingKey,
@@ -158,6 +168,31 @@ fn write_recursive_child_material(
             "proof_bytes": hex::encode(proof.bytes()),
             "public_values_bytes": hex::encode(proof.public_values.to_vec()),
             "vkey_hash": pk.verifying_key().bytes32(),
+            "public_output": expected,
+        }),
+    )
+}
+
+fn write_native_recursive_child_material(
+    out_dir: &Path,
+    proof: &sp1_sdk::SP1ProofWithPublicValues,
+    pk: &impl ProvingKey,
+    expected: &TrainingFragmentOutput,
+) -> Result<()> {
+    if !matches!(&proof.proof, SP1Proof::Compressed(_)) {
+        return Err(anyhow!(
+            "native recursive child material requires a compressed SP1 proof"
+        ));
+    }
+    write_json(
+        out_dir.join("recursive_child_proof_material.json"),
+        &json!({
+            "proof_mode": "native_sp1",
+            "proof_bytes": hex::encode(bincode::serialize(proof)?),
+            "public_values_bytes": hex::encode(proof.public_values.to_vec()),
+            "vkey_hash": pk.verifying_key().bytes32(),
+            "vkey_digest_words": pk.verifying_key().hash_u32(),
+            "vkey_bytes": hex::encode(bincode::serialize(pk.verifying_key())?),
             "public_output": expected,
         }),
     )

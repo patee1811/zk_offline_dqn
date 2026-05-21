@@ -23,7 +23,7 @@ RECURSIVE_AGGREGATION_MODE = "recursive_sp1"
 CHUNK_RELATION_ID = "training_fragment_k8"
 CLAIM_SCOPE = "chunk-chain aggregation over externally verified proof manifests"
 RECURSIVE_CLAIM_SCOPE = "true recursive SP1 aggregation over child training-fragment proofs"
-CHILD_PROOF_MODE = "groth16_bn254"
+CHILD_PROOF_MODE = "native_sp1"
 CHUNK_FIELDS = [
     "chunk_id",
     "step_start",
@@ -160,7 +160,12 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
             raise AssertionError("claim_scope mismatch")
         if witness.get("child_proofs") != []:
             raise AssertionError("manifest-chain mode must not claim child proof bytes")
-        for field in ["child_proof_mode", "expected_child_vkey_hash", "chunk_vkey_root"]:
+        for field in [
+            "child_proof_mode",
+            "expected_child_vkey_hash",
+            "expected_child_vkey_digest_words",
+            "chunk_vkey_root",
+        ]:
             if field in public:
                 raise AssertionError(f"unexpected {field}")
     elif recursive:
@@ -169,6 +174,9 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
         if public.get("child_proof_mode") != CHILD_PROOF_MODE:
             raise AssertionError("child proof mode mismatch")
         assert_vkey_hash(public.get("expected_child_vkey_hash"), "expected_child_vkey_hash")
+        assert_vkey_digest_words(
+            public.get("expected_child_vkey_digest_words"), "expected_child_vkey_digest_words"
+        )
         assert_nonzero_hex_32(public.get("chunk_vkey_root"), "chunk_vkey_root")
         _verify_recursive_metadata(public, witness)
     else:
@@ -244,9 +252,14 @@ def _verify_recursive_metadata(public: Mapping[str, Any], witness: Mapping[str, 
             raise AssertionError("child proof mode mismatch")
         if child["vkey_hash"] != public["expected_child_vkey_hash"]:
             raise AssertionError("unexpected child verification key")
+        if child["vkey_digest_words"] != public["expected_child_vkey_digest_words"]:
+            raise AssertionError("unexpected child verification key digest")
         if chunk["child_vkey_hash"] != child["vkey_hash"]:
             raise AssertionError("chunk child vkey hash mismatch")
         assert_vkey_hash(child["vkey_hash"], "child_vkey_hash")
+        assert_vkey_digest_words(child["vkey_digest_words"], "child_vkey_digest_words")
+        if not child["vkey_bytes"]:
+            raise AssertionError("missing child vkey bytes")
         proof_hash = sha256_hex_bytes(child["proof_bytes"], "child proof bytes")
         public_values_hash = sha256_hex_bytes(child["public_values_bytes"], "child public values")
         if chunk["child_proof_hash"] != proof_hash or chunk["proof_hash"] != proof_hash:
@@ -306,6 +319,7 @@ def public_output(
                 "chunk_vkey_root": roots["chunk_vkey_root"],
                 "child_proof_mode": public["child_proof_mode"],
                 "expected_child_vkey_hash": public["expected_child_vkey_hash"],
+                "expected_child_vkey_digest_words": public["expected_child_vkey_digest_words"],
             }
         )
     return output
@@ -398,6 +412,7 @@ def generate_recursive_case(
     first_public = child_cases[0]["public_inputs"]
     config_hash = config_hash_from_fragment_public(first_public)
     expected_vkey_hash = str(materials[0]["vkey_hash"])
+    expected_vkey_digest_words = list(materials[0]["vkey_digest_words"])
     for chunk_id, (child_case, material) in enumerate(zip(child_cases, materials)):
         result = verify_fragment_case(child_case)
         if not result.accepted or result.public_output is None:
@@ -406,6 +421,8 @@ def generate_recursive_case(
         child_output = result.public_output
         if str(material["vkey_hash"]) != expected_vkey_hash:
             raise AssertionError("recursive child vkey mismatch")
+        if list(material["vkey_digest_words"]) != expected_vkey_digest_words:
+            raise AssertionError("recursive child vkey digest mismatch")
         proof_hash = sha256_hex_bytes(str(material["proof_bytes"]), "child proof bytes")
         public_hash = sha256_hex_bytes(
             str(material["public_values_bytes"]), "child public values"
@@ -453,6 +470,8 @@ def generate_recursive_case(
                 "proof_bytes": str(material["proof_bytes"]),
                 "public_values_bytes": str(material["public_values_bytes"]),
                 "vkey_hash": str(material["vkey_hash"]),
+                "vkey_digest_words": list(material["vkey_digest_words"]),
+                "vkey_bytes": str(material["vkey_bytes"]),
             }
         )
     roots = recompute_roots(chunks, recursive=True)
@@ -470,6 +489,7 @@ def generate_recursive_case(
         {
             "child_proof_mode": CHILD_PROOF_MODE,
             "expected_child_vkey_hash": expected_vkey_hash,
+            "expected_child_vkey_digest_words": expected_vkey_digest_words,
             "chunk_vkey_root": roots["chunk_vkey_root"],
         }
     )
@@ -511,6 +531,11 @@ def placeholder_child_material(child_case: Mapping[str, Any], chunk_id: int) -> 
         "proof_bytes": proof_bytes,
         "public_values_bytes": public_values,
         "vkey_hash": "0x" + hashlib.sha256(b"recursive_training_fragment_vkey").hexdigest(),
+        "vkey_digest_words": [
+            int.from_bytes(hashlib.sha256(f"recursive_vkey_{index}".encode("utf-8")).digest()[:4], "big")
+            for index in range(8)
+        ],
+        "vkey_bytes": hashlib.sha256(b"recursive_training_fragment_vkey_bytes").digest().hex(),
     }
 
 
@@ -629,6 +654,15 @@ def assert_vkey_hash(value: Any, field: str) -> None:
     if not isinstance(value, str) or not value.startswith("0x"):
         raise AssertionError(f"{field} must be 0x-prefixed")
     assert_nonzero_hex_32(value[2:], field)
+
+
+def assert_vkey_digest_words(value: Any, field: str) -> None:
+    if not isinstance(value, list) or len(value) != 8:
+        raise AssertionError(f"{field} must have eight words")
+    if not all(isinstance(item, int) and 0 <= item <= 0xFFFFFFFF for item in value):
+        raise AssertionError(f"{field} words must be u32")
+    if not any(value):
+        raise AssertionError(f"{field} must be nonzero")
 
 
 def sha256_hex_bytes(value: str, field: str) -> str:

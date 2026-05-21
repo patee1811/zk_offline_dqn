@@ -287,7 +287,7 @@ def prepare_recursive_case(
     run_child_proves: bool,
 ) -> tuple[Path, List[Dict[str, Any]]]:
     if child_proof_mode != CHILD_PROOF_MODE:
-        raise SystemExit("Phase 7B currently supports --child-proof-mode groth16_bn254")
+        raise SystemExit(f"Phase 7B currently supports --child-proof-mode {CHILD_PROOF_MODE}")
     child_cases = generate_recursive_child_cases(target)
     work_dir = out_root / "_recursive_child_work" / f"t{target}"
     case_dir = work_dir / "cases"

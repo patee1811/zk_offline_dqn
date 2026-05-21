@@ -6,7 +6,10 @@ use std::time::Instant;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use serde_json::json;
-use sp1_sdk::{include_elf, Prover, ProverClient, ProvingKey, SP1Stdin};
+use sp1_sdk::{
+    include_elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey, SP1Proof,
+    SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey,
+};
 use training_aggregation_shared::{
     verify_training_aggregation, TrainingAggregationInput, TrainingAggregationOutput,
 };
@@ -58,7 +61,7 @@ async fn main() -> Result<()> {
     let mut cycle_count: Option<u64> = None;
 
     if args.execute || args.prove || !args.prove {
-        let stdin = build_stdin(&input);
+        let stdin = build_stdin(&input)?;
         let start = Instant::now();
         let (mut public_values, report) = client
             .execute(elf.clone(), stdin)
@@ -94,13 +97,21 @@ async fn main() -> Result<()> {
         });
         fs::create_dir_all(&out_dir)
             .with_context(|| format!("failed to create {}", out_dir.display()))?;
-        let stdin = build_stdin(&input);
+        let stdin = build_stdin(&input)?;
         let pk = client.setup(elf).await.context("SP1 setup failed")?;
         let prove_start = Instant::now();
-        let proof = client
-            .prove(&pk, stdin)
-            .await
-            .context("SP1 proof generation failed")?;
+        let proof = if input.public_inputs.aggregation_mode == "recursive_sp1" {
+            client
+                .prove(&pk, stdin)
+                .compressed()
+                .await
+                .context("SP1 recursive aggregate proof generation failed")?
+        } else {
+            client
+                .prove(&pk, stdin)
+                .await
+                .context("SP1 proof generation failed")?
+        };
         let proving_time_sec = prove_start.elapsed().as_secs_f64();
         let verify_start = Instant::now();
         client
@@ -131,10 +142,43 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn build_stdin(input: &TrainingAggregationInput) -> SP1Stdin {
+fn build_stdin(input: &TrainingAggregationInput) -> Result<SP1Stdin> {
     let mut stdin = SP1Stdin::new();
     stdin.write(input);
-    stdin
+    if input.public_inputs.aggregation_mode == "recursive_sp1" {
+        for child in &input.private_witness.child_proofs {
+            if child.proof_mode != "native_sp1" {
+                return Err(anyhow!(
+                    "recursive SP1 stdin requires native_sp1 child proofs"
+                ));
+            }
+            let proof_bytes = hex::decode(&child.proof_bytes)
+                .context("failed to decode native child proof bytes")?;
+            let proof: SP1ProofWithPublicValues = bincode::deserialize(&proof_bytes)
+                .context("failed to decode native child SP1 proof")?;
+            let recursion_proof = match proof.proof {
+                SP1Proof::Compressed(proof) => *proof,
+                _ => return Err(anyhow!("native child proof is not compressed")),
+            };
+            let vkey_bytes =
+                hex::decode(&child.vkey_bytes).context("failed to decode child vkey bytes")?;
+            let vkey: SP1VerifyingKey =
+                bincode::deserialize(&vkey_bytes).context("failed to decode child vkey")?;
+            if child.vkey_hash != vkey.bytes32() {
+                return Err(anyhow!("child vkey hash does not match vkey bytes"));
+            }
+            if child.vkey_digest_words.as_slice() != vkey.hash_u32().as_slice() {
+                return Err(anyhow!("child vkey digest does not match vkey bytes"));
+            }
+            if proof.public_values.to_vec() != hex::decode(&child.public_values_bytes)? {
+                return Err(anyhow!(
+                    "child public values do not match compressed proof material"
+                ));
+            }
+            stdin.write_proof(recursion_proof, vkey.vk);
+        }
+    }
+    Ok(stdin)
 }
 
 fn load_input(path: &Path) -> Result<TrainingAggregationInput> {
@@ -202,7 +246,7 @@ fn write_provenance(
             "child_proof_count": input.public_inputs.chunk_count,
             "child_proof_verification_inside_guest": recursive,
             "notes": [if recursive {
-                "SP1 true recursive aggregation; child Groth16 training-fragment proofs are verified inside the aggregate guest."
+                "SP1 true recursive aggregation; native compressed child training-fragment proofs are verified inside the aggregate guest."
             } else {
                 "SP1 proof-backed proof-manifest chunk-chain aggregation; child proof cryptography is not recursively verified inside SP1."
             }]
@@ -262,10 +306,11 @@ fn write_provenance(
             "chunk_vkey_root": input.public_inputs.chunk_vkey_root,
             "child_proof_mode": input.public_inputs.child_proof_mode,
             "expected_child_vkey_hash": input.public_inputs.expected_child_vkey_hash,
+            "expected_child_vkey_digest_words": input.public_inputs.expected_child_vkey_digest_words,
             "child_proof_verification_inside_guest": recursive,
             "claim_scope": input.public_inputs.claim_scope,
             "proof_hash_note": if recursive {
-                "chunk child_proof_hash values bind Groth16 proof bytes that are verified inside the aggregate guest."
+                "chunk child_proof_hash values bind native compressed child proof material supplied to SP1 deferred verification."
             } else {
                 "chunk proof_hash values bind child proof-manifest metadata derived from externally verified k=8 proof provenance; proof bytes are not recursively verified here."
             }
@@ -317,17 +362,19 @@ fn witness_schema(recursive: bool) -> serde_json::Value {
                     "input_checkpoint_hash": "must match child public start checkpoint",
                     "output_checkpoint_hash": "must match child public final checkpoint",
                     "child_public_inputs_hash": "sha256 of child public-values bytes",
-                    "child_vkey_hash": "SP1 training-fragment vkey hash passed to Groth16 verifier",
-                    "child_proof_hash": "sha256 of child Groth16 proof bytes"
+                    "child_vkey_hash": "SP1 training-fragment vkey hash for native deferred verification",
+                    "child_proof_hash": "sha256 of child native compressed proof bytes"
                 }],
                 "child_proofs": [{
-                    "proof_bytes": "private Groth16 proof bytes verified in guest",
-                    "public_values_bytes": "private SP1 public values verified and decoded in guest",
-                    "vkey_hash": "private proof vkey hash checked against aggregation public input"
+                    "proof_bytes": "private native compressed SP1 proof bytes attached to the deferred proof stream",
+                    "public_values_bytes": "private SP1 public values hashed, verified, and decoded in guest",
+                    "vkey_hash": "private proof vkey hash checked against aggregation public input",
+                    "vkey_digest_words": "native SP1 vkey digest passed to verify_sp1_proof",
+                    "vkey_bytes": "private serialized child SP1 verifying key used by the host to attach the child proof"
                 }]
             },
-            "public_inputs": "aggregate boundaries, recursive child roots, and expected child vkey hash",
-            "notes": ["The aggregate guest verifies each child Groth16 proof and the online/target checkpoint chain."]
+            "public_inputs": "aggregate boundaries, recursive child roots, and expected child vkey digest",
+            "notes": ["The aggregate guest verifies each child native SP1 proof and the online/target checkpoint chain."]
         });
     }
     json!({
