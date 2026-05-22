@@ -2,18 +2,58 @@
 \centering
 \caption{RL performance on offline benchmark datasets.}
 \label{tab:rl-performance}
-\begin{tabular}{llllllllll}
+\begin{tabular}{llllllllllll}
 \toprule
-Dataset & Source & Baseline & Seeds & Avg Return & Norm. Score & Success Rate & Std Return & Train Steps & Status \\
+Dataset & Family & Source & Transitions & Baseline & Seeds & Avg Return & Std Return & Norm. Score & Success Rate & Train Steps & Status \\
 \midrule
-cartpole-random-v1 & audited\_self\_collected & bc & 3 & 50.100 $\pm$ 51.521 &  & 0.000 $\pm$ 0.000 & 51.521 & 5000 & completed \\
-cartpole-random-v1 & audited\_self\_collected & offline\_dqn & 3 & 82.033 $\pm$ 102.648 &  & 0.000 $\pm$ 0.000 & 102.648 & 5000 & completed \\
-cartpole-random-v1 & audited\_self\_collected & double\_dqn & 3 & 80.967 $\pm$ 101.140 &  & 0.000 $\pm$ 0.000 & 101.140 & 5000 & completed \\
-cartpole-random-v1 & audited\_self\_collected & cql\_lite & 3 & 138.267 $\pm$ 74.393 &  & 0.000 $\pm$ 0.000 & 74.393 & 5000 & completed \\
-mountaincar-random-v1 & audited\_self\_collected & bc & 3 & -200.000 $\pm$ 0.000 &  & 0.000 $\pm$ 0.000 & 0.000 & 5000 & completed \\
-mountaincar-random-v1 & audited\_self\_collected & offline\_dqn & 3 & -200.000 $\pm$ 0.000 &  & 0.000 $\pm$ 0.000 & 0.000 & 5000 & completed \\
-mountaincar-random-v1 & audited\_self\_collected & double\_dqn & 3 & -200.000 $\pm$ 0.000 &  & 0.000 $\pm$ 0.000 & 0.000 & 5000 & completed \\
-mountaincar-random-v1 & audited\_self\_collected & cql\_lite & 3 & -200.000 $\pm$ 0.000 &  & 0.000 $\pm$ 0.000 & 0.000 & 5000 & completed \\
+cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & bc & 3 & 11.000 $\pm$ 0.852 & 0.852 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & offline\_dqn & 3 & 161.900 $\pm$ 49.897 & 49.897 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & double\_dqn & 3 & 192.900 $\pm$ 69.318 & 69.318 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & cql\_lite & 3 & 199.000 $\pm$ 34.766 & 34.766 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & bc\_continuous &  &  &  &  &  &  & incompatible\_skipped \\
+cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & iql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & bc & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & offline\_dqn & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & double\_dqn & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & cql\_lite & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & bc\_continuous &  &  &  &  &  &  & incompatible\_skipped \\
+mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & iql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & bc\_continuous & 3 & 174.000 $\pm$ 27.151 & 27.151 &  & 0.833 $\pm$ 0.125 & 5000 & completed \\
+minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & iql\_lite & 3 & 163.400 $\pm$ 15.144 & 15.144 &  & 0.700 $\pm$ 0.082 & 5000 & completed \\
+minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & bc\_continuous & 3 & 166.167 $\pm$ 21.417 & 21.417 &  & 0.767 $\pm$ 0.125 & 5000 & completed \\
+minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & iql\_lite & 3 & 166.667 $\pm$ 21.344 & 21.344 &  & 0.767 $\pm$ 0.125 & 5000 & completed \\
+minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & bc\_continuous & 3 & 142.433 $\pm$ 13.241 & 13.241 &  & 0.600 $\pm$ 0.245 & 5000 & completed \\
+minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & iql\_lite & 3 & 142.567 $\pm$ 16.017 & 16.017 &  & 0.500 $\pm$ 0.163 & 5000 & completed \\
+minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & bc\_continuous & 3 & 186.901 $\pm$ 8.134 & 8.134 &  & 0.833 $\pm$ 0.125 & 5000 & completed \\
+minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & iql\_lite & 3 & 173.787 $\pm$ 9.096 & 9.096 &  & 0.567 $\pm$ 0.094 & 5000 & completed \\
+minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & bc\_continuous & 3 & 185.394 $\pm$ 10.913 & 10.913 &  & 0.767 $\pm$ 0.125 & 5000 & completed \\
+minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & iql\_lite & 3 & 173.724 $\pm$ 10.247 & 10.247 &  & 0.600 $\pm$ 0.082 & 5000 & completed \\
+minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
+minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & bc\_continuous & 3 & 175.766 $\pm$ 8.057 & 8.057 &  & 0.600 $\pm$ 0.245 & 5000 & completed \\
+minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & iql\_lite & 3 & 170.032 $\pm$ 12.930 & 12.930 &  & 0.567 $\pm$ 0.047 & 5000 & completed \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -3,20 +3,412 @@
     "bc",
     "offline_dqn",
     "double_dqn",
-    "cql_lite"
+    "cql_lite",
+    "bc_continuous",
+    "iql_lite"
   ],
-  "completed_rows": 8,
+  "completed_public_dataset_ids": [
+    "minari-pointmaze-umaze-dense-v2-10000",
+    "minari-pointmaze-umaze-dense-v2-100000",
+    "minari-pointmaze-umaze-dense-v2-50000",
+    "minari-pointmaze-umaze-v2-10000",
+    "minari-pointmaze-umaze-v2-100000",
+    "minari-pointmaze-umaze-v2-50000"
+  ],
+  "completed_rows": 20,
   "datasets": [
     "cartpole",
     "mountaincar",
-    "minari-pointmaze-umaze"
+    "minari-pointmaze-umaze-v2-10000",
+    "minari-pointmaze-umaze-v2-50000",
+    "minari-pointmaze-umaze-v2-100000",
+    "minari-pointmaze-umaze-dense-v2-10000",
+    "minari-pointmaze-umaze-dense-v2-50000",
+    "minari-pointmaze-umaze-dense-v2-100000"
   ],
+  "fail_if_public_missing": true,
   "failed_rows": 0,
+  "incompatible_skipped_rows": 28,
   "mode": "paper",
   "phase": "8.1",
-  "public_benchmark_attempt_returncode": 1,
-  "public_benchmark_status": "skipped_after_failed_kaggle_attempt",
-  "raw_run_count": 24,
+  "phase2_dataset_handling": {
+    "extracted_from": {},
+    "provenance": {
+      "cartpole-random-v1": "regenerated_with_phase2_pipeline",
+      "minari-pointmaze-umaze-dense-v2-10000": "regenerated_with_phase2_pipeline",
+      "minari-pointmaze-umaze-dense-v2-100000": "regenerated_with_phase2_pipeline",
+      "minari-pointmaze-umaze-dense-v2-50000": "regenerated_with_phase2_pipeline",
+      "minari-pointmaze-umaze-v2-10000": "regenerated_with_phase2_pipeline",
+      "minari-pointmaze-umaze-v2-100000": "regenerated_with_phase2_pipeline",
+      "minari-pointmaze-umaze-v2-50000": "regenerated_with_phase2_pipeline",
+      "mountaincar-random-v1": "regenerated_with_phase2_pipeline"
+    },
+    "reasons": {
+      "cartpole-random-v1": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ],
+      "minari-pointmaze-umaze-dense-v2-10000": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ],
+      "minari-pointmaze-umaze-dense-v2-100000": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ],
+      "minari-pointmaze-umaze-dense-v2-50000": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ],
+      "minari-pointmaze-umaze-v2-10000": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ],
+      "minari-pointmaze-umaze-v2-100000": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ],
+      "minari-pointmaze-umaze-v2-50000": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ],
+      "mountaincar-random-v1": [
+        "missing required Phase 2 file: raw_episodes.jsonl",
+        "missing required Phase 2 file: replay_audit_report.json",
+        "missing required Phase 2 file: merkle_tree.json",
+        "missing required Phase 2 file: dataset_manifest.json"
+      ]
+    },
+    "regenerated": [
+      "cartpole-random-v1",
+      "mountaincar-random-v1",
+      "minari-pointmaze-umaze-v2-10000",
+      "minari-pointmaze-umaze-v2-50000",
+      "minari-pointmaze-umaze-v2-100000",
+      "minari-pointmaze-umaze-dense-v2-10000",
+      "minari-pointmaze-umaze-dense-v2-50000",
+      "minari-pointmaze-umaze-dense-v2-100000"
+    ],
+    "tarballs": [
+      "/kaggle/working/zk_offline_dqn/artifacts/kaggle_phase2_outputs/phase2_dataset_outputs.tar.gz",
+      "/kaggle/working/zk_offline_dqn/artifacts/kaggle_phase2_scale_outputs/phase2_dataset_scale_outputs_full.tar.gz"
+    ],
+    "unresolved": []
+  },
+  "public_benchmark_gate_failed": false,
+  "raw_run_count": 88,
+  "required_public_dataset_ids": [
+    "minari-pointmaze-umaze-v2-10000",
+    "minari-pointmaze-umaze-v2-50000",
+    "minari-pointmaze-umaze-v2-100000",
+    "minari-pointmaze-umaze-dense-v2-10000",
+    "minari-pointmaze-umaze-dense-v2-50000",
+    "minari-pointmaze-umaze-dense-v2-100000"
+  ],
+  "row_status": [
+    {
+      "baseline": "bc",
+      "dataset": "cartpole-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "cartpole-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "cartpole-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "cartpole-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "cartpole-random-v1",
+      "reason": "bc_continuous is incompatible with discrete actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "cartpole-random-v1",
+      "reason": "iql_lite is incompatible with discrete actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc",
+      "dataset": "mountaincar-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "mountaincar-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "mountaincar-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "mountaincar-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "mountaincar-random-v1",
+      "reason": "bc_continuous is incompatible with discrete actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "mountaincar-random-v1",
+      "reason": "iql_lite is incompatible with discrete actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc",
+      "dataset": "minari-pointmaze-umaze-v2-10000",
+      "reason": "bc is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "minari-pointmaze-umaze-v2-10000",
+      "reason": "offline_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "minari-pointmaze-umaze-v2-10000",
+      "reason": "double_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "minari-pointmaze-umaze-v2-10000",
+      "reason": "cql_lite is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "minari-pointmaze-umaze-v2-10000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "minari-pointmaze-umaze-v2-10000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "bc",
+      "dataset": "minari-pointmaze-umaze-v2-50000",
+      "reason": "bc is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "minari-pointmaze-umaze-v2-50000",
+      "reason": "offline_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "minari-pointmaze-umaze-v2-50000",
+      "reason": "double_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "minari-pointmaze-umaze-v2-50000",
+      "reason": "cql_lite is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "minari-pointmaze-umaze-v2-50000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "minari-pointmaze-umaze-v2-50000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "bc",
+      "dataset": "minari-pointmaze-umaze-v2-100000",
+      "reason": "bc is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "minari-pointmaze-umaze-v2-100000",
+      "reason": "offline_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "minari-pointmaze-umaze-v2-100000",
+      "reason": "double_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "minari-pointmaze-umaze-v2-100000",
+      "reason": "cql_lite is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "minari-pointmaze-umaze-v2-100000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "minari-pointmaze-umaze-v2-100000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "bc",
+      "dataset": "minari-pointmaze-umaze-dense-v2-10000",
+      "reason": "bc is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "minari-pointmaze-umaze-dense-v2-10000",
+      "reason": "offline_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "minari-pointmaze-umaze-dense-v2-10000",
+      "reason": "double_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "minari-pointmaze-umaze-dense-v2-10000",
+      "reason": "cql_lite is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "minari-pointmaze-umaze-dense-v2-10000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "minari-pointmaze-umaze-dense-v2-10000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "bc",
+      "dataset": "minari-pointmaze-umaze-dense-v2-50000",
+      "reason": "bc is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "minari-pointmaze-umaze-dense-v2-50000",
+      "reason": "offline_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "minari-pointmaze-umaze-dense-v2-50000",
+      "reason": "double_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "minari-pointmaze-umaze-dense-v2-50000",
+      "reason": "cql_lite is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "minari-pointmaze-umaze-dense-v2-50000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "minari-pointmaze-umaze-dense-v2-50000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "bc",
+      "dataset": "minari-pointmaze-umaze-dense-v2-100000",
+      "reason": "bc is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "offline_dqn",
+      "dataset": "minari-pointmaze-umaze-dense-v2-100000",
+      "reason": "offline_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "double_dqn",
+      "dataset": "minari-pointmaze-umaze-dense-v2-100000",
+      "reason": "double_dqn is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "cql_lite",
+      "dataset": "minari-pointmaze-umaze-dense-v2-100000",
+      "reason": "cql_lite is incompatible with continuous actions",
+      "status": "incompatible_skipped"
+    },
+    {
+      "baseline": "bc_continuous",
+      "dataset": "minari-pointmaze-umaze-dense-v2-100000",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "iql_lite",
+      "dataset": "minari-pointmaze-umaze-dense-v2-100000",
+      "reason": null,
+      "status": "completed"
+    }
+  ],
   "scope": "RL performance only",
   "skipped_rows": 0
 }
