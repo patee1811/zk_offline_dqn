@@ -1,0 +1,22 @@
+{
+  "baselines": [
+    "bc",
+    "offline_dqn",
+    "double_dqn",
+    "cql_lite"
+  ],
+  "completed_rows": 8,
+  "datasets": [
+    "cartpole",
+    "mountaincar",
+    "minari-pointmaze-umaze"
+  ],
+  "failed_rows": 0,
+  "mode": "paper",
+  "phase": "8.1",
+  "public_benchmark_attempt_returncode": 1,
+  "public_benchmark_status": "skipped_after_failed_kaggle_attempt",
+  "raw_run_count": 24,
+  "scope": "RL performance only",
+  "skipped_rows": 0
+}

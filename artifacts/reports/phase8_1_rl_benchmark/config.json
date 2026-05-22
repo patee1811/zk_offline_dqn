@@ -1,0 +1,24 @@
+{
+  "baselines": [
+    "bc",
+    "offline_dqn",
+    "double_dqn",
+    "cql_lite"
+  ],
+  "dataset_root": "/kaggle/working/zk_offline_dqn/artifacts/datasets",
+  "datasets": [
+    "cartpole",
+    "mountaincar",
+    "minari-pointmaze-umaze"
+  ],
+  "device": "cpu",
+  "eval_episodes": 10,
+  "max_transitions": 10000,
+  "out_dir": "/kaggle/working/zk_offline_dqn/artifacts/reports/final_ndss",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "train_steps": 5000
+}
