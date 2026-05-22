@@ -136,6 +136,11 @@ Generate the RL-performance-only Table 1 benchmark separately:
 python scripts/experiments/run_phase8_1_rl_benchmark.py --paper
 ```
 
+Full Phase 8.1 paper runs reuse verified Phase 2 dataset artifacts before
+extracting Phase 2 Kaggle tarballs or regenerating missing subsets through the
+Phase 2 pipeline. Public Minari/D4RL rows remain source-integrity benchmark
+rows, not honest-collection proofs.
+
 Table 1 is RL performance only. It does not add an SP1 proof-cost table,
 tamper table, or proof-of-training claim.
 

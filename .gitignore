@@ -74,9 +74,15 @@ artifacts/kaggle_phase7_binary_native_kernel/
 artifacts/kaggle_phase7_binary_native_outputs/
 artifacts/kaggle_phase8_1_rl_kernel/
 artifacts/kaggle_phase8_1_rl_outputs/
+artifacts/kaggle_phase8_1_full_phase2_kernel/
+artifacts/kaggle_phase8_1_full_phase2_outputs/
+.minari/
+minari/
 *.pt
 *.pth
 *.ckpt
+*.hdf5
+*.h5
 
 # =============================================================================
 # IDE / Editor

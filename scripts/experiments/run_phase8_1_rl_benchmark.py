@@ -22,8 +22,14 @@ from zk_offline_dqn.rl_benchmarks.datasets import (
     DatasetUnavailable,
     MINARI_DATASETS,
     SELF_COLLECTED_DATASETS,
+    dataset_family_for_name,
     ensure_self_collected_dataset,
+    extract_phase2_datasets_from_tarball,
     load_named_dataset,
+    public_dataset_id,
+    public_family_for_dataset_id,
+    regenerate_public_phase2_dataset,
+    validate_phase2_dataset,
 )
 from zk_offline_dqn.rl_benchmarks.evaluate import evaluate_policy
 from zk_offline_dqn.rl_benchmarks.reporting import skipped_result_rows, write_table_outputs
@@ -31,6 +37,13 @@ from zk_offline_dqn.rl_benchmarks.reporting import skipped_result_rows, write_ta
 
 DISCRETE_BASELINES = {"bc", "offline_dqn", "double_dqn", "cql_lite"}
 CONTINUOUS_BASELINES = {"bc_continuous", "iql_lite"}
+DEFAULT_PUBLIC_SIZES = [10000, 50000, 100000]
+PUBLIC_FAMILY_ALIASES = {
+    "umaze": "minari-pointmaze-umaze",
+    "umaze-dense": "minari-pointmaze-umaze-dense",
+    "medium": "minari-pointmaze-medium",
+    "open": "minari-pointmaze-open",
+}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,9 +59,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dataset-root", default="artifacts/datasets")
     parser.add_argument("--out-dir", default="artifacts/reports/final_ndss")
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--batch-size", type=int)
     parser.add_argument("--max-transitions", type=int)
+    parser.add_argument("--phase2-artifact-root", default="artifacts")
+    parser.add_argument("--phase2-tarball", action="append")
+    parser.add_argument(
+        "--reuse-phase2-datasets",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+    )
+    parser.add_argument(
+        "--regenerate-missing-phase2-datasets",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+    )
+    parser.add_argument("--public-sizes", nargs="+", type=int)
+    parser.add_argument("--public-families", nargs="+")
+    parser.add_argument("--fail-if-public-missing", action="store_true")
     parser.add_argument("--skip-missing-self-collected", action="store_true")
-    parser.add_argument("--no-minari-download", action="store_true")
     return parser
 
 
@@ -56,7 +84,7 @@ def _mode_defaults(args: argparse.Namespace) -> None:
     paper = bool(args.paper)
     if args.datasets is None:
         args.datasets = (
-            ["cartpole", "mountaincar", "minari-pointmaze-umaze"]
+            ["cartpole", "mountaincar", "minari-pointmaze-umaze", "minari-pointmaze-umaze-dense"]
             if paper
             else ["cartpole", "mountaincar"]
         )
@@ -75,39 +103,176 @@ def _mode_defaults(args: argparse.Namespace) -> None:
         args.train_steps = 5000 if paper else 100
     if args.eval_episodes is None:
         args.eval_episodes = 10 if paper else 3
-    if args.max_transitions is None:
-        args.max_transitions = 10000 if paper else 1000
+    if args.batch_size is None:
+        args.batch_size = 256 if paper else 64
+    if args.max_transitions is None and not paper:
+        args.max_transitions = 1000
+    if args.public_sizes is None:
+        args.public_sizes = list(DEFAULT_PUBLIC_SIZES if paper else [10000])
+    if args.public_families is None:
+        args.public_families = [name for name in args.datasets if name in MINARI_DATASETS]
+    args.public_families = [_normalize_public_family(name) for name in args.public_families]
+    if args.reuse_phase2_datasets is None:
+        args.reuse_phase2_datasets = paper
+    if args.regenerate_missing_phase2_datasets is None:
+        args.regenerate_missing_phase2_datasets = paper
 
 
-def _compatible_baselines(action_kind: str, baselines: Iterable[str]) -> List[str]:
+def _resolve(path: str | Path) -> Path:
+    path = Path(path)
+    return path if path.is_absolute() else ROOT / path
+
+
+def _dedupe(values: Iterable[str]) -> List[str]:
+    result: List[str] = []
+    for value in values:
+        if value not in result:
+            result.append(value)
+    return result
+
+
+def _normalize_public_family(value: str) -> str:
+    return PUBLIC_FAMILY_ALIASES.get(value, value)
+
+
+def expand_dataset_requests(args: argparse.Namespace) -> List[str]:
+    expanded: List[str] = []
+    for dataset_name in args.datasets:
+        if dataset_name in MINARI_DATASETS:
+            if args.public_families and dataset_name not in args.public_families:
+                continue
+            expanded.extend(public_dataset_id(dataset_name, size) for size in args.public_sizes)
+        else:
+            expanded.append(dataset_name)
+    for family in args.public_families:
+        if family not in MINARI_DATASETS:
+            raise ValueError(f"unsupported --public-families value: {family}")
+        expanded.extend(public_dataset_id(family, size) for size in args.public_sizes)
+    return _dedupe(expanded)
+
+
+def _dataset_dir_id(dataset_name: str) -> str:
+    if dataset_name in SELF_COLLECTED_DATASETS:
+        return SELF_COLLECTED_DATASETS[dataset_name][0]
+    return dataset_name
+
+
+def _phase2_tarballs(args: argparse.Namespace, artifact_root: Path) -> List[Path]:
+    if args.phase2_tarball:
+        return [_resolve(value) for value in args.phase2_tarball]
+    return [
+        artifact_root / "kaggle_phase2_outputs/phase2_dataset_outputs.tar.gz",
+        artifact_root / "kaggle_phase2_scale_outputs/phase2_dataset_scale_outputs_full.tar.gz",
+    ]
+
+
+def _prepare_phase2_datasets(
+    args: argparse.Namespace,
+    dataset_names: List[str],
+    dataset_root: Path,
+    artifact_root: Path,
+) -> Dict[str, Any]:
+    provenance: Dict[str, str] = {}
+    reasons: Dict[str, List[str]] = {}
+    wanted_ids = [_dataset_dir_id(name) for name in dataset_names]
+    unresolved: List[str] = []
+    for dataset_id in wanted_ids:
+        ok, errors = validate_phase2_dataset(dataset_root / dataset_id)
+        if ok:
+            provenance[dataset_id] = "reused_existing_artifact"
+        else:
+            unresolved.append(dataset_id)
+            if errors:
+                reasons[dataset_id] = errors
+
+    extracted_from: Dict[str, str] = {}
+    if unresolved and args.reuse_phase2_datasets:
+        for tarball in _phase2_tarballs(args, artifact_root):
+            for dataset_id in extract_phase2_datasets_from_tarball(tarball, dataset_root, unresolved):
+                ok, errors = validate_phase2_dataset(dataset_root / dataset_id)
+                if ok:
+                    provenance[dataset_id] = "extracted_from_phase2_tarball"
+                    extracted_from[dataset_id] = tarball.as_posix()
+                elif errors:
+                    reasons[dataset_id] = errors
+            unresolved = [dataset_id for dataset_id in unresolved if dataset_id not in provenance]
+
+    regenerated: List[str] = []
+    if unresolved and args.regenerate_missing_phase2_datasets:
+        for dataset_id in list(unresolved):
+            source_name = next(
+                (name for name in dataset_names if _dataset_dir_id(name) == dataset_id),
+                dataset_id,
+            )
+            try:
+                if source_name in SELF_COLLECTED_DATASETS and not args.skip_missing_self_collected:
+                    ensure_self_collected_dataset(
+                        source_name,
+                        dataset_root,
+                        target_transitions=10000,
+                        base_seed=12345 if source_name == "cartpole" else 22345,
+                    )
+                elif public_family_for_dataset_id(dataset_id) is not None:
+                    regenerate_public_phase2_dataset(dataset_id, dataset_root)
+                else:
+                    continue
+                ok, errors = validate_phase2_dataset(dataset_root / dataset_id)
+                if not ok:
+                    reasons[dataset_id] = errors
+                    continue
+                provenance[dataset_id] = "regenerated_with_phase2_pipeline"
+                regenerated.append(dataset_id)
+            except Exception as exc:
+                reasons[dataset_id] = [str(exc)]
+        unresolved = [dataset_id for dataset_id in unresolved if dataset_id not in provenance]
+
+    return {
+        "provenance": provenance,
+        "unresolved": unresolved,
+        "reasons": reasons,
+        "tarballs": [path.as_posix() for path in _phase2_tarballs(args, artifact_root)],
+        "extracted_from": extracted_from,
+        "regenerated": regenerated,
+    }
+
+
+def _dataset_transition_limit(args: argparse.Namespace, dataset_name: str) -> int | None:
+    if args.max_transitions is not None:
+        return int(args.max_transitions)
+    if args.paper and dataset_name in SELF_COLLECTED_DATASETS:
+        return 10000
+    return None
+
+
+def _compatible(action_kind: str, baseline: str) -> bool:
     allowed = DISCRETE_BASELINES if action_kind == "discrete" else CONTINUOUS_BASELINES
-    return [baseline for baseline in baselines if baseline in allowed]
+    return baseline in allowed
 
 
 def _expected_baselines(dataset_name: str, baselines: Iterable[str]) -> List[str]:
-    expected = CONTINUOUS_BASELINES if dataset_name in MINARI_DATASETS else DISCRETE_BASELINES
+    expected = (
+        CONTINUOUS_BASELINES
+        if public_family_for_dataset_id(dataset_name) is not None or dataset_name in MINARI_DATASETS
+        else DISCRETE_BASELINES
+    )
     return [baseline for baseline in baselines if baseline in expected]
 
 
 def _train_policy(dataset, baseline: str, seed: int, args: argparse.Namespace):
+    kwargs = {
+        "train_steps": args.train_steps,
+        "seed": seed,
+        "device": args.device,
+        "batch_size": args.batch_size,
+    }
     if baseline == "bc":
-        return train_behavior_cloning_discrete(
-            dataset, train_steps=args.train_steps, seed=seed, device=args.device
-        )
+        return train_behavior_cloning_discrete(dataset, **kwargs)
     if baseline in {"offline_dqn", "double_dqn", "cql_lite"}:
-        return train_offline_q(
-            dataset,
-            algorithm=baseline,
-            train_steps=args.train_steps,
-            seed=seed,
-            device=args.device,
-        )
+        return train_offline_q(dataset, algorithm=baseline, **kwargs)
     if baseline == "bc_continuous":
-        return train_behavior_cloning_continuous(
-            dataset, train_steps=args.train_steps, seed=seed, device=args.device
-        )
+        return train_behavior_cloning_continuous(dataset, **kwargs)
     if baseline == "iql_lite":
-        return train_iql_lite(dataset, train_steps=args.train_steps, seed=seed, device=args.device)
+        return train_iql_lite(dataset, **kwargs)
     raise ValueError(f"unsupported baseline {baseline}")
 
 
@@ -120,6 +285,20 @@ def _mean_std(values: List[float | None]) -> tuple[float | None, float | None]:
     return mean, variance**0.5
 
 
+def _dataset_result_fields(dataset) -> Dict[str, Any]:
+    return {
+        "dataset_id": dataset.name,
+        "dataset_family": dataset.metadata.get("dataset_family", dataset_family_for_name(dataset.name)),
+        "dataset_source_type": dataset.source_type,
+        "dataset_num_transitions": dataset.size,
+        "phase2_dataset_provenance": dataset.metadata.get("phase2_dataset_provenance"),
+        "manifest_hash": dataset.metadata.get("manifest_hash"),
+        "audit_report_hash": dataset.metadata.get("audit_report_hash"),
+        "dataset_root": dataset.metadata.get("dataset_root"),
+        "merkle_root": dataset.metadata.get("merkle_root"),
+    }
+
+
 def _aggregate_seed_metrics(
     *,
     dataset,
@@ -127,20 +306,22 @@ def _aggregate_seed_metrics(
     seed_metrics: List[Dict[str, Any]],
     train_steps: int,
     eval_episodes: int,
+    seeds: List[int],
 ) -> Dict[str, Any]:
     result: Dict[str, Any] = {
         "dataset": dataset.name,
-        "dataset_source_type": dataset.source_type,
         "baseline": baseline,
         "status": "completed",
+        "rollout_eval_status": "completed",
         "num_seeds": len(seed_metrics),
+        "seed_list": list(seeds),
         "num_eval_episodes": int(eval_episodes),
         "train_steps": int(train_steps),
-        "dataset_num_transitions": dataset.size,
         "success_definition": next(
             (metric.get("success_definition") for metric in seed_metrics if metric.get("success_definition")),
             None,
         ),
+        **_dataset_result_fields(dataset),
     }
     for metric in [
         "average_return_mean",
@@ -172,46 +353,94 @@ def _write_phase_outputs(
             handle.write("\n")
 
 
+def _missing_rows(
+    dataset_name: str,
+    baselines: Iterable[str],
+    reason: str,
+) -> List[Dict[str, Any]]:
+    source_type = (
+        "public_source_integrity"
+        if public_family_for_dataset_id(dataset_name) is not None or dataset_name in MINARI_DATASETS
+        else "audited_self_collected"
+    )
+    rows = skipped_result_rows(
+        dataset_name,
+        _expected_baselines(dataset_name, baselines),
+        source_type=source_type,
+        reason=reason,
+        dataset_family=dataset_family_for_name(dataset_name),
+    )
+    for row in rows:
+        row["rollout_eval_status"] = "not_run"
+        row["phase2_dataset_provenance"] = None
+        row["seed_list"] = []
+    return rows
+
+
+def public_benchmark_gate_failed(
+    fail_if_public_missing: bool,
+    public_requested_ids: Iterable[str],
+    results: Iterable[Dict[str, Any]],
+) -> bool:
+    completed_ids = {
+        result.get("dataset")
+        for result in results
+        if result.get("status") == "completed"
+        and result.get("dataset_source_type") == "public_source_integrity"
+    }
+    requested_ids = list(public_requested_ids)
+    return bool(
+        fail_if_public_missing
+        and requested_ids
+        and not any(dataset_id in completed_ids for dataset_id in requested_ids)
+    )
+
+
 def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
     _mode_defaults(args)
-    dataset_root = ROOT / args.dataset_root if not Path(args.dataset_root).is_absolute() else Path(args.dataset_root)
-    out_dir = ROOT / args.out_dir if not Path(args.out_dir).is_absolute() else Path(args.out_dir)
+    dataset_root = _resolve(args.dataset_root)
+    out_dir = _resolve(args.out_dir)
+    artifact_root = _resolve(args.phase2_artifact_root)
+    dataset_names = expand_dataset_requests(args)
+    phase2 = _prepare_phase2_datasets(args, dataset_names, dataset_root, artifact_root)
     results: List[Dict[str, Any]] = []
     raw_runs: List[Dict[str, Any]] = []
 
-    for dataset_name in args.datasets:
-        if dataset_name in SELF_COLLECTED_DATASETS and not args.skip_missing_self_collected:
-            ensure_self_collected_dataset(
-                dataset_name,
-                dataset_root,
-                target_transitions=args.max_transitions,
-                base_seed=12345 if dataset_name == "cartpole" else 22345,
-            )
+    for dataset_name in dataset_names:
+        dataset_id = _dataset_dir_id(dataset_name)
         try:
             dataset = load_named_dataset(
                 dataset_name,
                 dataset_root,
-                max_transitions=args.max_transitions,
-                allow_minari_download=not args.no_minari_download,
+                max_transitions=_dataset_transition_limit(args, dataset_name),
+            )
+            dataset.metadata["phase2_dataset_provenance"] = phase2["provenance"].get(
+                dataset_id,
+                dataset.metadata.get("phase2_dataset_provenance"),
             )
         except DatasetUnavailable as exc:
-            source = (
-                "audited_self_collected"
-                if dataset_name in SELF_COLLECTED_DATASETS
-                else "public_source_integrity"
-            )
-            skipped = skipped_result_rows(
-                dataset_name,
-                _expected_baselines(dataset_name, args.baselines),
-                source_type=source,
-                reason=str(exc),
-            )
-            results.extend(skipped)
-            raw_runs.extend(skipped)
+            missing = _missing_rows(dataset_name, args.baselines, str(exc))
+            results.extend(missing)
+            raw_runs.extend(missing)
             continue
 
-        compatible = _compatible_baselines(dataset.action_kind, args.baselines)
-        for baseline in compatible:
+        for baseline in args.baselines:
+            if not _compatible(dataset.action_kind, baseline):
+                incompatible = skipped_result_rows(
+                    dataset.name,
+                    [baseline],
+                    source_type=dataset.source_type,
+                    reason=f"{baseline} is incompatible with {dataset.action_kind} actions",
+                    status="incompatible_skipped",
+                    dataset_family=dataset.metadata.get("dataset_family"),
+                )[0]
+                incompatible.update(_dataset_result_fields(dataset))
+                incompatible["rollout_eval_status"] = "not_run"
+                incompatible["seed_list"] = []
+                results.append(incompatible)
+                raw_runs.append(incompatible)
+                continue
+
             seed_metrics: List[Dict[str, Any]] = []
             failure = None
             for seed in args.seeds:
@@ -235,6 +464,8 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
                             "returns": summary.returns,
                             "successes": summary.successes,
                             "status": "completed",
+                            "rollout_eval_status": "completed",
+                            **_dataset_result_fields(dataset),
                         }
                     )
                 except Exception as exc:
@@ -246,6 +477,8 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
                             "seed": seed,
                             "status": "failed",
                             "reason": failure,
+                            "rollout_eval_status": "failed",
+                            **_dataset_result_fields(dataset),
                         }
                     )
                     break
@@ -255,10 +488,13 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
                     [baseline],
                     source_type=dataset.source_type,
                     reason=failure,
+                    status="failed",
+                    dataset_family=dataset.metadata.get("dataset_family"),
                 )[0]
-                failed["status"] = "failed"
+                failed.update(_dataset_result_fields(dataset))
+                failed["seed_list"] = list(args.seeds)
+                failed["rollout_eval_status"] = "failed"
                 failed["train_steps"] = int(args.train_steps)
-                failed["dataset_num_transitions"] = dataset.size
                 results.append(failed)
             else:
                 results.append(
@@ -268,30 +504,73 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
                         seed_metrics=seed_metrics,
                         train_steps=args.train_steps,
                         eval_episodes=args.eval_episodes,
+                        seeds=args.seeds,
                     )
                 )
 
+    public_requested_ids = [
+        dataset_name for dataset_name in dataset_names if public_family_for_dataset_id(dataset_name) is not None
+    ]
+    public_completed_ids = sorted(
+        {
+            result["dataset"]
+            for result in results
+            if result.get("status") == "completed"
+            and result.get("dataset_source_type") == "public_source_integrity"
+        }
+    )
+    public_gate_failed = public_benchmark_gate_failed(
+        args.fail_if_public_missing,
+        public_requested_ids,
+        results,
+    )
     status = {
         "phase": "8.1",
         "scope": "RL performance only",
         "mode": "paper" if args.paper else "smoke",
-        "datasets": args.datasets,
+        "datasets": dataset_names,
         "baselines": args.baselines,
         "completed_rows": sum(result["status"] == "completed" for result in results),
         "skipped_rows": sum(result["status"] == "skipped" for result in results),
+        "incompatible_skipped_rows": sum(
+            result["status"] == "incompatible_skipped" for result in results
+        ),
         "failed_rows": sum(result["status"] == "failed" for result in results),
         "raw_run_count": len(raw_runs),
+        "required_public_dataset_ids": public_requested_ids,
+        "completed_public_dataset_ids": public_completed_ids,
+        "fail_if_public_missing": bool(args.fail_if_public_missing),
+        "public_benchmark_gate_failed": public_gate_failed,
+        "phase2_dataset_handling": phase2,
+        "row_status": [
+            {
+                "dataset": result.get("dataset"),
+                "baseline": result.get("baseline"),
+                "status": result.get("status"),
+                "reason": result.get("reason"),
+            }
+            for result in results
+        ],
     }
     config = {
-        "datasets": args.datasets,
+        "datasets": dataset_names,
+        "requested_datasets": args.datasets,
         "baselines": args.baselines,
         "seeds": args.seeds,
         "train_steps": args.train_steps,
         "eval_episodes": args.eval_episodes,
+        "batch_size": args.batch_size,
         "dataset_root": dataset_root.as_posix(),
         "out_dir": out_dir.as_posix(),
         "max_transitions": args.max_transitions,
         "device": args.device,
+        "phase2_artifact_root": artifact_root.as_posix(),
+        "phase2_tarballs": phase2["tarballs"],
+        "reuse_phase2_datasets": bool(args.reuse_phase2_datasets),
+        "regenerate_missing_phase2_datasets": bool(args.regenerate_missing_phase2_datasets),
+        "public_sizes": args.public_sizes,
+        "public_families": args.public_families,
+        "observation_flatten_order": ["observation", "achieved_goal", "desired_goal", "remaining keys sorted"],
     }
     write_table_outputs(results, out_dir, status=status)
     _write_phase_outputs(raw_runs + results, config, status)
@@ -303,7 +582,8 @@ def main() -> int:
     status = run_benchmark(args)
     print("phase8_1_rl_benchmark = completed")
     print(json.dumps(status, indent=2, sort_keys=True))
-    return 0 if status["failed_rows"] == 0 else 1
+    failed = status["failed_rows"] > 0 or status["public_benchmark_gate_failed"]
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

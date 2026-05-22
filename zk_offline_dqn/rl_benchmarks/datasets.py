@@ -1,13 +1,23 @@
 from __future__ import annotations
 
 import math
+import tarfile
+from argparse import Namespace
 from dataclasses import dataclass, replace
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Sequence
 
 import numpy as np
 
-from zk_offline_dqn.data_pipeline import RAW_EPISODES_NAME, load_manifest, read_jsonl
+from zk_offline_dqn.data_pipeline import (
+    AUDIT_REPORT_NAME,
+    MERKLE_TREE_NAME,
+    RAW_EPISODES_NAME,
+    load_manifest,
+    read_jsonl,
+    sha256_file,
+    verify_dataset_commitment,
+)
 
 
 SELF_COLLECTED_DATASETS = {
@@ -32,6 +42,7 @@ MINARI_DATASETS = {
         "D4RL/pointmaze/open-v2",
     ),
 }
+OBSERVATION_FLATTEN_ORDER = ("observation", "achieved_goal", "desired_goal")
 
 
 class DatasetUnavailable(RuntimeError):
@@ -50,6 +61,7 @@ class OfflineDataset:
     terminated: np.ndarray
     truncated: np.ndarray
     metadata: Dict[str, Any]
+    infos: List[Dict[str, Any]] | None = None
 
     @property
     def size(self) -> int:
@@ -69,6 +81,18 @@ class OfflineDataset:
             return int(self.metadata["num_actions"])
         return int(self.actions.shape[1])
 
+    @property
+    def terminations(self) -> np.ndarray:
+        return self.terminated
+
+    @property
+    def truncations(self) -> np.ndarray:
+        return self.truncated
+
+    @property
+    def dones(self) -> np.ndarray:
+        return np.maximum(self.terminated, self.truncated)
+
     def subset(self, max_transitions: int | None) -> "OfflineDataset":
         if max_transitions is None or max_transitions >= self.size:
             return self
@@ -84,14 +108,17 @@ class OfflineDataset:
             terminated=self.terminated[:end],
             truncated=self.truncated[:end],
             metadata=metadata,
+            infos=None if self.infos is None else self.infos[:end],
         )
 
 
-def _flat_float(value: Any) -> np.ndarray:
+def flatten_observation(value: Any) -> np.ndarray:
     if isinstance(value, dict):
-        parts = [_flat_float(value[key]) for key in sorted(value)]
-        if not parts:
+        ordered_keys = [key for key in OBSERVATION_FLATTEN_ORDER if key in value]
+        ordered_keys.extend(sorted(key for key in value if key not in ordered_keys))
+        if not ordered_keys:
             raise ValueError("observation dictionary is empty")
+        parts = [flatten_observation(value[key]) for key in ordered_keys]
         return np.concatenate(parts, axis=0)
     array = np.asarray(value, dtype=np.float32)
     return array.reshape(-1)
@@ -101,6 +128,38 @@ def _source_type(manifest: Dict[str, Any]) -> str:
     if manifest.get("dataset_type") == "public_benchmark":
         return "public_source_integrity"
     return "audited_self_collected"
+
+
+def public_dataset_id(dataset_family: str, size: int) -> str:
+    if dataset_family not in MINARI_DATASETS:
+        raise ValueError(f"unsupported public dataset family: {dataset_family}")
+    return f"{MINARI_DATASETS[dataset_family][0]}-{int(size)}"
+
+
+def public_family_for_dataset_id(dataset_id: str) -> str | None:
+    for family, (prefix, _) in MINARI_DATASETS.items():
+        if dataset_id == prefix or dataset_id.startswith(f"{prefix}-"):
+            return family
+    return None
+
+
+def dataset_family_for_name(dataset_name: str) -> str:
+    if dataset_name in SELF_COLLECTED_DATASETS:
+        return dataset_name
+    for family, (dataset_id, _) in SELF_COLLECTED_DATASETS.items():
+        if dataset_name == dataset_id:
+            return family
+    public_family = public_family_for_dataset_id(dataset_name)
+    if public_family is not None:
+        return public_family
+    return dataset_name
+
+
+def source_id_for_public_dataset(dataset_id: str) -> str:
+    family = public_family_for_dataset_id(dataset_id)
+    if family is None:
+        raise ValueError(f"{dataset_id} is not a configured Minari/D4RL PointMaze subset")
+    return MINARI_DATASETS[family][1]
 
 
 def _rows_to_dataset(
@@ -114,25 +173,34 @@ def _rows_to_dataset(
     if not rows:
         raise DatasetUnavailable(f"{name} has no transitions")
 
-    observations = np.stack([_flat_float(row["state"]) for row in rows]).astype(np.float32)
-    next_observations = np.stack([_flat_float(row["next_state"]) for row in rows]).astype(
-        np.float32
-    )
+    observations = np.stack([flatten_observation(row["state"]) for row in rows]).astype(np.float32)
+    next_observations = np.stack(
+        [flatten_observation(row["next_state"]) for row in rows]
+    ).astype(np.float32)
     rewards = np.asarray([float(row["reward"]) for row in rows], dtype=np.float32)
     terminated = np.asarray([bool(row.get("terminated", False)) for row in rows], dtype=np.float32)
     truncated = np.asarray([bool(row.get("truncated", False)) for row in rows], dtype=np.float32)
 
     actions = [row["action"] for row in rows]
-    discrete = all(np.asarray(action).ndim == 0 and isinstance(action, (int, np.integer)) for action in actions)
+    discrete = all(
+        np.asarray(action).ndim == 0 and isinstance(action, (int, np.integer))
+        for action in actions
+    )
     dataset_metadata = dict(metadata)
     dataset_metadata["loaded_transitions"] = len(rows)
+    dataset_metadata["observation_flatten_order"] = list(OBSERVATION_FLATTEN_ORDER)
     if discrete:
         action_array = np.asarray(actions, dtype=np.int64)
         dataset_metadata["action_kind"] = "discrete"
         dataset_metadata["num_actions"] = max(1, int(action_array.max()) + 1)
     else:
-        action_array = np.stack([_flat_float(action) for action in actions]).astype(np.float32)
+        action_array = np.stack([flatten_observation(action) for action in actions]).astype(np.float32)
         dataset_metadata["action_kind"] = "continuous"
+
+    infos = []
+    for row in rows:
+        info = row.get("info", row.get("infos", {}))
+        infos.append(info if isinstance(info, dict) else {})
 
     return OfflineDataset(
         name=name,
@@ -145,27 +213,48 @@ def _rows_to_dataset(
         terminated=terminated,
         truncated=truncated,
         metadata=dataset_metadata,
+        infos=infos,
     )
 
 
-def load_committed_dataset(dataset_dir: str | Path, max_transitions: int | None = None) -> OfflineDataset:
+def validate_phase2_dataset(dataset_dir: str | Path) -> tuple[bool, List[str]]:
     dataset_dir = Path(dataset_dir)
-    raw_path = dataset_dir / RAW_EPISODES_NAME
-    if not raw_path.exists():
-        raise DatasetUnavailable(f"missing canonical replay rows at {raw_path}")
-    try:
-        manifest = load_manifest(dataset_dir)
-    except FileNotFoundError as exc:
-        raise DatasetUnavailable(f"missing dataset manifest at {dataset_dir}") from exc
+    required = [RAW_EPISODES_NAME, AUDIT_REPORT_NAME, MERKLE_TREE_NAME, "dataset_manifest.json"]
+    missing = [name for name in required if not (dataset_dir / name).exists()]
+    if missing:
+        return False, [f"missing required Phase 2 file: {name}" for name in missing]
+    return verify_dataset_commitment(dataset_dir)
 
-    rows = read_jsonl(raw_path)
+
+def load_committed_dataset(
+    dataset_dir: str | Path,
+    max_transitions: int | None = None,
+) -> OfflineDataset:
+    dataset_dir = Path(dataset_dir)
+    ok, errors = validate_phase2_dataset(dataset_dir)
+    if not ok:
+        raise DatasetUnavailable(
+            f"invalid Phase 2 dataset at {dataset_dir}: " + "; ".join(errors)
+        )
+
+    manifest = load_manifest(dataset_dir)
+    rows = read_jsonl(dataset_dir / RAW_EPISODES_NAME)
     if max_transitions is not None:
         rows = rows[: max(1, int(max_transitions))]
+
+    merkle_tree = _read_json(dataset_dir / MERKLE_TREE_NAME)
     name = str(manifest.get("dataset_id") or dataset_dir.name)
     metadata = {
         "dataset_dir": dataset_dir.as_posix(),
+        "dataset_family": dataset_family_for_name(name),
         "manifest": manifest,
         "minari_dataset_id": manifest.get("source_dataset_id"),
+        "source_dataset_id": manifest.get("source_dataset_id"),
+        "manifest_hash": merkle_tree.get("manifest_hash"),
+        "audit_report_hash": manifest.get("audit_report_hash") or sha256_file(dataset_dir / AUDIT_REPORT_NAME),
+        "dataset_root": merkle_tree.get("dataset_root"),
+        "merkle_root": manifest.get("merkle_root") or merkle_tree.get("dataset_root"),
+        "phase2_dataset_provenance": "reused_existing_artifact",
     }
     return _rows_to_dataset(
         name=name,
@@ -176,74 +265,26 @@ def load_committed_dataset(dataset_dir: str | Path, max_transitions: int | None 
     )
 
 
+def _read_json(path: Path) -> Dict[str, Any]:
+    import json
+
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    if not isinstance(data, dict):
+        raise DatasetUnavailable(f"{path} must contain a JSON object")
+    return data
+
+
 def _candidate_dirs(dataset_root: Path, dataset_name: str) -> Iterable[Path]:
     if dataset_name in SELF_COLLECTED_DATASETS:
         yield dataset_root / SELF_COLLECTED_DATASETS[dataset_name][0]
-    elif dataset_name in MINARI_DATASETS:
+        return
+    if dataset_name in MINARI_DATASETS:
         prefix, _ = MINARI_DATASETS[dataset_name]
         yield dataset_root / prefix
-        yield from sorted(dataset_root.glob(f"{prefix}*"))
-    else:
-        yield dataset_root / dataset_name
-
-
-def _rows_from_minari_episode(episode: Any) -> List[Dict[str, Any]]:
-    observations = getattr(episode, "observations", None)
-    actions = getattr(episode, "actions", None)
-    rewards = getattr(episode, "rewards", None)
-    terminations = getattr(episode, "terminations", None)
-    truncations = getattr(episode, "truncations", None)
-    if observations is None or actions is None or rewards is None:
-        raise DatasetUnavailable("Minari episode does not expose transitions")
-    rows: List[Dict[str, Any]] = []
-    for index in range(len(actions)):
-        rows.append(
-            {
-                "state": observations[index],
-                "action": actions[index],
-                "reward": rewards[index],
-                "next_state": observations[index + 1],
-                "terminated": False if terminations is None else bool(terminations[index]),
-                "truncated": False if truncations is None else bool(truncations[index]),
-            }
-        )
-    return rows
-
-
-def _load_minari_direct(dataset_name: str, max_transitions: int | None) -> OfflineDataset:
-    try:
-        import minari
-    except ImportError as exc:
-        raise DatasetUnavailable("Minari is unavailable") from exc
-
-    _, source_id = MINARI_DATASETS[dataset_name]
-    try:
-        minari_dataset = minari.load_dataset(source_id, download=True)
-    except Exception as exc:
-        raise DatasetUnavailable(f"Minari load failed for {source_id}: {exc}") from exc
-
-    rows: List[Dict[str, Any]] = []
-    try:
-        episodes = minari_dataset.iterate_episodes()
-    except AttributeError as exc:
-        raise DatasetUnavailable("Minari dataset does not expose iterate_episodes") from exc
-    for episode in episodes:
-        rows.extend(_rows_from_minari_episode(episode))
-        if max_transitions is not None and len(rows) >= max_transitions:
-            rows = rows[: max(1, int(max_transitions))]
-            break
-    metadata = {
-        "minari_dataset_id": source_id,
-        "minari_dataset": minari_dataset,
-        "source_dataset_id": source_id,
-    }
-    return _rows_to_dataset(
-        name=MINARI_DATASETS[dataset_name][0],
-        env_id=None,
-        source_type="public_source_integrity",
-        rows=rows,
-        metadata=metadata,
-    )
+        yield from sorted(dataset_root.glob(f"{prefix}-*"))
+        return
+    yield dataset_root / dataset_name
 
 
 def load_named_dataset(
@@ -251,15 +292,24 @@ def load_named_dataset(
     dataset_root: str | Path,
     *,
     max_transitions: int | None = None,
-    allow_minari_download: bool = True,
+    allow_minari_download: bool = False,
 ) -> OfflineDataset:
+    del allow_minari_download
     root = Path(dataset_root)
+    errors: List[str] = []
     for candidate in _candidate_dirs(root, dataset_name):
-        if (candidate / RAW_EPISODES_NAME).exists():
+        if not candidate.exists():
+            continue
+        try:
             return load_committed_dataset(candidate, max_transitions=max_transitions)
-    if dataset_name in MINARI_DATASETS and allow_minari_download:
-        return _load_minari_direct(dataset_name, max_transitions)
-    raise DatasetUnavailable(f"dataset {dataset_name!r} is unavailable under {root}")
+        except DatasetUnavailable as exc:
+            errors.append(str(exc))
+    if errors:
+        raise DatasetUnavailable("; ".join(errors))
+    raise DatasetUnavailable(
+        f"Phase 2 dataset {dataset_name!r} is unavailable under {root}; "
+        "run extraction or the Phase 2 pipeline before benchmarking"
+    )
 
 
 def ensure_self_collected_dataset(
@@ -273,10 +323,9 @@ def ensure_self_collected_dataset(
         raise ValueError(f"{dataset_name} is not a self-collected discrete benchmark")
     dataset_id, env_id = SELF_COLLECTED_DATASETS[dataset_name]
     out_dir = Path(dataset_root) / dataset_id
-    if (out_dir / RAW_EPISODES_NAME).exists():
+    ok, _ = validate_phase2_dataset(out_dir)
+    if ok:
         return out_dir
-
-    from argparse import Namespace
 
     from scripts.data.audit_replay_dataset import audit_dataset
     from scripts.data.collect_audited_dataset import collect
@@ -301,3 +350,79 @@ def ensure_self_collected_dataset(
         raise DatasetUnavailable(f"audited collection failed for {dataset_id}")
     commit_dataset(out_dir)
     return out_dir
+
+
+def regenerate_public_phase2_dataset(dataset_id: str, dataset_root: str | Path) -> Path:
+    out_dir = Path(dataset_root) / dataset_id
+    ok, _ = validate_phase2_dataset(out_dir)
+    if ok:
+        return out_dir
+
+    size = _dataset_size_suffix(dataset_id)
+    from scripts.data.audit_replay_dataset import audit_dataset
+    from scripts.data.commit_audited_dataset import commit_dataset
+    from scripts.data.import_public_dataset import import_public
+
+    import_public(
+        Namespace(
+            source_jsonl=None,
+            source_npz=None,
+            minari_dataset_id=source_id_for_public_dataset(dataset_id),
+            dataset_id=dataset_id,
+            env_id=None,
+            out_dir=str(out_dir),
+            max_transitions=size,
+        )
+    )
+    if not audit_dataset(out_dir):
+        raise DatasetUnavailable(f"source-integrity audit failed for {dataset_id}")
+    commit_dataset(out_dir)
+    return out_dir
+
+
+def _dataset_size_suffix(dataset_id: str) -> int:
+    try:
+        return int(dataset_id.rsplit("-", 1)[1])
+    except (IndexError, ValueError) as exc:
+        raise ValueError(f"public dataset id must end in a transition count: {dataset_id}") from exc
+
+
+def extract_phase2_datasets_from_tarball(
+    tarball: str | Path,
+    dataset_root: str | Path,
+    dataset_ids: Iterable[str],
+) -> List[str]:
+    tarball = Path(tarball)
+    if not tarball.exists():
+        return []
+    wanted = set(dataset_ids)
+    extracted: set[str] = set()
+    root = Path(dataset_root)
+    root.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(tarball, "r:gz") as archive:
+        for member in archive.getmembers():
+            if not member.isfile():
+                continue
+            dataset_id, filename = _phase2_tar_member_dataset_file(member.name)
+            if dataset_id not in wanted or filename is None:
+                continue
+            stream = archive.extractfile(member)
+            if stream is None:
+                continue
+            target = root / dataset_id / filename
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with target.open("wb") as handle:
+                handle.write(stream.read())
+            extracted.add(dataset_id)
+    return sorted(extracted)
+
+
+def _phase2_tar_member_dataset_file(member_name: str) -> tuple[str | None, str | None]:
+    parts = PurePosixPath(member_name).parts
+    try:
+        datasets_index = parts.index("datasets")
+    except ValueError:
+        return None, None
+    if len(parts) != datasets_index + 3:
+        return None, None
+    return parts[datasets_index + 1], parts[datasets_index + 2]

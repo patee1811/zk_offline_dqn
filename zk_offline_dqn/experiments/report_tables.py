@@ -227,4 +227,60 @@ def generate_reports(out_dir: Path | str | None = None, root: Path | None = None
 
 
 def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
-    return benchmark_manifest.check_sources(root)
+    base = root or ROOT
+    result = benchmark_manifest.check_sources(base)
+    table1 = check_table1_rl_performance(base)
+    result["table1_rl_performance"] = table1
+    if table1["status"] != "passed":
+        result["status"] = "failed"
+    return result
+
+
+def check_table1_rl_performance(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    table_dir = base / "artifacts/reports/final_ndss"
+    required = [
+        "table1_rl_performance.csv",
+        "table1_rl_performance.json",
+        "table1_rl_performance.tex",
+        "table1_rl_performance.md",
+        "table1_rl_performance_status.json",
+    ]
+    missing = [name for name in required if not (table_dir / name).exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "completed_public_rows": 0,
+            "required_public_size_coverage": {},
+            "reason": "Table 1 compact outputs are missing",
+        }
+
+    payload = read_json(table_dir / "table1_rl_performance.json") or {}
+    rows = payload.get("rows", [])
+    completed_public = [
+        row
+        for row in rows
+        if row.get("status") == "completed"
+        and row.get("dataset_source_type") == "public_source_integrity"
+    ]
+    status_payload = read_json(table_dir / "table1_rl_performance_status.json") or {}
+    status_text = json.dumps(status_payload, sort_keys=True)
+    coverage = {}
+    for size in ("10000", "50000", "100000"):
+        covered = any(size in str(row.get("dataset", "")) for row in rows)
+        documented = size in status_text
+        coverage[size] = {"row_present": covered, "documented_in_status": documented}
+
+    reasons = []
+    if not completed_public:
+        reasons.append("no completed public Minari/D4RL Table 1 row")
+    if not all(item["row_present"] or item["documented_in_status"] for item in coverage.values()):
+        reasons.append("required public 10k/50k/100k coverage is undocumented")
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "completed_public_rows": len(completed_public),
+        "required_public_size_coverage": coverage,
+        "reason": "; ".join(reasons) if reasons else None,
+    }

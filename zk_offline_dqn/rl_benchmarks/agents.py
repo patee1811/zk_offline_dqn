@@ -9,7 +9,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from .datasets import OfflineDataset
+from .datasets import OfflineDataset, flatten_observation
 
 
 def seed_everything(seed: int) -> None:
@@ -38,9 +38,14 @@ class TorchPolicy:
     module: nn.Module
     discrete: bool
     device: torch.device
+    obs_mean: np.ndarray | None = None
+    obs_std: np.ndarray | None = None
 
     def act(self, observation: Any) -> np.ndarray | int:
-        obs = torch.as_tensor(np.asarray(observation, dtype=np.float32).reshape(1, -1), device=self.device)
+        obs_array = flatten_observation(observation).astype(np.float32)
+        if self.obs_mean is not None and self.obs_std is not None:
+            obs_array = (obs_array - self.obs_mean) / self.obs_std
+        obs = torch.as_tensor(obs_array.reshape(1, -1), device=self.device)
         with torch.no_grad():
             output = self.module(obs)
         if self.discrete:
@@ -66,6 +71,21 @@ def _batch(dataset: OfflineDataset, batch_size: int, device: torch.device) -> Di
             device=device,
         ),
     }
+
+
+def _obs_normalizer(dataset: OfflineDataset) -> tuple[np.ndarray, np.ndarray]:
+    mean = dataset.observations.mean(axis=0, dtype=np.float64).astype(np.float32)
+    std = dataset.observations.std(axis=0, dtype=np.float64).astype(np.float32)
+    return mean, np.maximum(std, 1e-6)
+
+
+def _normalize(batch: torch.Tensor, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:
+    return (batch - mean) / std
+
+
+def _finite(loss: torch.Tensor, name: str) -> None:
+    if not bool(torch.isfinite(loss).all()):
+        raise FloatingPointError(f"{name} became NaN or Inf")
 
 
 def train_behavior_cloning_discrete(
@@ -163,14 +183,25 @@ def train_behavior_cloning_continuous(
     target_device = _device(device)
     actor = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
     optimizer = torch.optim.Adam(actor.parameters(), lr=learning_rate)
+    obs_mean_np, obs_std_np = _obs_normalizer(dataset)
+    obs_mean = torch.as_tensor(obs_mean_np, dtype=torch.float32, device=target_device)
+    obs_std = torch.as_tensor(obs_std_np, dtype=torch.float32, device=target_device)
     for _ in range(max(1, int(train_steps))):
         batch = _batch(dataset, batch_size, target_device)
-        loss = F.mse_loss(actor(batch["obs"]), batch["actions"].float())
+        loss = F.mse_loss(actor(_normalize(batch["obs"], obs_mean, obs_std)), batch["actions"].float())
+        _finite(loss, "continuous BC loss")
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(actor.parameters(), 10.0)
         optimizer.step()
     actor.eval()
-    return TorchPolicy(actor, discrete=False, device=target_device)
+    return TorchPolicy(
+        actor,
+        discrete=False,
+        device=target_device,
+        obs_mean=obs_mean_np,
+        obs_std=obs_std_np,
+    )
 
 
 class ContinuousQ(nn.Module):
@@ -180,6 +211,82 @@ class ContinuousQ(nn.Module):
 
     def forward(self, observations: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         return self.net(torch.cat([observations, actions], dim=1)).squeeze(1)
+
+
+def _train_iql_lite_once(
+    dataset: OfflineDataset,
+    *,
+    train_steps: int,
+    seed: int,
+    device: str = "cpu",
+    batch_size: int = 64,
+    learning_rate: float = 3e-4,
+    gamma: float = 0.99,
+    expectile: float = 0.7,
+    beta: float = 3.0,
+    max_actor_weight: float = 100.0,
+) -> TorchPolicy:
+    if dataset.action_kind != "continuous":
+        raise ValueError("IQL-lite requires vector actions")
+    seed_everything(seed)
+    target_device = _device(device)
+    actor = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
+    q_net = ContinuousQ(dataset.observation_dim, dataset.action_dim).to(target_device)
+    value = MLP(dataset.observation_dim, 1).to(target_device)
+    q_optimizer = torch.optim.Adam(q_net.parameters(), lr=learning_rate)
+    v_optimizer = torch.optim.Adam(value.parameters(), lr=learning_rate)
+    actor_optimizer = torch.optim.Adam(actor.parameters(), lr=learning_rate)
+    obs_mean_np, obs_std_np = _obs_normalizer(dataset)
+    obs_mean = torch.as_tensor(obs_mean_np, dtype=torch.float32, device=target_device)
+    obs_std = torch.as_tensor(obs_std_np, dtype=torch.float32, device=target_device)
+
+    for _ in range(max(1, int(train_steps))):
+        batch = _batch(dataset, batch_size, target_device)
+        obs = _normalize(batch["obs"], obs_mean, obs_std)
+        next_obs = _normalize(batch["next_obs"], obs_mean, obs_std)
+        actions = batch["actions"].float()
+        with torch.no_grad():
+            value_next = value(next_obs).squeeze(1)
+            q_target = batch["rewards"] + gamma * (1.0 - batch["done"]) * value_next
+        q_pred = q_net(obs, actions)
+        q_loss = F.mse_loss(q_pred, q_target)
+        _finite(q_loss, "IQL-lite Q loss")
+        q_optimizer.zero_grad()
+        q_loss.backward()
+        torch.nn.utils.clip_grad_norm_(q_net.parameters(), 10.0)
+        q_optimizer.step()
+
+        with torch.no_grad():
+            q_detached = q_net(obs, actions)
+        v_pred = value(obs).squeeze(1)
+        diff = q_detached - v_pred
+        weight = torch.where(diff >= 0.0, expectile, 1.0 - expectile)
+        v_loss = (weight * diff.square()).mean()
+        _finite(v_loss, "IQL-lite value loss")
+        v_optimizer.zero_grad()
+        v_loss.backward()
+        torch.nn.utils.clip_grad_norm_(value.parameters(), 10.0)
+        v_optimizer.step()
+
+        with torch.no_grad():
+            advantage = q_net(obs, actions) - value(obs).squeeze(1)
+            actor_weight = torch.exp((beta * advantage).clamp(max=10.0)).clamp(
+                max=max_actor_weight
+            )
+        actor_loss = (actor_weight[:, None] * (actor(obs) - actions).square()).mean()
+        _finite(actor_loss, "IQL-lite actor loss")
+        actor_optimizer.zero_grad()
+        actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(actor.parameters(), 10.0)
+        actor_optimizer.step()
+    actor.eval()
+    return TorchPolicy(
+        actor,
+        discrete=False,
+        device=target_device,
+        obs_mean=obs_mean_np,
+        obs_std=obs_std_np,
+    )
 
 
 def train_iql_lite(
@@ -194,45 +301,25 @@ def train_iql_lite(
     expectile: float = 0.7,
     beta: float = 3.0,
 ) -> TorchPolicy:
-    if dataset.action_kind != "continuous":
-        raise ValueError("IQL-lite requires vector actions")
-    seed_everything(seed)
-    target_device = _device(device)
-    actor = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
-    q_net = ContinuousQ(dataset.observation_dim, dataset.action_dim).to(target_device)
-    value = MLP(dataset.observation_dim, 1).to(target_device)
-    q_optimizer = torch.optim.Adam(q_net.parameters(), lr=learning_rate)
-    v_optimizer = torch.optim.Adam(value.parameters(), lr=learning_rate)
-    actor_optimizer = torch.optim.Adam(actor.parameters(), lr=learning_rate)
-
-    for _ in range(max(1, int(train_steps))):
-        batch = _batch(dataset, batch_size, target_device)
-        actions = batch["actions"].float()
-        with torch.no_grad():
-            value_next = value(batch["next_obs"]).squeeze(1)
-            q_target = batch["rewards"] + gamma * (1.0 - batch["done"]) * value_next
-        q_pred = q_net(batch["obs"], actions)
-        q_loss = F.mse_loss(q_pred, q_target)
-        q_optimizer.zero_grad()
-        q_loss.backward()
-        q_optimizer.step()
-
-        with torch.no_grad():
-            q_detached = q_net(batch["obs"], actions)
-        v_pred = value(batch["obs"]).squeeze(1)
-        diff = q_detached - v_pred
-        weight = torch.where(diff >= 0.0, expectile, 1.0 - expectile)
-        v_loss = (weight * diff.square()).mean()
-        v_optimizer.zero_grad()
-        v_loss.backward()
-        v_optimizer.step()
-
-        with torch.no_grad():
-            advantage = q_net(batch["obs"], actions) - value(batch["obs"]).squeeze(1)
-            actor_weight = torch.exp(beta * advantage).clamp(max=100.0)
-        actor_loss = (actor_weight[:, None] * (actor(batch["obs"]) - actions).square()).mean()
-        actor_optimizer.zero_grad()
-        actor_loss.backward()
-        actor_optimizer.step()
-    actor.eval()
-    return TorchPolicy(actor, discrete=False, device=target_device)
+    attempts = [
+        (learning_rate, beta, 100.0),
+        (min(learning_rate, 1e-4), min(beta, 1.0), 20.0),
+    ]
+    failures = []
+    for attempt_learning_rate, attempt_beta, max_actor_weight in attempts:
+        try:
+            return _train_iql_lite_once(
+                dataset,
+                train_steps=train_steps,
+                seed=seed,
+                device=device,
+                batch_size=batch_size,
+                learning_rate=attempt_learning_rate,
+                gamma=gamma,
+                expectile=expectile,
+                beta=attempt_beta,
+                max_actor_weight=max_actor_weight,
+            )
+        except FloatingPointError as exc:
+            failures.append(str(exc))
+    raise FloatingPointError("IQL-lite stabilization failed: " + "; ".join(failures))

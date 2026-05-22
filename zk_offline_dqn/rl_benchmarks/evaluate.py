@@ -23,6 +23,11 @@ def _make_env(dataset: OfflineDataset):
         raise RuntimeError("Gymnasium is required for policy evaluation") from exc
 
     if dataset.env_id:
+        if dataset.env_id.startswith("PointMaze"):
+            try:
+                import gymnasium_robotics  # noqa: F401
+            except ImportError:
+                pass
         try:
             return gym.make(dataset.env_id)
         except Exception:
@@ -43,6 +48,8 @@ def _make_env(dataset: OfflineDataset):
 def _scalar_success(info: Dict[str, Any], env_id: str | None, episode_return: float, terminated: bool):
     if "success" in info:
         return float(np.asarray(info["success"]).reshape(-1)[0] > 0)
+    if "is_success" in info:
+        return float(np.asarray(info["is_success"]).reshape(-1)[0] > 0)
     if env_id == "CartPole-v1":
         return float(episode_return >= 475.0)
     if env_id == "MountainCar-v0":
@@ -54,6 +61,19 @@ def _summary(values: List[float]) -> tuple[float | None, float | None]:
     if not values:
         return None, None
     return float(mean(values)), float(pstdev(values)) if len(values) > 1 else 0.0
+
+
+def _normalized_score(env: Any, per_seed_returns: List[float]) -> tuple[float | None, float | None]:
+    scorer = getattr(env, "get_normalized_score", None)
+    if scorer is None:
+        return None, None
+    scores = []
+    for value in per_seed_returns:
+        try:
+            scores.append(float(np.asarray(scorer(value)).reshape(-1)[0]))
+        except Exception:
+            return None, None
+    return _summary(scores)
 
 
 def evaluate_policy(
@@ -98,6 +118,7 @@ def evaluate_policy(
         env.close()
 
     return_mean, return_std = _summary(per_seed_returns)
+    normalized_mean, normalized_std = _normalized_score(env, per_seed_returns)
     success_mean, success_std = _summary(per_seed_successes)
     success_definition = None
     if dataset.env_id == "CartPole-v1":
@@ -105,12 +126,12 @@ def evaluate_policy(
     elif dataset.env_id == "MountainCar-v0":
         success_definition = "environment termination reaches the goal"
     elif per_seed_successes:
-        success_definition = "environment info['success']"
+        success_definition = "environment info success field"
     metrics = {
         "average_return_mean": return_mean,
         "average_return_std": return_std,
-        "normalized_score_mean": None,
-        "normalized_score_std": None,
+        "normalized_score_mean": normalized_mean,
+        "normalized_score_std": normalized_std,
         "success_rate_mean": success_mean,
         "success_rate_std": success_std,
         "success_definition": success_definition,

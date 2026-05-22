@@ -15,13 +15,15 @@ TABLE_FILENAMES = {
 }
 TABLE_COLUMNS = [
     "Dataset",
+    "Family",
     "Source",
+    "Transitions",
     "Baseline",
     "Seeds",
     "Avg Return",
+    "Std Return",
     "Norm. Score",
     "Success Rate",
-    "Std Return",
     "Train Steps",
     "Status",
 ]
@@ -49,7 +51,9 @@ def _mean_std(mean: float | None, std: float | None) -> str:
 def table_row(result: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "Dataset": result["dataset"],
+        "Family": result.get("dataset_family", ""),
         "Source": result.get("dataset_source_type", ""),
+        "Transitions": result.get("dataset_num_transitions"),
         "Baseline": result["baseline"],
         "Seeds": result.get("num_seeds"),
         "Avg Return": _mean_std(
@@ -73,13 +77,16 @@ def skipped_result_rows(
     *,
     source_type: str,
     reason: str,
+    status: str = "skipped",
+    dataset_family: str | None = None,
 ) -> List[Dict[str, Any]]:
     return [
         {
             "dataset": dataset,
             "baseline": baseline,
+            "dataset_family": dataset_family or dataset,
             "dataset_source_type": source_type,
-            "status": "skipped",
+            "status": status,
             "reason": reason,
             "average_return_mean": None,
             "average_return_std": None,
@@ -141,7 +148,7 @@ def _tex(rows: List[Dict[str, Any]]) -> str:
         r"\centering",
         r"\caption{RL performance on offline benchmark datasets.}",
         r"\label{tab:rl-performance}",
-        r"\begin{tabular}{llllllllll}",
+        r"\begin{tabular}{llllllllllll}",
         r"\toprule",
         " & ".join(TABLE_COLUMNS) + r" \\",
         r"\midrule",
