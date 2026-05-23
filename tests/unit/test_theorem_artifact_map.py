@@ -1,4 +1,4 @@
-import tempfile
+﻿import tempfile
 import unittest
 from pathlib import Path
 
@@ -19,7 +19,7 @@ class TheoremArtifactMapTests(unittest.TestCase):
         text = "\n".join(
             [
                 (ROOT / "docs/theorem_artifact_map.md").read_text(encoding="utf-8"),
-                (ROOT / "paper/sections/theorems.tex").read_text(encoding="utf-8"),
+                (ROOT / "paper/sections/formal_statements.tex").read_text(encoding="utf-8"),
             ]
         ).lower()
         self.assertIn("proof-manifest", text)
@@ -69,3 +69,4 @@ class TheoremArtifactMapTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

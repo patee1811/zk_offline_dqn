@@ -1,4 +1,4 @@
-"""Validate Phase 9 theorem, threat-model, and artifact-map coverage."""
+﻿"""Validate Phase 9 theorem, threat-model, and artifact-map coverage."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 
 ROOT = Path(__file__).resolve().parents[2]
 THEOREM_MAP = ROOT / "docs/theorem_artifact_map.md"
-THEOREMS_TEX = ROOT / "paper/sections/theorems.tex"
+THEOREMS_TEX = ROOT / "paper/sections/formal_statements.tex"
 THREAT_MODEL_TEX = ROOT / "paper/sections/threat_model.tex"
 
 REQUIRED_THEOREMS = [f"Theorem {idx}" for idx in range(1, 9)]
@@ -45,7 +45,7 @@ def check_theorem_artifact_map(root: Path | None = None) -> Dict[str, Any]:
     base = root or ROOT
     paths = {
         "theorem_map": base / "docs/theorem_artifact_map.md",
-        "theorems_tex": base / "paper/sections/theorems.tex",
+        "theorems_tex": base / "paper/sections/formal_statements.tex",
         "threat_model_tex": base / "paper/sections/threat_model.tex",
     }
     missing_files = [name for name, path in paths.items() if not path.exists()]
@@ -113,3 +113,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

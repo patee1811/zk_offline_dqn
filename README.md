@@ -1,4 +1,4 @@
-# ZK-Offline-DQN
+﻿# ZK-Offline-DQN
 
 Relation-level verification utilities for selected offline DQN artifacts over
 committed transition data.
@@ -193,7 +193,7 @@ python scripts/experiments/check_theorem_artifact_map.py
 ```
 
 Formal theorem and threat-model text lives in
-`paper/sections/theorems.tex` and `paper/sections/threat_model.tex`; the
+`paper/sections/formal_statements.tex` and `paper/sections/threat_model.tex`; the
 artifact-level mapping is `docs/theorem_artifact_map.md`. These statements are
 scoped to the current proof-backed artifacts and semantic verifiers. Theorem 7
 is proof-manifest chunk-chain aggregation only, not true recursive aggregation.
@@ -322,3 +322,4 @@ verifiers without proving they are unused by regression and documentation.
 ## License
 
 MIT. See `LICENSE`.
+
