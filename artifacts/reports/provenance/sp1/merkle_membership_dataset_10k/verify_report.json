@@ -1,0 +1,18 @@
+{
+  "proof_generated": true,
+  "proof_verified": true,
+  "public_output": {
+    "audit_report_hash": "7b0012c262f8d064b440a230075604b2945161fa94e1a61adf29c0af104512b9",
+    "collection_log_final_hash": null,
+    "dataset_id": "minari-pointmaze-umaze-v2-10000",
+    "dataset_root": "2a48ec939444bf083f70fa8aa0979a6793a8ba30497dd7769092c07a9dcad738",
+    "dataset_type": "public_benchmark",
+    "leaf_hash": "2a03a2e4254c34c7f8e80734cf9458977a3b7f8a6fdb1c50284a79477a329028",
+    "leaf_index": 5000,
+    "manifest_hash": "4eb6b484fbd315b4cbc193468755efc51ade38a594d4ee2a84a9a0f2ec4aea05",
+    "raw_trajectory_hash": "93ec140b4404e347b91a7dfa4700599308d395f35d6151e84f6fcbb419900bd2",
+    "schema_version": "sp1_merkle_membership_public_v1"
+  },
+  "public_output_matches_expected": true,
+  "relation": "merkle_membership"
+}

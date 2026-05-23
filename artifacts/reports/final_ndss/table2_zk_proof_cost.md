@@ -21,9 +21,9 @@
 | training_update | batch8 | batch_size | not_supported_current_backend |  |  |  |  |  |
 | training_update | batch16 | batch_size | not_supported_current_backend |  |  |  |  |  |
 | training_update | network_small | network | not_supported_current_backend |  |  |  |  |  |
-| merkle_membership | dataset_1000 | dataset_size | proof_verified | 121.703486901 | 0.148949679 | 2779510 | 103106 |  |
-| merkle_membership | dataset_10000 | dataset_size | reference_only |  |  |  |  |  |
-| merkle_membership | dataset_100000 | dataset_size | reference_only |  |  |  |  |  |
+| merkle_membership | dataset_1000 | dataset_size | proof_verified | 156.107731501 | 0.191457503 | 2782421 | 305813 | 10197.246 |
+| merkle_membership | dataset_10000 | dataset_size | proof_verified | 179.624867853 | 0.194838999 | 2783446 | 400355 | 10511.125 |
+| merkle_membership | dataset_100000 | dataset_size | proof_verified | 168.670838206 | 0.195268144 | 2783959 | 470808 | 10552.805 |
 | native_flat_recursive_t32 | true_recursive_native | recursive_aggregation | failed_oom |  |  |  |  |  |
 | groth16_plonk_recursive_t16 | snark_export | recursive_aggregation | failed_environment |  |  |  |  |  |
 | binary_tree_native_t16 | binary_native_recursive | recursive_aggregation | failed_oom |  |  |  |  |  |

@@ -15,6 +15,13 @@
     10000,
     100000
   ],
+  "merkle_dataset_sizes": [
+    1000,
+    10000,
+    100000
+  ],
+  "merkle_depth_proof_scaling": true,
+  "merkle_source_dataset": "D4RL/pointmaze/umaze-v2",
   "networks": [
     "tiny",
     "small"
@@ -22,7 +29,9 @@
   "out_dir": "/kaggle/working/zk_offline_dqn/artifacts/reports/final_ndss",
   "paper": true,
   "refresh_proof_metrics": true,
+  "regenerate_missing_merkle_datasets": true,
   "reuse_existing_provenance": true,
+  "reuse_phase2_datasets": true,
   "run_sp1_execute": true,
   "run_sp1_prove": true,
   "smoke": false,

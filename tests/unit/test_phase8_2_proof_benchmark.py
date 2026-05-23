@@ -94,13 +94,20 @@ class Phase82ProofBenchmarkTests(unittest.TestCase):
             self.assertIn("does not recursively verify child proofs inside SP1", row["Notes"])
 
     def test_dataset_size_rows_mark_unrefreshed_large_depths_reference_only(self):
-        rows = build_rows(dataset_sizes=[1000, 10000, 100000], batch_sizes=[1], networks=["tiny"], trace_lengths=[1])
-        dataset_rows = [row for row in rows if row["Scale Axis"] == "dataset_size"]
-        by_size = {row["Dataset Size"]: row for row in dataset_rows}
-        self.assertEqual(by_size[1000]["Merkle Depth"], 10)
-        self.assertEqual(by_size[10000]["Status"], "reference_only")
-        self.assertEqual(by_size[100000]["Status"], "reference_only")
-        self.assertFalse(by_size[10000]["Proof Backed"])
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = build_rows(
+                root=Path(tmp),
+                dataset_sizes=[1000, 10000, 100000],
+                batch_sizes=[1],
+                networks=["tiny"],
+                trace_lengths=[1],
+            )
+            dataset_rows = [row for row in rows if row["Scale Axis"] == "dataset_size"]
+            by_size = {row["Dataset Size"]: row for row in dataset_rows}
+            self.assertEqual(by_size[1000]["Merkle Depth"], 10)
+            self.assertEqual(by_size[10000]["Status"], "reference_only")
+            self.assertEqual(by_size[100000]["Status"], "reference_only")
+            self.assertFalse(by_size[10000]["Proof Backed"])
 
     def test_synthetic_merkle_tree_path_verifies(self):
         levels = self._synthetic_levels(8)

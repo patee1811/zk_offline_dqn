@@ -1,0 +1,23 @@
+{
+  "audit_report_hash": "95d6c0dbda2f6f65b0b3d27dce28d062b0fa61a778d57ef7a9d1f4e8a8678e4c",
+  "backend_version": "0.1.0",
+  "case_id": "merkle_membership_dataset_100000",
+  "cycle_count": 470808,
+  "dataset_root": "ca9383c9905155cd8216584109cc1bbedcc5af463b51bcc71ec731e802404239",
+  "dataset_size": 100000,
+  "git_commit": "587489830b48d022a474aa67b5dddaffb19d0a2b",
+  "manifest_hash": "b9f2a9a5627f0ab573ff9cd3a16a500c4f6110bf01bf2f1f425b32566f821ec0",
+  "max_rss_mb": 10552.805,
+  "memory_measurement_status": "measured",
+  "merkle_depth": 17,
+  "peak_rss_mb": 10552.805,
+  "proof_generated": true,
+  "proof_size_bytes": 2783959,
+  "proof_verified": true,
+  "prove_time_seconds": 168.670838206,
+  "public_inputs_sha256": "bca97b40627f2575f46be62aafd315cfe5ad4a5d47dddeab21ee38a4e88e5e38",
+  "relation": "merkle_membership",
+  "sp1_version": "6.1.0",
+  "test_vector_sha256": "8142a304bb1ccce354de6af0fbb6d7375838836773952c04a1018d267e614436",
+  "verify_time_seconds": 0.195268144
+}
