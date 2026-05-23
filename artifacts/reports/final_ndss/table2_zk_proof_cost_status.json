@@ -1,0 +1,24 @@
+{
+  "core_relations": [
+    "td_mvp",
+    "merkle_membership",
+    "forward_td_mlp",
+    "one_step_sgd_tiny",
+    "short_trace",
+    "training_update_batch1",
+    "training_fragment_k1",
+    "training_fragment_k4",
+    "training_fragment_k8",
+    "training_aggregation_manifest_t32",
+    "training_aggregation_manifest_t64",
+    "training_aggregation_manifest_t128"
+  ],
+  "execute_only_rows": 3,
+  "failed_resource_rows": 3,
+  "mode": "paper",
+  "phase": "8.2",
+  "proof_verified_rows": 13,
+  "row_count": 25,
+  "scope": "ZK proof cost only",
+  "unsupported_rows": 4
+}

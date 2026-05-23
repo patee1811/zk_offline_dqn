@@ -1,0 +1,37 @@
+{
+  "aggregation_targets": [
+    32,
+    64,
+    128
+  ],
+  "batch_sizes": [
+    1,
+    4,
+    8,
+    16
+  ],
+  "dataset_sizes": [
+    1000,
+    10000,
+    100000
+  ],
+  "networks": [
+    "tiny",
+    "small"
+  ],
+  "out_dir": "/kaggle/working/zk_offline_dqn/artifacts/reports/final_ndss",
+  "paper": true,
+  "refresh_proof_metrics": true,
+  "reuse_existing_provenance": true,
+  "run_sp1_execute": true,
+  "run_sp1_prove": true,
+  "smoke": false,
+  "trace_lengths": [
+    1,
+    4,
+    8,
+    16,
+    32,
+    128
+  ]
+}
