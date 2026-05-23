@@ -13,6 +13,11 @@ aggregation with $T\in\{32,64,128\}$. Distinct minibatch TD and longer
 fragments remain semantic-oracle or execute-only evidence unless separately
 listed as proof-backed in the provenance tables.
 
+There is no batch-size 4/8/16 training-update proof, no small-network proof
+beyond the canonical tiny vectors, and no proof-backed claim for
+$k\in\{16,32,128\}$ training fragments. There is also no Atari-scale or
+MuJoCo-scale proof and no on-chain verifier.
+
 The benchmarks are small-scale. CartPole and MountainCar are classic-control
 tasks, and MountainCar uses a random-policy transition dataset for the second
 environment artifact. These choices are appropriate for proving relation
@@ -22,6 +27,8 @@ training performance.
 The commitment layer starts after data collection. A verifier can check that a
 revealed transition belongs to the committed replay set, but not that the replay
 set was collected honestly or that it covers a desired behavior distribution.
+Public Minari/D4RL benchmark imports are source-integrity rows only, not honest
+public collection proofs.
 The Python verifier path also reveals or processes witness data directly and
 therefore should not be treated as a privacy-preserving verifier.
 

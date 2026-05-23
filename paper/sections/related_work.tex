@@ -7,7 +7,8 @@ dataset setting~\cite{levine2020offline}, where value learning can be brittle
 under distribution shift~\cite{fujimoto2019offpolicy}; CQL addresses this with
 conservative value regularization~\cite{kumar2020cql}. Our work does not
 improve the RL algorithm. It makes selected DQN-style replay and TD computations
-verifiable over committed data.
+verifiable over committed data, and it treats CQL/IQL-style rows as benchmark
+context rather than proof claims.
 
 \paragraph{Proof-of-learning and proof-of-training.}
 Proof-of-Learning introduced the problem of proving that a model resulted from
@@ -15,7 +16,7 @@ a claimed training procedure~\cite{jia2021proofoflearning}. zkDL and related
 systems target zero-knowledge proofs for deep learning training, including
 neural nonlinearities and backpropagation~\cite{zkdl2023}. Kaizen gives a
 zero-knowledge proof-of-training construction for DNNs based on per-iteration
-proofs and recursive composition~\cite{kaizen2024}. zkPoT work based on optimum
+proofs and recursive composition~\cite{kaizen2024}. zkPoT-style work based on optimum
 vicinity explores another way to make training claims succinct~\cite{zkpotvicinity2025}.
 These systems motivate our goal, but they do not directly encode offline
 DQN-specific semantics such as terminal Bellman branches, replay membership,

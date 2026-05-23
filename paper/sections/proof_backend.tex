@@ -1,0 +1,20 @@
+The implemented proof backend is SP1. Each proof-backed relation follows a
+host/guest/shared structure under \path{zk_backend/}: the shared crate defines
+typed public inputs, private witnesses, fixed-point arithmetic, hashing, and
+relation checks; the guest executes the relation inside the zkVM; and the host
+loads JSON fixtures, executes or proves the guest, verifies public values, and
+records compact metrics.
+
+The public statement contains roots, hashes, relation identifiers, claimed
+outputs, and proof public values. Private witnesses contain opened transitions,
+Merkle paths, weights, and intermediate arithmetic values unless a relation
+declares them public. Proof binaries and receipts are not committed. Instead,
+the artifact commits compact provenance: metrics, public inputs, witness
+schemas, verify reports, proof-artifact policy files, and hash inventories.
+
+The proof-backed set is exactly the set listed in the backend coverage and
+Table 2: TD MVP, Merkle membership including dataset-size scaling, Forward-TD
+MLP, one-step SGD tiny, short trace, one-step training update batch size 1,
+training fragments with $k\in\{1,4,8\}$, and proof-manifest chunk-chain
+aggregation with $T\in\{32,64,128\}$. Rows marked execute-only or unsupported
+are not treated as proof-backed.

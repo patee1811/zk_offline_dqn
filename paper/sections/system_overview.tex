@@ -1,0 +1,26 @@
+The pipeline has seven stages. First, a dataset is either self-collected with a
+collection log or imported from a public benchmark source. Second, self-collected
+data is replay/reward audited before commitment, while public Minari/D4RL rows
+receive source-integrity checks only. Third, the dataset manifest, audit report,
+raw trajectory hash, collection-log hash when available, and canonical Merkle
+leaves are bound into a provenance-aware commitment. Fourth, relation witnesses
+open selected transitions, model checkpoints, Merkle paths, and fixed-point
+intermediate values. Fifth, supported relations are executed by Python semantic
+oracles and by Rust/SP1 guests where proof provenance exists. Sixth, multi-step
+training fragments link deterministic minibatch sampling, replay membership,
+TD targets, backpropagation, SGD updates, checkpoint hashes, and target-network
+sync. Seventh, proof-manifest chunk-chain aggregation binds externally verified
+child proof manifests and checkpoint links.
+
+The same artifact flow feeds the evaluation. Table 1 is generated from RL
+benchmark outputs, Table 2 from compact proof-cost provenance, and Table 3 from
+tamper-rejection rows. `make reproduce-small` exercises this pipeline without
+heavy proof regeneration by using a tiny audited CartPole dataset and committed
+compact SP1 provenance.
+
+The design separates privacy and integrity boundaries. Dataset roots, manifest
+hashes, audit hashes, config hashes, checkpoint hashes, proof public values,
+and benchmark metadata are public. Transitions, Merkle paths, weights, and
+intermediates may be witness values depending on the relation, but they are not
+private if the corresponding fixture or public dataset intentionally discloses
+them.

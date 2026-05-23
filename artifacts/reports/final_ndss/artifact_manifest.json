@@ -1,0 +1,860 @@
+{
+  "commands": [
+    "make reproduce-small",
+    "make reproduce-data-audit",
+    "make reproduce-sp1-proofs",
+    "make reproduce-benchmarks",
+    "make reproduce-tamper",
+    "make reproduce-paper-tables",
+    "make artifact-manifest"
+  ],
+  "dataset_hashes": [
+    {
+      "audit_report_hash": "4b96de4e8ceb7da474cfc021f79bf6a09d659148149cfdcc1fa19a7b4b13a426",
+      "dataset_id": "2d0b67eb9faf7044e9a5762822cce762da2892de2c7c0bcdce6b83696ad79028",
+      "dataset_root": "33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4",
+      "manifest_hash": "f3bc99eb57bbb691581d8082d7ef8545d88c9ea1e24e383fbd8e7b198d8860e3",
+      "merkle_root": "33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4",
+      "source_path": "artifacts/reports/provenance/sp1/training_update/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "01a8f3d08426c18f7952673d965a5ab6111c5bc8d6bb21c5d4eda9dc9befd2e4",
+      "dataset_id": "387d8024d24d04eef8a7b45e94aedc73c1c233b431a0a3de1542d696ee360be0",
+      "dataset_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "manifest_hash": "450d2cc5c7bf12383a0317c491a4369656afb751b8bf6d3ab5a25ab1fbba181e",
+      "merkle_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "source_path": "artifacts/reports/provenance/sp1/training_fragment_k1/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "be8b3860745c4d803673a8458f9f1c107d96d5ff676408278de50353870e8668",
+      "dataset_id": "cartpole-random-v1",
+      "dataset_root": "33c743f3e02122e316b630bc731129fde3319179326a7afdb8b3820696c82560",
+      "manifest_hash": "f8c1eed322c1c21053a7a3c6e17e6c38abc80c5a4092020a856b686729ecbdd9",
+      "merkle_root": "33c743f3e02122e316b630bc731129fde3319179326a7afdb8b3820696c82560",
+      "source_type": "audited_self_collected"
+    },
+    {
+      "audit_report_hash": null,
+      "dataset_id": "forward_td_mlp",
+      "dataset_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+      "manifest_hash": null,
+      "merkle_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+      "source_path": "artifacts/reports/provenance/sp1/forward_td_mlp/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "8f02b31e155e6aaa5d27698838910b1775539adb3c72982faf8047309cf8fc9e",
+      "dataset_id": "minari-pointmaze-umaze-dense-v2-10000",
+      "dataset_root": "96ec297466ff76bc8d289eb4461131ad5da805c779f3a2a03b03c1c5028343bb",
+      "manifest_hash": "e04ab75ea7c70c5c35b0710a234088e2f3f42af9cff60359652473b38da03049",
+      "merkle_root": "96ec297466ff76bc8d289eb4461131ad5da805c779f3a2a03b03c1c5028343bb",
+      "source_type": "public_source_integrity"
+    },
+    {
+      "audit_report_hash": "ca1ce74a79507fe287cb962ba1d62ca6ac3277dd8be6495807766c4420760b4f",
+      "dataset_id": "minari-pointmaze-umaze-dense-v2-100000",
+      "dataset_root": "64af56cb9afe6c19d104cdcbb30e610a1c63ba0252a053f482d2236d1946fd8e",
+      "manifest_hash": "4221648fad61018563d83ef34d3edcdedeb9a3a8aaf4057549bf5c675b98e250",
+      "merkle_root": "64af56cb9afe6c19d104cdcbb30e610a1c63ba0252a053f482d2236d1946fd8e",
+      "source_type": "public_source_integrity"
+    },
+    {
+      "audit_report_hash": "859c05b0dbaaf7e3a99e033bd8c92bec3aeb802d1807816bf89013b2ef8bd1d0",
+      "dataset_id": "minari-pointmaze-umaze-dense-v2-50000",
+      "dataset_root": "b2536de934a5de9f61c57f1c7fd6722d73a388a34cc8da5d86896928d3af34e4",
+      "manifest_hash": "19531a4701265b9fc11de13a964e55b50b747376d7abbc57205dc13710bb396b",
+      "merkle_root": "b2536de934a5de9f61c57f1c7fd6722d73a388a34cc8da5d86896928d3af34e4",
+      "source_type": "public_source_integrity"
+    },
+    {
+      "audit_report_hash": "62e344fc1ba88f9f3580e41b865176d8b25e4cb7b584ec45d8db9871e357b4d2",
+      "dataset_id": "minari-pointmaze-umaze-v2-1000",
+      "dataset_root": "884ba44b0c1b2ad4709936d3d01be7fc14ff35510ebd46171e2b5f23da4bc1e5",
+      "manifest_hash": "1bed9f827c792cd18e3e863be5debb80506c9a8417b22a5bd7bd77959cfa8df0",
+      "merkle_root": "884ba44b0c1b2ad4709936d3d01be7fc14ff35510ebd46171e2b5f23da4bc1e5",
+      "source_path": "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "7b0012c262f8d064b440a230075604b2945161fa94e1a61adf29c0af104512b9",
+      "dataset_id": "minari-pointmaze-umaze-v2-10000",
+      "dataset_root": "2a48ec939444bf083f70fa8aa0979a6793a8ba30497dd7769092c07a9dcad738",
+      "manifest_hash": "4eb6b484fbd315b4cbc193468755efc51ade38a594d4ee2a84a9a0f2ec4aea05",
+      "merkle_root": "2a48ec939444bf083f70fa8aa0979a6793a8ba30497dd7769092c07a9dcad738",
+      "source_path": "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/public_inputs.json",
+      "source_type": "public_source_integrity"
+    },
+    {
+      "audit_report_hash": "95d6c0dbda2f6f65b0b3d27dce28d062b0fa61a778d57ef7a9d1f4e8a8678e4c",
+      "dataset_id": "minari-pointmaze-umaze-v2-100000",
+      "dataset_root": "ca9383c9905155cd8216584109cc1bbedcc5af463b51bcc71ec731e802404239",
+      "manifest_hash": "b9f2a9a5627f0ab573ff9cd3a16a500c4f6110bf01bf2f1f425b32566f821ec0",
+      "merkle_root": "ca9383c9905155cd8216584109cc1bbedcc5af463b51bcc71ec731e802404239",
+      "source_path": "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/public_inputs.json",
+      "source_type": "public_source_integrity"
+    },
+    {
+      "audit_report_hash": "1a402bddbf347b16341b02bc91979cbf141c792bae123bfbbc3a7974d517fc9d",
+      "dataset_id": "minari-pointmaze-umaze-v2-50000",
+      "dataset_root": "bf92c35069b94dd80f0abe79eb4a237203ef2c8525ff84f42a80ac21d3c115a2",
+      "manifest_hash": "fd81358e25721aaca95a1fe0d9c54fe49c2e5d845bdad5f26089fa02e6578a04",
+      "merkle_root": "bf92c35069b94dd80f0abe79eb4a237203ef2c8525ff84f42a80ac21d3c115a2",
+      "source_type": "public_source_integrity"
+    },
+    {
+      "audit_report_hash": "50492ac866677184864cca7e4cd1227faada3e08ced9c29c324ea56442449cbd",
+      "dataset_id": "mountaincar-random-v1",
+      "dataset_root": "982a14e26a9256235e8f2ccd81211d20f4513b9f448376af4247831ebd67fa34",
+      "manifest_hash": "bfb15986881b93af48c0627143632cf9d22b8e9a35d5e182cdeb04e457c468e5",
+      "merkle_root": "982a14e26a9256235e8f2ccd81211d20f4513b9f448376af4247831ebd67fa34",
+      "source_type": "audited_self_collected"
+    },
+    {
+      "audit_report_hash": null,
+      "dataset_id": "one_step_sgd_tiny",
+      "dataset_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+      "manifest_hash": null,
+      "merkle_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+      "source_path": "artifacts/reports/provenance/sp1/one_step_sgd_tiny/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": null,
+      "dataset_id": "short_trace",
+      "dataset_root": null,
+      "manifest_hash": null,
+      "merkle_root": null,
+      "source_path": "artifacts/reports/provenance/sp1/short_trace/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "d1a6f4a4072200382bb936a7cf8f40d4d49970d763621e3541cd321da1dfb51d",
+      "dataset_id": "synthetic-phase4-merkle-v1",
+      "dataset_root": "35530014f44124a75ef1a6b21bc5be491356caa4c2d123b162f9ab2161d337ba",
+      "manifest_hash": "8de2a4ad5773a2936c23498a3fa7ad87977621ea3d437949f759ce259ea737fb",
+      "merkle_root": "35530014f44124a75ef1a6b21bc5be491356caa4c2d123b162f9ab2161d337ba",
+      "source_path": "artifacts/reports/provenance/sp1/merkle_membership/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "01a8f3d08426c18f7952673d965a5ab6111c5bc8d6bb21c5d4eda9dc9befd2e4",
+      "dataset_id": "training_aggregation_t128",
+      "dataset_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "manifest_hash": "450d2cc5c7bf12383a0317c491a4369656afb751b8bf6d3ab5a25ab1fbba181e",
+      "merkle_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "source_path": "artifacts/reports/provenance/sp1/training_aggregation_t128/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "01a8f3d08426c18f7952673d965a5ab6111c5bc8d6bb21c5d4eda9dc9befd2e4",
+      "dataset_id": "training_aggregation_t32",
+      "dataset_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "manifest_hash": "450d2cc5c7bf12383a0317c491a4369656afb751b8bf6d3ab5a25ab1fbba181e",
+      "merkle_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "source_path": "artifacts/reports/provenance/sp1/training_aggregation_t32/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    },
+    {
+      "audit_report_hash": "01a8f3d08426c18f7952673d965a5ab6111c5bc8d6bb21c5d4eda9dc9befd2e4",
+      "dataset_id": "training_aggregation_t64",
+      "dataset_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "manifest_hash": "450d2cc5c7bf12383a0317c491a4369656afb751b8bf6d3ab5a25ab1fbba181e",
+      "merkle_root": "55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+      "source_path": "artifacts/reports/provenance/sp1/training_aggregation_t64/public_inputs.json",
+      "source_type": "sp1_public_inputs"
+    }
+  ],
+  "files": {
+    "Dockerfile": {
+      "bytes": 816,
+      "sha256": "71ce599b3cfb50b1d68a71ad7a8293bc18fddd4f2d9515a49fa45744482924c7"
+    },
+    "Makefile": {
+      "bytes": 4616,
+      "sha256": "6852c2cdcba76c54952b84d349611803a83a02b8a5c5d448d3b9dced42360cf6"
+    },
+    "README.md": {
+      "bytes": 16139,
+      "sha256": "9704a3ee1bfed849442c8def8ee0f0485f2e8d0555845a8afa44efc7e7a5c833"
+    },
+    "docs/artifact_reproducibility.md": {
+      "bytes": 3310,
+      "sha256": "cc122aa3cce48267bb689951220dcfb44bf3c0f9ddf0560933c6f3b02c1b565f"
+    },
+    "docs/backend_coverage.md": {
+      "bytes": 4888,
+      "sha256": "bff1a5f4ebc636f50c91f134365817348b459a9155c84aaf1bbdbcc444c1d595"
+    },
+    "docs/claim_matrix.md": {
+      "bytes": 6282,
+      "sha256": "dc886a27c902adf915b444a48fb137a84381eefd7efbbcb5cc68d7d0b9c84d9c"
+    },
+    "docs/theorem_artifact_map.md": {
+      "bytes": 5740,
+      "sha256": "37164ce9bb51d1838fd9def9abd94f03c2c1f4ef940c406b823976629abd9489"
+    },
+    "paper/main.tex": {
+      "bytes": 2325,
+      "sha256": "5fbfbf9a824f44a3336794c9753060b2a75bba16fc7580de04b7acbc311e5596"
+    },
+    "paper/sections/theorems.tex": {
+      "bytes": 9283,
+      "sha256": "39378f183c56a75f36f2d758d311cbb43ce31dcd336ddc2edb632828d5077557"
+    },
+    "paper/sections/threat_model.tex": {
+      "bytes": 4952,
+      "sha256": "664879c2a8d81204f699b3d43ba93618e110a845b69f5fed39e63876b7a952db"
+    },
+    "requirements.lock": {
+      "bytes": 119,
+      "sha256": "6e101a826c5c2ad1a6f25cb1f8447f3f7443d8c984328a818dde0e9ee29a78a4"
+    },
+    "scripts/experiments/check_paper_claims.py": {
+      "bytes": 5985,
+      "sha256": "3115e59467943ac2a472fbf961b966e85c3a974443d1ed5b88d1f40e913f6552"
+    },
+    "scripts/experiments/check_report_sources.py": {
+      "bytes": 607,
+      "sha256": "082f2909099594eb3a8e829085845ed6ad7acbefb24aefab4ad910de7ba1b54b"
+    },
+    "scripts/experiments/check_theorem_artifact_map.py": {
+      "bytes": 4546,
+      "sha256": "0692751d8f044c193a7c7ea02c47633d0073a2cb7f8d330a3eaa608c5523bb15"
+    },
+    "scripts/experiments/generate_artifact_manifest.py": {
+      "bytes": 8572,
+      "sha256": "ab291624b8462971195d06730dfeb30b9f55d725dd1d8987334be737ea517365"
+    },
+    "scripts/experiments/generate_paper_reports.py": {
+      "bytes": 919,
+      "sha256": "27da2823ebd45179aa59b43b5a8fd77d02f7f6fb5ad8d99f0b083a640d1f713b"
+    }
+  },
+  "generated_at": "2026-05-23T10:48:07.553098+00:00",
+  "git_commit": "859866df458fe36ab2137bfce344541a38d0f2cd",
+  "omitted_artifacts": [
+    {
+      "pattern": "artifacts/datasets/ and artifacts/data_sources/",
+      "reason": "raw datasets are regenerated or imported by scripts and are not committed"
+    },
+    {
+      "pattern": "*.bin, *.receipt, *.proof",
+      "reason": "proof binaries are large and replaced by compact provenance and public-input hashes"
+    },
+    {
+      "pattern": "artifacts/reports/**/work, tmp, proofs",
+      "reason": "temporary benchmark/proof work directories are not paper artifacts"
+    }
+  ],
+  "paper_numbers": {
+    "bytes": 7710,
+    "sha256": "d68f0c51c7cd31716d14ecb22a9658d1d1e22ae7d838b9533334fd982c15bad2"
+  },
+  "platform": "Windows-10-10.0.26200-SP0",
+  "proof_provenance": [
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/forward_td_mlp/metrics.json": {
+          "bytes": 619,
+          "sha256": "c2efc3787e9640b1e60d76ea09bd5c104d214cdc2aa4e7afff9f4bd4f3f530f2"
+        },
+        "artifacts/reports/provenance/sp1/forward_td_mlp/proof_artifact_policy.json": {
+          "bytes": 243,
+          "sha256": "847d6143a38e3b0ab5303a231c801d0120280f85be32e0000ad5ae21f3ff57ac"
+        },
+        "artifacts/reports/provenance/sp1/forward_td_mlp/public_inputs.json": {
+          "bytes": 852,
+          "sha256": "3c26052166506fb13a2a27d8d0e69661d2a24cd2df739ff27b5db67acef169d4"
+        },
+        "artifacts/reports/provenance/sp1/forward_td_mlp/tamper_report.json": {
+          "bytes": 5568,
+          "sha256": "5c40ed82ddda906e35498f265d0333251a65cada79807283e0fd3545bd615cee"
+        },
+        "artifacts/reports/provenance/sp1/forward_td_mlp/verify_report.json": {
+          "bytes": 864,
+          "sha256": "bbed4439eaef680d4766a341950f09878b8b813f1b29280cba01ac6dbd4ef456"
+        },
+        "artifacts/reports/provenance/sp1/forward_td_mlp/witness_schema.json": {
+          "bytes": 384,
+          "sha256": "7eb01c2852eaad7478b1262881e4c8e6b8df75b5a50e36758647f6cc85cd6e53"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/forward_td_mlp/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/forward_td_mlp/public_inputs.json",
+      "relation": "forward_td_mlp",
+      "source_dir": "artifacts/reports/provenance/sp1/forward_td_mlp",
+      "verify_report": "artifacts/reports/provenance/sp1/forward_td_mlp/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/merkle_membership/metrics.json": {
+          "bytes": 526,
+          "sha256": "9446611322ab547ef78ecc58324f3a809667a4e565d454ea128699c77b17a456"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership/proof_artifact_policy.json": {
+          "bytes": 228,
+          "sha256": "d48036a8298ccd6d94616c0d9751b0fae5d2c0c7f2375cd711e1e554f244cf2b"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership/public_inputs.json": {
+          "bytes": 658,
+          "sha256": "9b19b1856b78ce67437f9a658be7c1507ab91f21a8329aae6f4f6c52d8cebc1b"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership/tamper_report.json": {
+          "bytes": 1953,
+          "sha256": "e2e8c9ede1e8eb46641b038f62c622132d2432eb0583d81cf36c248068baa32b"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership/verify_report.json": {
+          "bytes": 888,
+          "sha256": "c00db98837beea9958ff89f98f514eaf8be899812976bf09cf5295e555463f0d"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership/witness_schema.json": {
+          "bytes": 1033,
+          "sha256": "c44ef28f9f74d9b1440e04252379e7335f9a6affabd32c12dc553340542db262"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/merkle_membership/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/merkle_membership/public_inputs.json",
+      "relation": "merkle_membership",
+      "source_dir": "artifacts/reports/provenance/sp1/merkle_membership",
+      "verify_report": "artifacts/reports/provenance/sp1/merkle_membership/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/benchmark_case.json": {
+          "bytes": 4867,
+          "sha256": "8142a304bb1ccce354de6af0fbb6d7375838836773952c04a1018d267e614436"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/metrics.json": {
+          "bytes": 985,
+          "sha256": "a0d702a763f7c5f958d70089e21d56b6e107a06a3b0b735821c4d3ec2978933f"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/proof_artifact_policy.json": {
+          "bytes": 228,
+          "sha256": "d48036a8298ccd6d94616c0d9751b0fae5d2c0c7f2375cd711e1e554f244cf2b"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/public_inputs.json": {
+          "bytes": 593,
+          "sha256": "65710efc8f6df229b095b11207db4cd1dfc5e067644fc03e40b2ab6b19c4b19b"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/verify_report.json": {
+          "bytes": 823,
+          "sha256": "1cde091be424c8543143959df58046614e1d671ee562eac1a520731dd83c6e5f"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/witness_schema.json": {
+          "bytes": 1033,
+          "sha256": "c44ef28f9f74d9b1440e04252379e7335f9a6affabd32c12dc553340542db262"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/public_inputs.json",
+      "relation": "merkle_membership_dataset_100k",
+      "source_dir": "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k",
+      "verify_report": "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/benchmark_case.json": {
+          "bytes": 4180,
+          "sha256": "4034cce5ec5304702b9c146596d4b889a3a75af0b9b560919e97af861ee7cd1d"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/metrics.json": {
+          "bytes": 983,
+          "sha256": "ae41a540798e7b9f25fbc27d96472109e6f25eec6b828cb0bae6d835cb322554"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/proof_artifact_policy.json": {
+          "bytes": 228,
+          "sha256": "d48036a8298ccd6d94616c0d9751b0fae5d2c0c7f2375cd711e1e554f244cf2b"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/public_inputs.json": {
+          "bytes": 591,
+          "sha256": "16067063a867376895b868df0ee1bdda63bf2c5ffd13f3c6d42ca3b0a0f9e729"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/verify_report.json": {
+          "bytes": 821,
+          "sha256": "620133b4c18fd9db9c9fccf4216dd8953080d75bcab29843636fdcd33411bf3f"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/witness_schema.json": {
+          "bytes": 1033,
+          "sha256": "c44ef28f9f74d9b1440e04252379e7335f9a6affabd32c12dc553340542db262"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/public_inputs.json",
+      "relation": "merkle_membership_dataset_10k",
+      "source_dir": "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k",
+      "verify_report": "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/benchmark_case.json": {
+          "bytes": 3285,
+          "sha256": "554a6695e72cd78e28188b930e771aa2d62a05b3a02a0484ec2873b4a6db4a3a"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/metrics.json": {
+          "bytes": 981,
+          "sha256": "66996551be732d333d492bc34cb3c8de911191fa8ac6b4a0235eac93e017a430"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/proof_artifact_policy.json": {
+          "bytes": 228,
+          "sha256": "d48036a8298ccd6d94616c0d9751b0fae5d2c0c7f2375cd711e1e554f244cf2b"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/public_inputs.json": {
+          "bytes": 589,
+          "sha256": "c1e0b59790fde21584af07bc3114bbf6bf429b825bc3a5ad155d12e7b2f60270"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/verify_report.json": {
+          "bytes": 819,
+          "sha256": "31421ad0526fc9d88b25af32007c5bee6477e74ffac68805184bb9b2603a5419"
+        },
+        "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/witness_schema.json": {
+          "bytes": 1033,
+          "sha256": "c44ef28f9f74d9b1440e04252379e7335f9a6affabd32c12dc553340542db262"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/public_inputs.json",
+      "relation": "merkle_membership_dataset_1k",
+      "source_dir": "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k",
+      "verify_report": "artifacts/reports/provenance/sp1/merkle_membership_dataset_1k/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/one_step_sgd_tiny/metrics.json": {
+          "bytes": 617,
+          "sha256": "deee745ec7ca145353696030bb47507908dbe88e86dc06a319a78073da748ae1"
+        },
+        "artifacts/reports/provenance/sp1/one_step_sgd_tiny/proof_artifact_policy.json": {
+          "bytes": 246,
+          "sha256": "b06997cd50df402385ac093e68da9101ec87deb5a231deff96f3224d4dd9a599"
+        },
+        "artifacts/reports/provenance/sp1/one_step_sgd_tiny/public_inputs.json": {
+          "bytes": 896,
+          "sha256": "ce84011e8925786e86ed75ee6505415ceb693507de1bfcc027f33dfaced49f2c"
+        },
+        "artifacts/reports/provenance/sp1/one_step_sgd_tiny/tamper_report.json": {
+          "bytes": 4035,
+          "sha256": "f33055d3f76465b1657f36a7ff3edcb7e88ccb84939e5ac02e6eb4ac7efaecd0"
+        },
+        "artifacts/reports/provenance/sp1/one_step_sgd_tiny/verify_report.json": {
+          "bytes": 937,
+          "sha256": "b1c62cd0a8ea5b428ada5333ae477fb926deac3d8bee4ec1106f35326ea100a2"
+        },
+        "artifacts/reports/provenance/sp1/one_step_sgd_tiny/witness_schema.json": {
+          "bytes": 441,
+          "sha256": "e0846fd48ee9b529350c5d8770113bd5dd4ee23d0c375b8cb17b3a5001ebefdf"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/one_step_sgd_tiny/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/one_step_sgd_tiny/public_inputs.json",
+      "relation": "one_step_sgd_tiny",
+      "source_dir": "artifacts/reports/provenance/sp1/one_step_sgd_tiny",
+      "verify_report": "artifacts/reports/provenance/sp1/one_step_sgd_tiny/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/short_trace/metrics.json": {
+          "bytes": 617,
+          "sha256": "05a690217791e005a5815f44e0c0f16362f06c0d56f395ec023d96152482f7c7"
+        },
+        "artifacts/reports/provenance/sp1/short_trace/proof_artifact_policy.json": {
+          "bytes": 240,
+          "sha256": "99f9853734780630d54f64c5fda6cd834b4e7b9d7ec0d5b0916047fa33a885d3"
+        },
+        "artifacts/reports/provenance/sp1/short_trace/public_inputs.json": {
+          "bytes": 359,
+          "sha256": "c9eb3f0a0dff51ab1068a48dde42aa1f894daa1c27d72a9ce7ecf892f32fe445"
+        },
+        "artifacts/reports/provenance/sp1/short_trace/tamper_report.json": {
+          "bytes": 2063,
+          "sha256": "32b0d0f50d607a8b06efbfa694933d0164919e0a3f2bf9c80795bad1631a91c9"
+        },
+        "artifacts/reports/provenance/sp1/short_trace/verify_report.json": {
+          "bytes": 571,
+          "sha256": "fa56a99dfcd23b7332b688a6a2bffbdc53486875500d81d66ffbfb3f589c0a47"
+        },
+        "artifacts/reports/provenance/sp1/short_trace/witness_schema.json": {
+          "bytes": 588,
+          "sha256": "4586f79cebbf095ee848870248e47b83ade4ad12ae6f55dd39f94452d3e5ec04"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/short_trace/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/short_trace/public_inputs.json",
+      "relation": "short_trace",
+      "source_dir": "artifacts/reports/provenance/sp1/short_trace",
+      "verify_report": "artifacts/reports/provenance/sp1/short_trace/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/aggregation_manifest.json": {
+          "bytes": 906,
+          "sha256": "6f0535c4252021bdc70deb88d200fd2c49f9b029aeee152e424187766a3c38bb"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/chunk_manifest.json": {
+          "bytes": 25187,
+          "sha256": "457c3416549e4323f959270ba149cdae4d5f31437ba7f4a5061d425b0dd5ee80"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/metrics.json": {
+          "bytes": 877,
+          "sha256": "03a22f4928e461318d1c3ab85321d6e08a89d537189e59e4fe47450a041aa430"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/proof_artifact_policy.json": {
+          "bytes": 236,
+          "sha256": "cb67c72b8946abdb332040f4cd0009d6bfad072b8b4830a8218afeafb4f25213"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/public_inputs.json": {
+          "bytes": 1657,
+          "sha256": "0c0d5bbc1e560aa0428bf89e3e62a3bff32696b420a4c6e6e5ef2a19ad96e0ee"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/tamper_report.json": {
+          "bytes": 5927,
+          "sha256": "8de66d19b6ab650e4f8d259aa722eb47ae08b0e71f3d4243048ca7106576dddd"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/verify_report.json": {
+          "bytes": 2447,
+          "sha256": "976ccc2f8a53da410c9d7713033b399caeb44b4e4dcc17a73d4e8d698b41ed00"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t128/witness_schema.json": {
+          "bytes": 1397,
+          "sha256": "2f794ea156fde6317254b1f7915cf423db07e978b14f65d4e7f006b27e9c9f7f"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/training_aggregation_t128/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/training_aggregation_t128/public_inputs.json",
+      "relation": "training_aggregation_t128",
+      "source_dir": "artifacts/reports/provenance/sp1/training_aggregation_t128",
+      "verify_report": "artifacts/reports/provenance/sp1/training_aggregation_t128/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/aggregation_manifest.json": {
+          "bytes": 904,
+          "sha256": "29478622df82d2bcd1dd31afae66a18eef1d26360e905b6f4ee80d5e66762a5d"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/chunk_manifest.json": {
+          "bytes": 6370,
+          "sha256": "4562e6e5357a8b6e7f2040d0a1f8fad3f0b750c65ca2bffa0b89d03e742854b5"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/metrics.json": {
+          "bytes": 873,
+          "sha256": "c92b6fd0b818d62148d4ab7b75c813ca71e071f5b614121bd4077cae7271e6cf"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/proof_artifact_policy.json": {
+          "bytes": 235,
+          "sha256": "233a349c86233c977cdfe5f4b9393dcf55402c170be7de347315627b7ce4db40"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/public_inputs.json": {
+          "bytes": 1654,
+          "sha256": "551a7c477821bcb51398e7523c196dc560a4fcf0fbb7b0ddd82a55831165d14d"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/tamper_report.json": {
+          "bytes": 5925,
+          "sha256": "1184119f6d2594fdfcf16865e89b7a08df9027cc764e4bc13b493dfaa60c109e"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/verify_report.json": {
+          "bytes": 2442,
+          "sha256": "feaf697bc726167c722b48ef4d2af9a3515a2def5778b700b589722cf383642b"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t32/witness_schema.json": {
+          "bytes": 1397,
+          "sha256": "2f794ea156fde6317254b1f7915cf423db07e978b14f65d4e7f006b27e9c9f7f"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/training_aggregation_t32/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/training_aggregation_t32/public_inputs.json",
+      "relation": "training_aggregation_t32",
+      "source_dir": "artifacts/reports/provenance/sp1/training_aggregation_t32",
+      "verify_report": "artifacts/reports/provenance/sp1/training_aggregation_t32/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/aggregation_manifest.json": {
+          "bytes": 904,
+          "sha256": "a8eb91392d970f54f1413077b40e2797b1a540c129a4f12f2faac3a462d7d0c8"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/chunk_manifest.json": {
+          "bytes": 12638,
+          "sha256": "c7024aeff707c64bbfe374e2faee32aef412e34af9e650c375173eca68217097"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/metrics.json": {
+          "bytes": 874,
+          "sha256": "a565053b925946a07068d0cd782af7d8256f2f57a6f3038441fc42f4dd1acc5c"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/proof_artifact_policy.json": {
+          "bytes": 235,
+          "sha256": "eb67d582a92caf7fb8cce57c1e8368d9a21f374a5c565bc8458d348785a46185"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/public_inputs.json": {
+          "bytes": 1654,
+          "sha256": "9a11c50e95bf383242878dcd2996ee5ece3d2da264453863bdd5b8becaae2152"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/tamper_report.json": {
+          "bytes": 5925,
+          "sha256": "0c836a9417f99db0c8e13785ac31b1f206b7bafb98a6dc15d94b2931fce29c21"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/verify_report.json": {
+          "bytes": 2442,
+          "sha256": "bc29dfa419a4084504cbe35d2e348bf1a5ddcbb86f66fa2c7480be0d390497da"
+        },
+        "artifacts/reports/provenance/sp1/training_aggregation_t64/witness_schema.json": {
+          "bytes": 1397,
+          "sha256": "2f794ea156fde6317254b1f7915cf423db07e978b14f65d4e7f006b27e9c9f7f"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/training_aggregation_t64/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/training_aggregation_t64/public_inputs.json",
+      "relation": "training_aggregation_t64",
+      "source_dir": "artifacts/reports/provenance/sp1/training_aggregation_t64",
+      "verify_report": "artifacts/reports/provenance/sp1/training_aggregation_t64/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/training_fragment_k1/metrics.json": {
+          "bytes": 767,
+          "sha256": "b582832d38d22fcf3a5bac3c0a130cbbda40a348234aef22bdaae6d432ac7781"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k1/proof_artifact_policy.json": {
+          "bytes": 231,
+          "sha256": "10f585443d4d51f872098c5312ee7caf313f6ec5568c4c569d216daf5cf718fa"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k1/public_inputs.json": {
+          "bytes": 1900,
+          "sha256": "17f5b03abed3bd01a602f1d5db5a40249c4e89d7a02bf63eca47629295421d1d"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k1/tamper_report.json": {
+          "bytes": 8115,
+          "sha256": "ce0fe038ab12ea5f7de25483354311aff6c08bbb2b56fd9891f6c5681ff87bc0"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k1/verify_report.json": {
+          "bytes": 2566,
+          "sha256": "89e3d0675f642744f7b5b1166a66474f25a1cba86dbd0c89204522b0fb91c5d8"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k1/witness_schema.json": {
+          "bytes": 1506,
+          "sha256": "9bdbd86c059fa0cfa98de3e57132842bce6a5994a3d0cccaeba25546770f821c"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/training_fragment_k1/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/training_fragment_k1/public_inputs.json",
+      "relation": "training_fragment_k1",
+      "source_dir": "artifacts/reports/provenance/sp1/training_fragment_k1",
+      "verify_report": "artifacts/reports/provenance/sp1/training_fragment_k1/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/training_fragment_k4/metrics.json": {
+          "bytes": 769,
+          "sha256": "f05c39502c38b5229ee096385e2e5268df3797f347e15f4697a8107f16d02676"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k4/proof_artifact_policy.json": {
+          "bytes": 231,
+          "sha256": "d7c9394c41b871ddf9126b5a32a7717a493512bce32c17914e388e2a35059aba"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k4/public_inputs.json": {
+          "bytes": 1900,
+          "sha256": "3cdbc39f47ccf600f717703891959a785b5a293e861590e32fc98301897344a3"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k4/tamper_report.json": {
+          "bytes": 8115,
+          "sha256": "20132cf8e03fa9da84cf88b72e11339f8b50e814d7fe1e548eb4b02cfba981d0"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k4/verify_report.json": {
+          "bytes": 2566,
+          "sha256": "349bfb1705bd6bd7572c30eb3a9bda05bc9bd3636caa6773c4df874c021741bb"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k4/witness_schema.json": {
+          "bytes": 1506,
+          "sha256": "9bdbd86c059fa0cfa98de3e57132842bce6a5994a3d0cccaeba25546770f821c"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/training_fragment_k4/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/training_fragment_k4/public_inputs.json",
+      "relation": "training_fragment_k4",
+      "source_dir": "artifacts/reports/provenance/sp1/training_fragment_k4",
+      "verify_report": "artifacts/reports/provenance/sp1/training_fragment_k4/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/training_fragment_k8/metrics.json": {
+          "bytes": 768,
+          "sha256": "a6a4e9c017e9973ef5e29021b9c38648095b617a0d499100c42439e02efc3cff"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k8/proof_artifact_policy.json": {
+          "bytes": 231,
+          "sha256": "2096ba44044d436e069a27e3d0320b174077b5cfb684d4414d9f4cb21e1514a3"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k8/public_inputs.json": {
+          "bytes": 1900,
+          "sha256": "49da00ce9f120ba3d9a051d3ada3559e72fc24caa3dff581c60c2f4d422e3511"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k8/tamper_report.json": {
+          "bytes": 8115,
+          "sha256": "a7b597c92772fb5d572f09273434cfcd2776c4bbb9f56e9e0633eab0a1486db4"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k8/verify_report.json": {
+          "bytes": 2566,
+          "sha256": "e98cbbc00e991b4a459c85c8db165cbcd74914c29a20ac8b0e9ed3a1d0f2d0a1"
+        },
+        "artifacts/reports/provenance/sp1/training_fragment_k8/witness_schema.json": {
+          "bytes": 1506,
+          "sha256": "9bdbd86c059fa0cfa98de3e57132842bce6a5994a3d0cccaeba25546770f821c"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/training_fragment_k8/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/training_fragment_k8/public_inputs.json",
+      "relation": "training_fragment_k8",
+      "source_dir": "artifacts/reports/provenance/sp1/training_fragment_k8",
+      "verify_report": "artifacts/reports/provenance/sp1/training_fragment_k8/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/training_update/metrics.json": {
+          "bytes": 704,
+          "sha256": "33dc710d0dc9d7f0a496d8401f83e8a7e624f1e18b21940ecd72802e6fd59200"
+        },
+        "artifacts/reports/provenance/sp1/training_update/proof_artifact_policy.json": {
+          "bytes": 226,
+          "sha256": "5a8a8e2ed9e1e06eafb7cbe1e3aa67416622645086c6687a1fef5fc23920913f"
+        },
+        "artifacts/reports/provenance/sp1/training_update/public_inputs.json": {
+          "bytes": 1477,
+          "sha256": "7178e4c2e3ce00d631d0dbc401ffe94b1645038313e22ce852b03d93966f41df"
+        },
+        "artifacts/reports/provenance/sp1/training_update/tamper_report.json": {
+          "bytes": 6657,
+          "sha256": "384805c886d5e50b05f420896d9345aab8dd6314a67dad7fbb8fbfd0c457bbfb"
+        },
+        "artifacts/reports/provenance/sp1/training_update/verify_report.json": {
+          "bytes": 1950,
+          "sha256": "9235b9ceced97a8da1b9141b707bedc9834a099d5ee521aad9513aa6ca3c572c"
+        },
+        "artifacts/reports/provenance/sp1/training_update/witness_schema.json": {
+          "bytes": 937,
+          "sha256": "3b18cf644caca84f0471dba5a7ad9dc577674d468ebc555dcc7fbf4c12d433a6"
+        }
+      },
+      "metrics": "artifacts/reports/provenance/sp1/training_update/metrics.json",
+      "proof_binary_omitted_reason": "proof binaries, receipts, and raw proof bytes are not committed by artifact policy",
+      "public_inputs": "artifacts/reports/provenance/sp1/training_update/public_inputs.json",
+      "relation": "training_update",
+      "source_dir": "artifacts/reports/provenance/sp1/training_update",
+      "verify_report": "artifacts/reports/provenance/sp1/training_update/verify_report.json"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/kaggle_sp1_setup_summary.json": {
+          "bytes": 641,
+          "sha256": "9e93863c09c743c824a03c701a25836c3272b762d0eb5fe8126d7269ee0549e6"
+        }
+      },
+      "proof_binary_omitted_reason": "compact provenance summary only",
+      "relation": "kaggle_sp1_setup_summary",
+      "source_dir": "artifacts/reports/provenance/sp1"
+    },
+    {
+      "file_hashes": {
+        "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json": {
+          "bytes": 33512,
+          "sha256": "fe2fd69be3108141c82c66b01474b075875b30d6a4a714c85edb0dc468423b48"
+        }
+      },
+      "proof_binary_omitted_reason": "compact provenance summary only",
+      "relation": "kaggle_sp1_validation_summary",
+      "source_dir": "artifacts/reports/provenance/sp1"
+    }
+  ],
+  "python_version": "3.10.5 (tags/v3.10.5:f377153, Jun  6 2022, 16:14:13) [MSC v.1929 64 bit (AMD64)]",
+  "schema_version": "artifact_manifest_v1",
+  "tables": {
+    "artifacts/reports/final_ndss/benchmark_summary.csv": {
+      "bytes": 11669,
+      "sha256": "c6456cb5061aa3076d364bb95408ed845fc1f8cace54e42080dd0f02654862d2"
+    },
+    "artifacts/reports/final_ndss/paper_numbers.json": {
+      "bytes": 7710,
+      "sha256": "d68f0c51c7cd31716d14ecb22a9658d1d1e22ae7d838b9533334fd982c15bad2"
+    },
+    "artifacts/reports/final_ndss/sp1_status.json": {
+      "bytes": 5615,
+      "sha256": "7ddb2190216bc569d4858da08091b54bd8ec595564c69e201f9e250f20a2660b"
+    },
+    "artifacts/reports/final_ndss/table1_rl_performance.csv": {
+      "bytes": 6641,
+      "sha256": "269184e88c49e2d095d25bbc7c4d34c38ed522451f5be4b0a8bd8c00623347e3"
+    },
+    "artifacts/reports/final_ndss/table1_rl_performance.json": {
+      "bytes": 58115,
+      "sha256": "7eee9e7aad1b9843f3f2130145ea649f5e04a764d9b7ffc2acc443a43c301c74"
+    },
+    "artifacts/reports/final_ndss/table1_rl_performance.md": {
+      "bytes": 8003,
+      "sha256": "54579808a5158a87c3a9800ae4505a24896359a351c97c0deab9a85deba7b303"
+    },
+    "artifacts/reports/final_ndss/table1_rl_performance.tex": {
+      "bytes": 8202,
+      "sha256": "6556f85590c137de9e968ef6931f6f91ffa74e0db5653b2c28532f89a94f7e8c"
+    },
+    "artifacts/reports/final_ndss/table1_rl_performance_status.json": {
+      "bytes": 13632,
+      "sha256": "82b38a9a90399ac9430bde7c458706c3bc0b6d5a22e1f5f83885157e5343cabf"
+    },
+    "artifacts/reports/final_ndss/table2_zk_proof_cost.csv": {
+      "bytes": 10604,
+      "sha256": "b6f4d384b01a3e662cc3f74e09ff9286f0bbbb0e8770d34bd21b563aeef3939f"
+    },
+    "artifacts/reports/final_ndss/table2_zk_proof_cost.json": {
+      "bytes": 27509,
+      "sha256": "4569e8cb3e2a421b6215656ec199f3c4136c7ffb54fcaef45ec8c3a39ffb79c0"
+    },
+    "artifacts/reports/final_ndss/table2_zk_proof_cost.md": {
+      "bytes": 3065,
+      "sha256": "a140851e60d215e760a85b4eb443478d2e3c930aaabf13ffbb99337f5889c4ee"
+    },
+    "artifacts/reports/final_ndss/table2_zk_proof_cost.tex": {
+      "bytes": 3184,
+      "sha256": "2decc3c707c9de37df703f2318970794fe96f003fdf666d32f2e90ac34557f34"
+    },
+    "artifacts/reports/final_ndss/table2_zk_proof_cost_status.json": {
+      "bytes": 570,
+      "sha256": "0401d56881235648017bb01d27acd13de11a5463bee75e52e722420f8a6b29ba"
+    },
+    "artifacts/reports/final_ndss/table3_tamper_rejection.csv": {
+      "bytes": 85117,
+      "sha256": "8fb07c57b8b7423ff05e8283520ff00b263f1a23998c3e8fd5cfc9586ed8f97e"
+    },
+    "artifacts/reports/final_ndss/table3_tamper_rejection.json": {
+      "bytes": 223575,
+      "sha256": "a2e5e00aa2483e63be1edca5c0b3fd8f5c1fbca74ecbb63caf456c5bd81dada8"
+    },
+    "artifacts/reports/final_ndss/table3_tamper_rejection.md": {
+      "bytes": 5765,
+      "sha256": "5a2e430c78d1aa61b7fa35c6c4659f9c5d0e543f999537f21492073fb5ee1dae"
+    },
+    "artifacts/reports/final_ndss/table3_tamper_rejection.tex": {
+      "bytes": 6092,
+      "sha256": "c2f8e8cc87a53d6d665f955e04f2e1086e84d8cdf93131c372cc3a9e307c1250"
+    },
+    "artifacts/reports/final_ndss/table3_tamper_rejection_status.json": {
+      "bytes": 1805,
+      "sha256": "d8a3dd251f69306cc20e6b71eb15c6586fcfa7d80660821ecd777bbde37f46cf"
+    },
+    "artifacts/reports/final_ndss/tamper_summary.csv": {
+      "bytes": 7054,
+      "sha256": "eb69d67316598fe1ef18a32f08e0d81d14fba3ab74e7b38e73e88545b9795f83"
+    }
+  }
+}

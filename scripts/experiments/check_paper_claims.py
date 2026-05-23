@@ -31,6 +31,7 @@ BANNED_PHRASES = [
     "one-step sgd update is proved in sp1",
     "full sp1 proof runs",
     "public benchmark honest collection proof",
+    "privacy-preserving full dataset collection",
 ]
 
 NEGATED_PHRASES = [
@@ -39,10 +40,15 @@ NEGATED_PHRASES = [
     "prove full dqn training",
     "proof coverage for every relation",
     "true recursive aggregation",
+    "true recursive aggregation proof-backed",
+    "honest public collection proof",
     "adam proof",
     "batch-size 4/8/16 training proof",
+    "batch-size 4/8/16 proof-backed",
     "k={16,32,128} are proof-backed",
     "k={16, 32, 128} are proof-backed",
+    "k=16/32/128 proof-backed",
+    "all d4rl tasks",
     "table 3 proves training",
 ]
 

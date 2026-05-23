@@ -36,6 +36,9 @@ plots/
 artifacts/benchmarks/*_python_smoke/
 artifacts/datasets/
 artifacts/data_sources/
+artifacts/reproducibility/**/work/
+artifacts/reproducibility/**/tmp/
+artifacts/reproducibility/data_audit/
 artifacts/full_regression/
 artifacts/regression_summary.json
 artifacts/regression_summary.md
@@ -93,6 +96,9 @@ artifacts/reports/phase8_3_tamper_benchmark/work/
 artifacts/reports/phase8_3_tamper_benchmark/tmp/
 artifacts/reports/phase8_3_tamper_benchmark/proofs/
 artifacts/reports/phase8_3_tamper_benchmark/mutated_fixtures/
+artifacts/reports/**/work/
+artifacts/reports/**/tmp/
+artifacts/reports/**/proofs/
 .minari/
 minari/
 *.pt
@@ -130,6 +136,7 @@ paper/*.fdb_latexmk
 paper/*.fls
 paper/*.log
 paper/*.out
+paper/*.toc
 paper/*.synctex.gz
 paper/*.pdf
 

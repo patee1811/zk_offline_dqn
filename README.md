@@ -112,6 +112,37 @@ python scripts/experiments/run_full_regression.py
 python -m zk_offline_dqn.cli.main --help
 ```
 
+## Artifact Reproducibility
+
+Install dependencies from `requirements.lock` when possible, then run the
+reviewer fast path:
+
+```text
+make reproduce-small
+```
+
+This produces or validates a tiny dataset audit report, compact proof
+verification/provenance reports, benchmark summaries, paper tables, and
+`artifacts/reports/final_ndss/artifact_manifest.json`.
+
+Additional reproducibility targets:
+
+```text
+make reproduce-data-audit
+make reproduce-sp1-proofs
+make reproduce-benchmarks
+make reproduce-tamper
+make reproduce-paper-tables
+make artifact-manifest
+```
+
+Heavy proof and benchmark reruns are gated by `RUN_HEAVY_SP1=1`,
+`RUN_HEAVY_BENCHMARKS=1`, and `RUN_HEAVY_TAMPER=1`. Compact final reports and
+SP1 provenance are committed; raw datasets, proof binaries, receipts, and
+temporary work directories are not. Public Minari/D4RL imports are
+source-integrity benchmark rows only, and no true recursive aggregation is
+claimed.
+
 The full regression currently runs 15 Python-side checks and writes:
 
 ```text
@@ -192,11 +223,11 @@ python scripts/experiments/check_paper_numbers_against_final_ndss.py
 python scripts/experiments/check_theorem_artifact_map.py
 ```
 
-Formal theorem and threat-model text lives in
-`paper/sections/formal_statements.tex` and `paper/sections/threat_model.tex`; the
-artifact-level mapping is `docs/theorem_artifact_map.md`. These statements are
-scoped to the current proof-backed artifacts and semantic verifiers. Theorem 7
-is proof-manifest chunk-chain aggregation only, not true recursive aggregation.
+Formal theorem and threat-model text lives in `paper/sections/theorems.tex` and
+`paper/sections/threat_model.tex`; the artifact-level mapping is
+`docs/theorem_artifact_map.md`. These statements are scoped to the current
+proof-backed artifacts and semantic verifiers. Theorem 7 is proof-manifest
+chunk-chain aggregation only, not true recursive aggregation.
 
 ## Dataset Provenance Pipeline
 
@@ -309,6 +340,8 @@ Python regression.
   coverage.
 - `docs/theorem_artifact_map.md`: theorem-to-relation-to-benchmark mapping for
   the scoped formal statements.
+- `docs/artifact_reproducibility.md`: reviewer commands, expected outputs,
+  hash verification, and heavy-rerun guidance.
 - `docs/sp1_python_alignment.md`: Python/SP1 field and command alignment.
 - `docs/archive/internal_manifests/dev_commands.md`: developer command reference.
 - `docs/archive/internal_manifests/legacy_status.md`: active vs compatibility entrypoints.

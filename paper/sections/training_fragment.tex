@@ -1,0 +1,16 @@
+The training fragment proof composes the one-step update relation over a short
+deterministic trace. For $k\in\{1,4,8\}$, the relation checks the sampler seed,
+global step, minibatch index, replay membership for the opened transition, MLP
+forward values, Bellman target, SmoothL1 loss, backpropagation, fixed-point SGD
+update, checkpoint transition, and target-network synchronization.
+
+The one-step training update is the base case. It proves a canonical
+batch-size-1 tiny MLP vector and binds the pre-update checkpoint to the
+post-update checkpoint. The multi-step fragment repeats this relation and
+requires each output checkpoint to match the next input checkpoint. Target
+network state is linked separately so that tampering with sync events is
+detected.
+
+Longer fragments $k\in\{16,32,128\}$ are useful engineering validations, but
+they are execute/reference evidence only in this artifact. They are not
+proof-backed Table 2 claims.

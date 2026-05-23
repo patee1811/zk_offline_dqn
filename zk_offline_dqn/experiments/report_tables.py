@@ -238,15 +238,18 @@ def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
     table2 = check_table2_zk_proof_cost(base)
     table3 = check_table3_tamper_rejection(base)
     theorem_map = check_theorem_artifact_map_sources(base)
+    artifact_package = check_artifact_package_sources(base)
     result["table1_rl_performance"] = table1
     result["table2_zk_proof_cost"] = table2
     result["table3_tamper_rejection"] = table3
     result["theorem_artifact_map"] = theorem_map
+    result["artifact_package"] = artifact_package
     if (
         table1["status"] != "passed"
         or table2["status"] != "passed"
         or table3["status"] != "passed"
         or theorem_map["status"] != "passed"
+        or artifact_package["status"] != "passed"
     ):
         result["status"] = "failed"
     return result
@@ -508,5 +511,93 @@ def check_theorem_artifact_map_sources(root: Path | None = None) -> Dict[str, An
         "missing_theorems": missing_theorems,
         "missing_terms": missing_terms,
         "unsafe_phrases": unsafe,
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_artifact_package_sources(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    final_dir = base / "artifacts/reports/final_ndss"
+    required_files = [
+        base / "Makefile",
+        base / "Dockerfile",
+        base / ".dockerignore",
+        base / "requirements.lock",
+        base / "docs/artifact_reproducibility.md",
+        final_dir / "artifact_manifest.json",
+        final_dir / "dataset_hashes.json",
+        final_dir / "proof_hashes.json",
+        final_dir / "paper_numbers.json",
+    ]
+    missing = [rel(path) for path in required_files if not path.exists()]
+
+    required_targets = [
+        "reproduce-small",
+        "reproduce-data-audit",
+        "reproduce-sp1-proofs",
+        "reproduce-benchmarks",
+        "reproduce-tamper",
+        "reproduce-paper-tables",
+        "artifact-manifest",
+    ]
+    make_text = (base / "Makefile").read_text(encoding="utf-8", errors="replace") if (base / "Makefile").exists() else ""
+    readme_text = (base / "README.md").read_text(encoding="utf-8", errors="replace").lower() if (base / "README.md").exists() else ""
+    missing_targets = [target for target in required_targets if f"{target}:" not in make_text]
+    missing_readme_commands = [target for target in required_targets if f"make {target}" not in readme_text]
+
+    manifest_gaps: List[str] = []
+    raw_references: List[str] = []
+    manifest_path = final_dir / "artifact_manifest.json"
+    if manifest_path.exists():
+        manifest = read_json(manifest_path) or {}
+        for key in [
+            "git_commit",
+            "generated_at",
+            "python_version",
+            "platform",
+            "commands",
+            "files",
+            "tables",
+            "proof_provenance",
+            "dataset_hashes",
+            "omitted_artifacts",
+        ]:
+            if key not in manifest:
+                manifest_gaps.append(key)
+        manifest_text = json.dumps(
+            {
+                "files": manifest.get("files", {}),
+                "tables": manifest.get("tables", {}),
+                "proof_provenance": [
+                    {k: v for k, v in item.items() if k != "proof_binary_omitted_reason"}
+                    for item in manifest.get("proof_provenance", [])
+                    if isinstance(item, dict)
+                ],
+            },
+            sort_keys=True,
+        ).lower()
+        for forbidden in ["raw_episodes.jsonl", ".receipt", ".proof", "proof.bin"]:
+            if forbidden in manifest_text:
+                raw_references.append(forbidden)
+
+    reasons = []
+    if missing:
+        reasons.append("missing files: " + ", ".join(missing))
+    if missing_targets:
+        reasons.append("missing Make targets: " + ", ".join(missing_targets))
+    if missing_readme_commands:
+        reasons.append("README missing commands: " + ", ".join(missing_readme_commands))
+    if manifest_gaps:
+        reasons.append("artifact manifest missing keys: " + ", ".join(manifest_gaps))
+    if raw_references:
+        reasons.append("artifact manifest references raw/proof binaries: " + ", ".join(raw_references))
+
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": missing,
+        "missing_make_targets": missing_targets,
+        "missing_readme_commands": missing_readme_commands,
+        "manifest_gaps": manifest_gaps,
+        "raw_references": raw_references,
         "reason": "; ".join(reasons) if reasons else None,
     }

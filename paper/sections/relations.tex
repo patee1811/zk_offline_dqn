@@ -1,0 +1,37 @@
+All arithmetic claims are over the fixed-point integer encoding implemented by
+the Python relation and Rust/SP1 backend. They are not claims about exact
+real-valued PyTorch execution.
+
+\paragraph{Merkle membership.}
+The membership relation recomputes a canonical transition leaf hash, follows
+the supplied sibling path and direction bits, and checks equality with the
+public dataset root. Dataset-size scaling cases for 1k, 10k, and 100k leaves
+are proof-verified.
+
+\paragraph{Bellman target and TD MVP.}
+The TD relation checks reward, done flag, action, discount factor, selected Q
+value, target Q value, Bellman target, TD error, and SmoothL1 loss. In the TD
+MVP vector the Q values are witnesses; in model-grounded relations they are
+derived from committed tiny MLP weights.
+
+\paragraph{Forward-TD MLP and SmoothL1.}
+The Forward-TD MLP relation binds quantized online and target weights, runs a
+Linear-ReLU-Linear forward pass, checks argmax selection, derives the selected
+target value, and recomputes SmoothL1 loss.
+
+\paragraph{Backpropagation and one-step SGD.}
+The one-step training-update and one-step SGD tiny relations recompute the
+SmoothL1 derivative branch, fixed-point gradient/backprop path, SGD deltas,
+post-update weights, and next checkpoint hash. The supported update is simple
+SGD for canonical tiny vectors, not Adam and not batch sizes 4/8/16.
+
+\paragraph{Checkpoint and target-network relations.}
+Checkpoint hashes bind model states across one-step updates, short traces, and
+training fragments. Fragment relations additionally check deterministic
+sampling, global steps, target checkpoint links, and hard target-network sync.
+
+\paragraph{Proof-manifest chunk chains.}
+The aggregation relation binds child proof-manifest hashes, child public-input
+hashes, chunk order, step ranges, dataset/config consistency, aggregate roots,
+and online/target checkpoint links. It does not recursively verify child proof
+bytes inside SP1.

@@ -1,24 +1,14 @@
 \section{Conclusion}
 
-This paper presents a layered artifact system for proof-oriented verification
-of selected offline-DQN computation over committed replay data. The central
-claim is deliberately bounded: the system checks selected relation layers, not
-a full training trace.
-The validated SP1 result is the TD MVP backend on the canonical test vector,
-including membership, Bellman/TD arithmetic, SmoothL1 loss, and public
-target/loss claims. The artifact also records Python semantic-oracle coverage
-for distinct minibatch TD, model-grounded forward-TD MLP, and a micro-scale
-CartPole one-step SGD relation.
+This paper presents a proof-backed artifact system for selected Offline-DQN
+training fragments over audited or provenance-bound committed replay data. It
+connects dataset audits, Merkle commitments, fixed-point DQN relations, SP1
+proof provenance, proof-manifest chunk-chain aggregation, and three generated
+benchmark tables.
 
-The aggregate package hardens the result into reviewer-facing artifacts:
-normalized benchmark and tamper matrices, machine-readable summaries, and
-reproduction commands for both fast Python semantic-oracle checks and scoped TD
-MVP SP1 validation.
-This makes every reported number traceable to a JSON or CSV source.
-
-The next technical step is clear: scale the current one-step update proof into
-repeated-update traces, add optimizer semantics beyond SGD, and compose those
-steps with recursion or another aggregation strategy. Until then, the
-defensible contribution is a reproducible security/systems artifact for
-verifiable replay membership, TD computation, minibatch aggregation,
-model-grounded forward evidence, and one micro update in offline RL.
+The final artifact is submission-oriented: every theorem maps to a relation,
+backend or verifier, tests, and Table 2/Table 3 evidence; every paper-facing
+table is generated from committed report scripts; and the reviewer fast path is
+packaged as `make reproduce-small`. The contribution is deliberately scoped and
+does not claim complete DQN training, true recursive aggregation, Adam,
+large-scale Atari/MuJoCo proofs, or honest public dataset collection.
