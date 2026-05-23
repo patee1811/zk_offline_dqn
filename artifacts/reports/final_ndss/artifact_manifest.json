@@ -232,8 +232,8 @@
       "sha256": "27da2823ebd45179aa59b43b5a8fd77d02f7f6fb5ad8d99f0b083a640d1f713b"
     }
   },
-  "generated_at": "2026-05-23T11:02:26.933129+00:00",
-  "git_commit": "067b6781d58c7e001681524a007ec002a91b20cc",
+  "generated_at": "2026-05-23T11:19:18.480332+00:00",
+  "git_commit": "68a6e230de1d1181fce942412583c5082bffabd5",
   "omitted_artifacts": [
     {
       "pattern": "artifacts/datasets/ and artifacts/data_sources/",
@@ -249,8 +249,8 @@
     }
   ],
   "paper_numbers": {
-    "bytes": 7710,
-    "sha256": "d68f0c51c7cd31716d14ecb22a9658d1d1e22ae7d838b9533334fd982c15bad2"
+    "bytes": 7475,
+    "sha256": "335ee4ca2a95f51659bfc285c164db9faeb1311f0502282a8d33dc1201cbd4a7"
   },
   "platform": "Windows-10-10.0.26200-SP0",
   "proof_provenance": [
@@ -785,8 +785,8 @@
       "sha256": "c6456cb5061aa3076d364bb95408ed845fc1f8cace54e42080dd0f02654862d2"
     },
     "artifacts/reports/final_ndss/paper_numbers.json": {
-      "bytes": 7710,
-      "sha256": "d68f0c51c7cd31716d14ecb22a9658d1d1e22ae7d838b9533334fd982c15bad2"
+      "bytes": 7475,
+      "sha256": "335ee4ca2a95f51659bfc285c164db9faeb1311f0502282a8d33dc1201cbd4a7"
     },
     "artifacts/reports/final_ndss/sp1_status.json": {
       "bytes": 5615,
