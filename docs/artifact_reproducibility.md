@@ -16,6 +16,7 @@ fast path without regenerating large proofs or raw benchmark datasets.
 | --- | --- | --- | --- |
 | `make reproduce-small` | Runs the reviewer fast path | minutes | tiny dataset audit, compact proof provenance check, benchmark/table checks, artifact manifest |
 | `make reproduce-data-audit` | Regenerates a tiny CartPole audited commitment | minutes | `artifacts/reproducibility/data_audit/.../replay_audit_report.json`, `merkle_tree.json` |
+| `make reproduce-smoke-sources` | Regenerates lightweight regression/report sources | minutes | `artifacts/regression_summary.json`, `artifacts/benchmarks/*_python_smoke/summary.json` |
 | `make reproduce-sp1-proofs` | Validates compact SP1 provenance by default | seconds-minutes | report-source check over `artifacts/reports/provenance/sp1/` |
 | `make reproduce-benchmarks` | Regenerates paper report snapshots from compact reports | seconds-minutes | `artifacts/reports/final_ndss/paper_numbers.json` and summary CSVs |
 | `make reproduce-tamper` | Validates Table 3 by default | seconds-minutes | Table 3 source-check status |

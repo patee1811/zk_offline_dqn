@@ -1,4 +1,4 @@
-.PHONY: help setup check paper-checks reproduce-small reproduce-data-audit reproduce-sp1-proofs reproduce-benchmarks reproduce-tamper reproduce-paper-tables artifact-manifest clean-artifacts smoke unit golden negative cli-smoke regression all-checks
+.PHONY: help setup check paper-checks reproduce-small reproduce-data-audit reproduce-smoke-sources reproduce-sp1-proofs reproduce-benchmarks reproduce-tamper reproduce-paper-tables artifact-manifest clean-artifacts smoke unit golden negative cli-smoke regression all-checks
 
 PYTHON ?= python
 REPRO_DIR := artifacts/reproducibility
@@ -8,6 +8,7 @@ help:
 	@echo "Reviewer targets:"
 	@echo "  make reproduce-small          Run fast artifact reproduction checks"
 	@echo "  make reproduce-data-audit     Regenerate a tiny audited dataset commitment"
+	@echo "  make reproduce-smoke-sources  Regenerate lightweight regression/report smoke sources"
 	@echo "  make reproduce-sp1-proofs     Verify compact SP1 provenance; heavy prove is opt-in"
 	@echo "  make reproduce-benchmarks     Validate or optionally rerun benchmarks"
 	@echo "  make reproduce-tamper         Validate or optionally rerun tamper table"
@@ -50,7 +51,7 @@ paper-checks:
 	$(PYTHON) scripts/experiments/check_theorem_artifact_map.py
 	$(PYTHON) scripts/experiments/check_paper_numbers_against_final_ndss.py
 
-reproduce-small: reproduce-data-audit reproduce-sp1-proofs reproduce-benchmarks reproduce-tamper reproduce-paper-tables artifact-manifest check
+reproduce-small: reproduce-data-audit reproduce-smoke-sources reproduce-sp1-proofs reproduce-benchmarks reproduce-tamper reproduce-paper-tables artifact-manifest check
 	@echo "reproduce-small = passed"
 
 reproduce-data-audit:
@@ -60,6 +61,12 @@ reproduce-data-audit:
 	$(PYTHON) scripts/data/commit_audited_dataset.py --dataset-dir $(DATA_AUDIT_DIR)
 	$(PYTHON) scripts/data/verify_dataset_commitment.py --dataset-dir $(DATA_AUDIT_DIR)
 	@echo "dataset_audit_report = $(DATA_AUDIT_DIR)/replay_audit_report.json"
+
+reproduce-smoke-sources:
+	$(PYTHON) scripts/experiments/run_full_regression.py
+	$(PYTHON) scripts/experiments/benchmark_distinct_td_sp1.py --skip-sp1 --out-dir artifacts/benchmarks/distinct_td_sp1_python_smoke
+	$(PYTHON) scripts/experiments/benchmark_forward_td_mlp_sp1.py --skip-sp1 --out-dir artifacts/benchmarks/forward_td_mlp_sp1_python_smoke
+	$(PYTHON) scripts/experiments/benchmark_one_step_sgd_tiny_sp1.py --skip-sp1 --out-dir artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke
 
 reproduce-sp1-proofs:
 	$(PYTHON) scripts/experiments/check_report_sources.py

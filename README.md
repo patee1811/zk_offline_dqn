@@ -129,6 +129,7 @@ Additional reproducibility targets:
 
 ```text
 make reproduce-data-audit
+make reproduce-smoke-sources
 make reproduce-sp1-proofs
 make reproduce-benchmarks
 make reproduce-tamper
