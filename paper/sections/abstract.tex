@@ -1,25 +1,34 @@
-Offline reinforcement learning creates a verification problem that is not
-captured by supervised proof-of-training alone: a malicious prover can tamper
-with replay membership, reward semantics, Bellman targets, terminal flags,
-action selection, gradients, checkpoint links, and target-network
-synchronization. We present a scoped artifact system for proof-backed
-verification of selected Offline-DQN training fragments over provenance-bound
-committed replay data. The artifact combines replay/source audits, Merkle
-dataset commitments, fixed-point relation witnesses, SP1 proof-backed relation
-checks, proof-manifest chunk-chain aggregation, and tamper-rejection reports.
+\begin{abstract}
+Offline reinforcement learning (RL) trains policies from fixed replay datasets,
+creating a verification challenge beyond supervised proof-of-training: a
+malicious prover can tamper with replay membership, reward semantics, Bellman
+targets, terminal flags, action selection, gradients, checkpoint links, and
+target-network synchronization while presenting a plausible final model. We
+present a layered artifact system that provides zero-knowledge proof-backed
+verification of selected Offline Deep Q-Network (DQN) training fragments over
+provenance-bound committed replay data. The system combines audited dataset
+commitments via SHA-256 Merkle trees, fixed-point relation witnesses for
+temporal-difference (TD) arithmetic and neural-network forward/backward
+computations, SP1 zkVM proof generation and verification for twelve distinct
+relation types, multi-step training-fragment proofs for $k \in \{1, 4, 8\}$
+steps, and proof-manifest chunk-chain aggregation for training traces up to
+$T \in \{32, 64, 128\}$ steps. We formalize eight security theorems covering
+replay membership, dataset commitment, Bellman target correctness, update
+correctness, checkpoint-chain soundness, training-fragment soundness, and
+aggregation soundness, plus the zero-knowledge privacy boundary; each theorem
+is mapped to implemented relations, SP1 backend code, tests, and benchmark
+evidence. Experimental evaluation on CartPole, MountainCar,
+and PointMaze D4RL benchmark datasets demonstrates that all twelve SP1
+proof-backed relations achieve verification in under~0.21\,s with proof sizes
+below~2.84\,MB, while a comprehensive tamper-rejection benchmark covering~166
+adversarial test cases yields zero unexpectedly accepted tampering attempts
+across~17 tamper categories. The contribution is a deliberately scoped
+security/systems artifact: it does not claim complete DQN training soundness,
+Adam optimizer proofs, or true recursive child-proof aggregation.
+\end{abstract}
 
-The current implementation supports SP1 proof generation and verification for
-the TD MVP canonical vector, Merkle membership including 1k/10k/100k
-dataset-size cases, Forward-TD MLP and one-step SGD tiny canonical vectors,
-short trace, one-step training update batch size 1, training fragments
-$k\in\{1,4,8\}$, and proof-manifest chunk-chain aggregation
-$T\in\{32,64,128\}$. Table 1 reports RL performance, Table 2 reports proof
-cost, and Table 3 reports tamper rejection with no unexpected accepted tamper
-rows. Theorems are mapped to relations, backend code, tests, and benchmark
-rows.
-
-The contribution is a claim-safe security/systems artifact, not a general
-training proof. It does not claim complete Offline-DQN training soundness,
-Adam, batch-size 4/8/16 training-update proofs, proof-backed
-$k\in\{16,32,128\}$ fragments, true recursive child-proof verification inside
-SP1, or honest collection for public Minari/D4RL imports.
+\begin{IEEEkeywords}
+Zero-knowledge proofs, offline reinforcement learning, verifiable machine
+learning, proof-of-training, Deep Q-Network, SP1 zkVM, Merkle commitment,
+tamper detection.
+\end{IEEEkeywords}

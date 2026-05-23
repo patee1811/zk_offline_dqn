@@ -1,3 +1,9 @@
+% ===================================================================
+%  ZK-Offline-DQN — Bibliography for IEEE TDSC submission
+% ===================================================================
+
+% ----- Reinforcement Learning Foundations -----
+
 @article{mnih2015dqn,
   title={Human-level control through deep reinforcement learning},
   author={Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David and Rusu, Andrei A. and Veness, Joel and Bellemare, Marc G. and Graves, Alex and Riedmiller, Martin and Fidjeland, Andreas K. and Ostrovski, Georg and Petersen, Stig and Beattie, Charles and Sadik, Amir and Antonoglou, Ioannis and King, Helen and Kumaran, Dharshan and Wierstra, Daan and Legg, Shane and Hassabis, Demis},
@@ -5,7 +11,8 @@
   volume={518},
   number={7540},
   pages={529--533},
-  year={2015}
+  year={2015},
+  doi={10.1038/nature14236}
 }
 
 @inproceedings{hasselt2016double,
@@ -13,6 +20,24 @@
   author={van Hasselt, Hado and Guez, Arthur and Silver, David},
   booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
   year={2016}
+}
+
+@article{watkins1992qlearning,
+  title={Q-Learning},
+  author={Watkins, Christopher J. C. H. and Dayan, Peter},
+  journal={Machine Learning},
+  volume={8},
+  number={3--4},
+  pages={279--292},
+  year={1992},
+  doi={10.1007/BF00992698}
+}
+
+@article{levine2020offline,
+  title={Offline Reinforcement Learning: Tutorial, Review, and Perspectives on Open Problems},
+  author={Levine, Sergey and Kumar, Aviral and Tucker, George and Fu, Justin},
+  journal={arXiv preprint arXiv:2005.01643},
+  year={2020}
 }
 
 @inproceedings{fujimoto2019offpolicy,
@@ -29,106 +54,36 @@
   year={2020}
 }
 
-@article{levine2020offline,
-  title={Offline Reinforcement Learning: Tutorial, Review, and Perspectives on Open Problems},
-  author={Levine, Sergey and Kumar, Aviral and Tucker, George and Fu, Justin},
-  journal={arXiv preprint arXiv:2005.01643},
-  year={2020}
-}
-
-@inproceedings{jia2021proofoflearning,
-  title={Proof-of-Learning: Definitions and Practice},
-  author={Jia, Hengrui and Yaghini, Mohammad and Choquette-Choo, Christopher A. and Dullerud, Natalie and Thudi, Anvith and Chandrasekaran, Varun and Papernot, Nicolas},
-  booktitle={IEEE Symposium on Security and Privacy},
-  year={2021}
-}
-
-@book{thalerbook,
-  title={Proofs, Arguments, and Zero-Knowledge},
-  author={Thaler, Justin},
-  year={2022},
-  publisher={Foundations and Trends in Privacy and Security}
-}
-
-@inproceedings{groth2016zksnark,
-  title={On the Size of Pairing-Based Non-interactive Arguments},
-  author={Groth, Jens},
-  booktitle={Advances in Cryptology -- EUROCRYPT 2016},
-  pages={305--326},
-  year={2016},
-  publisher={Springer}
-}
-
-@inproceedings{merkle1987,
-  title={A Digital Signature Based on a Conventional Encryption Function},
-  author={Merkle, Ralph C.},
-  booktitle={Advances in Cryptology -- CRYPTO '87},
-  pages={369--378},
-  year={1987},
-  publisher={Springer}
-}
-
 @article{brockman2016gym,
-  title={OpenAI Gym},
+  title={{OpenAI Gym}},
   author={Brockman, Greg and Cheung, Vicki and Pettersson, Ludwig and Schneider, Jonas and Schulman, John and Tang, Jie and Zaremba, Wojciech},
   journal={arXiv preprint arXiv:1606.01540},
   year={2016}
 }
 
-@article{watkins1992qlearning,
-  title={Q-Learning},
-  author={Watkins, Christopher J. C. H. and Dayan, Peter},
-  journal={Machine Learning},
-  volume={8},
-  number={3--4},
-  pages={279--292},
-  year={1992}
+@inproceedings{fu2020d4rl,
+  title={{D4RL}: Datasets for Deep Data-Driven Reinforcement Learning},
+  author={Fu, Justin and Kumar, Aviral and Nachum, Ofir and Tucker, George and Levine, Sergey},
+  booktitle={arXiv preprint arXiv:2004.06120},
+  year={2020}
 }
 
-@inproceedings{gabizon2019plonk,
-  title={{PLONK}: Permutations over Lagrange-bases for Oecumenical Noninteractive arguments of Knowledge},
-  author={Gabizon, Ariel and Williamson, Zachary J. and Ciobotaru, Oana},
-  booktitle={IACR Cryptology ePrint Archive},
-  note={Report 2019/953},
-  year={2019}
+@inproceedings{minari2023,
+  title={Minari: A Standard Library for Offline Reinforcement Learning Datasets},
+  author={Younis, Omar G. and Balis, Rodrigo de Lazcano and Lu, Yufei and others},
+  booktitle={NeurIPS Datasets and Benchmarks Track},
+  year={2023}
 }
 
-@article{huber1964robust,
-  title={Robust Estimation of a Location Parameter},
-  author={Huber, Peter J.},
-  journal={The Annals of Mathematical Statistics},
-  volume={35},
-  number={1},
-  pages={73--101},
-  year={1964}
-}
+% ----- Proof-of-Learning and Proof-of-Training -----
 
-@inproceedings{safetynets2017,
-  title={SafetyNets: Verifiable Execution of Deep Neural Networks on an Untrusted Cloud},
-  author={Ghodsi, Zahra and Gu, Tianyu and Garg, Siddharth},
-  booktitle={Advances in Neural Information Processing Systems},
-  pages={4675--4684},
-  year={2017}
-}
-
-@inproceedings{zkcnn2021,
-  title={{zkCNN}: Zero Knowledge Proofs for Convolutional Neural Network Predictions and Accuracy},
-  author={Liu, Tianyi and Xie, Xiang and Zhang, Yupeng},
-  booktitle={Proceedings of the ACM SIGSAC Conference on Computer and Communications Security},
-  pages={2968--2985},
+@inproceedings{jia2021proofoflearning,
+  title={Proof-of-Learning: Definitions and Practice},
+  author={Jia, Hengrui and Yaghini, Mohammad and Choquette-Choo, Christopher A. and Dullerud, Natalie and Thudi, Anvith and Chandrasekaran, Varun and Papernot, Nicolas},
+  booktitle={IEEE Symposium on Security and Privacy},
+  pages={1039--1056},
   year={2021},
-  doi={10.1145/3460120.3485379}
-}
-
-@article{veriml2021,
-  title={{VeriML}: Enabling Integrity Assurances and Fair Payments for Machine Learning as a Service},
-  author={Zhao, Lingchen and Wang, Qian and Wang, Cong and Li, Qi and Shen, Chao and Lin, Xiaodong and Hu, Shengshan and Du, Minxin},
-  journal={IEEE Transactions on Parallel and Distributed Systems},
-  volume={32},
-  number={10},
-  pages={2524--2540},
-  year={2021},
-  doi={10.1109/TPDS.2021.3068195}
+  doi={10.1109/SP40001.2021.00106}
 }
 
 @misc{zkdl2023,
@@ -157,6 +112,36 @@
   doi={10.1145/3719027.3744862}
 }
 
+% ----- Verifiable and Zero-Knowledge Machine Learning -----
+
+@inproceedings{safetynets2017,
+  title={{SafetyNets}: Verifiable Execution of Deep Neural Networks on an Untrusted Cloud},
+  author={Ghodsi, Zahra and Gu, Tianyu and Garg, Siddharth},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={4675--4684},
+  year={2017}
+}
+
+@inproceedings{zkcnn2021,
+  title={{zkCNN}: Zero Knowledge Proofs for Convolutional Neural Network Predictions and Accuracy},
+  author={Liu, Tianyi and Xie, Xiang and Zhang, Yupeng},
+  booktitle={Proceedings of the ACM SIGSAC Conference on Computer and Communications Security},
+  pages={2968--2985},
+  year={2021},
+  doi={10.1145/3460120.3485379}
+}
+
+@article{veriml2021,
+  title={{VeriML}: Enabling Integrity Assurances and Fair Payments for Machine Learning as a Service},
+  author={Zhao, Lingchen and Wang, Qian and Wang, Cong and Li, Qi and Shen, Chao and Lin, Xiaodong and Hu, Shengshan and Du, Minxin},
+  journal={IEEE Transactions on Parallel and Distributed Systems},
+  volume={32},
+  number={10},
+  pages={2524--2540},
+  year={2021},
+  doi={10.1109/TPDS.2021.3068195}
+}
+
 @article{zkmlsurvey2026,
   title={A Survey of Zero-Knowledge Proof Based Verifiable Machine Learning},
   author={Peng, Zhizhi and Zhao, Chonghe and Wang, Taotao and Liao, Guofu and Lin, Zibin and Liu, Yifeng and Cao, Bin and Shi, Long and Yang, Qing and Zhang, Shengli},
@@ -165,11 +150,23 @@
   doi={10.1007/s10462-026-11557-y}
 }
 
-@misc{succinct2024sp1,
-  title={Introducing {SP1}: A Performant, 100\% Open-Source, Contributor-Friendly zkVM},
-  author={{Succinct Labs}},
+@article{vcnn2024,
+  title={{vCNN}: Verifiable Convolutional Neural Network Based on zk-{SNARKs}},
+  author={Lee, Seunghwa and Ko, Hankyung and Kim, Jihye and Oh, Hyunok},
+  journal={IEEE Transactions on Dependable and Secure Computing},
+  volume={21},
+  number={5},
+  pages={4544--4558},
   year={2024},
-  howpublished={\url{https://blog.succinct.xyz/introducing-sp1/}}
+  doi={10.1109/TDSC.2023.3348402}
+}
+
+@article{zkgradient2025,
+  title={Zero-Knowledge Proof-Based Gradient Aggregation for Federated Learning},
+  author={Gao, Zhibo and Yu, Haodong and Li, Zhengyu and Zhang, Luobin and Qin, Zheng},
+  journal={IEEE Transactions on Big Data},
+  year={2025},
+  doi={10.1109/TBDATA.2025.3531268}
 }
 
 @inproceedings{verma2019verifiable,
@@ -181,4 +178,123 @@
   pages={9902--9903},
   year={2019},
   doi={10.1609/aaai.v33i01.33019902}
+}
+
+% ----- Cryptographic Primitives -----
+
+@book{thalerbook,
+  title={Proofs, Arguments, and Zero-Knowledge},
+  author={Thaler, Justin},
+  year={2022},
+  publisher={Foundations and Trends in Privacy and Security}
+}
+
+@inproceedings{groth2016zksnark,
+  title={On the Size of Pairing-Based Non-interactive Arguments},
+  author={Groth, Jens},
+  booktitle={Advances in Cryptology -- EUROCRYPT 2016},
+  pages={305--326},
+  year={2016},
+  publisher={Springer},
+  doi={10.1007/978-3-662-49896-5_11}
+}
+
+@inproceedings{merkle1987,
+  title={A Digital Signature Based on a Conventional Encryption Function},
+  author={Merkle, Ralph C.},
+  booktitle={Advances in Cryptology -- CRYPTO '87},
+  pages={369--378},
+  year={1987},
+  publisher={Springer}
+}
+
+@inproceedings{gabizon2019plonk,
+  title={{PLONK}: Permutations over Lagrange-bases for Oecumenical Noninteractive arguments of Knowledge},
+  author={Gabizon, Ariel and Williamson, Zachary J. and Ciobotaru, Oana},
+  booktitle={IACR Cryptology ePrint Archive},
+  note={Report 2019/953},
+  year={2019}
+}
+
+@inproceedings{bensasson2014scalable,
+  title={Scalable Zero Knowledge via Cycles of Elliptic Curves},
+  author={Ben-Sasson, Eli and Chiesa, Alessandro and Tromer, Eran and Virza, Madars},
+  booktitle={Advances in Cryptology -- CRYPTO 2014},
+  pages={276--294},
+  year={2014},
+  publisher={Springer},
+  doi={10.1007/978-3-662-44381-1_16}
+}
+
+@article{huber1964robust,
+  title={Robust Estimation of a Location Parameter},
+  author={Huber, Peter J.},
+  journal={The Annals of Mathematical Statistics},
+  volume={35},
+  number={1},
+  pages={73--101},
+  year={1964}
+}
+
+% ----- zkVMs and Proof Backends -----
+
+@misc{succinct2024sp1,
+  title={Introducing {SP1}: A Performant, 100\% Open-Source, Contributor-Friendly zkVM},
+  author={{Succinct Labs}},
+  year={2024},
+  howpublished={\url{https://blog.succinct.xyz/introducing-sp1/}}
+}
+
+@misc{risczero2023,
+  title={{RISC Zero zkVM}: General Purpose Zero-Knowledge Computing},
+  author={{RISC Zero, Inc.}},
+  year={2023},
+  howpublished={\url{https://www.risczero.com/}}
+}
+
+@inproceedings{bensasson2019stark,
+  title={{STARK} Friendly Hash Survey},
+  author={Ben-Sasson, Eli and Bentov, Iddo and Horesh, Yinon and Riabzev, Michael},
+  booktitle={IACR Cryptology ePrint Archive, Report 2020/948},
+  year={2020}
+}
+
+% ----- Data Provenance and AI Integrity -----
+
+@misc{aiprovenance2025,
+  title={A Framework for Cryptographic Verifiability of End-to-End {AI} Pipelines},
+  author={Alon, Bar and Dowsley, Rafael and others},
+  howpublished={arXiv preprint arXiv:2503.18514},
+  year={2025}
+}
+
+@inproceedings{dataauth2024,
+  title={Position: Data Authenticity, Consent, and Provenance for {AI} are all Broken},
+  author={Longpre, Shayne and Mahari, Robert and Lee, Naana Obeng-Marnu and others},
+  booktitle={International Conference on Machine Learning},
+  year={2024}
+}
+
+% ----- Loss Functions -----
+
+@article{girshick2015fastrcnn,
+  title={Fast {R-CNN}},
+  author={Girshick, Ross},
+  journal={Proceedings of the IEEE International Conference on Computer Vision},
+  pages={1440--1448},
+  year={2015},
+  doi={10.1109/ICCV.2015.169}
+}
+
+% ----- Verifiable Computation -----
+
+@inproceedings{walfish2015verifiable,
+  title={Verifying Computations without Reexecuting Them},
+  author={Walfish, Michael and Blumberg, Andrew J.},
+  booktitle={Communications of the ACM},
+  volume={58},
+  number={2},
+  pages={74--84},
+  year={2015},
+  doi={10.1145/2641562}
 }

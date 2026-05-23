@@ -1,5 +1,5 @@
 The formal statements below are scoped to the implemented relations and to the
-backend provenance listed in the artifact map.  They are not statements about a
+backend provenance listed in the artifact map. They are not statements about a
 complete DQN training run.
 
 \paragraph{Objects and notation.}
@@ -9,11 +9,12 @@ A replay transition is
 \]
 The dataset commitment is
 \[
-  C_D=(\mathsf{dataset\_root}, \mathsf{manifest\_hash},
-  \mathsf{audit\_report\_hash}, \mathsf{raw\_trajectory\_hash},
-  \mathsf{collection\_log\_final\_hash}),
+  C_D=(h_{\mathrm{root}}, h_{\mathrm{manifest}}, h_{\mathrm{audit}},
+       h_{\mathrm{raw}}, h_{\mathrm{collection}}),
 \]
-where the last field is present for self-collected audited datasets and absent
+corresponding to the dataset root, manifest hash, audit-report hash, raw
+trajectory hash, and collection-log hash. The last field is present for
+self-collected audited datasets and absent
 for source-integrity public benchmark imports.  A model checkpoint commitment
 is written $H(W_t)$, and a training configuration commitment is written
 \texttt{config\_hash}.  Public statements contain roots, hashes, relation

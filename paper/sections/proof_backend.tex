@@ -1,20 +1,94 @@
-The implemented proof backend is SP1. Each proof-backed relation follows a
-host/guest/shared structure under \path{zk_backend/}: the shared crate defines
-typed public inputs, private witnesses, fixed-point arithmetic, hashing, and
-relation checks; the guest executes the relation inside the zkVM; and the host
-loads JSON fixtures, executes or proves the guest, verifies public values, and
-records compact metrics.
+% ===================================================================
+%  Section VI: SP1 Proof Backend
+% ===================================================================
 
-The public statement contains roots, hashes, relation identifiers, claimed
-outputs, and proof public values. Private witnesses contain opened transitions,
-Merkle paths, weights, and intermediate arithmetic values unless a relation
-declares them public. Proof binaries and receipts are not committed. Instead,
-the artifact commits compact provenance: metrics, public inputs, witness
-schemas, verify reports, proof-artifact policy files, and hash inventories.
+The proof backend implements each relation as an SP1 zkVM program following
+the host/guest/shared architecture described in \Cref{subsec:sp1}. This
+section details the implementation structure and the prove/verify workflow.
 
-The proof-backed set is exactly the set listed in the backend coverage and
-Table 2: TD MVP, Merkle membership including dataset-size scaling, Forward-TD
-MLP, one-step SGD tiny, short trace, one-step training update batch size 1,
-training fragments with $k\in\{1,4,8\}$, and proof-manifest chunk-chain
-aggregation with $T\in\{32,64,128\}$. Rows marked execute-only or unsupported
-are not treated as proof-backed.
+\subsection{Backend Organization}
+
+Nine distinct SP1 workspaces reside under \texttt{zk\_backend/}, organized
+by relation type:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{td\_mvp/sp1/}: TD~MVP canonical vector.
+  \item \texttt{merkle\_membership/sp1/}: Leaf-hash membership against a
+  provenance-bound dataset root, including dataset-size scaling.
+  \item \texttt{forward\_td\_mlp/sp1/}: Forward-TD MLP with online argmax and
+  target-network value selection.
+  \item \texttt{one\_step\_sgd\_tiny/sp1/}: Tiny fixed-point SGD update.
+  \item \texttt{short\_trace/sp1/}: Short checkpoint-chain validation.
+  \item \texttt{training\_update/sp1/}: Full one-step training update
+  (membership + forward + backprop + SGD + checkpoint).
+  \item \texttt{training\_fragment/sp1/}: Multi-step fragments for
+  $k \in \{1, 4, 8\}$.
+  \item \texttt{training\_aggregation/sp1/}: Proof-manifest chunk-chain
+  aggregation for $T \in \{32, 64, 128\}$.
+\end{itemize}
+
+\noindent Each workspace shares a common pattern: the \emph{shared} crate
+defines typed public inputs, private witnesses, fixed-point arithmetic helpers,
+SHA-256 hashing wrappers, and the relation-check function. The \emph{guest}
+crate reads a typed input via \texttt{sp1\_zkvm::io::read()} and calls the
+shared verifier. The \emph{host} crate loads the JSON test vector, constructs
+the input, selects execute or prove mode, verifies the proof (if generated),
+and writes a compact metrics report.
+
+\subsection{Prove and Verify Workflow}
+
+\Cref{alg:sp1-workflow} summarizes the SP1 prove/verify workflow for a single
+relation.
+
+\begin{algorithm}[!t]
+\caption{SP1 Relation Prove/Verify Workflow}
+\label{alg:sp1-workflow}
+\begin{algorithmic}[1]
+\Require JSON fixture $F$, mode $\in \{\text{execute}, \text{prove}\}$
+\Ensure Verdict $\in \{\text{accept}, \text{reject}\}$, metrics $M$
+\State Parse $F$ into public inputs $x$ and witness $w$
+\State Compile guest ELF binary
+\If{mode = execute}
+  \State Run guest natively: $v \gets \mathsf{Guest}(x, w)$
+  \State \textbf{assert} $v.\mathsf{ok} = \mathsf{true}$
+\ElsIf{mode = prove}
+  \State $(\pi, \mathit{pv}) \gets \mathsf{SP1.Prove}(\mathsf{ELF}, x, w)$
+  \State \textbf{assert} $\mathsf{SP1.Verify}(\pi, \mathit{pv})$
+  \State \textbf{assert} $\mathit{pv}.\mathsf{roots} = x.\mathsf{roots}$
+  \Comment{Public-input binding}
+  \State Record $M$: cycle count, prove time, verify time, proof size
+\EndIf
+\State \Return (accept, $M$)
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Public-Input Binding}
+
+A critical security property is that the proof public values must match the
+public inputs committed before proof generation. For each relation, the host
+verifies that roots, hashes, relation identifiers, and claimed outputs in the
+proof's public values exactly match those in the original fixture. This prevents
+an adversary from generating a valid proof with one set of inputs and
+presenting it as proof for a different statement (attack \textbf{A7} from
+\Cref{subsec:adversary}).
+
+\subsection{Test Vectors and Provenance}
+
+All SP1 proofs are generated from canonical test vectors stored under
+\texttt{zk\_backend/test\_vectors/}. Proof binaries and receipts are not
+committed to the repository. Instead, the artifact commits \emph{compact
+provenance}: execution metrics, public-input JSON files, witness schemas,
+verification reports, proof-artifact policy files, and SHA-256 hash inventories
+under \texttt{artifacts/reports/provenance/sp1/}. This design allows reviewers
+to verify proof claims without re-running the expensive prove step while
+preserving auditability.
+
+\subsection{Tamper Testing in the Backend}
+
+For each SP1 relation, the test suite includes negative (tamper) test cases
+that modify specific witness or public-input fields and verify that the guest
+rejects the tampered input. The host can optionally disable its own prechecks
+(\texttt{--skip-host-precheck}) so that rejection is attributable to the guest
+relation logic rather than to host-side JSON filtering. This ensures that
+tampering is caught at the correct verification layer (Python oracle, Rust
+execute, or SP1 proof verification).

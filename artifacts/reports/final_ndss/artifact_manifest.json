@@ -176,8 +176,8 @@
       "sha256": "b6a01dee21c298c26ebf370729c52b953bed1b70d26110c908e184f558b520e3"
     },
     "README.md": {
-      "bytes": 16168,
-      "sha256": "c94961edd62f0539d4cbfdea05bc705c1e047b29edda2d16ac31e3aa9fb78b1b"
+      "bytes": 16179,
+      "sha256": "a817775cd98a6da9fed2427533dc4e9036f8225243f87b65be259026979879a8"
     },
     "docs/artifact_reproducibility.md": {
       "bytes": 3497,
@@ -188,8 +188,8 @@
       "sha256": "bff1a5f4ebc636f50c91f134365817348b459a9155c84aaf1bbdbcc444c1d595"
     },
     "docs/claim_matrix.md": {
-      "bytes": 6282,
-      "sha256": "dc886a27c902adf915b444a48fb137a84381eefd7efbbcb5cc68d7d0b9c84d9c"
+      "bytes": 6293,
+      "sha256": "ea2525b1aea30b4024640ce98b59d7cbc3947eb5f5e8e454104225fc424bcdce"
     },
     "docs/theorem_artifact_map.md": {
       "bytes": 5740,
@@ -232,8 +232,8 @@
       "sha256": "27da2823ebd45179aa59b43b5a8fd77d02f7f6fb5ad8d99f0b083a640d1f713b"
     }
   },
-  "generated_at": "2026-05-23T11:19:18.480332+00:00",
-  "git_commit": "68a6e230de1d1181fce942412583c5082bffabd5",
+  "generated_at": "2026-05-23T12:30:53.439705+00:00",
+  "git_commit": "86e9f40750064c8f8ed0aff2ee8301a8b3a305c0",
   "omitted_artifacts": [
     {
       "pattern": "artifacts/datasets/ and artifacts/data_sources/",

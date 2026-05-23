@@ -1,33 +1,96 @@
-Offline RL trains policies from a fixed replay dataset, so verification must
-cover both data provenance and learning arithmetic. A dishonest prover can
-change a reward, action, terminal flag, next state, Bellman target, Q value,
-gradient, checkpoint link, or target-network synchronization while still
-presenting a plausible final checkpoint. The verifier therefore needs evidence
-that the checked computation used committed replay data and followed the stated
-fixed-point DQN relation.
+% ===================================================================
+%  Section I: Introduction
+% ===================================================================
 
-This paper targets selected Offline-DQN training fragments over
-provenance-bound replay data. The system combines audited dataset commitments,
-SP1-backed relation proofs, proof-manifest chunk-chain aggregation,
-RL/proof/tamper benchmark tables, and a theorem-to-artifact map. The scope is
-intentional: each claim is tied to a concrete relation, backend implementation,
+The deployment of reinforcement learning (RL) models in safety-critical
+applications---autonomous driving, medical treatment planning, robotic
+control---demands that stakeholders can verify the integrity of the training
+process~\cite{levine2020offline}. Unlike supervised learning, where a fixed
+mapping from inputs to labels can be checked through inference verification
+alone, RL policies emerge from sequential interactions with an environment.
+In the \emph{offline} setting, a policy is trained entirely from a fixed replay
+dataset $\dataset$ without further environment interaction, making the
+provenance and integrity of $\dataset$ as critical as the correctness of the
+learning algorithm itself.
+
+Consider a regulatory scenario where a company submits an offline-trained DQN
+policy for certification. A dishonest party could alter a reward signal in the
+replay buffer to make the policy appear better than it is, change a terminal
+flag to hide catastrophic failure trajectories, substitute Bellman targets to
+mask value-function errors, or tamper with gradient computations to conceal
+unauthorized model modifications. Current proof-of-learning
+frameworks~\cite{jia2021proofoflearning} address some of these concerns for
+supervised training, but they do not capture the RL-specific semantics of replay
+membership, Double-DQN target selection, temporal-difference (TD) error
+computation, target-network synchronization, and checkpoint chaining that
+characterize offline value-based methods.
+
+Zero-knowledge proof systems offer a principled solution: a prover can
+demonstrate that a computation was performed correctly without revealing
+sensitive witness data~\cite{thalerbook}. Recent work has applied
+zero-knowledge proofs to deep learning training~\cite{zkdl2023, kaizen2024,
+zkpotvicinity2025} and inference~\cite{zkcnn2021, safetynets2017, vcnn2024},
+but these systems target supervised architectures and do not address
+RL-specific training semantics. At the same time, advances in general-purpose
+zkVMs such as SP1~\cite{succinct2024sp1} and RISC Zero~\cite{risczero2023}
+have made it feasible to prove complex Rust programs inside a STARK-based
+virtual machine, opening the door to verifiable RL training.
+
+This paper presents a \emph{layered artifact system} for zero-knowledge
+verifiable offline DQN training. The system is deliberately scoped to selected
+training fragments rather than claiming end-to-end training proofs, and it
+separates concerns into distinct layers: dataset provenance, relation
+semantics, proof generation, and proof aggregation. Each layer is independently
+testable, and every claim is traceable to a concrete implementation artifact,
 test, and benchmark row.
 
-The artifact makes four contributions:
-\begin{itemize}[leftmargin=1.5em]
-    \item a dataset pipeline that distinguishes self-collected replay/reward
-    audits from public benchmark source-integrity imports;
-    \item SP1 proof-backed relations for replay membership, Bellman/TD
-    arithmetic, tiny MLP forward evidence, one-step SGD, checkpoint chains,
-    training fragments, and proof-manifest chunk-chain aggregation;
-    \item three generated paper tables: RL performance, ZK proof cost, and
-    tamper rejection with explicit rejection layers;
-    \item a reviewer artifact package with Make targets, Docker metadata,
-    compact hash manifests, and claim-safety checks.
-\end{itemize}
+The contributions of this work are as follows:
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{Provenance-bound dataset pipeline.} We design a pipeline that
+  distinguishes self-collected replay/reward audits from public benchmark
+  source-integrity imports, binding dataset manifests, audit reports, raw
+  trajectory hashes, and collection-log hashes into a SHA-256 Merkle
+  commitment (\Cref{sec:system-overview}).
 
-The paper does not claim a complete proof that an arbitrary DQN was trained
-from initialization to final model. It also does not claim Adam, Atari- or
-MuJoCo-scale proofs, batch-size 4/8/16 training-update proofs, proof-backed
-$k\in\{16,32,128\}$ fragments, no true recursive aggregation, or honest public
-dataset collection.
+  \item \textbf{Twelve SP1 proof-backed relations.} We implement twelve
+  distinct ZK relations and generate verified SP1 proofs covering replay membership
+  (including dataset-size scaling to 100k leaves), Bellman/TD arithmetic,
+  Forward-TD MLP evidence, one-step SGD updates, checkpoint chains, training
+  fragments for $k \in \{1, 4, 8\}$ steps, and proof-manifest chunk-chain
+  aggregation for $T \in \{32, 64, 128\}$ steps (\Cref{sec:relations,sec:proof-backend,sec:training-fragment}).
+
+  \item \textbf{Eight formal security theorems.} We state and sketch proofs for
+  eight theorems covering replay membership soundness, dataset commitment
+  soundness, Bellman target correctness, forward/backpropagation/update
+  correctness, checkpoint-chain soundness, training-fragment soundness, and
+  aggregation soundness, plus the zero-knowledge privacy boundary. Each theorem
+  is mapped to relation code, SP1 backend, tests, and benchmark evidence
+  (\Cref{sec:relations}).
+
+  \item \textbf{Comprehensive empirical evaluation.} We report three benchmark
+  tables: (i)~RL performance on self-collected and public benchmark datasets,
+  (ii)~ZK proof cost for all proof-backed relations, and (iii)~tamper rejection
+  across 17 adversarial categories with 166 test cases and zero unexpectedly
+  accepted rows. A reviewer artifact package with \texttt{make~reproduce-small}
+  exercises the complete pipeline (\Cref{sec:experiments}).
+\end{enumerate}
+
+\noindent\textbf{Scope boundaries.} This paper does not claim a complete proof
+that an arbitrary DQN was trained from initialization to final model. It does
+not claim Adam optimizer proofs, batch-size 4/8/16 training-update proofs,
+proof-backed $k \in \{16, 32, 128\}$ fragments, true recursive child-proof
+verification inside SP1, Atari/MuJoCo-scale proofs, or honest collection
+for public Minari/D4RL imports. These boundaries are explicitly stated in
+\Cref{sec:discussion} and the formal theorem statements.
+
+\smallskip
+\noindent\textbf{Organization.} \Cref{sec:background} reviews background on
+offline RL, DQN, and zero-knowledge proofs. \Cref{sec:threat-model} defines the
+threat model and problem formulation. \Cref{sec:system-overview} describes the
+system architecture. \Cref{sec:relations} presents the relations and formal
+statements. \Cref{sec:proof-backend} details the SP1 proof backend.
+\Cref{sec:training-fragment} covers training fragments and aggregation.
+\Cref{sec:experiments} reports experimental results.
+\Cref{sec:discussion} discusses scope and scalability.
+\Cref{sec:related-work} surveys related work, and
+\Cref{sec:conclusion} concludes with future directions.

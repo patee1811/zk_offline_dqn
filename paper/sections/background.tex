@@ -1,0 +1,121 @@
+% ===================================================================
+%  Section II: Background and Preliminaries
+% ===================================================================
+
+This section reviews the technical foundations used throughout the paper.
+
+\subsection{Markov Decision Process and DQN}
+
+We consider a discounted Markov decision process (MDP)
+$(\states, \actions, P, r, \gamma)$ with state space $\states$, finite action
+space $\actions$, transition kernel $P$, bounded reward function $r$, and
+discount factor $\gamma \in [0,1)$. A policy $\pi : \states \to \actions$
+selects actions, and the action-value function under $\pi$ is
+$Q^\pi(s,a) = \mathbb{E}_\pi\bigl[\sum_{t=0}^{\infty} \gamma^t r_t
+\mid s_0 = s, a_0 = a\bigr]$.
+
+Deep Q-Network (DQN)~\cite{mnih2015dqn} approximates $Q^*$ with a neural
+network $Q_\theta$ and uses experience replay and a periodically updated target
+network $Q_{\bar\theta}$ to stabilize training. The loss for a sampled
+transition $(s, a, r, s', d)$ is
+\begin{equation}\label{eq:dqn-loss}
+  \ell(\theta) = L\bigl(Q_\theta(s,a) - y\bigr),
+\end{equation}
+where $d \in \{0,1\}$ is the terminal flag and the Bellman target is
+\begin{equation}\label{eq:bellman-target}
+  y = r + \gamma (1 - d) \max_{a' \in \actions} Q_{\bar\theta}(s', a').
+\end{equation}
+Double DQN~\cite{hasselt2016double} decouples action selection from target
+evaluation:
+\begin{equation}\label{eq:ddqn-target}
+  a^* = \arg\max_{a'} Q_\theta(s', a'), \quad
+  y = r + \gamma (1 - d)\, Q_{\bar\theta}(s', a^*).
+\end{equation}
+
+Throughout this paper, the loss function $L$ is the SmoothL1 (Huber)
+loss~\cite{huber1964robust}:
+\begin{equation}\label{eq:smoothl1}
+  L(\delta) =
+  \begin{cases}
+    \tfrac{1}{2}\delta^2 & \text{if } |\delta| < 1,\\
+    |\delta| - \tfrac{1}{2} & \text{otherwise.}
+  \end{cases}
+\end{equation}
+
+\subsection{Offline Reinforcement Learning}
+
+Offline RL~\cite{levine2020offline, fujimoto2019offpolicy} trains policies from
+a fixed dataset $\dataset = \{(s_i, a_i, r_i, s'_i, d_i)\}_{i=1}^N$ without
+additional environment interaction. This eliminates exploration but introduces
+distributional challenges: value overestimation for out-of-distribution
+actions~\cite{kumar2020cql} and sensitivity to dataset quality. From a
+verification perspective, the fixed dataset creates a clear commitment point:
+the verifier can require that all training computations reference transitions
+from a committed dataset.
+
+\subsection{Zero-Knowledge Proofs}\label{subsec:zkp}
+
+A zero-knowledge proof system~\cite{thalerbook} allows a prover~$\mathcal{P}$
+to convince a verifier~$\mathcal{V}$ that a statement~$x$ is true with respect
+to a witness~$w$ satisfying a relation~$R(x,w) = 1$, without revealing~$w$
+beyond the validity of the statement. A proof system is:
+\begin{itemize}[leftmargin=1.5em]
+  \item \emph{Complete}: an honest prover with a valid witness always
+  convinces the verifier.
+  \item \emph{Sound}: no computationally bounded prover can convince the
+  verifier of a false statement (except with negligible probability).
+  \item \emph{Zero-knowledge}: the verifier learns nothing beyond the truth
+  of the statement.
+\end{itemize}
+
+\noindent A \emph{succinct} proof system (zkSNARK/zkSTARK) additionally
+guarantees that verification time and proof size are sublinear (or polylogarithmic)
+in the computation size~\cite{groth2016zksnark, bensasson2014scalable}.
+
+\subsection{Merkle Tree Commitments}\label{subsec:merkle}
+
+A Merkle tree~\cite{merkle1987} is a binary hash tree in which each leaf
+contains the hash of a data element and each internal node contains the hash
+of its two children. The value $\mroot$ serves as a compact commitment to all
+leaves. To prove membership of leaf $\ell_i$, the prover provides a sibling
+path $(h_1, h_2, \ldots, h_d)$ with direction bits, and the verifier
+recomputes the root from the leaf through $d$ hash steps. Membership
+verification requires $O(d) = O(\log N)$ hash evaluations for $N$ leaves.
+
+In our system, each replay transition $\tau_i = (s_i, a_i, r_i, s'_i, d_i)$
+is serialized into a canonical fixed-point encoding, hashed with SHA-256, and
+inserted as a leaf. The dataset commitment additionally binds the Merkle root
+to a manifest hash, audit-report hash, raw trajectory hash, and collection-log
+hash (when available), creating a \emph{provenance-bound} commitment.
+
+\subsection{SP1 Zero-Knowledge Virtual Machine}\label{subsec:sp1}
+
+SP1~\cite{succinct2024sp1} is a RISC-V-based general-purpose zkVM that allows
+developers to write provable programs in Rust. SP1 uses a STARK-based proof
+system with recursive composition: the program executes inside the VM, and the
+execution trace is proved segment by segment. For on-chain verification, proofs
+can be compressed to a Groth16 SNARK~\cite{groth2016zksnark}.
+
+We chose SP1 as the proof backend because our relations combine SHA-256
+hashing, Merkle path traversal, fixed-point integer arithmetic, branching
+logic, and schema validation---a workload well suited to a general-purpose
+zkVM. Each relation is structured as a \emph{host/guest/shared} Rust workspace:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Shared crate}: typed public inputs, private witnesses,
+  fixed-point helpers, and relation-check logic.
+  \item \textbf{Guest crate}: reads inputs inside the zkVM and calls the
+  shared relation verifier.
+  \item \textbf{Host crate}: loads JSON fixtures, selects execute or prove
+  mode, verifies proofs, and records compact metrics.
+\end{itemize}
+
+\subsection{Fixed-Point Arithmetic}\label{subsec:fixedpoint}
+
+All arithmetic in the relation layer uses deterministic fixed-point integer
+encoding with a global scale factor $\fpscale = 1000$. A real value $v$ is
+represented as $\lfloor v \cdot \fpscale \rceil \in \mathbb{Z}$, and all
+additions, multiplications (with rescaling), comparisons, and hash inputs
+operate on these integer values. This eliminates floating-point
+nondeterminism between Python semantic oracles and Rust/SP1 guests, ensuring
+that the same inputs produce identical outputs across both verification
+paths.

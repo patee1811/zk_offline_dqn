@@ -1,50 +1,89 @@
+% ===================================================================
+%  Section X: Related Work
+% ===================================================================
+
 \paragraph{Offline RL and DQN.}
 DQN combines value-function approximation, experience replay, and a target
-network for temporal-difference learning~\cite{mnih2015dqn,watkins1992qlearning}.
-Double DQN separates next-action selection from target-network value evaluation
-to reduce overestimation~\cite{hasselt2016double}. Offline RL studies the fixed
-dataset setting~\cite{levine2020offline}, where value learning can be brittle
-under distribution shift~\cite{fujimoto2019offpolicy}; CQL addresses this with
-conservative value regularization~\cite{kumar2020cql}. Our work does not
-improve the RL algorithm. It makes selected DQN-style replay and TD computations
-verifiable over committed data, and it treats CQL/IQL-style rows as benchmark
-context rather than proof claims.
+network for temporal-difference learning~\cite{mnih2015dqn,
+watkins1992qlearning}. Double DQN~\cite{hasselt2016double} separates
+next-action selection from target-network value evaluation to reduce
+overestimation. Offline RL studies the fixed-dataset
+setting~\cite{levine2020offline}, where value learning is brittle under
+distribution shift~\cite{fujimoto2019offpolicy}; Conservative Q-Learning
+(CQL)~\cite{kumar2020cql} addresses this with value regularization. Our work
+does not improve the RL algorithm: it makes selected DQN-style replay and TD
+computations \emph{verifiable} over committed data.
 
 \paragraph{Proof-of-learning and proof-of-training.}
-Proof-of-Learning introduced the problem of proving that a model resulted from
-a claimed training procedure~\cite{jia2021proofoflearning}. zkDL and related
-systems target zero-knowledge proofs for deep learning training, including
-neural nonlinearities and backpropagation~\cite{zkdl2023}. Kaizen gives a
-zero-knowledge proof-of-training construction for DNNs based on per-iteration
-proofs and recursive composition~\cite{kaizen2024}. zkPoT-style work based on optimum
-vicinity explores another way to make training claims succinct~\cite{zkpotvicinity2025}.
-These systems motivate our goal, but they do not directly encode offline
-DQN-specific semantics such as terminal Bellman branches, replay membership,
-Double-DQN argmax, target-network selection, and TD losses.
+Proof-of-Learning~\cite{jia2021proofoflearning} introduced the problem of
+proving that a model resulted from a claimed training procedure. The approach
+records intermediate checkpoints and verifies training consistency, but it is
+not zero-knowledge and does not provide cryptographic soundness guarantees.
+zkDL~\cite{zkdl2023} targets zero-knowledge proofs for deep learning training
+including neural nonlinearities and backpropagation, using custom arithmetic
+circuits. Kaizen~\cite{kaizen2024} gives a zero-knowledge proof-of-training
+construction for DNNs based on per-iteration proofs and recursive composition,
+achieving end-to-end training verification for small networks. zkPoT~\cite{zkpotvicinity2025}
+explores an alternative approach through optimum vicinity, proving that a
+trained model lies near the optimum rather than re-executing every gradient
+step. These systems motivate our goal but do not directly encode offline-RL-specific
+semantics such as terminal Bellman branches, replay membership, Double-DQN
+argmax, target-network synchronization, and TD losses.
 
 \paragraph{Verifiable and zero-knowledge machine learning.}
-Verifiable ML systems have heavily studied inference integrity. SafetyNets
-builds proofs for neural-network inference on untrusted clouds~\cite{safetynets2017};
-zkCNN proves CNN predictions and accuracy while hiding private information
-~\cite{zkcnn2021}; VeriML gives integrity and payment assurances for outsourced
-ML tasks~\cite{veriml2021}. Recent surveys organize this space into verifiable
-inference, testing, and training~\cite{zkmlsurvey2026}. Our relation is
-different: the first-class computation is a Bellman TD claim over committed
-replay data rather than a supervised prediction.
+Verifiable ML has been studied extensively for inference integrity.
+SafetyNets~\cite{safetynets2017} builds proofs for neural-network inference on
+untrusted clouds. zkCNN~\cite{zkcnn2021} proves CNN predictions and accuracy
+while hiding private information. VeriML~\cite{veriml2021} provides integrity
+and payment assurances for outsourced ML tasks. vCNN~\cite{vcnn2024} implements
+verifiable convolutional neural networks using zk-SNARKs and was published in
+IEEE TDSC. Recent surveys organize this space into verifiable inference,
+testing, and training~\cite{zkmlsurvey2026}. Our relation is different: the
+first-class computation is a Bellman TD claim over committed replay data rather
+than a supervised prediction.
+
+\paragraph{ZK for federated learning.}
+Zero-knowledge proofs have been applied to verify gradient aggregation in
+federated learning~\cite{zkgradient2025}, where a ZK proof ensures that the
+aggregator correctly combined client updates. While this addresses a different
+threat model (malicious aggregator vs.\ malicious trainer), the gradient
+verification component shares technical similarities with our backpropagation
+and SGD update proofs.
 
 \paragraph{zkVMs and proof backends.}
 General-purpose zkVMs trade circuit specialization for implementation speed.
-SP1 is a Rust-oriented zkVM used here because the relation combines hashing,
-Merkle paths, schema checks, integer arithmetic, and branching
-~\cite{succinct2024sp1}. RISC Zero is another zkVM-style backend in the same
-design space; in this project it is treated as a comparison or future backend
-rather than the main implementation target.
+SP1~\cite{succinct2024sp1} is a Rust-oriented RISC-V zkVM using STARK-based
+proofs; we chose it because our relations combine hashing, Merkle paths, schema
+checks, integer arithmetic, and branching. RISC Zero~\cite{risczero2023} is
+another zkVM in the same design space. Both support recursive proof composition,
+though our current aggregation uses proof-manifest chains rather than true
+recursive verification. On-chain verification can be achieved through
+Groth16~\cite{groth2016zksnark} or PLONK~\cite{gabizon2019plonk} SNARK
+compression.
 
 \paragraph{Verifiable RL.}
 Prior verifiable RL work often focuses on interpretable or formally verifiable
-policies rather than cryptographic verification of training computations.
-Programmatic-policy approaches search for policies that can be checked by
-symbolic methods~\cite{verma2019verifiable}. Our work targets a different
-layer: cryptographic or deterministic verification of the replay membership,
-Bellman arithmetic, model-grounded TD evidence, and update evidence inside
-offline value learning.
+\emph{policies} rather than cryptographic verification of training
+computations. Programmatic-policy approaches~\cite{verma2019verifiable} search
+for policies checkable by symbolic methods. Our work targets a different layer:
+cryptographic verification of the replay membership, Bellman arithmetic,
+model-grounded TD evidence, and update evidence inside offline value learning.
+To the best of our knowledge, this is the first system to provide
+zero-knowledge proof-backed verification for RL training computations over
+committed replay data.
+
+\paragraph{Data provenance for AI.}
+The importance of training-data provenance is increasingly
+recognized~\cite{dataauth2024, aiprovenance2025}. Frameworks for cryptographic
+verifiability of end-to-end AI pipelines propose Merkle commitments and content
+identifiers for dataset integrity. Our provenance-bound dataset commitment
+(\Cref{alg:dataset-commitment}) implements this pattern specifically for
+offline RL replay buffers, binding the Merkle root to auditable collection
+artifacts.
+
+\paragraph{Verifiable computation.}
+The broader verifiable computation literature~\cite{walfish2015verifiable}
+provides the theoretical foundations for our approach. Our system applies these
+foundations to a specific domain (offline RL training) and demonstrates that
+general-purpose zkVM technology can be used to verify domain-specific machine
+learning computations at a practical proof cost.

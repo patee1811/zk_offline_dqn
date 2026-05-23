@@ -1,14 +1,71 @@
-\section{Conclusion}
+% ===================================================================
+%  Section XI: Conclusion and Future Work
+% ===================================================================
 
-This paper presents a proof-backed artifact system for selected Offline-DQN
-training fragments over audited or provenance-bound committed replay data. It
-connects dataset audits, Merkle commitments, fixed-point DQN relations, SP1
-proof provenance, proof-manifest chunk-chain aggregation, and three generated
-benchmark tables.
+\subsection{Summary of Contributions}
 
-The final artifact is submission-oriented: every theorem maps to a relation,
-backend or verifier, tests, and Table 2/Table 3 evidence; every paper-facing
-table is generated from committed report scripts; and the reviewer fast path is
-packaged as `make reproduce-small`. The contribution is deliberately scoped and
-does not claim complete DQN training, true recursive aggregation, Adam,
-large-scale Atari/MuJoCo proofs, or honest public dataset collection.
+This paper presented a layered artifact system for zero-knowledge verifiable
+offline DQN training fragments over provenance-bound committed replay data.
+The key technical contributions are:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item A provenance-bound dataset pipeline that separates self-collected
+  replay/reward audits from public benchmark source-integrity imports,
+  binding all provenance hashes into a SHA-256 Merkle commitment.
+
+  \item Twelve SP1 proof-backed relations covering replay membership (with
+  dataset-size scaling to 100k leaves), Bellman/TD arithmetic, forward MLP
+  evidence, one-step SGD updates, checkpoint chains, multi-step training
+  fragments ($k \in \{1, 4, 8\}$), and proof-manifest chunk-chain aggregation
+  ($T \in \{32, 64, 128\}$).
+
+  \item Eight formal security theorems, each mapped to implemented relation
+  code, SP1 backend, tests, and benchmark evidence, providing full traceability
+  from claims to artifacts.
+
+  \item A comprehensive experimental evaluation demonstrating fast verification
+  ($<$\,0.21\,s), compact proofs ($<$\,2.84\,MB), and complete tamper rejection
+  across 166 adversarial test cases with zero false negatives.
+\end{enumerate}
+
+The contribution is a deliberately scoped security/systems artifact.
+Every formal theorem maps to a relation, backend, tests, and benchmark
+evidence. The reviewer fast path (\texttt{make reproduce-small}) exercises
+the entire pipeline without heavy proof regeneration.
+
+\subsection{Future Work}
+
+Several directions can extend the current system:
+
+\textbf{True recursive aggregation.} The highest-priority extension is
+implementing recursive child-proof verification inside the aggregate SP1 guest.
+This would eliminate the need for external child-proof verification and enable
+arbitrarily long training-trace proofs from $W_0$ to $W_T$.
+
+\textbf{Adam optimizer proofs.} Extending the update relation to cover Adam's
+per-parameter adaptive learning rates, first and second moment estimates, and
+bias correction would make the system applicable to practical DQN training
+configurations.
+
+\textbf{Batch-size scaling.} The current training update proves batch-size-1
+updates. Supporting batch sizes 4, 8, and 16 would require
+vectorized fixed-point gradient accumulation and would better reflect real
+training setups.
+
+\textbf{Larger network architectures.} Moving beyond the canonical tiny
+Linear--ReLU--Linear MLP to deeper networks with convolutional layers or
+batch normalization would extend applicability to Atari-scale DQN.
+
+\textbf{GPU-accelerated proving.} SP1's GPU prover can reduce proving costs
+by up to 10x. Integrating GPU-accelerated proving would make the system
+practical for continuous verification in production RL pipelines.
+
+\textbf{On-chain verification.} Compressing SP1 STARK proofs to
+Groth16~\cite{groth2016zksnark} SNARKs would enable on-chain verification on
+Ethereum or other smart-contract platforms, supporting decentralized RL model
+certification.
+
+\textbf{Honest data collection proofs.} Extending the provenance pipeline to
+provide cryptographic evidence of honest data collection (e.g., through
+trusted execution environments or verifiable random functions) would
+strengthen the end-to-end trust chain.

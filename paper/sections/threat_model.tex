@@ -1,68 +1,136 @@
-The system has five roles.  A dataset collector or importer creates replay
-data and metadata.  A prover opens committed transitions and model/checkpoint
-witnesses and produces relation proofs or semantic-verifier evidence.  A
-verifier checks public statements, proof public values, and artifact hashes.  An
-auditor/report generator checks source artifacts and emits Tables 1--3.  A
-benchmark runner records proof cost and tamper-rejection evidence without
-changing the relations.
+% ===================================================================
+%  Section III: Threat Model and Problem Formulation
+% ===================================================================
 
-\subsection{Assets and Public Inputs}
+\subsection{System Roles}
+
+The system defines five roles. A \emph{dataset collector/importer} creates
+replay data and metadata through either instrumented environment interaction or
+public benchmark import. A \emph{prover} opens committed transitions and
+model/checkpoint witnesses and produces relation proofs or semantic-verifier
+evidence. A \emph{verifier} checks public statements, proof public values, and
+artifact hashes. An \emph{auditor/report generator} checks source artifacts and
+emits benchmark tables. A \emph{benchmark runner} records proof cost and
+tamper-rejection evidence without changing the relations.
+
+\subsection{Assets, Public Inputs, and Private Witnesses}
 
 The protected assets are replay dataset contents, dataset commitments, manifest
 and audit reports, model weights, checkpoint hashes, private witness values,
-proof artifacts, and benchmark tables.  The verifier may see the dataset root
-or Merkle root, manifest hash, audit-report hash, raw trajectory hash,
-collection-log hash when available, configuration hash, input/output
-checkpoint hashes, relation-specific public outputs, proof verification key
-material or public values, and published benchmark metrics.  These values are
-public by construction.
+proof artifacts, and benchmark tables. \Cref{tab:public-private} summarizes the
+public/private classification.
 
-The private witness boundary is relation-specific.  Dataset transition values
-may be private witnesses to membership and training relations, but the dataset
-may also be public or committed elsewhere.  Merkle paths are witnesses unless a
-report discloses them.  Model weights and intermediate tensors can be private
-when only checkpoint hashes are public.  Checkpoint hashes, dataset roots, and
-public report tables are not private.
+\begin{table}[!t]
+\centering
+\small
+\caption{Public inputs vs.\ private witnesses in the proof system.}
+\label{tab:public-private}
+\begin{tabular}{p{3.8cm}p{3.8cm}}
+\toprule
+\textbf{Public inputs} & \textbf{Private witnesses} \\
+\midrule
+Dataset root / Merkle root &
+Transition field values \\
+Manifest hash, audit-report hash &
+Merkle sibling paths \\
+Raw trajectory hash &
+Model weights and intermediates \\
+Config hash &
+Gradient tensors \\
+Checkpoint hashes (in/out) &
+Fixed-point intermediate values \\
+Relation identifier and outputs &
+Minibatch indices (unless public) \\
+Proof public values &
+--- \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsection{Adversary Capabilities}
+The private witness boundary is relation-specific. Transition values may be
+private witnesses to membership and training relations, but they can also be
+public or committed elsewhere. Merkle sibling paths are witnesses unless a
+report discloses them. Model weights and intermediate tensors are private when
+only checkpoint hashes are public.
 
-The malicious prover may try to alter a transition reward, action, done flag,
-or next state; use a transition outside the committed replay set; tamper with a
-Merkle path, leaf index, or root; change a deterministic minibatch index;
-change selected Q values, TD targets, losses, gradients, or weight updates;
-skip or reorder checkpoint steps; tamper with target-network synchronization;
-reorder aggregation chunks; swap child proof manifests; alter child public
-input hashes; or verify a proof against different public inputs.  The verifier
-accepts only if the implemented relation and public-input binding checks pass.
+\subsection{Adversary Model}\label{subsec:adversary}
+
+The adversary is a computationally bounded malicious prover who controls the
+training process and seeks to produce a convincing but dishonest proof. The
+adversary may attempt any combination of the following attacks:
+
+\begin{enumerate}[leftmargin=1.8em, label=\textbf{A\arabic*}.]
+  \item \textbf{Data tampering}: alter a transition reward, action, done flag,
+  or next state; use a transition outside the committed replay set.
+  \item \textbf{Commitment tampering}: tamper with a Merkle path, leaf index,
+  leaf hash, sibling hash, or root.
+  \item \textbf{Sampling tampering}: change a deterministic minibatch index or
+  duplicate an index within a batch.
+  \item \textbf{Computation tampering}: alter Q values, TD targets, losses,
+  SmoothL1 derivatives, gradients, SGD deltas, or weight updates.
+  \item \textbf{Trace tampering}: skip or reorder checkpoint steps; break
+  checkpoint hash chains; tamper with target-network synchronization timing.
+  \item \textbf{Aggregation tampering}: reorder aggregation chunks; swap child
+  proof manifests; alter child public-input hashes; present inconsistent
+  dataset or configuration commitments.
+  \item \textbf{Verification tampering}: verify a proof against different
+  public inputs than those committed.
+\end{enumerate}
+
+The verifier accepts only if the implemented relation and public-input binding
+checks pass for the specific relation being verified.
 
 \subsection{Reward and Dataset Correctness Boundary}
 
-For self-collected datasets, the audit pipeline can replay the environment and
-check reward, next-state, termination, truncation, and collection-log evidence
-before commitment.  After commitment, proofs and verifiers check consistency
-with the committed and audited data.  They do not establish reward correctness
-for arbitrary external datasets beyond the import/source-integrity checks that
-were actually performed.  Public Minari/D4RL benchmark rows are
-source-integrity benchmark imports, not honest collection proofs.
+For self-collected datasets, the audit pipeline replays the environment and
+checks reward, next-state, termination, truncation, and collection-log evidence
+\emph{before} commitment. After commitment, proofs and verifiers check
+consistency with the committed and audited data. The system does not establish
+reward correctness for arbitrary external datasets beyond the import and
+source-integrity checks that were performed. Public Minari~\cite{minari2023}
+and D4RL~\cite{fu2020d4rl} benchmark rows are source-integrity commitments,
+not honest-collection proofs.
 
-\subsection{Non-goals}
+\subsection{Security Goals and Non-Goals}
 
-The artifact does not claim a full DQN training proof, Adam optimizer proof,
-all-replay-batches proof, model-selection proof, no true recursive aggregation,
-honest public dataset collection proof, or optimality of the learned policy.
-It also does not provide confidentiality for values intentionally published in
-fixtures, reports, tables, public inputs, or proof metrics.
+\noindent\textbf{Goals.} The system aims to provide:
+\begin{itemize}[leftmargin=1.5em]
+  \item Soundness of replay membership relative to a committed dataset root.
+  \item Correctness of fixed-point TD/Bellman computation for opened
+  transitions.
+  \item Correctness of MLP forward pass, backpropagation, and SGD update for
+  canonical tiny vectors.
+  \item Integrity of checkpoint chains and target-network synchronization
+  within training fragments.
+  \item Consistency of proof-manifest chunk-chain aggregation.
+  \item Zero-knowledge privacy for witness data not intentionally published.
+\end{itemize}
+
+\noindent\textbf{Non-goals.} The system explicitly does \emph{not} claim:
+\begin{itemize}[leftmargin=1.5em]
+  \item Full DQN training proof from initialization to final checkpoint.
+  \item Adam optimizer or advanced optimizer-state proofs.
+  \item All-replay-batches proof or model-selection proof.
+  \item True recursive child-proof verification inside the aggregate SP1 guest.
+  \item Honest public dataset collection proof.
+  \item Policy optimality or convergence guarantees.
+\end{itemize}
 
 \subsection{Security Claims Matrix}
+
+\Cref{tab:security-claims} maps each threat category to the corresponding
+mitigation mechanism, formal theorem, tamper-rejection evidence
+(\Cref{sec:experiments}), and known limitation.
 
 \begin{table*}[!t]
 \centering
 \small
-\caption{Threats, mitigations, theorem coverage, and residual limitations.}
+\caption{Security claims matrix: threats, mitigations, theorem coverage, and residual limitations.}
 \label{tab:security-claims}
-\begin{tabular}{p{3.3cm} p{4.0cm} p{2.1cm} p{2.6cm} p{3.3cm}}
+\begin{tabular}{p{2.8cm} p{3.8cm} p{1.8cm} p{2.8cm} p{3.6cm}}
 \toprule
-Threat & Mitigation & Theorem & Table 3 category & Limitation \\
+\textbf{Threat} & \textbf{Mitigation} & \textbf{Theorem} &
+\textbf{Table~\ref{tab:tamper-summary} category} & \textbf{Residual limitation} \\
 \midrule
 Use transition outside replay set &
 Merkle leaf/path/root recomputation &
@@ -70,37 +138,37 @@ Thm.~\ref{thm:replay-membership} &
 Merkle path, dataset root &
 No honest collection proof for public data \\
 \midrule
-Change reward/action/done/next state &
-Dataset audit and TD relation recomputation &
-Thm.~\ref{thm:dataset-commitment}, \ref{thm:bellman-target} &
-reward, action, done, next state &
+Alter reward, action, done, or next state &
+Dataset audit + TD relation recomputation &
+Thms.~\ref{thm:dataset-commitment}, \ref{thm:bellman-target} &
+reward, action, done, next\_state &
 Reward audit only where collection artifacts support it \\
 \midrule
-Lie about Q value, TD target, or loss &
+Falsify Q value, TD target, or loss &
 Fixed-point Bellman and SmoothL1 recomputation &
 Thm.~\ref{thm:bellman-target} &
-Q value, TD target &
+Q value, TD target, loss &
 No policy optimality claim \\
 \midrule
-Lie about gradient or update &
+Falsify gradient or update &
 Fixed-point backpropagation and SGD checks &
 Thm.~\ref{thm:update-correctness} &
 gradient, checkpoint hash &
 Batch-size-1 tiny MLP only \\
 \midrule
 Break checkpoint chain or target sync &
-Per-step checkpoint and target checkpoint links &
-Thm.~\ref{thm:checkpoint-chain}, \ref{thm:training-fragment} &
-checkpoint hash, target-network sync &
+Per-step checkpoint + target checkpoint links &
+Thms.~\ref{thm:checkpoint-chain}, \ref{thm:training-fragment} &
+checkpoint hash, target sync &
 No full training-run proof \\
 \midrule
-Reorder chunks or swap proof manifests &
-Proof-manifest hashes, aggregate roots, and checkpoint links &
+Reorder chunks / swap proof manifests &
+Manifest hashes + aggregate roots + checkpoint links &
 Thm.~\ref{thm:manifest-aggregation} &
 aggregation, proof public input &
-Proof-manifest chain only; not true recursive \\
+Proof-manifest chain only \\
 \midrule
-Verify proof under different public input &
+Verify under different public inputs &
 Public-input binding and proof public values &
 Thm.~\ref{thm:privacy-boundary} &
 proof public input &

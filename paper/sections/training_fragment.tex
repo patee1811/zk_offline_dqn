@@ -1,16 +1,173 @@
-The training fragment proof composes the one-step update relation over a short
-deterministic trace. For $k\in\{1,4,8\}$, the relation checks the sampler seed,
-global step, minibatch index, replay membership for the opened transition, MLP
-forward values, Bellman target, SmoothL1 loss, backpropagation, fixed-point SGD
-update, checkpoint transition, and target-network synchronization.
+% ===================================================================
+%  Section VII: Training Fragment and Aggregation Proofs
+% ===================================================================
 
-The one-step training update is the base case. It proves a canonical
-batch-size-1 tiny MLP vector and binds the pre-update checkpoint to the
+This section describes how individual relation proofs are composed into
+multi-step training fragment proofs and further aggregated via proof-manifest
+chunk chains.
+
+\subsection{Training Fragment Proof}
+
+The training fragment proof composes the one-step update relation over a short
+deterministic trace of $k$ steps. For each step $t \in \{0, \ldots, k{-}1\}$,
+the fragment relation verifies the complete sequence shown in
+\Cref{fig:training-fragment}.
+
+% ---- Figure 4: Training Fragment Composition ----
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[
+    node distance=0.25cm and 0.15cm,
+    stepbox/.style={draw, rounded corners=2pt, minimum width=2.0cm,
+                 minimum height=0.5cm, align=center, font=\scriptsize,
+                 line width=0.4pt},
+    ckpt/.style={draw, circle, minimum size=0.5cm, font=\tiny\bfseries,
+                 fill=red!10, inner sep=0pt},
+    arr/.style={-{Stealth[length=3pt]}, thick, color=gray!60},
+    brace/.style={decorate, decoration={brace, amplitude=5pt, mirror}}
+]
+% Checkpoints
+\node[ckpt] (w0) at (0, 0) {$W_0$};
+\node[ckpt] (w1) at (2.4, 0) {$W_1$};
+\node[ckpt] (w2) at (4.8, 0) {$W_2$};
+\node[ckpt] (wk) at (7.2, 0) {$W_k$};
+
+% Step boxes
+\node[stepbox, fill=blue!8] (s1) at (1.2, 1.0) {Sample\\$\tau_{i_0}$};
+\node[stepbox, fill=green!8] (v1) at (1.2, 0.4) {Verify};
+\node[stepbox, fill=blue!8] (s2) at (3.6, 1.0) {Sample\\$\tau_{i_1}$};
+\node[stepbox, fill=green!8] (v2) at (3.6, 0.4) {Verify};
+
+% Dots
+\node[font=\large] at (6.0, 0.5) {$\cdots$};
+
+% Arrows between checkpoints
+\draw[arr] (w0) -- (w1);
+\draw[arr] (w1) -- (w2);
+\draw[arr] (w2) -- (wk);
+
+% Step arrows
+\draw[arr, color=blue!50] (s1) -- (v1);
+\draw[arr, color=blue!50] (s2) -- (v2);
+
+% Target sync annotation
+\draw[brace] (0, -0.5) -- node[below=4pt, font=\scriptsize]
+  {target sync at interval $T_{\mathrm{sync}}$} (7.2, -0.5);
+\end{tikzpicture}
+\caption{Training fragment proof: $k$ update steps chained through checkpoint
+hashes. Each step verifies deterministic sampling, replay membership, TD
+computation, backpropagation, SGD update, and checkpoint transition.
+Target-network synchronization is checked at configured intervals.}
+\label{fig:training-fragment}
+\end{figure}
+
+\Cref{alg:training-fragment} formalizes the per-step verification within a
+$k$-step fragment.
+
+\begin{algorithm}[!t]
+\caption{$k$-Step Training Fragment Verification}
+\label{alg:training-fragment}
+\begin{algorithmic}[1]
+\Require Initial checkpoint $W_0$, target checkpoint $\bar{W}_0$,
+  seed $\sigma$, Merkle commitment $\mroot$, steps $k$
+\Ensure Final checkpoint $W_k$ is correct
+\For{$t = 0$ to $k - 1$}
+  \State $i_t \gets \mathsf{DeterministicSample}(\sigma, t)$
+  \Comment{Minibatch index}
+  \State \textbf{assert} $R_{\mathrm{mem}}(\mroot;\, \tau_{i_t},
+    i_t, \pi_{i_t})$
+  \Comment{Replay membership}
+  \State $Q \gets \mathsf{ForwardMLP}(W_t, s_{i_t})$
+  \Comment{Online Q}
+  \State $\bar{Q} \gets \mathsf{ForwardMLP}(\bar{W}_t, s'_{i_t})$
+  \Comment{Target Q}
+  \State $y \gets r_{i_t} + \gamma(1 - d_{i_t}) \bar{Q}[\arg\max Q']
+    / \fpscale$
+  \State $\ell \gets L_{\mathrm{SmoothL1}}(Q[a_{i_t}] - y)$
+  \State $\nabla \gets \mathsf{Backprop}(W_t, \ell)$
+  \State $W_{t+1} \gets W_t - \eta \cdot \nabla / \fpscale$
+  \Comment{SGD update}
+  \State \textbf{assert} $\mhash(W_{t+1}) = \mathsf{claimed\_ckpt}_{t+1}$
+  \If{$(t + 1) \bmod T_{\mathrm{sync}} = 0$}
+    \State $\bar{W}_{t+1} \gets W_{t+1}$
+    \Comment{Hard target sync}
+  \EndIf
+\EndFor
+\State \Return $W_k$
+\end{algorithmic}
+\end{algorithm}
+
+The one-step training update ($k=1$) is the base case: it proves a single
+canonical batch-size-1 update and binds the pre-update checkpoint to the
 post-update checkpoint. The multi-step fragment repeats this relation and
 requires each output checkpoint to match the next input checkpoint. Target
 network state is linked separately so that tampering with sync events is
-detected.
+detected. SP1 proof provenance covers $k \in \{1, 4, 8\}$. Longer fragments
+$k \in \{16, 32, 128\}$ have execute/reference validation only and are not
+treated as proof-backed claims.
 
-Longer fragments $k\in\{16,32,128\}$ are useful engineering validations, but
-they are execute/reference evidence only in this artifact. They are not
-proof-backed Table 2 claims.
+\subsection{Proof-Manifest Chunk-Chain Aggregation}
+
+For training traces longer than $k=8$ steps, the system uses proof-manifest
+chunk-chain aggregation (\Cref{fig:chunk-chain}). The aggregate proof binds
+$c = T / k$ externally verified child proof manifests, where each manifest
+represents a $k=8$ training fragment.
+
+% ---- Figure 5: Chunk-Chain Aggregation ----
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[
+    node distance=0.3cm and 0.3cm,
+    chunk/.style={draw, rounded corners=3pt, minimum width=1.5cm,
+                  minimum height=0.7cm, align=center, font=\scriptsize,
+                  fill=orange!10, line width=0.4pt},
+    agg/.style={draw, rounded corners=3pt, minimum width=2.4cm,
+                minimum height=0.7cm, align=center, font=\scriptsize,
+                fill=red!12, line width=0.5pt},
+    arr/.style={-{Stealth[length=4pt]}, thick, color=gray!60},
+    link/.style={-{Stealth[length=3pt]}, dashed, color=green!50!black}
+]
+% Child chunks
+\node[chunk] (c1) at (0, 0) {Fragment\\$M_1$ ($k\!=\!8$)};
+\node[chunk] (c2) at (2.2, 0) {Fragment\\$M_2$ ($k\!=\!8$)};
+\node[chunk] (c3) at (4.4, 0) {Fragment\\$M_3$ ($k\!=\!8$)};
+\node[font=\scriptsize] (dots) at (5.8, 0) {$\cdots$};
+\node[chunk] (cn) at (7.0, 0) {Fragment\\$M_c$ ($k\!=\!8$)};
+
+% Aggregate
+\node[agg] (ag) at (3.5, -1.5) {Aggregate proof\\$W_0 \to W_T$};
+
+% Arrows
+\draw[arr] (c1) -- (ag);
+\draw[arr] (c2) -- (ag);
+\draw[arr] (c3) -- (ag);
+\draw[arr] (cn) -- (ag);
+
+% Checkpoint links
+\draw[link] (c1.east) -- node[above, font=\tiny] {$W_8$} (c2.west);
+\draw[link] (c2.east) -- node[above, font=\tiny] {$W_{16}$} (c3.west);
+\draw[link] (c3.east) -- node[above, font=\tiny] {} (dots.west);
+\end{tikzpicture}
+\caption{Proof-manifest chunk-chain aggregation. Each child fragment $M_j$
+covers $k=8$ steps and is externally verified. The aggregate proof binds all
+child manifest hashes, enforces checkpoint-link consistency, and checks
+dataset/config commitments across all chunks.}
+\label{fig:chunk-chain}
+\end{figure}
+
+The aggregation relation checks the following for $T \in \{32, 64, 128\}$:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item Each child manifest hash $\mhash(M_j)$ matches the aggregate input.
+  \item Each child public-input hash matches the expected value.
+  \item All children share the same dataset root and config hash.
+  \item The output checkpoint of $M_j$ equals the input checkpoint of
+  $M_{j+1}$ (online and target checkpoints).
+  \item Aggregate roots cover the declared step ranges without gaps.
+\end{enumerate}
+
+\noindent\textbf{Important limitation.} This is proof-manifest-chain
+aggregation, not true recursive aggregation. The aggregate SP1 guest does not
+run a verifier for child proof bytes. Child proofs are externally verified and
+then represented by their manifest hashes inside the aggregate relation. True
+recursive child-proof verification remains future work.

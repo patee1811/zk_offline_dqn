@@ -1,37 +1,188 @@
-All arithmetic claims are over the fixed-point integer encoding implemented by
-the Python relation and Rust/SP1 backend. They are not claims about exact
-real-valued PyTorch execution.
+% ===================================================================
+%  Section V: Relations (first part before formal statements)
+% ===================================================================
 
-\paragraph{Merkle membership.}
-The membership relation recomputes a canonical transition leaf hash, follows
-the supplied sibling path and direction bits, and checks equality with the
-public dataset root. Dataset-size scaling cases for 1k, 10k, and 100k leaves
-are proof-verified.
+This section defines the relation checks that constitute the proof system.
+All arithmetic is over the fixed-point integer encoding ($\fpscale = 1000$)
+implemented by the Python relation layer and Rust/SP1 backend. Statements are
+about integer-arithmetic equivalence, not about exact real-valued PyTorch
+execution.
 
-\paragraph{Bellman target and TD MVP.}
-The TD relation checks reward, done flag, action, discount factor, selected Q
-value, target Q value, Bellman target, TD error, and SmoothL1 loss. In the TD
-MVP vector the Q values are witnesses; in model-grounded relations they are
-derived from committed tiny MLP weights.
+% ---- Figure 3: Merkle Commitment Structure ----
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[
+    node distance=0.3cm and 0.2cm,
+    leaf/.style={draw, fill=blue!10, rounded corners=2pt, minimum width=1.1cm,
+                 minimum height=0.45cm, font=\tiny, align=center},
+    internal/.style={draw, fill=green!10, rounded corners=2pt,
+                     minimum width=1.1cm, minimum height=0.45cm,
+                     font=\tiny, align=center},
+    root/.style={draw, fill=red!12, rounded corners=2pt,
+                 minimum width=1.4cm, minimum height=0.5cm,
+                 font=\tiny\bfseries, align=center},
+    arr/.style={-, thick, color=gray!50},
+    prov/.style={draw, dashed, fill=yellow!8, rounded corners=2pt,
+                 minimum width=1.8cm, minimum height=0.4cm,
+                 font=\tiny, align=center}
+]
+% Leaves
+\node[leaf] (l1) at (0, 0) {$\mhash(\tau_1)$};
+\node[leaf] (l2) at (1.5, 0) {$\mhash(\tau_2)$};
+\node[leaf] (l3) at (3.0, 0) {$\mhash(\tau_3)$};
+\node[leaf] (l4) at (4.5, 0) {$\mhash(\tau_4)$};
+% Internal nodes
+\node[internal] (n1) at (0.75, 1.0) {$h_{1,2}$};
+\node[internal] (n2) at (3.75, 1.0) {$h_{3,4}$};
+% Root
+\node[root] (rt) at (2.25, 2.0) {$\mroot$};
+% Provenance bindings
+\node[prov] (pm) at (5.8, 2.0) {manifest\_hash};
+\node[prov] (pa) at (5.8, 1.4) {audit\_hash};
+\node[prov] (pr) at (5.8, 0.8) {trajectory\_hash};
+\node[prov] (pc) at (5.8, 0.2) {collection\_log\_hash};
 
-\paragraph{Forward-TD MLP and SmoothL1.}
-The Forward-TD MLP relation binds quantized online and target weights, runs a
-Linear-ReLU-Linear forward pass, checks argmax selection, derives the selected
-target value, and recomputes SmoothL1 loss.
+% Tree edges
+\draw[arr] (l1) -- (n1);
+\draw[arr] (l2) -- (n1);
+\draw[arr] (l3) -- (n2);
+\draw[arr] (l4) -- (n2);
+\draw[arr] (n1) -- (rt);
+\draw[arr] (n2) -- (rt);
 
-\paragraph{Backpropagation and one-step SGD.}
-The one-step training-update and one-step SGD tiny relations recompute the
-SmoothL1 derivative branch, fixed-point gradient/backprop path, SGD deltas,
-post-update weights, and next checkpoint hash. The supported update is simple
-SGD for canonical tiny vectors, not Adam and not batch sizes 4/8/16.
+% Provenance arrows
+\draw[-{Stealth[length=3pt]}, dashed, color=orange!70!black]
+  (pm.west) -- (rt.east);
+\draw[-{Stealth[length=3pt]}, dashed, color=orange!70!black]
+  (pa.west) -- (rt.east);
+\draw[-{Stealth[length=3pt]}, dashed, color=orange!70!black]
+  (pr.west) -- (rt.east);
+\draw[-{Stealth[length=3pt]}, dashed, color=orange!70!black]
+  (pc.west) -- (rt.east);
+\end{tikzpicture}
+\caption{Provenance-bound Merkle tree commitment. Each transition is
+canonically encoded and hashed into a leaf. The root is additionally bound to
+manifest, audit report, raw trajectory, and collection-log hashes (dashed
+arrows).}
+\label{fig:merkle-tree}
+\end{figure}
 
-\paragraph{Checkpoint and target-network relations.}
-Checkpoint hashes bind model states across one-step updates, short traces, and
-training fragments. Fragment relations additionally check deterministic
-sampling, global steps, target checkpoint links, and hard target-network sync.
+\subsection{Replay Membership}
 
-\paragraph{Proof-manifest chunk chains.}
-The aggregation relation binds child proof-manifest hashes, child public-input
-hashes, chunk order, step ranges, dataset/config consistency, aggregate roots,
-and online/target checkpoint links. It does not recursively verify child proof
-bytes inside SP1.
+The membership relation (\Cref{fig:merkle-tree}) takes a transition $\tau_i$
+and proves it belongs to the committed dataset:
+\begin{equation}\label{eq:membership}
+  R_{\mathrm{mem}}(\mroot;\tau_i,\mathit{idx}_i,\pi_i)=1
+  \iff V_i=1,
+\end{equation}
+Here, $V_i$ denotes the predicate that hashes $\tau_i$, follows the sibling
+path $\pi_i$ at index $\mathit{idx}_i$, and compares the result with $\mroot$.
+The path $\pi_i = (h_1, \ldots, h_d, b_1, \ldots, b_d)$ contains sibling hashes
+and direction bits.
+Dataset-size scaling cases for $N \in \{1\text{k}, 10\text{k}, 100\text{k}\}$
+leaves are SP1 proof-verified.
+
+\subsection{Bellman Target and TD Arithmetic}
+
+The TD relation verifies the fixed-point Bellman target computation for a
+single transition $(s, a, r, s', d)$:
+\begin{align}
+  y &= r_{\mathrm{fp}} + \gamma_{\mathrm{fp}} \cdot (1 - d) \cdot
+       Q_{\bar\theta,\mathrm{fp}}(s', a^*) / \fpscale, \label{eq:td-target}\\
+  \delta &= Q_{\theta,\mathrm{fp}}(s, a) - y, \label{eq:td-error}\\
+  \ell &= L_{\mathrm{SmoothL1,fp}}(\delta), \label{eq:td-loss}
+\end{align}
+where subscript ``fp'' denotes fixed-point representation. In the TD~MVP
+relation, Q~values are free witnesses. In model-grounded relations
+(Forward-TD~MLP, training update, training fragment), they are derived from
+committed MLP weights.
+
+\subsection{Forward-TD MLP}
+
+The Forward-TD~MLP relation binds quantized online and target model weights,
+executes a Linear--ReLU--Linear forward pass in fixed point, checks
+$\arg\max$ action selection for the online network, derives the selected
+target value from the target network, and recomputes the SmoothL1 loss:
+\begin{equation}\label{eq:forward-td}
+  Q_\theta(s) = W_2 \cdot \max(W_1 \cdot s + b_1, 0) + b_2,
+\end{equation}
+where all multiplications include fixed-point rescaling by $\fpscale$.
+The relation additionally checks that the public model commitment matches
+$\mhash(W_1 \| b_1 \| W_2 \| b_2)$.
+
+\subsection{Backpropagation and One-Step SGD}
+
+The one-step training-update and one-step SGD tiny relations extend the
+forward pass with gradient computation. Given SmoothL1 derivative
+\begin{equation}\label{eq:smoothl1-grad}
+  \frac{\partial L}{\partial \delta} =
+  \begin{cases}
+    \delta & \text{if } |\delta| < \fpscale, \\
+    \mathrm{sign}(\delta) \cdot \fpscale & \text{otherwise,}
+  \end{cases}
+\end{equation}
+the relation recomputes the fixed-point backpropagation path through the
+Linear--ReLU--Linear network, computes SGD deltas
+$\Delta W = -\eta \cdot \nabla_W L / \fpscale$, applies the weight update
+$W' = W + \Delta W$, and verifies that the post-update checkpoint hash matches
+$\mhash(W')$. The supported update is simple SGD for canonical tiny vectors;
+Adam and batch sizes $>1$ are not currently proved.
+
+\subsection{Checkpoint and Target-Network Relations}
+
+Checkpoint hashes bind model states across updates. For a sequence of $k$
+update steps, the chain requires:
+\begin{equation}\label{eq:checkpoint-chain}
+  \mhash(W_{t+1}) = \mhash\bigl(\mathsf{SGDUpdate}(W_t, \nabla_t)\bigr)
+  \quad \forall\, t \in \{0, \ldots, k{-}1\}.
+\end{equation}
+Training fragments additionally check target-network synchronization: at
+configured intervals, the relation verifies that the target checkpoint hash
+equals the online checkpoint hash.
+
+\subsection{Proof-Manifest Chunk Chains}
+
+The aggregation relation operates over an ordered sequence of child proof
+manifests $\{M_1, \ldots, M_c\}$ where each $M_j$ represents an externally
+verified $k=8$ training fragment. The relation checks:
+\begin{itemize}[leftmargin=1.5em]
+  \item Child manifest hashes and public-input hashes match the aggregate
+  input.
+  \item All children share the same dataset root and config hash.
+  \item The output checkpoint of $M_j$ equals the input checkpoint of
+  $M_{j+1}$.
+  \item Target checkpoint links are consistent across chunk boundaries.
+  \item Aggregate roots cover the declared step ranges.
+\end{itemize}
+This is \emph{not} true recursive aggregation: the aggregate SP1 guest does
+not execute a verifier for child proof bytes.
+
+\subsection{Backend Coverage Summary}
+
+\Cref{tab:backend-coverage} summarizes the verification coverage for each
+relation across the Python semantic oracle and SP1 proof backend.
+
+\begin{table}[!t]
+\centering
+\small
+\caption{Backend coverage: Python oracle vs.\ SP1 proof for each relation.}
+\label{tab:backend-coverage}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Relation} & \textbf{Python} & \textbf{SP1 proof} \\
+\midrule
+Merkle membership (canonical) & \checkmark & \checkmark \\
+Merkle membership (1k/10k/100k) & \checkmark & \checkmark \\
+TD MVP canonical vector & \checkmark & \checkmark \\
+Distinct minibatch TD & \checkmark & --- \\
+Forward-TD MLP (tiny) & \checkmark & \checkmark \\
+One-step SGD tiny & \checkmark & \checkmark \\
+Short trace & \checkmark & \checkmark \\
+Training update (batch-1) & \checkmark & \checkmark \\
+Training fragment $k\!\in\!\{1,4,8\}$ & \checkmark & \checkmark \\
+Training fragment $k\!\in\!\{16,32,128\}$ & \checkmark & execute only \\
+Aggregation $T\!\in\!\{32,64,128\}$ & \checkmark & \checkmark \\
+Recursive aggregation & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
