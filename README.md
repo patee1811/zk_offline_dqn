@@ -224,7 +224,7 @@ python scripts/experiments/check_paper_numbers_against_final_ndss.py
 python scripts/experiments/check_theorem_artifact_map.py
 ```
 
-Formal theorem and threat-model text lives in `paper/sections/theorems.tex` and
+Formal theorem and threat-model text lives in `paper/sections/formal_statements.tex` and
 `paper/sections/threat_model.tex`; the artifact-level mapping is
 `docs/theorem_artifact_map.md`. These statements are scoped to the current
 proof-backed artifacts and semantic verifiers. Theorem 7 is proof-manifest
@@ -356,4 +356,5 @@ verifiers without proving they are unused by regression and documentation.
 ## License
 
 MIT. See `LICENSE`.
+
 
