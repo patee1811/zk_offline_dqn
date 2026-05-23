@@ -80,6 +80,8 @@ artifacts/kaggle_phase8_1_full_phase2_kernel/
 artifacts/kaggle_phase8_1_full_phase2_outputs/
 artifacts/kaggle_phase8_2_proof_kernel/
 artifacts/kaggle_phase8_2_proof_outputs/
+artifacts/kaggle_phase8_2b_merkle_kernel/
+artifacts/kaggle_phase8_2b_merkle_outputs/
 artifacts/reports/phase8_2_proof_benchmark/work/
 artifacts/reports/phase8_2_proof_benchmark/proofs/
 artifacts/reports/phase8_2_proof_benchmark/tmp/

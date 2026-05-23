@@ -25,6 +25,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--refresh-proof-metrics", action="store_true")
     parser.add_argument("--include-execute-only", action="store_true")
     parser.add_argument("--include-known-failures", action="store_true")
+    parser.add_argument("--merkle-depth-proof-scaling", action="store_true")
+    parser.add_argument("--merkle-dataset-sizes", nargs="+", type=int)
+    parser.add_argument("--merkle-source-dataset", default="D4RL/pointmaze/umaze-v2")
+    parser.add_argument("--reuse-phase2-datasets", action="store_true")
+    parser.add_argument("--regenerate-missing-merkle-datasets", action="store_true")
     parser.add_argument("--dataset-sizes", nargs="+", type=int)
     parser.add_argument("--trace-lengths", nargs="+", type=int)
     parser.add_argument("--batch-sizes", nargs="+", type=int)
@@ -48,6 +53,8 @@ def _defaults(args: argparse.Namespace) -> None:
         args.networks = ["tiny", "small"] if args.paper else ["tiny"]
     if args.aggregation_targets is None:
         args.aggregation_targets = [32, 64, 128] if args.paper else [32]
+    if args.merkle_dataset_sizes is None:
+        args.merkle_dataset_sizes = [1000, 10000, 100000] if args.paper else [1000]
     if args.paper:
         args.run_sp1_execute = True if not args.run_sp1_execute else args.run_sp1_execute
         args.run_sp1_prove = True if not args.run_sp1_prove else args.run_sp1_prove
@@ -55,6 +62,8 @@ def _defaults(args: argparse.Namespace) -> None:
         args.refresh_proof_metrics = True
         args.include_execute_only = True
         args.include_known_failures = True
+        args.merkle_depth_proof_scaling = True
+        args.reuse_phase2_datasets = True
     if args.smoke:
         args.reuse_existing_provenance = True
         args.include_execute_only = True

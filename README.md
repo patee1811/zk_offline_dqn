@@ -153,6 +153,8 @@ python scripts/experiments/run_phase8_2_proof_benchmark.py --paper
 Table 2 distinguishes SP1 proof-backed rows from execute-only,
 unsupported-current-backend, and resource/environment-limited rows. It does not
 add recursive aggregation, tamper, or full proof-of-training claims.
+The Merkle membership portion includes dataset-size/depth scaling rows when
+those size-specific SP1 proofs have been generated and verified.
 
 Generated final reports live under:
 

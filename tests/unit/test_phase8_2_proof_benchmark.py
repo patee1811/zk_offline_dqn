@@ -11,6 +11,11 @@ from zk_offline_dqn.proof_benchmarks.metrics import (
     run_measured,
     validate_status,
 )
+from zk_offline_dqn.proof_benchmarks.merkle_cases import (
+    build_membership_path,
+    recompute_root,
+    write_merkle_membership_case,
+)
 from zk_offline_dqn.proof_benchmarks.reporting import TABLE2_COLUMNS, write_table2_outputs
 from zk_offline_dqn.proof_benchmarks.runner import build_rows, run_benchmark
 
@@ -97,6 +102,85 @@ class Phase82ProofBenchmarkTests(unittest.TestCase):
         self.assertEqual(by_size[100000]["Status"], "reference_only")
         self.assertFalse(by_size[10000]["Proof Backed"])
 
+    def test_synthetic_merkle_tree_path_verifies(self):
+        levels = self._synthetic_levels(8)
+        path = build_membership_path(levels, 4)
+        self.assertEqual(len(path), 3)
+        self.assertEqual(recompute_root(levels[0][4], path), levels[-1][0])
+
+    def test_generated_membership_case_serializes_variable_depth(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset_dir = Path(tmp) / "dataset"
+            dataset_dir.mkdir()
+            levels = self._synthetic_levels(8)
+            tree = {
+                "dataset_id": "synthetic-public-v1",
+                "dataset_type": "public_benchmark",
+                "dataset_root": levels[-1][0],
+                "manifest_hash": "1" * 64,
+                "audit_report_hash": "2" * 64,
+                "collection_log_final_hash": None,
+                "raw_trajectory_hash": "3" * 64,
+                "num_leaves": 8,
+                "leaf_hashes": levels[0],
+                "levels": levels,
+            }
+            for name in ["dataset_manifest.json", "replay_audit_report.json"]:
+                (dataset_dir / name).write_text("{}", encoding="utf-8")
+            (dataset_dir / "merkle_tree.json").write_text(json.dumps(tree), encoding="utf-8")
+            case_path = Path(tmp) / "case.json"
+            info = write_merkle_membership_case(dataset_dir=dataset_dir, case_path=case_path, requested_size=8)
+            case = json.loads(case_path.read_text(encoding="utf-8"))
+            self.assertEqual(info["merkle_depth"], 3)
+            self.assertEqual(len(case["private_witness"]["merkle_path"]), 3)
+            self.assertEqual(case["public_inputs"]["dataset_root"], levels[-1][0])
+
+    def test_dataset_size_row_uses_proof_metrics_when_present(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            prov = root / "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k"
+            prov.mkdir(parents=True)
+            (prov / "metrics.json").write_text(
+                json.dumps(
+                    {
+                        "proof_generated": True,
+                        "proof_verified": True,
+                        "prove_time_seconds": 1.0,
+                        "verify_time_seconds": 0.1,
+                        "proof_size_bytes": 10,
+                        "cycle_count": 20,
+                        "dataset_size": 10000,
+                        "merkle_depth": 14,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            rows = build_rows(root=root, dataset_sizes=[10000], batch_sizes=[1], networks=["tiny"], trace_lengths=[1])
+            row = [r for r in rows if r["Case ID"] == "merkle_membership_dataset_10000"][0]
+            self.assertEqual(row["Status"], "proof_verified")
+            self.assertTrue(row["Proof Backed"])
+            self.assertEqual(row["Merkle Depth"], 14)
+
+    def test_failed_merkle_size_does_not_erase_successful_size(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ok = root / "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k"
+            fail = root / "artifacts/reports/provenance/sp1/merkle_membership_dataset_100k"
+            ok.mkdir(parents=True)
+            fail.mkdir(parents=True)
+            (ok / "metrics.json").write_text(json.dumps({"proof_generated": True, "proof_verified": True, "dataset_size": 10000, "merkle_depth": 14}), encoding="utf-8")
+            (fail / "metrics.json").write_text(json.dumps({"proof_generated": False, "proof_verified": False, "status": "failed_oom"}), encoding="utf-8")
+            rows = build_rows(root=root, dataset_sizes=[10000, 100000], batch_sizes=[1], networks=["tiny"], trace_lengths=[1])
+            by_case = {r["Case ID"]: r for r in rows if r["Scale Axis"] == "dataset_size"}
+            self.assertEqual(by_case["merkle_membership_dataset_10000"]["Status"], "proof_verified")
+            self.assertEqual(by_case["merkle_membership_dataset_100000"]["Status"], "failed_oom")
+
+    def test_proof_binary_paths_are_not_required_in_compact_report(self):
+        row = self._proof_row()
+        row["Metrics Source"] = "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/metrics.json"
+        row["Notes"] = "proof binary deleted after metrics extraction"
+        self.assertNotIn("proof.bin", json.dumps(row))
+
     def test_report_checker_rejects_missing_table2_required_fields(self):
         with tempfile.TemporaryDirectory() as tmp:
             table_dir = Path(tmp) / "artifacts/reports/final_ndss"
@@ -112,6 +196,15 @@ class Phase82ProofBenchmarkTests(unittest.TestCase):
             self.assertEqual(result["status"], "failed")
             self.assertIn("missing required", result["reason"])
 
+    def test_report_checker_requires_merkle_size_rows(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            table_dir = Path(tmp) / "artifacts/reports/final_ndss"
+            rows = [self._proof_row()]
+            write_table2_outputs(rows, table_dir, status={"phase": "8.2"})
+            result = check_table2_zk_proof_cost(Path(tmp))
+            self.assertEqual(result["status"], "failed")
+            self.assertIn("missing Merkle dataset-size row", result["reason"])
+
     def test_smoke_runner_writes_phase_outputs_under_requested_root(self):
         with tempfile.TemporaryDirectory() as tmp:
             args = Namespace(
@@ -123,6 +216,11 @@ class Phase82ProofBenchmarkTests(unittest.TestCase):
                 refresh_proof_metrics=False,
                 include_execute_only=True,
                 include_known_failures=False,
+                merkle_depth_proof_scaling=False,
+                reuse_phase2_datasets=False,
+                regenerate_missing_merkle_datasets=False,
+                merkle_dataset_sizes=[1000],
+                merkle_source_dataset="D4RL/pointmaze/umaze-v2",
                 dataset_sizes=[1000],
                 trace_lengths=[1],
                 batch_sizes=[1],
@@ -165,6 +263,21 @@ class Phase82ProofBenchmarkTests(unittest.TestCase):
             "Metrics Source": "synthetic",
             "Notes": "",
         }
+
+    def _synthetic_levels(self, n):
+        import hashlib
+
+        level = [hashlib.sha256(f"leaf-{i}".encode()).hexdigest() for i in range(n)]
+        levels = [level]
+        while len(level) > 1:
+            next_level = []
+            for i in range(0, len(level), 2):
+                left = level[i]
+                right = level[i + 1] if i + 1 < len(level) else left
+                next_level.append(hashlib.sha256(bytes.fromhex(left) + bytes.fromhex(right)).hexdigest())
+            levels.append(next_level)
+            level = next_level
+        return levels
 
 
 if __name__ == "__main__":

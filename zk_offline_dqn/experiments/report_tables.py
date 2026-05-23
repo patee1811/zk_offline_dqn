@@ -341,6 +341,12 @@ def check_table2_zk_proof_cost(root: Path | None = None) -> Dict[str, Any]:
         if any(isinstance(row, dict) and field not in row for row in rows)
     ]
     proof_verified = [row for row in rows if isinstance(row, dict) and row.get("Status") == "proof_verified"]
+    merkle_size_rows = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        if row.get("Relation") == "merkle_membership" and row.get("Scale Axis") == "dataset_size":
+            merkle_size_rows[str(row.get("Dataset Size"))] = row
     metric_gaps = []
     for row in proof_verified:
         for field in ["Prove Time (s)", "Verify Time (s)", "Proof Size (bytes)", "Cycle Count"]:
@@ -355,10 +361,18 @@ def check_table2_zk_proof_cost(root: Path | None = None) -> Dict[str, Any]:
         reasons.append("no proof_verified Table 2 rows")
     if metric_gaps:
         reasons.append("proof_verified metric gaps: " + ", ".join(metric_gaps[:10]))
+    for size in ("1000", "10000", "100000"):
+        if size not in merkle_size_rows:
+            reasons.append(f"missing Merkle dataset-size row: {size}")
+    for size in ("10000", "100000"):
+        row = merkle_size_rows.get(size)
+        if row and row.get("Status") not in {"proof_verified", "failed_oom", "failed_timeout", "failed_compile", "failed_verify", "failed_environment"}:
+            reasons.append(f"Merkle dataset-size row {size} has unattempted status: {row.get('Status')}")
     return {
         "status": "passed" if not reasons else "failed",
         "missing_files": [],
         "missing_required_relations": missing_relations,
         "proof_verified_rows": len(proof_verified),
+        "merkle_dataset_size_rows": {size: row.get("Status") for size, row in merkle_size_rows.items()},
         "reason": "; ".join(reasons) if reasons else None,
     }

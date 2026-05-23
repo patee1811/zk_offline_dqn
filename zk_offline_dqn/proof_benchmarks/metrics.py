@@ -94,6 +94,13 @@ def normalize_metrics(metrics: Dict[str, Any] | None) -> Dict[str, Any]:
         "witness_schema_sha256": metric_value(data, "witness_schema_sha256"),
         "proof_generated": metric_value(data, "proof_generated"),
         "proof_verified": metric_value(data, "proof_verified"),
+        "status": metric_value(data, "status"),
+        "test_vector_sha256": metric_value(data, "test_vector_sha256"),
+        "dataset_size": metric_value(data, "dataset_size"),
+        "merkle_depth": metric_value(data, "merkle_depth"),
+        "dataset_root": metric_value(data, "dataset_root"),
+        "manifest_hash": metric_value(data, "manifest_hash"),
+        "audit_report_hash": metric_value(data, "audit_report_hash"),
         "notes": metric_value(data, "notes"),
     }
 
