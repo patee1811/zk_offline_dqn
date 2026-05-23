@@ -1,0 +1,22 @@
+{
+  "includes": {
+    "aggregation": true,
+    "dataset": true,
+    "forward_td": true,
+    "merkle": true,
+    "proof_public_input": true,
+    "sgd": true,
+    "training_fragment": true,
+    "training_update": true
+  },
+  "out_dir": "/kaggle/working/zk_offline_dqn/artifacts/reports/final_ndss",
+  "paper": true,
+  "reuse_existing_provenance": true,
+  "run_python_reference": true,
+  "run_rust_execute": true,
+  "run_sp1_prove_for_originals": false,
+  "run_sp1_verify_tampered": true,
+  "smoke": false,
+  "timeout_seconds": 7200,
+  "work_dir": "/kaggle/working/zk_offline_dqn/artifacts/reports/phase8_3_tamper_benchmark/work"
+}

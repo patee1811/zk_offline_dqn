@@ -1,0 +1,66 @@
+{
+  "accepted_unexpectedly": [],
+  "git_commit": "544cd292fc3e1f7b5107cd040f04f2f6df771bc0",
+  "mandatory_check": {
+    "accepted_unexpectedly": [],
+    "mandatory_category_coverage": {
+      "action": {
+        "rejected_as_expected": 6,
+        "total": 6
+      },
+      "checkpoint_hash": {
+        "rejected_as_expected": 15,
+        "total": 15
+      },
+      "done": {
+        "rejected_as_expected": 6,
+        "total": 6
+      },
+      "gradient": {
+        "rejected_as_expected": 7,
+        "total": 7
+      },
+      "merkle_path": {
+        "rejected_as_expected": 17,
+        "total": 17
+      },
+      "minibatch_index": {
+        "rejected_as_expected": 23,
+        "total": 23
+      },
+      "next_state": {
+        "rejected_as_expected": 5,
+        "total": 5
+      },
+      "proof_public_input": {
+        "rejected_as_expected": 42,
+        "total": 44
+      },
+      "q_value": {
+        "rejected_as_expected": 5,
+        "total": 5
+      },
+      "reward": {
+        "rejected_as_expected": 6,
+        "total": 6
+      },
+      "target_network_sync": {
+        "rejected_as_expected": 6,
+        "total": 6
+      },
+      "td_target": {
+        "rejected_as_expected": 5,
+        "total": 5
+      }
+    },
+    "missing_mandatory_rejections": [],
+    "status": "passed"
+  },
+  "mandatory_required": true,
+  "paper": true,
+  "rejected_as_expected": 168,
+  "runtime_seconds": 0.22088,
+  "smoke": false,
+  "status": "passed",
+  "total_cases": 171
+}
