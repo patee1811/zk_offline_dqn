@@ -230,8 +230,10 @@ def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
     base = root or ROOT
     result = benchmark_manifest.check_sources(base)
     table1 = check_table1_rl_performance(base)
+    table2 = check_table2_zk_proof_cost(base)
     result["table1_rl_performance"] = table1
-    if table1["status"] != "passed":
+    result["table2_zk_proof_cost"] = table2
+    if table1["status"] != "passed" or table2["status"] != "passed":
         result["status"] = "failed"
     return result
 
@@ -282,5 +284,81 @@ def check_table1_rl_performance(root: Path | None = None) -> Dict[str, Any]:
         "missing_files": [],
         "completed_public_rows": len(completed_public),
         "required_public_size_coverage": coverage,
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_table2_zk_proof_cost(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    table_dir = base / "artifacts/reports/final_ndss"
+    required = [
+        "table2_zk_proof_cost.csv",
+        "table2_zk_proof_cost.json",
+        "table2_zk_proof_cost.tex",
+        "table2_zk_proof_cost.md",
+        "table2_zk_proof_cost_status.json",
+    ]
+    missing = [name for name in required if not (table_dir / name).exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "reason": "Table 2 compact outputs are missing",
+            "proof_verified_rows": 0,
+        }
+
+    payload = read_json(table_dir / "table2_zk_proof_cost.json") or {}
+    rows = payload.get("rows", [])
+    required_relations = {
+        "td_mvp",
+        "merkle_membership",
+        "forward_td_mlp",
+        "one_step_sgd_tiny",
+        "short_trace",
+        "training_update",
+        "training_fragment_k1",
+        "training_fragment_k4",
+        "training_fragment_k8",
+        "training_aggregation_manifest_t32",
+        "training_aggregation_manifest_t64",
+        "training_aggregation_manifest_t128",
+    }
+    present_text = " ".join(
+        " ".join(str(value) for value in row.values()) for row in rows if isinstance(row, dict)
+    )
+    missing_relations = sorted(relation for relation in required_relations if relation not in present_text)
+    required_fields = [
+        "Prove Time (s)",
+        "Verify Time (s)",
+        "Proof Size (bytes)",
+        "Cycle Count",
+        "Peak RSS (MB)",
+        "Status",
+    ]
+    missing_fields = [
+        field
+        for field in required_fields
+        if any(isinstance(row, dict) and field not in row for row in rows)
+    ]
+    proof_verified = [row for row in rows if isinstance(row, dict) and row.get("Status") == "proof_verified"]
+    metric_gaps = []
+    for row in proof_verified:
+        for field in ["Prove Time (s)", "Verify Time (s)", "Proof Size (bytes)", "Cycle Count"]:
+            if row.get(field) in {None, ""}:
+                metric_gaps.append(f"{row.get('Case ID')}:{field}")
+    reasons = []
+    if missing_relations:
+        reasons.append("missing required proof rows: " + ", ".join(missing_relations))
+    if missing_fields:
+        reasons.append("missing required fields: " + ", ".join(sorted(set(missing_fields))))
+    if not proof_verified:
+        reasons.append("no proof_verified Table 2 rows")
+    if metric_gaps:
+        reasons.append("proof_verified metric gaps: " + ", ".join(metric_gaps[:10]))
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "missing_required_relations": missing_relations,
+        "proof_verified_rows": len(proof_verified),
         "reason": "; ".join(reasons) if reasons else None,
     }

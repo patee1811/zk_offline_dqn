@@ -144,6 +144,16 @@ rows, not honest-collection proofs.
 Table 1 is RL performance only. It does not add an SP1 proof-cost table,
 tamper table, or proof-of-training claim.
 
+Generate the ZK-proof-cost-only Table 2 benchmark separately:
+
+```text
+python scripts/experiments/run_phase8_2_proof_benchmark.py --paper
+```
+
+Table 2 distinguishes SP1 proof-backed rows from execute-only,
+unsupported-current-backend, and resource/environment-limited rows. It does not
+add recursive aggregation, tamper, or full proof-of-training claims.
+
 Generated final reports live under:
 
 ```text

@@ -44,6 +44,8 @@ artifacts/reports/*
 !artifacts/reports/final_ndss/**
 !artifacts/reports/phase8_1_rl_benchmark/
 !artifacts/reports/phase8_1_rl_benchmark/**
+!artifacts/reports/phase8_2_proof_benchmark/
+!artifacts/reports/phase8_2_proof_benchmark/**
 !artifacts/reports/provenance/
 !artifacts/reports/provenance/**
 artifacts/reports/phase8_1_rl_benchmark/checkpoints/
@@ -76,6 +78,11 @@ artifacts/kaggle_phase8_1_rl_kernel/
 artifacts/kaggle_phase8_1_rl_outputs/
 artifacts/kaggle_phase8_1_full_phase2_kernel/
 artifacts/kaggle_phase8_1_full_phase2_outputs/
+artifacts/kaggle_phase8_2_proof_kernel/
+artifacts/kaggle_phase8_2_proof_outputs/
+artifacts/reports/phase8_2_proof_benchmark/work/
+artifacts/reports/phase8_2_proof_benchmark/proofs/
+artifacts/reports/phase8_2_proof_benchmark/tmp/
 .minari/
 minari/
 *.pt
@@ -83,6 +90,9 @@ minari/
 *.ckpt
 *.hdf5
 *.h5
+*.bin
+*.receipt
+*.proof
 
 # =============================================================================
 # IDE / Editor
