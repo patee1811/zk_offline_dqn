@@ -13,17 +13,20 @@ aggregate contains 29 benchmark rows and 21 tamper rows across four components:
 distinct TD, CartPole forward-TD MLP, MountainCar forward-TD MLP, and tiny
 one-step SGD. All loaded components report expected outcomes passed.
 
-\subsection{Validated SP1 Proof Metric}
+\subsection{Validated SP1 Proof Metrics}
 
-\Cref{tab:td-mvp-proof} lists the SP1 proof result that is validated by the
-current Kaggle summary and surfaced in
-\path{artifacts/reports/final_ndss/paper_numbers.json}. This is the only SP1
-proof claim made by the current artifact.
+The current paper-facing proof-cost table is generated as Table 2 under
+\path{artifacts/reports/final_ndss/}. It includes proof-backed rows for the TD
+MVP canonical vector, Merkle membership including 1k/10k/100k dataset-size
+scaling, Forward-TD MLP, one-step SGD tiny, short trace, one-step training
+update batch size 1, training fragments with $k\in\{1,4,8\}$, and
+proof-manifest chunk-chain aggregation with $T\in\{32,64,128\}$. Unsupported
+or execute-only rows remain marked separately.
 
 \begin{table*}[!t]
 \centering
 \small
-\caption{Validated SP1 proof result for the TD MVP canonical vector.}
+\caption{Example validated SP1 proof result for the TD MVP canonical vector.}
 \label{tab:td-mvp-proof}
 \begin{tabular}{l l r r r r}
 \toprule
@@ -34,24 +37,21 @@ TD MVP & \path{td_mvp_case_0.json} & 167.726006 & 0.190326 & 2783869 & 385048 \\
 \end{tabular}
 \end{table*}
 
-The Kaggle validation summary records \texttt{proof\_generated = true} and
-\texttt{proof\_verified = true} for this row. No separate proof artifact path is
-reported by the host output.
+The full proof-cost table should be read from the generated Table 2 artifacts.
+Proof binaries are not committed.
 
 \subsection{Tamper Rejection}
 
-\Cref{tab:tamper-summary} summarizes tamper coverage from
-\path{tamper_matrix.csv}. The broader regression suite retains TD MVP negative
-tests for schema, reward, done, rounding, Merkle, target, and TD-error
-tampering. Distinct TD, forward-TD, and one-step rows are checked by the Python
-oracle in the current scoped claim, with SP1 proof validation claimed only for
-the TD MVP canonical vector.
+The current tamper-rejection table is generated as Table 3 under
+\path{artifacts/reports/final_ndss/}. It records the expected and observed
+rejection layer for dataset audit, dataset commitment verification, Python
+semantic oracles, Rust execute, SP1/public-input binding, and artifact-policy
+not-applicable rows.
 
 \begin{table*}[!t]
 \centering
 \small
-\caption{Tamper matrix summary. All listed cases have expected
-outcome reject and passed their component checks.}
+\caption{Legacy tamper matrix summary retained for the early Python smoke path.}
 \label{tab:tamper-summary}
 \begin{tabular}{l l l r l}
 \toprule
@@ -76,9 +76,6 @@ SP1 proof summaries used by the paper.
 
 \subsection{Interpretation}
 
-The final artifact supports three classes of claims. First, Python semantic
-oracles check distinct replay minibatch TD, model-grounded forward-TD MLP, and
-tiny one-step SGD fixtures with tamper rejection. Second, report generation
-surfaces existing benchmark and tamper matrices with provenance. Third, SP1
-proof generation and verification are validated for the TD MVP canonical vector
-only. These are relation-level results, not a full proof of training.
+The final artifact supports relation-level claims only. Table 1 is RL
+performance, Table 2 is proof cost for scoped backend artifacts, and Table 3 is
+tamper rejection. None of these tables is a full proof of training.

@@ -165,8 +165,9 @@ python scripts/experiments/run_phase8_3_tamper_benchmark.py --paper
 Table 3 distinguishes rejection at the dataset audit, dataset commitment,
 Python semantic oracle, Rust execute, SP1 verify, and public-input binding
 layers. It summarizes tamper rejection for existing supported relations and
-provenance checks only; it does not add a full proof-of-training, honest public
-dataset collection proof, or true recursive aggregation claim.
+provenance checks only; it does not add a full proof-of-training or honest
+public dataset collection proof, and it makes no true recursive aggregation
+claim.
 
 Generated final reports live under:
 
@@ -188,7 +189,14 @@ Paper-facing claim checks:
 ```text
 python scripts/experiments/check_paper_claims.py
 python scripts/experiments/check_paper_numbers_against_final_ndss.py
+python scripts/experiments/check_theorem_artifact_map.py
 ```
+
+Formal theorem and threat-model text lives in
+`paper/sections/theorems.tex` and `paper/sections/threat_model.tex`; the
+artifact-level mapping is `docs/theorem_artifact_map.md`. These statements are
+scoped to the current proof-backed artifacts and semantic verifiers. Theorem 7
+is proof-manifest chunk-chain aggregation only, not true recursive aggregation.
 
 ## Dataset Provenance Pipeline
 
@@ -299,6 +307,8 @@ Python regression.
   boundaries.
 - `docs/backend_coverage.md`: relation-by-relation Python oracle and SP1
   coverage.
+- `docs/theorem_artifact_map.md`: theorem-to-relation-to-benchmark mapping for
+  the scoped formal statements.
 - `docs/sp1_python_alignment.md`: Python/SP1 field and command alignment.
 - `docs/archive/internal_manifests/dev_commands.md`: developer command reference.
 - `docs/archive/internal_manifests/legacy_status.md`: active vs compatibility entrypoints.

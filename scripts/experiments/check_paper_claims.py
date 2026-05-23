@@ -30,11 +30,20 @@ BANNED_PHRASES = [
     "model-grounded forward-td is proved in sp1",
     "one-step sgd update is proved in sp1",
     "full sp1 proof runs",
+    "public benchmark honest collection proof",
 ]
 
 NEGATED_PHRASES = [
     "proof of full dqn training",
+    "prove offline dqn training",
+    "prove full dqn training",
     "proof coverage for every relation",
+    "true recursive aggregation",
+    "adam proof",
+    "batch-size 4/8/16 training proof",
+    "k={16,32,128} are proof-backed",
+    "k={16, 32, 128} are proof-backed",
+    "table 3 proves training",
 ]
 
 ALLOWED_NEGATION_MARKERS = [
@@ -44,6 +53,8 @@ ALLOWED_NEGATION_MARKERS = [
     "no ",
     "without ",
     "unsupported",
+    "future work",
+    "not claimed",
 ]
 
 

@@ -237,10 +237,17 @@ def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
     table1 = check_table1_rl_performance(base)
     table2 = check_table2_zk_proof_cost(base)
     table3 = check_table3_tamper_rejection(base)
+    theorem_map = check_theorem_artifact_map_sources(base)
     result["table1_rl_performance"] = table1
     result["table2_zk_proof_cost"] = table2
     result["table3_tamper_rejection"] = table3
-    if table1["status"] != "passed" or table2["status"] != "passed" or table3["status"] != "passed":
+    result["theorem_artifact_map"] = theorem_map
+    if (
+        table1["status"] != "passed"
+        or table2["status"] != "passed"
+        or table3["status"] != "passed"
+        or theorem_map["status"] != "passed"
+    ):
         result["status"] = "failed"
     return result
 
@@ -444,5 +451,62 @@ def check_table3_tamper_rejection(root: Path | None = None) -> Dict[str, Any]:
         "missing_files": [],
         "mandatory_category_coverage": coverage,
         "accepted_unexpectedly": accepted,
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_theorem_artifact_map_sources(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    paths = {
+        "theorem_map": base / "docs/theorem_artifact_map.md",
+        "theorems_tex": base / "paper/sections/theorems.tex",
+        "threat_model_tex": base / "paper/sections/threat_model.tex",
+    }
+    missing = [name for name, path in paths.items() if not path.exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "reason": "Phase 9 theorem/threat-model files are missing",
+        }
+    text = "\n".join(path.read_text(encoding="utf-8", errors="replace") for path in paths.values())
+    lowered = text.lower()
+    missing_theorems = [f"Theorem {idx}" for idx in range(1, 9) if f"theorem {idx}" not in lowered]
+    required_terms = [
+        "relation/component",
+        "sp1 backend / verifier",
+        "primary tests",
+        "table 2 row",
+        "table 3 row",
+        "proof-manifest",
+        "not true recursive",
+        "public benchmark",
+        "honest collection",
+        "reward",
+    ]
+    missing_terms = [term for term in required_terms if term not in lowered]
+    unsafe = [
+        phrase
+        for phrase in [
+            "we prove offline dqn training",
+            "prove full dqn training",
+            "true recursive aggregation soundness",
+            "public benchmark honest collection proof",
+        ]
+        if phrase in lowered
+    ]
+    reasons = []
+    if missing_theorems:
+        reasons.append("missing theorem labels: " + ", ".join(missing_theorems))
+    if missing_terms:
+        reasons.append("missing required terms: " + ", ".join(missing_terms))
+    if unsafe:
+        reasons.append("unsafe phrases: " + ", ".join(unsafe))
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "missing_theorems": missing_theorems,
+        "missing_terms": missing_terms,
+        "unsafe_phrases": unsafe,
         "reason": "; ".join(reasons) if reasons else None,
     }
