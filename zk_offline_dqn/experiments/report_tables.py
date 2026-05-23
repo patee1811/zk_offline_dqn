@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 from zk_offline_dqn.experiments import benchmark_manifest, paper_numbers
+from zk_offline_dqn.tamper_benchmarks.cases import MANDATORY_CATEGORIES
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -223,7 +224,11 @@ def generate_reports(out_dir: Path | str | None = None, root: Path | None = None
     )
     write_benchmark_snapshot(paths["benchmark_snapshot"], numbers, sp1_status)
 
-    return {key: rel(path) for key, path in paths.items()}
+    outputs = {key: rel(path) for key, path in paths.items()}
+    table3 = target / "table3_tamper_rejection.csv"
+    if table3.exists():
+        outputs["table3_tamper_rejection"] = rel(table3)
+    return outputs
 
 
 def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
@@ -231,9 +236,11 @@ def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
     result = benchmark_manifest.check_sources(base)
     table1 = check_table1_rl_performance(base)
     table2 = check_table2_zk_proof_cost(base)
+    table3 = check_table3_tamper_rejection(base)
     result["table1_rl_performance"] = table1
     result["table2_zk_proof_cost"] = table2
-    if table1["status"] != "passed" or table2["status"] != "passed":
+    result["table3_tamper_rejection"] = table3
+    if table1["status"] != "passed" or table2["status"] != "passed" or table3["status"] != "passed":
         result["status"] = "failed"
     return result
 
@@ -374,5 +381,68 @@ def check_table2_zk_proof_cost(root: Path | None = None) -> Dict[str, Any]:
         "missing_required_relations": missing_relations,
         "proof_verified_rows": len(proof_verified),
         "merkle_dataset_size_rows": {size: row.get("Status") for size, row in merkle_size_rows.items()},
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_table3_tamper_rejection(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    table_dir = base / "artifacts/reports/final_ndss"
+    required = [
+        "table3_tamper_rejection.csv",
+        "table3_tamper_rejection.json",
+        "table3_tamper_rejection.tex",
+        "table3_tamper_rejection.md",
+        "table3_tamper_rejection_status.json",
+    ]
+    missing = [name for name in required if not (table_dir / name).exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "reason": "Table 3 compact outputs are missing",
+            "mandatory_category_coverage": {},
+            "accepted_unexpectedly": [],
+        }
+
+    payload = read_json(table_dir / "table3_tamper_rejection.json") or {}
+    rows = payload.get("rows", [])
+    accepted = [
+        row.get("Tamper ID")
+        for row in rows
+        if isinstance(row, dict) and row.get("Status") == "accepted_unexpectedly"
+    ]
+    coverage = {}
+    for category in MANDATORY_CATEGORIES:
+        matched = [
+            row
+            for row in rows
+            if isinstance(row, dict)
+            and (
+                row.get("Tamper Category") == category
+                or category in str(row.get("Tamper ID", "")).lower()
+            )
+        ]
+        coverage[category] = {
+            "rows": len(matched),
+            "rejected_as_expected": sum(
+                1 for row in matched if row.get("Status") == "rejected_as_expected"
+            ),
+        }
+    missing_categories = [
+        category
+        for category, item in coverage.items()
+        if item["rejected_as_expected"] < 1
+    ]
+    reasons = []
+    if accepted:
+        reasons.append("accepted_unexpectedly rows: " + ", ".join(str(item) for item in accepted[:10]))
+    if missing_categories:
+        reasons.append("missing mandatory rejected categories: " + ", ".join(missing_categories))
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "mandatory_category_coverage": coverage,
+        "accepted_unexpectedly": accepted,
         "reason": "; ".join(reasons) if reasons else None,
     }

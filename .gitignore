@@ -46,6 +46,8 @@ artifacts/reports/*
 !artifacts/reports/phase8_1_rl_benchmark/**
 !artifacts/reports/phase8_2_proof_benchmark/
 !artifacts/reports/phase8_2_proof_benchmark/**
+!artifacts/reports/phase8_3_tamper_benchmark/
+!artifacts/reports/phase8_3_tamper_benchmark/**
 !artifacts/reports/provenance/
 !artifacts/reports/provenance/**
 artifacts/reports/phase8_1_rl_benchmark/checkpoints/
@@ -85,6 +87,12 @@ artifacts/kaggle_phase8_2b_merkle_outputs/
 artifacts/reports/phase8_2_proof_benchmark/work/
 artifacts/reports/phase8_2_proof_benchmark/proofs/
 artifacts/reports/phase8_2_proof_benchmark/tmp/
+artifacts/kaggle_phase8_3_tamper_kernel/
+artifacts/kaggle_phase8_3_tamper_outputs/
+artifacts/reports/phase8_3_tamper_benchmark/work/
+artifacts/reports/phase8_3_tamper_benchmark/tmp/
+artifacts/reports/phase8_3_tamper_benchmark/proofs/
+artifacts/reports/phase8_3_tamper_benchmark/mutated_fixtures/
 .minari/
 minari/
 *.pt

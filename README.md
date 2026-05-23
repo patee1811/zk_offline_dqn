@@ -156,6 +156,18 @@ add recursive aggregation, tamper, or full proof-of-training claims.
 The Merkle membership portion includes dataset-size/depth scaling rows when
 those size-specific SP1 proofs have been generated and verified.
 
+Generate the tamper-rejection-only Table 3 benchmark separately:
+
+```text
+python scripts/experiments/run_phase8_3_tamper_benchmark.py --paper
+```
+
+Table 3 distinguishes rejection at the dataset audit, dataset commitment,
+Python semantic oracle, Rust execute, SP1 verify, and public-input binding
+layers. It summarizes tamper rejection for existing supported relations and
+provenance checks only; it does not add a full proof-of-training, honest public
+dataset collection proof, or true recursive aggregation claim.
+
 Generated final reports live under:
 
 ```text
