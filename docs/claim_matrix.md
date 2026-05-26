@@ -1,9 +1,10 @@
-﻿# Claim Matrix
+# Claim Matrix
 
 | Component | Current support | Evidence / provenance | Safe wording | Target state |
 | --- | --- | --- | --- | --- |
 | Relation-level verification over selected offline-DQN artifacts | supported | `zk_offline_dqn/relations/`, `zk_offline_dqn/verifiers/`, tests | "relation-level verification for selected offline-DQN artifacts over committed transition data" | keep as current paper-level framing |
 | TD MVP SP1 proof | supported | `zk_backend/td_mvp/sp1/`, `zk_backend/test_vectors/td_mvp_case_0.json`, SP1 provenance under `artifacts/reports/provenance/sp1/` if present | "SP1 proof generation and verification for the TD MVP canonical vector" | keep as backend baseline |
+| Distinct minibatch TD SP1 proof | supported for TD-1, TD-2, TD-4, TD-8 cases | `zk_backend/td_mvp/sp1/` (Distinct TD configurations), benchmark `summary.json` data, SP1 provenance | "SP1 proof-backed verification for distinct minibatch TD configurations (1/2/4/8)" | keep as distinct TD configurations coverage |
 | Merkle membership SP1 proof | supported for canonical leaf-hash membership and generated dataset-size scaling cases with verified proof provenance | `zk_backend/merkle_membership/sp1/`, `zk_backend/test_vectors/merkle_membership_case_0.json`, `artifacts/reports/provenance/sp1/merkle_membership/` | "SP1 proof-backed Merkle membership for canonical leaf hash against provenance-bound dataset root" | keep as dataset membership backend baseline |
 | Forward-TD MLP | supported for canonical tiny SP1 vector | `zk_backend/forward_td_mlp/sp1/`, `zk_backend/test_vectors/forward_td_mlp_case_0.json`, `artifacts/reports/provenance/sp1/forward_td_mlp/` | "SP1 proof-backed fixed-point Forward-TD MLP for canonical tiny vector; not full training or backpropagation" | keep as canonical-vector backend coverage |
 | One-step SGD / tiny SGD | supported for canonical SP1 vector | `zk_backend/one_step_sgd_tiny/sp1/`, `zk_backend/test_vectors/one_step_sgd_tiny_case_0.json`, `artifacts/reports/provenance/sp1/one_step_sgd_tiny/` | "SP1 proof-backed tiny fixed-point SGD update; not Adam or full optimizer-state proof" | keep as canonical-vector backend coverage |

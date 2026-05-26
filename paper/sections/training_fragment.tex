@@ -77,13 +77,16 @@ $k$-step fragment.
   \State \textbf{assert} $R_{\mathrm{mem}}(\mroot;\, \tau_{i_t},
     i_t, \pi_{i_t})$
   \Comment{Replay membership}
-  \State $Q \gets \mathsf{ForwardMLP}(W_t, s_{i_t})$
-  \Comment{Online Q}
-  \State $\bar{Q} \gets \mathsf{ForwardMLP}(\bar{W}_t, s'_{i_t})$
-  \Comment{Target Q}
-  \State $y \gets r_{i_t} + \gamma(1 - d_{i_t}) \bar{Q}[\arg\max Q']
+  \State $Q_s \gets \mathsf{ForwardMLP}(W_t, s_{i_t})$
+  \Comment{Online Q at current state}
+  \State $Q_{s'} \gets \mathsf{ForwardMLP}(W_t, s'_{i_t})$
+  \Comment{Online next-state Q}
+  \State $\bar{Q}_{s'} \gets \mathsf{ForwardMLP}(\bar{W}_t, s'_{i_t})$
+  \Comment{Target next-state Q}
+  \State $a^* \gets \arg\max_{a'} Q_{s'}[a']$
+  \State $y \gets r_{i_t} + \gamma(1 - d_{i_t}) \bar{Q}_{s'}[a^*]
     / \fpscale$
-  \State $\ell \gets L_{\mathrm{SmoothL1}}(Q[a_{i_t}] - y)$
+  \State $\ell \gets L_{\mathrm{SmoothL1}}(Q_s[a_{i_t}] - y)$
   \State $\nabla \gets \mathsf{Backprop}(W_t, \ell)$
   \State $W_{t+1} \gets W_t - \eta \cdot \nabla / \fpscale$
   \Comment{SGD update}

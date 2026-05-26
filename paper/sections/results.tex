@@ -3,8 +3,8 @@
 % ===================================================================
 
 This section evaluates the system through three complementary benchmarks:
-(i)~RL performance on committed datasets, (ii)~ZK proof cost for all
-proof-backed relations, and (iii)~tamper rejection under adversarial
+(i)~RL performance on committed datasets, (ii)~ZK proof cost for supported
+proof-backed relations and configurations, and (iii)~tamper rejection under adversarial
 modifications.
 
 \subsection{Experimental Setup}
@@ -83,14 +83,18 @@ baselines with success rates up to 83.3\%.
 
 \subsection{ZK Proof Cost (Table~\ref{tab:proof-cost})}
 
-\Cref{tab:proof-cost} reports the SP1 proof cost for all twelve proof-verified
-relations. \Cref{fig:proof-cost} visualizes the scaling behavior.
+\Cref{tab:proof-cost} reports the SP1 proof cost for supported proof-verified
+relation configurations. The table combines compact provenance for core
+relations and accepted proof rows from the final benchmark matrix.
+\Cref{fig:proof-cost} visualizes representative core, fragment, and
+aggregation scaling behavior.
 
 \begin{table}[!t]
 \centering
 \footnotesize
-\caption{SP1 proof cost for all twelve proof-verified relations. Prove and
-verify times in seconds; proof sizes in KB; cycle counts in thousands.}
+\caption{SP1 proof cost for all proof-verified relation configurations.
+Prove and verify times in seconds; proof sizes in KB; cycle counts in
+thousands (k).}
 \label{tab:proof-cost}
 \renewcommand{\arraystretch}{1.1}
 \setlength{\tabcolsep}{3pt}
@@ -101,12 +105,17 @@ verify times in seconds; proof sizes in KB; cycle counts in thousands.}
 \textbf{Size} & \textbf{Cycles} \\
 \midrule
 TD MVP & 167.7 & 0.190 & 2{,}719 & 385 \\
+Distinct TD ($b\!=\!1$) & 98.0 & 0.127 & 2{,}719 & 385 \\
+Distinct TD ($b\!=\!2$) & 120.7 & 0.127 & 2{,}723 & 731 \\
+Distinct TD ($b\!=\!4$) & 141.3 & 0.125 & 2{,}731 & 1{,}436 \\
+Distinct TD ($b\!=\!8$) & 202.9 & 0.127 & 2{,}747 & 2{,}846 \\
 Merkle (canonical) & 121.7 & 0.149 & 2{,}714 & 103 \\
 Merkle (1k leaves) & 156.1 & 0.191 & 2{,}717 & 306 \\
 Merkle (10k leaves) & 179.6 & 0.195 & 2{,}718 & 400 \\
 Merkle (100k leaves) & 168.7 & 0.195 & 2{,}719 & 471 \\
-Forward-TD MLP & 142.7 & 0.124 & 2{,}732 & 1{,}547 \\
-One-step SGD tiny & 122.7 & 0.125 & 2{,}724 & 869 \\
+Fwd-TD MLP (CartPole) & 148.4 & 0.127 & 2{,}732 & 1{,}544 \\
+Fwd-TD MLP (MountainCar) & 107.9 & 0.127 & 2{,}722 & 684 \\
+One-step SGD tiny & 115.5 & 0.125 & 2{,}724 & 862 \\
 Short trace & 82.3 & 0.123 & 2{,}714 & 115 \\
 Training update & 104.8 & 0.125 & 2{,}720 & 469 \\
 Fragment $k\!=\!1$ & 163.1 & 0.155 & 2{,}726 & 896 \\
@@ -148,9 +157,9 @@ Agg.\ $T\!=\!128$ & 253.2 & 0.154 & 2{,}746 & 2{,}466 \\
 };
 \end{axis}
 \end{tikzpicture}
-\caption{SP1 prove time for all proof-verified relations. Training fragment
+\caption{SP1 prove time for representative proof-verified relations. Training fragment
 prove time scales approximately linearly with $k$. Verification time remains
-under 0.21\,s for all relations.}
+under 0.21\,s for all reported proof-verified configurations.}
 \label{fig:proof-cost}
 \end{figure}
 
@@ -160,9 +169,9 @@ under 0.21\,s for all relations.}
   \item \textbf{Verification is fast.} All relations verify in under 0.21\,s,
   making client-side verification practical even on modest hardware.
 
-  \item \textbf{Proof sizes are compact.} All proofs are between 2.71 and
-  2.77\,MB, reflecting the STARK-based proof structure of SP1 where proof size
-  grows logarithmically with computation size.
+  \item \textbf{Proof sizes are compact.} All reported proof-verified rows are
+  below 2.84\,MB (about 2{,}714--2{,}771\,KiB), reflecting the STARK-based
+  proof structure of SP1 where proof size grows slowly with computation size.
 
   \item \textbf{Fragment prove time scales linearly.} Prove time increases
   roughly proportionally with fragment length: $k\!=\!1$ takes 163\,s,
@@ -183,7 +192,7 @@ under 0.21\,s for all relations.}
 
 \subsection{Tamper Rejection (Table~\ref{tab:tamper-summary})}
 
-\Cref{tab:tamper-summary} summarizes the tamper-rejection benchmark across 17
+\Cref{tab:tamper-summary} summarizes the tamper-rejection benchmark across 19
 adversarial categories. Each row represents a class of tampering, the number of
 components tested, the total number of adversarial test cases, and the
 rejection outcome. The detailed layer-by-layer rejection results are available
@@ -233,7 +242,7 @@ properties:
 
 \begin{itemize}[leftmargin=1.5em]
   \item \textbf{No false negatives.} Every adversarial modification across all
-  17 categories is detected and rejected. There are zero ``accepted
+  19 categories is detected and rejected. There are zero ``accepted
   unexpectedly'' rows.
 
   \item \textbf{Multi-layer defense.} Tampering is rejected at different

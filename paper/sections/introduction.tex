@@ -52,12 +52,13 @@ The contributions of this work are as follows:
   trajectory hashes, and collection-log hashes into a SHA-256 Merkle
   commitment (\Cref{sec:system-overview}).
 
-  \item \textbf{Twelve SP1 proof-backed relations.} We implement twelve
-  distinct ZK relations and generate verified SP1 proofs covering replay membership
+  \item \textbf{SP1 proof-backed relations and configurations.} We implement
+  ZK relations and generate verified SP1 proofs covering replay membership
   (including dataset-size scaling to 100k leaves), Bellman/TD arithmetic,
   Forward-TD MLP evidence, one-step SGD updates, checkpoint chains, training
   fragments for $k \in \{1, 4, 8\}$ steps, and proof-manifest chunk-chain
-  aggregation for $T \in \{32, 64, 128\}$ steps (\Cref{sec:relations,sec:proof-backend,sec:training-fragment}).
+  aggregation for $T \in \{32, 64, 128\}$ steps
+  (\Cref{sec:relations,sec:proof-backend,sec:training-fragment}).
 
   \item \textbf{Eight formal security theorems.} We state and sketch proofs for
   eight theorems covering replay membership soundness, dataset commitment
@@ -70,7 +71,7 @@ The contributions of this work are as follows:
   \item \textbf{Comprehensive empirical evaluation.} We report three benchmark
   tables: (i)~RL performance on self-collected and public benchmark datasets,
   (ii)~ZK proof cost for all proof-backed relations, and (iii)~tamper rejection
-  across 17 adversarial categories with 166 test cases and zero unexpectedly
+  across 19 adversarial categories with 166 test cases and zero unexpectedly
   accepted rows. A reviewer artifact package with \texttt{make~reproduce-small}
   exercises the complete pipeline (\Cref{sec:experiments}).
 \end{enumerate}

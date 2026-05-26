@@ -13,19 +13,19 @@ The key technical contributions are:
   replay/reward audits from public benchmark source-integrity imports,
   binding all provenance hashes into a SHA-256 Merkle commitment.
 
-  \item Twelve SP1 proof-backed relations covering replay membership (with
-  dataset-size scaling to 100k leaves), Bellman/TD arithmetic, forward MLP
-  evidence, one-step SGD updates, checkpoint chains, multi-step training
-  fragments ($k \in \{1, 4, 8\}$), and proof-manifest chunk-chain aggregation
-  ($T \in \{32, 64, 128\}$).
+  \item SP1 proof-backed relation families and configurations covering replay
+  membership (with dataset-size scaling to 100k leaves), Bellman/TD
+  arithmetic, forward MLP evidence, one-step SGD updates, checkpoint chains,
+  multi-step training fragments ($k \in \{1, 4, 8\}$), and proof-manifest
+  chunk-chain aggregation ($T \in \{32, 64, 128\}$).
 
   \item Eight formal security theorems, each mapped to implemented relation
   code, SP1 backend, tests, and benchmark evidence, providing full traceability
   from claims to artifacts.
 
   \item A comprehensive experimental evaluation demonstrating fast verification
-  ($<$\,0.21\,s), compact proofs ($<$\,2.84\,MB), and complete tamper rejection
-  across 166 adversarial test cases with zero false negatives.
+  ($<$\,0.21\,s), compact proofs ($<$\,2.84\,MB), and tamper rejection across
+  166 adversarial test cases with zero unexpectedly accepted rows.
 \end{enumerate}
 
 The contribution is a deliberately scoped security/systems artifact.
@@ -37,7 +37,7 @@ the entire pipeline without heavy proof regeneration.
 
 Several directions can extend the current system:
 
-\textbf{True recursive aggregation.} The highest-priority extension is
+\textbf{Future work: true recursive aggregation.} The highest-priority extension is
 implementing recursive child-proof verification inside the aggregate SP1 guest.
 This would eliminate the need for external child-proof verification and enable
 arbitrarily long training-trace proofs from $W_0$ to $W_T$.
@@ -56,9 +56,9 @@ training setups.
 Linear--ReLU--Linear MLP to deeper networks with convolutional layers or
 batch normalization would extend applicability to Atari-scale DQN.
 
-\textbf{GPU-accelerated proving.} SP1's GPU prover can reduce proving costs
-by up to 10x. Integrating GPU-accelerated proving would make the system
-practical for continuous verification in production RL pipelines.
+\textbf{GPU-accelerated proving.} Integrating GPU-accelerated SP1 proving may
+reduce proving latency enough to support routine verification in production RL
+artifact pipelines.
 
 \textbf{On-chain verification.} Compressing SP1 STARK proofs to
 Groth16~\cite{groth2016zksnark} SNARKs would enable on-chain verification on

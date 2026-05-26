@@ -23,5 +23,5 @@ for the formal soundness statements below.
 - Adam optimizer soundness is not claimed.
 - Arbitrary network-size soundness is not claimed.
 - Batch-size 4/8/16 training-update proof soundness is not claimed.
-- Honest public dataset collection is not claimed.
+- Honest public dataset collection is not claimed for public Minari/D4RL imports.
 - All replay batches, model selection, and final policy optimality are not claimed.

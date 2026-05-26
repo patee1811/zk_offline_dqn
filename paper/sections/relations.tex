@@ -93,8 +93,9 @@ single transition $(s, a, r, s', d)$:
   \ell &= L_{\mathrm{SmoothL1,fp}}(\delta), \label{eq:td-loss}
 \end{align}
 where subscript ``fp'' denotes fixed-point representation. In the TD~MVP
-relation, Q~values are free witnesses. In model-grounded relations
-(Forward-TD~MLP, training update, training fragment), they are derived from
+relation, Q~values are free witnesses and $a^*$ is the claimed target action.
+In model-grounded relations (Forward-TD~MLP, training update, training
+fragment), Q~values and the Double-DQN selected action are derived from
 committed MLP weights.
 
 \subsection{Forward-TD MLP}
@@ -154,7 +155,7 @@ verified $k=8$ training fragment. The relation checks:
   \item Target checkpoint links are consistent across chunk boundaries.
   \item Aggregate roots cover the declared step ranges.
 \end{itemize}
-This is \emph{not} true recursive aggregation: the aggregate SP1 guest does
+This is not true recursive aggregation: the aggregate SP1 guest does
 not execute a verifier for child proof bytes.
 
 \subsection{Backend Coverage Summary}
@@ -174,7 +175,7 @@ relation across the Python semantic oracle and SP1 proof backend.
 Merkle membership (canonical) & \checkmark & \checkmark \\
 Merkle membership (1k/10k/100k) & \checkmark & \checkmark \\
 TD MVP canonical vector & \checkmark & \checkmark \\
-Distinct minibatch TD & \checkmark & --- \\
+Distinct minibatch TD (1/2/4/8) & \checkmark & \checkmark \\
 Forward-TD MLP (tiny) & \checkmark & \checkmark \\
 One-step SGD tiny & \checkmark & \checkmark \\
 Short trace & \checkmark & \checkmark \\

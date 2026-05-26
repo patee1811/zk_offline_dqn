@@ -73,9 +73,9 @@ takes approximately 7.3 minutes, while verification is consistently fast
 ($<$\,0.21\,s). Several scaling directions are available:
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{GPU acceleration.} SP1's GPU prover can reduce proving costs
-  by up to 10x, which would bring most relations under one minute.
-  \item \textbf{True recursive aggregation.} Verifying child proofs inside the
+  \item \textbf{GPU acceleration.} SP1 GPU proving may reduce proving costs
+  enough to make most relation proofs practical for routine artifact checks.
+  \item \textbf{Future work: true recursive aggregation.} Verifying child proofs inside the
   aggregate guest would eliminate the need for external child-proof
   verification and enable arbitrarily long training traces.
   \item \textbf{Precompile optimization.} SP1 precompiles for SHA-256 and
@@ -88,9 +88,10 @@ takes approximately 7.3 minutes, while verification is consistently fast
 \subsection{Comparison with Existing ZK Training Systems}
 
 \Cref{tab:comparison} provides a qualitative comparison with related ZK
-training verification systems. Our system is the only one that addresses
-RL-specific semantics (replay membership, Bellman targets, target-network
-synchronization) and provides a complete tamper-rejection benchmark.
+training verification systems. Our system addresses RL-specific semantics
+(replay membership, Bellman targets, target-network synchronization) and
+provides an artifact-level tamper-rejection benchmark for the supported
+relations.
 
 \begin{table*}[!t]
 \centering
@@ -109,7 +110,7 @@ synchronization) and provides a complete tamper-rejection benchmark.
 \textbf{Ours} \\
 \midrule
 ZK proof backend & --- & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-Training verification & $\sim$ & \checkmark & \checkmark & \checkmark & --- & \checkmark \\
+Training verification & $\sim$ & \checkmark & \checkmark & \checkmark & --- & $\sim$ \\
 RL-specific relations & --- & --- & --- & --- & --- & \checkmark \\
 Replay membership proof & --- & --- & --- & --- & --- & \checkmark \\
 Bellman/TD target proof & --- & --- & --- & --- & --- & \checkmark \\
@@ -122,4 +123,11 @@ Tamper-rejection benchmark & --- & --- & --- & --- & --- & \checkmark \\
 Artifact reproducibility & $\sim$ & --- & --- & --- & --- & \checkmark \\
 \bottomrule
 \end{tabular}
+\vspace{2pt}
+\begin{minipage}{0.96\textwidth}
+\footnotesize
+For our system, $\sim$ means proof-backed training fragments or
+proof-manifest aggregation only; it does not denote a full end-to-end DQN
+training proof or recursive child-proof verification.
+\end{minipage}
 \end{table*}
