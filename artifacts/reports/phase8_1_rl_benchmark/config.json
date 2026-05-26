@@ -1,0 +1,60 @@
+{
+  "baselines": [
+    "bc",
+    "offline_dqn",
+    "double_dqn",
+    "cql_lite",
+    "bc_continuous",
+    "iql_lite"
+  ],
+  "batch_size": 256,
+  "dataset_root": "/kaggle/working/zk_offline_dqn/artifacts/datasets",
+  "datasets": [
+    "cartpole",
+    "mountaincar",
+    "minari-pointmaze-umaze-v2-10000",
+    "minari-pointmaze-umaze-v2-50000",
+    "minari-pointmaze-umaze-v2-100000",
+    "minari-pointmaze-umaze-dense-v2-10000",
+    "minari-pointmaze-umaze-dense-v2-50000",
+    "minari-pointmaze-umaze-dense-v2-100000"
+  ],
+  "device": "cpu",
+  "eval_episodes": 10,
+  "max_transitions": null,
+  "observation_flatten_order": [
+    "observation",
+    "achieved_goal",
+    "desired_goal",
+    "remaining keys sorted"
+  ],
+  "out_dir": "/kaggle/working/zk_offline_dqn/artifacts/reports/final_ndss",
+  "phase2_artifact_root": "/kaggle/working/zk_offline_dqn/artifacts",
+  "phase2_tarballs": [
+    "/kaggle/working/zk_offline_dqn/artifacts/kaggle_phase2_outputs/phase2_dataset_outputs.tar.gz",
+    "/kaggle/working/zk_offline_dqn/artifacts/kaggle_phase2_scale_outputs/phase2_dataset_scale_outputs_full.tar.gz"
+  ],
+  "public_families": [
+    "minari-pointmaze-umaze",
+    "minari-pointmaze-umaze-dense"
+  ],
+  "public_sizes": [
+    10000,
+    50000,
+    100000
+  ],
+  "regenerate_missing_phase2_datasets": true,
+  "requested_datasets": [
+    "cartpole",
+    "mountaincar",
+    "minari-pointmaze-umaze",
+    "minari-pointmaze-umaze-dense"
+  ],
+  "reuse_phase2_datasets": true,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "train_steps": 5000
+}

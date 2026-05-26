@@ -1,0 +1,14 @@
+[package]
+name = "training-fragment-guest"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sp1-zkvm = "=6.1.0"
+training-fragment-shared = { path = "../shared" }
+
+[[bin]]
+name = "training-fragment-guest"
+path = "src/main.rs"
+test = false
+bench = false

@@ -1,0 +1,17 @@
+{
+  "backend_version": "0.1.0",
+  "cycle_count": 1547234,
+  "git_commit": "4a2964f482e75857ee50649f4adbe7b653bdca6d",
+  "notes": [
+    "SP1 proof-backed fixed-point Forward-TD MLP for canonical tiny vector."
+  ],
+  "proof_generated": true,
+  "proof_size_bytes": 2797873,
+  "proof_verified": true,
+  "prove_time_seconds": 142.746280097,
+  "public_inputs_sha256": "ec163e97daea9b5c2d0b25208a6ba61f22e415c7dd858012a71a37902b760d57",
+  "relation": "forward_td_mlp",
+  "sp1_version": "6.1.0",
+  "test_vector_sha256": "f5f743d549424dc392630c40770aee614de51b65e79a2649d7b5ad617d91522e",
+  "verify_time_seconds": 0.123545696
+}

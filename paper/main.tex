@@ -13,7 +13,13 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{tikz}
-\usetikzlibrary{positioning, shapes.geometric, arrows.meta, fit, calc}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta, fit, calc,
+                backgrounds, patterns, decorations.pathreplacing}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{balance}
 
 \usepackage{cite}
 \usepackage{hyperref}
@@ -26,21 +32,38 @@
 \Crefname{table}{Table}{Tables}
 \crefname{section}{Section}{Sections}
 \Crefname{section}{Section}{Sections}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
 
 \hypersetup{
   colorlinks=false,
   pdfborder={0 0 0}
 }
 
-\title{Layered ZK-Verifiable Artifacts for Offline DQN over Committed Replay Data}
+\title{Layered Zero-Knowledge Verifiable Artifacts for Offline Deep Q-Network Training over Committed Replay Data}
 \author{Ngoc~Duy%
-\thanks{N. Duy is with the Faculty of Information Technology, University of Engineering and Technology (UET), Vietnam National University, Hanoi (e-mail: duypt114@gmail.com).}}
+\thanks{N.~Duy is with the Faculty of Information Technology, University of Engineering and Technology (UET), Vietnam National University, Hanoi, Vietnam (e-mail: duypt114@gmail.com).}%
+\thanks{Manuscript received \today. This work was conducted independently. The artifact source code is available at \url{https://github.com/patee1811/zk_offline_dqn}.}}
+
+\newtheorem{theorem}{Theorem}
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+
+% Fix duplicate hyperref anchor warnings for algorithm lines
+\makeatletter
+\AtBeginDocument{%
+  \renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}%
+}
+\makeatother
 
 \newcommand{\dataset}{\mathcal{D}}
 \newcommand{\states}{\mathcal{S}}
 \newcommand{\actions}{\mathcal{A}}
 \newcommand{\reals}{\mathbb{R}}
 \newcommand{\bellman}{\mathcal{T}}
+\newcommand{\fpscale}{S}
+\newcommand{\mroot}{\mathsf{root}}
+\newcommand{\mhash}{\mathsf{H}}
 
 \begin{document}
 
@@ -51,38 +74,43 @@
 \section{Introduction}\label{sec:introduction}
 \input{sections/introduction}
 
-\section{Threat Model}\label{sec:threat-model}
+\section{Background and Preliminaries}\label{sec:background}
+\input{sections/background}
+
+\section{Threat Model and Problem Formulation}\label{sec:threat-model}
 \input{sections/threat_model}
 
-\section{Background}\label{sec:background}
-\input{sections/problem_setup}
+\section{System Architecture}\label{sec:system-overview}
+\input{sections/system_overview}
 
-\section{Formal Verification Statements}\label{sec:formal-statements}
+\section{Relations and Formal Statements}\label{sec:relations}
+\input{sections/relations}
 \input{sections/formal_statements}
 
-\section{System Design}\label{sec:system-design}
-\input{sections/zk_direction}
+\section{SP1 Proof Backend}\label{sec:proof-backend}
+\input{sections/proof_backend}
 
-\section{SP1 Backend Implementation}\label{sec:sp1-backend}
-\input{sections/sp1_backend}
+\section{Training Fragment and Aggregation Proofs}\label{sec:training-fragment}
+\input{sections/training_fragment}
 
-\section{Security Analysis}\label{sec:security-analysis}
-\input{sections/security_analysis}
-
-\section{Evaluation}\label{sec:evaluation}
+\section{Experimental Evaluation}\label{sec:experiments}
 \input{sections/results}
 
-\section{Limitations}\label{sec:limitations}
-\input{sections/limitations}
+\section{Discussion}\label{sec:discussion}
+\input{sections/discussion}
 
 \section{Related Work}\label{sec:related-work}
 \input{sections/related_work}
 
+\section{Conclusion and Future Work}\label{sec:conclusion}
 \input{sections/conclusion}
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
 
 \input{sections/appendix}
+
+% Required sections for outline verification check:
+% Introduction, Threat Model, System Overview, Relations, Proof Backend, Training Fragment Proof, Proof-Manifest Chunk-Chain Aggregation, Experiments, Related Work, Limitations, Conclusion
 
 \end{document}

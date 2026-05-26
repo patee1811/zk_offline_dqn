@@ -1,0 +1,367 @@
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::time::Instant;
+
+use anyhow::{anyhow, Context, Result};
+use clap::Parser;
+use serde_json::json;
+use sp1_sdk::{
+    include_elf, HashableKey, ProveRequest, Prover, ProverClient, ProvingKey, SP1Proof, SP1Stdin,
+};
+use training_fragment_shared::{
+    verify_training_fragment, TrainingFragmentInput, TrainingFragmentOutput,
+};
+
+#[derive(Debug, Parser)]
+struct Args {
+    #[arg(long, value_name = "PATH")]
+    case: Option<PathBuf>,
+    #[arg(long)]
+    execute: bool,
+    #[arg(long)]
+    prove: bool,
+    #[arg(long, value_name = "DIR")]
+    out_dir: Option<PathBuf>,
+    #[arg(long)]
+    max_steps: Option<usize>,
+    #[arg(long)]
+    skip_host_precheck: bool,
+    #[arg(long, default_value = "core")]
+    proof_mode: String,
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = Args::parse();
+    let case_path = resolve_case_path(args.case)?;
+    let input = load_input(&case_path)?;
+    if let Some(max_steps) = args.max_steps {
+        if input.public_inputs.num_steps > max_steps {
+            return Err(anyhow!(
+                "case has {} steps, exceeding --max-steps {}",
+                input.public_inputs.num_steps,
+                max_steps
+            ));
+        }
+    }
+
+    println!("case_path = {}", case_path.display());
+    let expected = verify_training_fragment(&input);
+    if !args.skip_host_precheck {
+        println!("host_precheck = true");
+        println!("num_steps = {}", expected.num_steps);
+        println!("dataset_root = {}", expected.dataset_root);
+        println!("start_checkpoint_hash = {}", expected.start_checkpoint_hash);
+        println!("final_checkpoint_hash = {}", expected.final_checkpoint_hash);
+        println!("target_sync_events = {}", expected.target_sync_events);
+    } else {
+        println!("host_precheck = skipped");
+    }
+
+    let client = ProverClient::builder().cpu().build().await;
+    let elf = include_elf!("training-fragment-guest");
+    let mut cycle_count: Option<u64> = None;
+
+    if args.execute || args.prove || !args.prove {
+        let stdin = build_stdin(&input);
+        let start = Instant::now();
+        let (mut public_values, report) = client
+            .execute(elf.clone(), stdin)
+            .await
+            .context("SP1 execution failed")?;
+        let output = public_values.read::<TrainingFragmentOutput>();
+        if output != expected {
+            return Err(anyhow!("SP1 public output did not match expected output"));
+        }
+        cycle_count = Some(report.total_instruction_count());
+        println!("execution_ok = true");
+        println!("execution_time_sec = {:.6}", start.elapsed().as_secs_f64());
+        println!("cycle_count = {}", report.total_instruction_count());
+        println!("exit_code = {}", report.exit_code);
+        if report.exit_code != 0 {
+            return Err(anyhow!("SP1 execution rejected case"));
+        }
+    }
+
+    if args.prove {
+        let out_dir = args.out_dir.clone().unwrap_or_else(|| {
+            PathBuf::from(format!(
+                "artifacts/reports/provenance/sp1/training_fragment_k{}",
+                input.public_inputs.num_steps
+            ))
+        });
+        fs::create_dir_all(&out_dir)
+            .with_context(|| format!("failed to create {}", out_dir.display()))?;
+
+        let stdin = build_stdin(&input);
+        let pk = client.setup(elf).await.context("SP1 setup failed")?;
+        let prove_start = Instant::now();
+        let proof = match args.proof_mode.as_str() {
+            "core" => client
+                .prove(&pk, stdin)
+                .await
+                .context("SP1 proof generation failed")?,
+            "groth16_bn254" => client
+                .prove(&pk, stdin)
+                .groth16()
+                .await
+                .context("SP1 Groth16 proof generation failed")?,
+            "plonk_bn254" => client
+                .prove(&pk, stdin)
+                .plonk()
+                .await
+                .context("SP1 Plonk proof generation failed")?,
+            "native_sp1" => client
+                .prove(&pk, stdin)
+                .compressed()
+                .await
+                .context("SP1 compressed proof generation failed")?,
+            mode => {
+                return Err(anyhow!(
+                    "unsupported --proof-mode {mode}; expected core, groth16_bn254, plonk_bn254, or native_sp1"
+                ))
+            }
+        };
+        let proving_time_sec = prove_start.elapsed().as_secs_f64();
+        let verify_start = Instant::now();
+        client
+            .verify(&proof, pk.verifying_key(), None)
+            .context("SP1 proof verification failed")?;
+        let verification_time_sec = verify_start.elapsed().as_secs_f64();
+        let proof_path = out_dir.join("proof.bin");
+        proof
+            .save(&proof_path)
+            .with_context(|| format!("failed to save {}", proof_path.display()))?;
+        let proof_size_bytes = fs::metadata(&proof_path)?.len();
+        if matches!(args.proof_mode.as_str(), "groth16_bn254" | "plonk_bn254") {
+            write_snark_recursive_child_material(
+                &out_dir,
+                &proof,
+                &pk,
+                &expected,
+                &args.proof_mode,
+            )?;
+        }
+        if args.proof_mode == "native_sp1" {
+            write_native_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+        }
+        write_provenance(
+            &out_dir,
+            &input,
+            &expected,
+            proving_time_sec,
+            verification_time_sec,
+            proof_size_bytes,
+            cycle_count,
+            &case_path,
+        )?;
+        println!("proof_generated = true");
+        println!("proof_verified = true");
+        println!("proving_time_sec = {:.6}", proving_time_sec);
+        println!("verification_time_sec = {:.6}", verification_time_sec);
+        println!("proof_size_bytes = {}", proof_size_bytes);
+    }
+
+    Ok(())
+}
+
+fn write_snark_recursive_child_material(
+    out_dir: &Path,
+    proof: &sp1_sdk::SP1ProofWithPublicValues,
+    pk: &impl ProvingKey,
+    expected: &TrainingFragmentOutput,
+    proof_mode: &str,
+) -> Result<()> {
+    let proof_bytes = proof.bytes();
+    let public_values = proof.public_values.to_vec();
+    write_json(
+        out_dir.join("recursive_child_proof_material.json"),
+        &json!({
+            "proof_mode": proof_mode,
+            "proof_bytes": hex::encode(&proof_bytes),
+            "public_values_bytes": hex::encode(&public_values),
+            "vkey_hash": pk.verifying_key().bytes32(),
+            "child_proof_hash": hex_sha256(&proof_bytes),
+            "child_public_values_hash": hex_sha256(&public_values),
+            "child_public_inputs_hash": hex_sha256(&public_values),
+            "public_output": expected,
+        }),
+    )
+}
+
+fn write_native_recursive_child_material(
+    out_dir: &Path,
+    proof: &sp1_sdk::SP1ProofWithPublicValues,
+    pk: &impl ProvingKey,
+    expected: &TrainingFragmentOutput,
+) -> Result<()> {
+    if !matches!(&proof.proof, SP1Proof::Compressed(_)) {
+        return Err(anyhow!(
+            "native recursive child material requires a compressed SP1 proof"
+        ));
+    }
+    write_json(
+        out_dir.join("recursive_child_proof_material.json"),
+        &json!({
+            "proof_mode": "native_sp1",
+            "proof_bytes": hex::encode(bincode::serialize(proof)?),
+            "public_values_bytes": hex::encode(proof.public_values.to_vec()),
+            "vkey_hash": pk.verifying_key().bytes32(),
+            "vkey_digest_words": pk.verifying_key().hash_u32(),
+            "vkey_bytes": hex::encode(bincode::serialize(pk.verifying_key())?),
+            "public_output": expected,
+        }),
+    )
+}
+
+fn build_stdin(input: &TrainingFragmentInput) -> SP1Stdin {
+    let mut stdin = SP1Stdin::new();
+    stdin.write(input);
+    stdin
+}
+
+fn load_input(path: &Path) -> Result<TrainingFragmentInput> {
+    let text =
+        fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
+    serde_json::from_str(&text).with_context(|| format!("failed to parse {}", path.display()))
+}
+
+fn resolve_case_path(case: Option<PathBuf>) -> Result<PathBuf> {
+    if let Some(path) = case {
+        return Ok(path);
+    }
+    let candidates = [
+        PathBuf::from("../../test_vectors/training_fragment_k4_case_0.json"),
+        PathBuf::from("zk_backend/test_vectors/training_fragment_k4_case_0.json"),
+    ];
+    for candidate in candidates {
+        if candidate.exists() {
+            return Ok(candidate);
+        }
+    }
+    Err(anyhow!("could not find training_fragment_k4_case_0.json"))
+}
+
+fn write_provenance(
+    out_dir: &Path,
+    input: &TrainingFragmentInput,
+    expected: &TrainingFragmentOutput,
+    proving_time_sec: f64,
+    verification_time_sec: f64,
+    proof_size_bytes: u64,
+    cycle_count: Option<u64>,
+    case_path: &Path,
+) -> Result<()> {
+    write_json(out_dir.join("public_inputs.json"), &input.public_inputs)?;
+    write_json(out_dir.join("witness_schema.json"), &witness_schema())?;
+    write_json(
+        out_dir.join("metrics.json"),
+        &json!({
+            "relation": "training_fragment",
+            "num_steps": input.public_inputs.num_steps,
+            "batch_size": input.public_inputs.batch_size,
+            "proof_generated": true,
+            "proof_verified": true,
+            "prove_time_seconds": proving_time_sec,
+            "verify_time_seconds": verification_time_sec,
+            "proof_size_bytes": proof_size_bytes,
+            "cycle_count": cycle_count,
+            "backend_version": env!("CARGO_PKG_VERSION"),
+            "sp1_version": "6.1.0",
+            "git_commit": git_commit(),
+            "test_vector_sha256": sha256_file(case_path)?,
+            "public_inputs_sha256": sha256_json(&input.public_inputs)?,
+            "target_sync_events": expected.target_sync_events,
+            "notes": ["SP1 proof-backed multi-step training fragment for a canonical tiny MLP vector; not full DQN training, Adam, all replay batches, or recursive aggregation."]
+        }),
+    )?;
+    write_json(
+        out_dir.join("verify_report.json"),
+        &json!({
+            "relation": "training_fragment",
+            "num_steps": input.public_inputs.num_steps,
+            "batch_size": input.public_inputs.batch_size,
+            "proof_generated": true,
+            "proof_verified": true,
+            "public_output_matches_expected": true,
+            "target_sync_events": expected.target_sync_events,
+            "computation_covered": {
+                "deterministic_minibatch_sampling": true,
+                "replay_membership": true,
+                "forward_online_q": true,
+                "forward_target_q": true,
+                "td_target_loss": true,
+                "gradient_backprop": true,
+                "fixed_point_sgd_update": true,
+                "checkpoint_chaining": true,
+                "target_network_sync": true
+            },
+            "public_output": expected,
+        }),
+    )?;
+    write_json(
+        out_dir.join("proof_artifact_policy.json"),
+        &json!({
+            "proof_binary_committed": false,
+            "reason": "proof binary is generated artifact and may be large",
+            "expected_runtime_location": format!("artifacts/kaggle_phase6_outputs/extracted/phase6_outputs/sp1/training_fragment_k{}/proof.bin", input.public_inputs.num_steps)
+        }),
+    )?;
+    Ok(())
+}
+
+fn witness_schema() -> serde_json::Value {
+    json!({
+        "schema_version": "sp1_training_fragment_witness_schema_v1",
+        "relation": "training_fragment",
+        "private_witness": {
+            "provenance": "dataset provenance hashes mirrored from public inputs",
+            "steps": [{
+                "step_id": "sequential step number checked by guest",
+                "global_step": "global step checked against public global_step_start",
+                "sample_index": "LCG-derived replay index recomputed by guest",
+                "transition": "fixed-point state/action/reward/next_state/terminated/truncated",
+                "leaf_hash": "transition leaf hash recomputed by guest",
+                "leaf_index": "must equal deterministic sample index",
+                "merkle_path": "Merkle path authenticating selected transition to dataset_root",
+                "online_model_before": "pre-step quantized Linear-ReLU-Linear MLP",
+                "target_model_before": "pre-step target quantized Linear-ReLU-Linear MLP",
+                "online_model_after": "post-SGD online MLP checked against recomputed update",
+                "target_model_after": "post-step target MLP checked against hard-sync rule",
+                "intermediates": "checked hints for forward activations, TD values, gradients, deltas, hashes, and target sync"
+            }]
+        },
+        "public_inputs": "dataset provenance, start/final checkpoint hashes, sampler config, training config, target-sync config, and trace commitments",
+        "notes": ["Every step is recomputed in the guest; checkpoint_after_i must equal checkpoint_before_i+1 through the running hash state."]
+    })
+}
+
+fn write_json<T: serde::Serialize>(path: PathBuf, value: &T) -> Result<()> {
+    fs::write(&path, format!("{}\n", serde_json::to_string_pretty(value)?))
+        .with_context(|| format!("failed to write {}", path.display()))
+}
+
+fn sha256_json<T: serde::Serialize>(value: &T) -> Result<String> {
+    Ok(hex_sha256(&serde_json::to_vec(value)?))
+}
+
+fn sha256_file(path: &Path) -> Result<String> {
+    Ok(hex_sha256(&fs::read(path)?))
+}
+
+fn hex_sha256(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    hex::encode(Sha256::digest(bytes))
+}
+
+fn git_commit() -> Option<String> {
+    let output = Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&output.stdout).trim().to_owned())
+}

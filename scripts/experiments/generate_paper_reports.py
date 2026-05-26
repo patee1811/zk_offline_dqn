@@ -1,4 +1,4 @@
-"""Generate Phase 7 paper-facing report snapshots from existing outputs."""
+"""Generate paper-facing report snapshots from existing outputs."""
 
 from __future__ import annotations
 

@@ -1,0 +1,175 @@
+The formal statements below are scoped to the implemented relations and to the
+backend provenance listed in the artifact map. They are not statements about a
+complete DQN training run.
+
+\paragraph{Objects and notation.}
+A replay transition is
+\[
+  \tau_i=(s_i,a_i,r_i,s'_i,\mathsf{done}_i).
+\]
+The dataset commitment is
+\[
+  C_D=(h_{\mathrm{root}}, h_{\mathrm{manifest}}, h_{\mathrm{audit}},
+       h_{\mathrm{raw}}, h_{\mathrm{collection}}),
+\]
+corresponding to the dataset root, manifest hash, audit-report hash, raw
+trajectory hash, and collection-log hash. The last field is present for
+self-collected audited datasets and absent
+for source-integrity public benchmark imports.  A model checkpoint commitment
+is written $H(W_t)$, and a training configuration commitment is written
+\texttt{config\_hash}.  Public statements contain roots, hashes, relation
+identifiers, and relation-specific claimed outputs.  Private witnesses contain
+opened transitions, Merkle paths, private weights, and intermediate arithmetic
+values unless a relation intentionally exposes one of those values as public.
+All arithmetic statements are over the fixed-point integer encoding implemented
+by the Python relation and Rust/SP1 backend, not over real-valued PyTorch
+semantics.  ``SP1 proof-backed'' means that proof generation and verification
+have compact provenance in the repository; Python semantic-oracle evidence is
+kept separate.
+
+\begin{theorem}[Replay membership soundness]
+\label{thm:replay-membership}
+For an accepted Merkle membership statement, the opened leaf hash for the
+claimed transition is included in the committed Merkle root under the
+implemented hash and path relation.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The relation recomputes the canonical transition hash, checks the supplied
+leaf index and path-direction metadata, and recomputes the root from the leaf
+and sibling hashes.  Acceptance requires equality with the public
+\texttt{dataset\_root}.  Therefore a different transition, path sibling, path
+direction, leaf index, or root is rejected except with a hash collision or a
+failure of the accepted SP1 execution proof.  The claim covers the canonical
+Merkle case and the 1k/10k/100k dataset-size scaling cases.  It does not prove
+honest data collection or reward correctness before commitment.
+\end{proof}
+
+\begin{theorem}[Audited dataset commitment soundness]
+\label{thm:dataset-commitment}
+If the dataset commitment verifier accepts, then \texttt{merkle\_tree.json} is
+bound to the manifest hash, audit-report hash, raw trajectory hash,
+collection-log hash when available, canonical leaf hashes, and dataset root.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The verifier re-hashes \texttt{raw\_episodes.jsonl}, re-hashes the audit
+report, normalizes and hashes the manifest, validates the collection log for
+self-collected datasets, rebuilds all Merkle levels from canonical transition
+hashes, and compares those values to \texttt{merkle\_tree.json}.  Any
+post-commitment change to the raw trajectory, manifest, audit report,
+collection log, leaf list, or root breaks at least one equality.  For public
+benchmark imports this is a source-integrity commitment only, not an honest
+collection proof.
+\end{proof}
+
+\begin{theorem}[Bellman target correctness]
+\label{thm:bellman-target}
+For accepted TD MVP, Forward-TD MLP, one-step training update, and
+training-fragment instances, the implemented fixed-point Bellman target,
+selected Q-value, TD error, and loss values match the relation definition for
+the supplied transition, action, discount factor, done flag, and Q witnesses.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Each relation recomputes the terminal and non-terminal Bellman branches in
+integer fixed point and compares the result to the public or intermediate
+claims.  Forward-TD MLP and training-update relations additionally derive Q
+values from committed tiny MLP weights rather than accepting them as free
+witnesses.  Tampering with reward, done, action, Q value, target value, or loss
+changes the recomputation and is rejected.  This proves relation arithmetic,
+not policy optimality.
+\end{proof}
+
+\begin{theorem}[Forward, backpropagation, and update correctness]
+\label{thm:update-correctness}
+For accepted one-step training-update instances, the fixed-point
+Linear-ReLU-Linear forward pass, SmoothL1 gradient/backpropagation path, and
+SGD update produce the claimed next checkpoint hash.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The relation binds the pre-update checkpoint hash to the online model, runs the
+fixed-point forward passes, recomputes the SmoothL1 branch and gradients,
+checks the SGD delta tensors, recomputes the post-update model, and hashes the
+resulting checkpoint.  Any gradient, learning-rate, weight-update, or
+checkpoint-hash tamper breaks one of these equalities.  The statement is scoped
+to the canonical batch-size-1 tiny MLP and to the one-step SGD tiny vector.  It
+does not cover Adam, batch sizes 4/8/16, or arbitrary network sizes.
+\end{proof}
+
+\begin{theorem}[Checkpoint-chain soundness]
+\label{thm:checkpoint-chain}
+For accepted short-trace and training-fragment instances, adjacent checkpoints
+are linked by the implemented checkpoint hash relation and by the checked
+transition/update relation.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The verifier recomputes the checkpoint hash before and after each checked
+update and requires each step's output hash to equal the next step's input hash.
+The final public checkpoint hash must equal the recomputed final state.  Step
+order, intermediate checkpoint, and final checkpoint mutations therefore fail.
+This is local checkpoint chaining, not an end-to-end proof from initialization
+to a final deployed model.
+\end{proof}
+
+\begin{theorem}[Training-fragment soundness]
+\label{thm:training-fragment}
+For accepted $k$-step training-fragment proofs with
+$k\in\{1,4,8\}$, the final checkpoint is obtained by the implemented
+deterministic sequence of minibatch sampling, replay membership, Bellman target
+computation, backpropagation, fixed-point SGD updates, checkpoint chaining, and
+target-network hard synchronization.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The fragment relation checks deterministic sample indices from the sampler
+seed and global step, verifies replay membership for every opened transition,
+recomputes per-step TD/update arithmetic, links online and target checkpoint
+hashes, and applies target-network synchronization at the configured interval.
+Tampering with a minibatch index, global step, checkpoint, or target-sync event
+breaks the recomputed trace.  Longer fragments $k\in\{16,32,128\}$ have
+reference/execute evidence only and are not SP1 proof-backed in this artifact.
+\end{proof}
+
+\begin{theorem}[Proof-manifest chunk-chain aggregation soundness]
+\label{thm:manifest-aggregation}
+For accepted proof-manifest-chain aggregation instances with
+$T\in\{32,64,128\}$, the aggregate public statement binds an ordered sequence
+of externally verified $k=8$ child proof manifests with consistent
+dataset/config hashes, chunk boundaries, aggregate roots, and online/target
+checkpoint links.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The aggregation relation recomputes child manifest hashes, public-input hashes,
+proof-manifest hashes, aggregate roots, chunk order, step ranges, and
+checkpoint links.  Acceptance requires every child manifest to agree on dataset
+and configuration commitments and requires the output checkpoint of one chunk
+to equal the input checkpoint of the next.  Tampering with child proof hashes,
+child public-input hashes, chunk order, checkpoint links, dataset roots,
+configuration hashes, or aggregate roots is rejected.
+
+This theorem is deliberately not a recursive aggregation theorem.  The current
+aggregate relation binds child proof manifests and checkpoint links; it does
+not execute a verifier for child proofs inside the aggregate SP1 guest.
+Soundness for true recursive child-proof aggregation is not claimed and remains
+future work.
+\end{proof}
+
+\begin{theorem}[Zero-knowledge and privacy boundary]
+\label{thm:privacy-boundary}
+For SP1 proof-backed relations, the verifier learns only the public inputs and
+public values exposed by the relation and proof artifact, subject to the
+zero-knowledge and soundness properties of the underlying proof system.
+Private witness fields remain private unless they are committed to public
+artifacts, disclosed by reports, or intentionally included in public inputs.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Relation schemas separate public roots, hashes, claimed outputs, verification
+keys, and proof metrics from witness transitions, Merkle paths, weights, and
+intermediate tensors.  SP1 verification checks public values while hiding the
+witness according to the proof-system interface.  Dataset roots, manifest
+hashes, audit hashes, config hashes, checkpoint hashes, selected public
+outputs, and benchmark metrics are public by design.  Public benchmark datasets
+are not private if they are already public or stored as public artifacts, and
+zero knowledge does not hide timing, proof size, or other published metadata.
+\end{proof}
+
+The theorem-to-artifact mapping in \texttt{docs/theorem\_artifact\_map.md}
+lists, for each theorem, the relation, backend implementation, tests, and
+Table 2/Table 3 benchmark evidence supporting the statement.

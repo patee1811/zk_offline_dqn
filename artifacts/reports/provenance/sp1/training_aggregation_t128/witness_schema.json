@@ -1,0 +1,28 @@
+{
+  "aggregation_mode": "proof_manifest_chain",
+  "notes": [
+    "The guest enforces ordering and checkpoint links across k=8 chunk manifests. It does not verify child proof cryptography."
+  ],
+  "private_witness": {
+    "child_proofs": "empty in proof_manifest_chain mode",
+    "chunks": [
+      {
+        "chunk_id": "sequential k=8 child chunk id checked by guest",
+        "config_hash": "must equal aggregation public config_hash",
+        "dataset_root": "must equal aggregation public dataset_root",
+        "input_checkpoint_hash": "online checkpoint entering the child chunk",
+        "input_target_checkpoint_hash": "target checkpoint entering the child chunk",
+        "output_checkpoint_hash": "online checkpoint leaving the child chunk",
+        "output_target_checkpoint_hash": "target checkpoint leaving the child chunk",
+        "proof_hash": "child proof-manifest hash bound by aggregation, not recursively verified proof bytes",
+        "public_inputs_hash": "child public-input record hash",
+        "step_end": "chunk end step",
+        "step_start": "chunk start step",
+        "verify_report_hash": "externally verified child proof report hash"
+      }
+    ]
+  },
+  "public_inputs": "aggregate boundaries, provenance/config hashes, chunk roots, and honest claim scope",
+  "relation": "training_aggregation",
+  "schema_version": "sp1_training_aggregation_witness_schema_v1"
+}

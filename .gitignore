@@ -22,7 +22,7 @@ ENV/
 # =============================================================================
 # Data & Model Artifacts
 # =============================================================================
-data/
+/data/
 models/*
 !models/offline_dqn_with_target_seed42_best.pt
 !zk_offline_dqn/artifacts/
@@ -34,14 +34,29 @@ plots/
 # Generated Benchmark Smoke Outputs
 # =============================================================================
 artifacts/benchmarks/*_python_smoke/
+artifacts/datasets/
+artifacts/data_sources/
+artifacts/reproducibility/**/work/
+artifacts/reproducibility/**/tmp/
+artifacts/reproducibility/data_audit/
 artifacts/full_regression/
 artifacts/regression_summary.json
 artifacts/regression_summary.md
 artifacts/reports/*
 !artifacts/reports/final_ndss/
 !artifacts/reports/final_ndss/**
+!artifacts/reports/phase8_1_rl_benchmark/
+!artifacts/reports/phase8_1_rl_benchmark/**
+!artifacts/reports/phase8_2_proof_benchmark/
+!artifacts/reports/phase8_2_proof_benchmark/**
+!artifacts/reports/phase8_3_tamper_benchmark/
+!artifacts/reports/phase8_3_tamper_benchmark/**
 !artifacts/reports/provenance/
 !artifacts/reports/provenance/**
+artifacts/reports/phase8_1_rl_benchmark/checkpoints/
+artifacts/reports/phase8_1_rl_benchmark/tensorboard/
+artifacts/reports/phase8_1_rl_benchmark/wandb/
+artifacts/reports/provenance/sp1/**/proof.bin
 artifacts/archive/manual_review/
 artifacts/kaggle*/
 artifacts/cleanup_artifact_schema_commit_log.txt
@@ -50,6 +65,50 @@ artifacts/one_step_negative_tests/
 artifacts/short_trace_negative_tests/
 artifacts/td_mvp_test_vector_negative_tests/
 artifacts/short_trace_negative_test_work/
+artifacts/kaggle_phase6_kernel/
+artifacts/kaggle_phase6_outputs/
+artifacts/kaggle_phase6_k16_kernel/
+artifacts/kaggle_phase6_k16_outputs/
+artifacts/kaggle_phase7_kernel/
+artifacts/kaggle_phase7_outputs/
+artifacts/kaggle_phase7_recursive_kernel/
+artifacts/kaggle_phase7_recursive_outputs/
+artifacts/kaggle_phase7_groth16_t16_t32_kernel/
+artifacts/kaggle_phase7_groth16_t16_t32_outputs/
+artifacts/kaggle_phase7_plonk_t16_t32_kernel/
+artifacts/kaggle_phase7_plonk_t16_t32_outputs/
+artifacts/kaggle_phase7_binary_native_kernel/
+artifacts/kaggle_phase7_binary_native_outputs/
+artifacts/kaggle_phase8_1_rl_kernel/
+artifacts/kaggle_phase8_1_rl_outputs/
+artifacts/kaggle_phase8_1_full_phase2_kernel/
+artifacts/kaggle_phase8_1_full_phase2_outputs/
+artifacts/kaggle_phase8_2_proof_kernel/
+artifacts/kaggle_phase8_2_proof_outputs/
+artifacts/kaggle_phase8_2b_merkle_kernel/
+artifacts/kaggle_phase8_2b_merkle_outputs/
+artifacts/reports/phase8_2_proof_benchmark/work/
+artifacts/reports/phase8_2_proof_benchmark/proofs/
+artifacts/reports/phase8_2_proof_benchmark/tmp/
+artifacts/kaggle_phase8_3_tamper_kernel/
+artifacts/kaggle_phase8_3_tamper_outputs/
+artifacts/reports/phase8_3_tamper_benchmark/work/
+artifacts/reports/phase8_3_tamper_benchmark/tmp/
+artifacts/reports/phase8_3_tamper_benchmark/proofs/
+artifacts/reports/phase8_3_tamper_benchmark/mutated_fixtures/
+artifacts/reports/**/work/
+artifacts/reports/**/tmp/
+artifacts/reports/**/proofs/
+.minari/
+minari/
+*.pt
+*.pth
+*.ckpt
+*.hdf5
+*.h5
+*.bin
+*.receipt
+*.proof
 
 # =============================================================================
 # IDE / Editor
@@ -77,6 +136,7 @@ paper/*.fdb_latexmk
 paper/*.fls
 paper/*.log
 paper/*.out
+paper/*.toc
 paper/*.synctex.gz
 paper/*.pdf
 

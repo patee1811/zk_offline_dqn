@@ -1,0 +1,11 @@
+{
+  "dataset_id": "synthetic-phase4-merkle-v1",
+  "dataset_type": "self_collected_replay_audited",
+  "dataset_root": "35530014f44124a75ef1a6b21bc5be491356caa4c2d123b162f9ab2161d337ba",
+  "manifest_hash": "8de2a4ad5773a2936c23498a3fa7ad87977621ea3d437949f759ce259ea737fb",
+  "audit_report_hash": "d1a6f4a4072200382bb936a7cf8f40d4d49970d763621e3541cd321da1dfb51d",
+  "collection_log_final_hash": "cf03f7497521dde37ab2d5b3c6c7861964aa4653029796cf4b3c5fc650734af5",
+  "raw_trajectory_hash": "f2b193a729061b0c1f2399d3f5197152f184904b3760a55ceee06fead12bfca6",
+  "leaf_hash": "01ae3a0e03fc3249561a0f9c2f2d6e67b9befaa2358d5d1a21ed7226c3ee0aab",
+  "leaf_index": 0
+}

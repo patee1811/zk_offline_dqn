@@ -1,0 +1,9 @@
+[package]
+name = "training-fragment-shared"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"

@@ -1,0 +1,17 @@
+{
+  "notes": [
+    "Backpropagation is recomputed inside the guest for the selected action row; target network is not updated."
+  ],
+  "private_witness": {
+    "intermediates": "checked hints for forward activations, gradients, and SGD deltas",
+    "merkle_path": "Merkle path authenticating the transition leaf hash to dataset_root",
+    "online_model_t": "pre-update quantized Linear-ReLU-Linear MLP",
+    "online_model_t_plus_1": "post-SGD online quantized Linear-ReLU-Linear MLP",
+    "provenance": "dataset provenance hashes mirrored from public inputs",
+    "target_model": "target quantized Linear-ReLU-Linear MLP",
+    "transition": "fixed-point state/action/reward/next_state/terminated/truncated"
+  },
+  "public_inputs": "dataset provenance, replay leaf, checkpoint hashes, training config, claimed TD/loss/gradient/update values",
+  "relation": "training_update",
+  "schema_version": "sp1_training_update_witness_schema_v1"
+}

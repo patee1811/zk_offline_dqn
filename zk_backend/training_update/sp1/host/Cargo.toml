@@ -1,0 +1,37 @@
+[package]
+name = "training-update-host"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+sp1-sdk = "=6.1.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+training-update-shared = { path = "../shared" }
+
+# Keep the SP1 stack aligned with the installed Kaggle toolchain.
+sp1-core-executor = "=6.1.0"
+sp1-core-executor-runner = "=6.1.0"
+sp1-core-executor-runner-binary = "=6.1.0"
+sp1-core-machine = "=6.1.0"
+sp1-curves = "=6.1.0"
+sp1-derive = "=6.1.0"
+sp1-hypercube = "=6.1.0"
+sp1-jit = "=6.1.0"
+sp1-primitives = "=6.1.0"
+sp1-prover = "=6.1.0"
+sp1-prover-types = "=6.1.0"
+sp1-recursion-circuit = "=6.1.0"
+sp1-recursion-compiler = "=6.1.0"
+sp1-recursion-executor = "=6.1.0"
+sp1-recursion-gnark-ffi = "=6.1.0"
+sp1-recursion-machine = "=6.1.0"
+sp1-verifier = "=6.1.0"
+
+[build-dependencies]
+sp1-build = "=6.1.0"

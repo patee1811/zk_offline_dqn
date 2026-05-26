@@ -1,0 +1,210 @@
+{
+  "aggregation_mode": "proof_manifest_chain",
+  "all_passed": true,
+  "checks": [
+    {
+      "case": "tamper_step_start",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "aggregate step span mismatch"
+    },
+    {
+      "case": "tamper_step_end",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "aggregate step span mismatch"
+    },
+    {
+      "case": "tamper_chunk_order",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk order mismatch"
+    },
+    {
+      "case": "tamper_missing_chunk",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk_count mismatch"
+    },
+    {
+      "case": "tamper_duplicate_chunk",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk step link mismatch"
+    },
+    {
+      "case": "tamper_input_checkpoint_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "input_checkpoint_hash mismatch"
+    },
+    {
+      "case": "tamper_output_checkpoint_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "output_checkpoint_hash mismatch"
+    },
+    {
+      "case": "tamper_intermediate_checkpoint_link",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "checkpoint link mismatch"
+    },
+    {
+      "case": "tamper_target_checkpoint_link",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "target checkpoint link mismatch"
+    },
+    {
+      "case": "tamper_dataset_root",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "dataset_root mismatch"
+    },
+    {
+      "case": "tamper_manifest_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "manifest_hash mismatch"
+    },
+    {
+      "case": "tamper_audit_report_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "audit_report_hash mismatch"
+    },
+    {
+      "case": "tamper_collection_log_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "collection_log_final_hash mismatch"
+    },
+    {
+      "case": "tamper_raw_trajectory_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "raw_trajectory_hash mismatch"
+    },
+    {
+      "case": "tamper_config_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "config_hash mismatch"
+    },
+    {
+      "case": "tamper_relation_id",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk relation_id mismatch"
+    },
+    {
+      "case": "tamper_chunk_size",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk_size mismatch"
+    },
+    {
+      "case": "tamper_chunk_count",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk_count mismatch"
+    },
+    {
+      "case": "tamper_public_inputs_hash",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "aggregate_root mismatch"
+    },
+    {
+      "case": "tamper_proof_hash",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "aggregate_root mismatch"
+    },
+    {
+      "case": "tamper_verify_report_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "aggregate_root mismatch"
+    },
+    {
+      "case": "tamper_tamper_report_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "aggregate_root mismatch"
+    },
+    {
+      "case": "tamper_aggregate_root",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "aggregate_root mismatch"
+    },
+    {
+      "case": "tamper_chunk_public_inputs_root",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk_public_inputs_root mismatch"
+    },
+    {
+      "case": "tamper_chunk_proof_root",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "chunk_proof_root mismatch"
+    }
+  ],
+  "chunk_count": 8,
+  "chunk_size": 8,
+  "relation": "training_aggregation",
+  "step_end": 64
+}

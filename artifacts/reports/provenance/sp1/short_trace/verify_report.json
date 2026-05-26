@@ -1,0 +1,15 @@
+{
+  "proof_generated": true,
+  "proof_verified": true,
+  "public_output": {
+    "case_id": "short_trace_case_0",
+    "final_checkpoint_hash": "594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1",
+    "num_steps": 2,
+    "relation": "short_trace",
+    "schema_version": "sp1_short_trace_public_v1",
+    "start_checkpoint_hash": "f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c",
+    "trace_hash": "550bb3474d25ce7f67a83cb9633451f76b76c0c737e48cdaa2e06b18466d24eb"
+  },
+  "public_output_matches_expected": true,
+  "relation": "short_trace"
+}

@@ -1,0 +1,8 @@
+{
+  "relation": "short_trace",
+  "case_id": "short_trace_case_0",
+  "start_checkpoint_hash": "f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c",
+  "final_checkpoint_hash": "594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1",
+  "num_steps": 2,
+  "trace_hash": "550bb3474d25ce7f67a83cb9633451f76b76c0c737e48cdaa2e06b18466d24eb"
+}

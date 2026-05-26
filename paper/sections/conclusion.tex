@@ -1,24 +1,71 @@
-\section{Conclusion}
+% ===================================================================
+%  Section XI: Conclusion and Future Work
+% ===================================================================
 
-This paper presents a layered artifact system for proof-oriented verification
-of selected offline-DQN computation over committed replay data. The central
-claim is deliberately bounded: the system checks selected relation layers, not
-a full training trace.
-The validated SP1 result is the TD MVP backend on the canonical test vector,
-including membership, Bellman/TD arithmetic, SmoothL1 loss, and public
-target/loss claims. The artifact also records Python semantic-oracle coverage
-for distinct minibatch TD, model-grounded forward-TD MLP, and a micro-scale
-CartPole one-step SGD relation.
+\subsection{Summary of Contributions}
 
-The aggregate package hardens the result into reviewer-facing artifacts:
-normalized benchmark and tamper matrices, machine-readable summaries, and
-reproduction commands for both fast Python semantic-oracle checks and scoped TD
-MVP SP1 validation.
-This makes every reported number traceable to a JSON or CSV source.
+This paper presented a layered artifact system for zero-knowledge verifiable
+offline DQN training fragments over provenance-bound committed replay data.
+The key technical contributions are:
 
-The next technical step is clear: scale the current one-step update proof into
-repeated-update traces, add optimizer semantics beyond SGD, and compose those
-steps with recursion or another aggregation strategy. Until then, the
-defensible contribution is a reproducible security/systems artifact for
-verifiable replay membership, TD computation, minibatch aggregation,
-model-grounded forward evidence, and one micro update in offline RL.
+\begin{enumerate}[leftmargin=1.8em]
+  \item A provenance-bound dataset pipeline that separates self-collected
+  replay/reward audits from public benchmark source-integrity imports,
+  binding all provenance hashes into a SHA-256 Merkle commitment.
+
+  \item SP1 proof-backed relation families and configurations covering replay
+  membership (with dataset-size scaling to 100k leaves), Bellman/TD
+  arithmetic, forward MLP evidence, one-step SGD updates, checkpoint chains,
+  multi-step training fragments ($k \in \{1, 4, 8\}$), and proof-manifest
+  chunk-chain aggregation ($T \in \{32, 64, 128\}$).
+
+  \item Eight formal security theorems, each mapped to implemented relation
+  code, SP1 backend, tests, and benchmark evidence, providing full traceability
+  from claims to artifacts.
+
+  \item A comprehensive experimental evaluation demonstrating fast verification
+  ($<$\,0.21\,s), compact proofs ($<$\,2.84\,MB), and tamper rejection across
+  166 adversarial test cases with zero unexpectedly accepted rows.
+\end{enumerate}
+
+The contribution is a deliberately scoped security/systems artifact.
+Every formal theorem maps to a relation, backend, tests, and benchmark
+evidence. The reviewer fast path (\texttt{make reproduce-small}) exercises
+the entire pipeline without heavy proof regeneration.
+
+\subsection{Future Work}
+
+Several directions can extend the current system:
+
+\textbf{Future work: true recursive aggregation.} The highest-priority extension is
+implementing recursive child-proof verification inside the aggregate SP1 guest.
+This would eliminate the need for external child-proof verification and enable
+arbitrarily long training-trace proofs from $W_0$ to $W_T$.
+
+\textbf{Adam optimizer proofs.} Extending the update relation to cover Adam's
+per-parameter adaptive learning rates, first and second moment estimates, and
+bias correction would make the system applicable to practical DQN training
+configurations.
+
+\textbf{Batch-size scaling.} The current training update proves batch-size-1
+updates. Supporting batch sizes 4, 8, and 16 would require
+vectorized fixed-point gradient accumulation and would better reflect real
+training setups.
+
+\textbf{Larger network architectures.} Moving beyond the canonical tiny
+Linear--ReLU--Linear MLP to deeper networks with convolutional layers or
+batch normalization would extend applicability to Atari-scale DQN.
+
+\textbf{GPU-accelerated proving.} Integrating GPU-accelerated SP1 proving may
+reduce proving latency enough to support routine verification in production RL
+artifact pipelines.
+
+\textbf{On-chain verification.} Compressing SP1 STARK proofs to
+Groth16~\cite{groth2016zksnark} SNARKs would enable on-chain verification on
+Ethereum or other smart-contract platforms, supporting decentralized RL model
+certification.
+
+\textbf{Honest data collection proofs.} Extending the provenance pipeline to
+provide cryptographic evidence of honest data collection (e.g., through
+trusted execution environments or verifiable random functions) would
+strengthen the end-to-end trust chain.

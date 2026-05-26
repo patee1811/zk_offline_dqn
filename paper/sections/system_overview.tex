@@ -1,0 +1,194 @@
+% ===================================================================
+%  Section IV: System Architecture
+% ===================================================================
+
+\Cref{fig:system-architecture} illustrates the end-to-end architecture of the
+verification pipeline. The system is organized as a seven-stage pipeline with
+three verification layers.
+
+% ---- Figure 1: End-to-end System Architecture ----
+\begin{figure*}[!t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    node distance=0.45cm and 0.6cm,
+    box/.style={draw, rounded corners=4pt, minimum width=2.3cm,
+                minimum height=0.85cm, align=center, font=\small,
+                line width=0.6pt},
+    data/.style={box, fill=blue!12, draw=blue!50},
+    commit/.style={box, fill=green!12, draw=green!50!black},
+    proof/.style={box, fill=red!10, draw=red!50!black},
+    agg/.style={box, fill=orange!14, draw=orange!60!black},
+    report/.style={box, fill=violet!10, draw=violet!50},
+    arr/.style={-{Stealth[length=5pt]}, thick, color=gray!70!black},
+    lab/.style={font=\scriptsize, midway, above, text=gray!60!black},
+    labbelow/.style={font=\scriptsize, midway, below, text=gray!60!black},
+    stage/.style={font=\scriptsize\bfseries, text=gray!50!black}
+]
+% Row 1: Data pipeline
+\node[data] (collect) {Dataset\\collection};
+\node[data, right=of collect] (audit) {Replay/reward\\audit};
+\node[commit, right=of audit] (merkle) {Merkle tree\\commitment};
+\node[proof, right=of merkle] (witness) {Relation\\witnesses};
+\node[proof, right=of witness] (sp1exec) {SP1 execute\\or prove};
+\node[agg, right=of sp1exec] (fragment) {Training\\fragments};
+\node[agg, right=of fragment] (aggnode) {Chunk-chain\\aggregation};
+
+% Row 2: Outputs
+\node[report, below=0.9cm of sp1exec] (verdict) {Proof verdict\\(accept/reject)};
+\node[report, below=0.9cm of aggnode] (tables) {Benchmark\\tables 1--3};
+\node[report, below=0.9cm of fragment] (provenance) {Compact\\provenance};
+
+% Arrows
+\draw[arr] (collect) -- (audit);
+\draw[arr] (audit) -- (merkle);
+\draw[arr] (merkle) -- (witness);
+\draw[arr] (witness) -- (sp1exec);
+\draw[arr] (sp1exec) -- (fragment);
+\draw[arr] (fragment) -- (aggnode);
+\draw[arr] (sp1exec) -- (verdict);
+\draw[arr] (fragment) -- (provenance);
+\draw[arr] (aggnode) -- (tables);
+
+% Stage labels
+\node[stage, above=0.15cm of collect] {Stage 1};
+\node[stage, above=0.15cm of audit] {Stage 2};
+\node[stage, above=0.15cm of merkle] {Stage 3};
+\node[stage, above=0.15cm of witness] {Stage 4};
+\node[stage, above=0.15cm of sp1exec] {Stage 5};
+\node[stage, above=0.15cm of fragment] {Stage 6};
+\node[stage, above=0.15cm of aggnode] {Stage 7};
+
+% Dashed box around verification layers
+\begin{scope}[on background layer]
+  \node[draw=blue!30, dashed, fill=blue!3, rounded corners=6pt,
+        fit=(collect)(audit)(merkle), inner sep=5pt,
+        label={[font=\scriptsize,text=blue!60]below:Data layer}] {};
+  \node[draw=red!30, dashed, fill=red!3, rounded corners=6pt,
+        fit=(witness)(sp1exec)(verdict), inner sep=5pt,
+        label={[font=\scriptsize,text=red!60]below:Proof layer}] {};
+  \node[draw=orange!30, dashed, fill=orange!3, rounded corners=6pt,
+        fit=(fragment)(aggnode)(tables), inner sep=5pt,
+        label={[font=\scriptsize,text=orange!60]below:Aggregation layer}] {};
+\end{scope}
+\end{tikzpicture}
+}
+\caption{End-to-end system architecture. The pipeline has seven stages
+organized into three layers: data provenance (Stages 1--3), proof generation
+(Stages 4--5), and aggregation/reporting (Stages 6--7). Compact provenance,
+proof verdicts, and benchmark tables are the primary outputs.}
+\label{fig:system-architecture}
+\end{figure*}
+
+\subsection{Stage 1--3: Dataset Provenance Pipeline}
+
+\textbf{Stage 1: Collection or import.} A dataset is either self-collected
+through instrumented environment interaction (with a collection log recording
+environment seed, policy, and step-level evidence) or imported from a public
+benchmark source (Minari/D4RL~\cite{minari2023, fu2020d4rl}).
+
+\textbf{Stage 2: Audit.} Self-collected data undergoes replay/reward auditing:
+the audit pipeline replays the environment deterministically and checks that
+each transition's reward, next state, termination flag, and truncation flag
+match the collection log. Public imports receive source-integrity checks only
+(hash verification, format validation) and are \emph{not} treated as
+honest-collection evidence.
+
+\textbf{Stage 3: Merkle commitment.} The dataset manifest, audit report, raw
+trajectory hash, collection-log hash (when available), and canonical transition
+leaf hashes are bound into a provenance-aware SHA-256 Merkle tree commitment.
+The resulting \texttt{merkle\_tree.json} stores the dataset root together with
+all provenance hashes, creating a single binding point for all subsequent proofs.
+
+\Cref{alg:dataset-commitment} summarizes the commitment protocol.
+
+\begin{algorithm}[!t]
+\caption{Provenance-Bound Dataset Commitment}
+\label{alg:dataset-commitment}
+\begin{algorithmic}[1]
+\Require Dataset $\dataset = \{\tau_1, \ldots, \tau_N\}$, manifest $M$,
+  audit report $A$, collection log $C$ (optional)
+\Ensure Commitment $\mathcal{C}_D$
+\For{$i = 1$ to $N$}
+  \State $\ell_i \gets \mhash\bigl(\mathsf{canonical\_encode}(\tau_i)\bigr)$
+  \Comment{SHA-256 leaf hash}
+\EndFor
+\State $\mroot \gets \mathsf{MerkleBuild}(\ell_1, \ldots, \ell_N)$
+\State $h_M \gets \mhash(\mathsf{normalize}(M))$
+\State $h_A \gets \mhash(A)$
+\State $h_R \gets \mhash(\mathsf{raw\_episodes})$
+\State $h_C \gets \mhash(C)$ if $C$ exists, else $\bot$
+\State \Return $\mathcal{C}_D = (\mroot, h_M, h_A, h_R, h_C)$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Stage 4--5: Relation Proofs}
+
+\textbf{Stage 4: Witness generation.} For each relation to be proved, the
+system opens the relevant transitions, model checkpoints, Merkle sibling paths,
+and fixed-point intermediate values as witness data. Witnesses are serialized as
+JSON fixtures with explicit public/private field separation.
+
+\textbf{Stage 5: SP1 execution and proof.} Each relation is implemented as a
+Rust SP1 guest program. In \emph{execute mode}, the guest runs natively to
+verify correctness without producing a proof. In \emph{prove mode}, the SP1
+prover generates a STARK proof that the guest accepted the public inputs. The
+host verifies the proof and records compact metrics (cycle count, prove time,
+verify time, proof size).
+
+\subsection{Stage 6--7: Fragment Composition and Aggregation}
+
+\textbf{Stage 6: Training fragments.} Multi-step training fragments compose
+$k$ one-step updates ($k \in \{1, 4, 8\}$), each verifying deterministic
+minibatch sampling, replay membership, TD computation, backpropagation, SGD
+update, checkpoint transition, and target-network synchronization.
+
+\textbf{Stage 7: Chunk-chain aggregation.} For longer training traces
+($T \in \{32, 64, 128\}$), the aggregation layer binds an ordered sequence of
+externally verified $k=8$ child proof manifests, checking manifest hashes,
+public-input consistency, dataset/config commitments, chunk boundaries, and
+checkpoint links.
+
+% ---- Figure 2: Layered Verification Stack ----
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[
+    layer/.style={draw, rounded corners=3pt, minimum width=7cm,
+                  minimum height=0.7cm, align=center, font=\small,
+                  line width=0.5pt},
+    arr/.style={-{Stealth[length=4pt]}, thick, color=gray!60}
+]
+\node[layer, fill=orange!12] (L5) at (0, 0)
+  {Layer 5: Proof-manifest chunk-chain aggregation};
+\node[layer, fill=red!10] (L4) at (0, -1.0)
+  {Layer 4: Training fragment proof ($k$-step SP1)};
+\node[layer, fill=red!8] (L3) at (0, -2.0)
+  {Layer 3: Per-relation SP1 proof};
+\node[layer, fill=green!10] (L2) at (0, -3.0)
+  {Layer 2: Python semantic oracle (deterministic check)};
+\node[layer, fill=blue!10] (L1) at (0, -4.0)
+  {Layer 1: Dataset audit + Merkle commitment};
+\draw[arr] (L1) -- (L2);
+\draw[arr] (L2) -- (L3);
+\draw[arr] (L3) -- (L4);
+\draw[arr] (L4) -- (L5);
+\end{tikzpicture}
+\caption{Layered verification stack. Each layer builds on the one below.
+Layer~1 establishes data provenance. Layer~2 provides fast deterministic
+checks. Layer~3 adds cryptographic proof for individual relations. Layer~4
+composes multi-step proofs. Layer~5 aggregates proof manifests over longer
+traces.}
+\label{fig:verification-stack}
+\end{figure}
+
+\subsection{Privacy and Integrity Boundaries}
+
+The design separates privacy and integrity concerns. Dataset roots, manifest
+hashes, audit hashes, config hashes, checkpoint hashes, proof public values,
+and benchmark metadata are \emph{public by construction}: they appear in
+published reports and proof verification outputs. Transition field values,
+Merkle sibling paths, model weights, gradient tensors, and intermediate
+arithmetic values are \emph{private witnesses} unless the corresponding fixture
+or public dataset intentionally discloses them. This separation is enforced at
+the relation schema level and verified by the public-input binding checks
+discussed in \Cref{sec:relations}.

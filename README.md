@@ -1,4 +1,4 @@
-# ZK-Offline-DQN
+﻿# ZK-Offline-DQN
 
 Relation-level verification utilities for selected offline DQN artifacts over
 committed transition data.
@@ -8,15 +8,49 @@ of DQN training from initialization to final checkpoint, and it does not claim
 honest data collection, model selection, recursive aggregation, or proof
 coverage for every relation.
 
-The supported SP1 proof claim is scoped to one backend validation result:
+The supported SP1 proof claims are scoped to backend validation artifacts:
 
 ```text
 SP1 proof generation and verification passed on Kaggle for the TD MVP SP1
 backend using zk_backend/test_vectors/td_mvp_case_0.json.
+
+SP1 proof generation and verification passed on Kaggle for Merkle membership
+of a canonical leaf hash against a provenance-bound dataset root using
+zk_backend/test_vectors/merkle_membership_case_0.json.
+
+SP1 proof generation and verification passed on Kaggle for canonical tiny
+vectors for Forward-TD MLP, one-step SGD tiny, and short trace checkpoint
+chaining using the corresponding cases under zk_backend/test_vectors/.
+
+SP1 proof generation and verification passed on Kaggle for a canonical
+batch-size-1 one-step Offline-DQN training update using
+zk_backend/test_vectors/training_update_case_0.json. The relation includes
+replay membership, forward TD computation, SmoothL1 loss, backpropagated
+gradient through a tiny Linear-ReLU-Linear MLP, fixed-point SGD, and the
+checkpoint transition.
+
+SP1 proof generation and verification passed on Kaggle for multi-step
+Offline-DQN training fragments for canonical tiny MLP vectors with k in
+{1, 4, 8}. The fragment relation includes deterministic minibatch sampling,
+replay membership, forward TD computation, SmoothL1 loss, backpropagated
+gradients, fixed-point SGD updates, target-network hard sync, and checkpoint
+chaining.
+
+SP1 proof generation and verification passed on Kaggle for proof-manifest
+chunk-chain aggregation over externally verified k=8 training-fragment proof
+manifests for W_0 -> W_T with T in {32, 64, 128}. The aggregation binds child
+proof-manifest hashes, dataset/config consistency, and online/target checkpoint
+links, but it does not recursively verify child proofs inside SP1.
 ```
 
 Extension relations are checked by Python semantic oracles unless a separate
-backend validation artifact is explicitly cited.
+backend validation artifact is explicitly cited. The Forward-TD MLP,
+one-step SGD tiny, short trace, and training-update SP1 claims are
+canonical-vector coverage, not full DQN training, Adam, recursive aggregation,
+model selection, or all replay batches.
+The same multi-step fragment path has reference and execute-mode validation for
+k in {16, 32, 128}, but those lengths are not SP1 proof-backed without verified
+proof provenance.
 
 ## Architecture
 
@@ -35,6 +69,19 @@ backend validation artifact is explicitly cited.
   generation from existing outputs.
 - `zk_backend/td_mvp/sp1/`: Rust SP1 host, guest, and shared crates for the TD
   MVP backend.
+- `zk_backend/merkle_membership/sp1/`: Rust SP1 host, guest, and shared crates
+  for canonical leaf-hash membership against a provenance-bound dataset root.
+- `zk_backend/forward_td_mlp/sp1/`, `zk_backend/one_step_sgd_tiny/sp1/`, and
+  `zk_backend/short_trace/sp1/`: Rust SP1 host, guest, and shared crates for
+  canonical tiny relation vectors.
+- `zk_backend/training_update/sp1/`: Rust SP1 host, guest, and shared crates
+  for the canonical batch-size-1 one-step training update vector.
+- `zk_backend/training_fragment/sp1/`: Rust SP1 host, guest, and shared crates
+  for canonical multi-step training-fragment vectors. Current compact SP1 proof
+  provenance covers k in `{1, 4, 8}`.
+- `zk_backend/training_aggregation/sp1/`: Rust SP1 host, guest, and shared
+  crates for proof-manifest chunk-chain aggregation over k=8 child fragment
+  records. This does not recursively verify child proofs.
 - `scripts/artifacts_export/`: legacy exporters/verifiers retained for
   compatibility and regression reproducibility.
 - `scripts/experiments/`: regression, benchmark, Kaggle validation, and report
@@ -65,6 +112,38 @@ python scripts/experiments/run_full_regression.py
 python -m zk_offline_dqn.cli.main --help
 ```
 
+## Artifact Reproducibility
+
+Install dependencies from `requirements.lock` when possible, then run the
+reviewer fast path:
+
+```text
+make reproduce-small
+```
+
+This produces or validates a tiny dataset audit report, compact proof
+verification/provenance reports, benchmark summaries, paper tables, and
+`artifacts/reports/final_ndss/artifact_manifest.json`.
+
+Additional reproducibility targets:
+
+```text
+make reproduce-data-audit
+make reproduce-smoke-sources
+make reproduce-sp1-proofs
+make reproduce-benchmarks
+make reproduce-tamper
+make reproduce-paper-tables
+make artifact-manifest
+```
+
+Heavy proof and benchmark reruns are gated by `RUN_HEAVY_SP1=1`,
+`RUN_HEAVY_BENCHMARKS=1`, and `RUN_HEAVY_TAMPER=1`. Compact final reports and
+SP1 provenance are committed; raw datasets, proof binaries, receipts, and
+temporary work directories are not. Public Minari/D4RL imports are
+source-integrity benchmark rows only, and no true recursive aggregation is
+claimed.
+
 The full regression currently runs 15 Python-side checks and writes:
 
 ```text
@@ -82,6 +161,45 @@ python scripts/experiments/check_report_sources.py
 python scripts/experiments/generate_paper_reports.py
 python -m zk_offline_dqn.cli.main report generate
 ```
+
+Generate the RL-performance-only Table 1 benchmark separately:
+
+```text
+python scripts/experiments/run_phase8_1_rl_benchmark.py --paper
+```
+
+Full Phase 8.1 paper runs reuse verified Phase 2 dataset artifacts before
+extracting Phase 2 Kaggle tarballs or regenerating missing subsets through the
+Phase 2 pipeline. Public Minari/D4RL rows remain source-integrity benchmark
+rows, not honest-collection proofs.
+
+Table 1 is RL performance only. It does not add an SP1 proof-cost table,
+tamper table, or proof-of-training claim.
+
+Generate the ZK-proof-cost-only Table 2 benchmark separately:
+
+```text
+python scripts/experiments/run_phase8_2_proof_benchmark.py --paper
+```
+
+Table 2 distinguishes SP1 proof-backed rows from execute-only,
+unsupported-current-backend, and resource/environment-limited rows. It does not
+add recursive aggregation, tamper, or full proof-of-training claims.
+The Merkle membership portion includes dataset-size/depth scaling rows when
+those size-specific SP1 proofs have been generated and verified.
+
+Generate the tamper-rejection-only Table 3 benchmark separately:
+
+```text
+python scripts/experiments/run_phase8_3_tamper_benchmark.py --paper
+```
+
+Table 3 distinguishes rejection at the dataset audit, dataset commitment,
+Python semantic oracle, Rust execute, SP1 verify, and public-input binding
+layers. It summarizes tamper rejection for existing supported relations and
+provenance checks only; it does not add a full proof-of-training or honest
+public dataset collection proof, and it makes no true recursive aggregation
+claim.
 
 Generated final reports live under:
 
@@ -103,7 +221,64 @@ Paper-facing claim checks:
 ```text
 python scripts/experiments/check_paper_claims.py
 python scripts/experiments/check_paper_numbers_against_final_ndss.py
+python scripts/experiments/check_theorem_artifact_map.py
 ```
+
+Formal theorem and threat-model text lives in `paper/sections/formal_statements.tex` and
+`paper/sections/threat_model.tex`; the artifact-level mapping is
+`docs/theorem_artifact_map.md`. These statements are scoped to the current
+proof-backed artifacts and semantic verifiers. Theorem 7 is proof-manifest
+chunk-chain aggregation only, not true recursive aggregation.
+
+## Dataset Provenance Pipeline
+
+Dataset commitments should flow through collection/import, audit, manifest, and
+then Merkle commitment. Generated canonical datasets live under
+`artifacts/datasets/<dataset_id>/`; manually downloaded source files live under
+`artifacts/data_sources/<dataset_id>/source.jsonl` or `source.npz`. Both
+directories are ignored and should not be committed.
+
+The dataset Merkle commitment is provenance-bound: `merkle_tree.json` stores
+`dataset_root`, `manifest_hash`, `audit_report_hash`, `raw_trajectory_hash`,
+and `collection_log_final_hash` when available. Use
+`scripts/data/verify_dataset_commitment.py` to verify that the commitment still
+matches the manifest, audit report, raw transitions, collection log, and Merkle
+leaves.
+
+Self-collected audited CartPole smoke path:
+
+```text
+python scripts/data/collect_audited_dataset.py --env-id CartPole-v1 --dataset-id cartpole-random-v1 --policy random --num-episodes 2 --base-seed 12345 --max-steps-per-episode 200 --out-dir artifacts/datasets/cartpole-random-v1
+python scripts/data/audit_replay_dataset.py --dataset-dir artifacts/datasets/cartpole-random-v1
+python scripts/data/commit_audited_dataset.py --dataset-dir artifacts/datasets/cartpole-random-v1
+python scripts/data/verify_dataset_commitment.py --dataset-dir artifacts/datasets/cartpole-random-v1
+```
+
+Self-collected audited MountainCar smoke path:
+
+```text
+python scripts/data/collect_audited_dataset.py --env-id MountainCar-v0 --dataset-id mountaincar-random-v1 --policy random --num-episodes 2 --base-seed 22345 --max-steps-per-episode 200 --out-dir artifacts/datasets/mountaincar-random-v1
+python scripts/data/audit_replay_dataset.py --dataset-dir artifacts/datasets/mountaincar-random-v1
+python scripts/data/commit_audited_dataset.py --dataset-dir artifacts/datasets/mountaincar-random-v1
+```
+
+Public benchmark imports are source-integrity commitments, not honest-collection
+proofs:
+
+```text
+python scripts/data/import_public_dataset.py --source-jsonl artifacts/data_sources/public-cartpole-jsonl-v1/source.jsonl --dataset-id public-cartpole-jsonl-v1 --env-id CartPole-v1 --out-dir artifacts/datasets/public-cartpole-jsonl-v1
+python scripts/data/import_public_dataset.py --source-npz artifacts/data_sources/public-npz-example-v1/source.npz --dataset-id public-npz-example-v1 --env-id CartPole-v1 --out-dir artifacts/datasets/public-npz-example-v1
+python scripts/data/import_public_dataset.py --minari-dataset-id D4RL/pointmaze/umaze-v2 --dataset-id minari-pointmaze-umaze-v2-100 --out-dir artifacts/datasets/minari-pointmaze-umaze-v2-100 --max-transitions 100
+```
+
+Recommended later subsets are 10k/50k/100k transitions for Minari/D4RL
+PointMaze imports such as `D4RL/pointmaze/umaze-v2`,
+`D4RL/pointmaze/umaze-dense-v2`, `D4RL/pointmaze/medium-v2`, and
+`D4RL/pointmaze/open-v2`. For self-collected data, use 10k transitions for
+`cartpole-random-v1` and `mountaincar-random-v1`; future policy support may add
+10k `cartpole-medium-v1`, 10k `cartpole-expert-v1`, 50k
+`cartpole-mixed-v1`, 10k `mountaincar-medium-v1`, and 50k
+`mountaincar-mixed-v1`.
 
 ## SP1 Validation
 
@@ -121,6 +296,36 @@ cd zk_backend/td_mvp/sp1
 cargo test
 cargo run --release -p td-mvp-host -- --execute
 RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove
+
+cd zk_backend/merkle_membership/sp1
+cargo test
+cargo run --release -p merkle-membership-host -- --execute --case ../../test_vectors/merkle_membership_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p merkle-membership-host -- --prove --case ../../test_vectors/merkle_membership_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/merkle_membership
+
+cd zk_backend/forward_td_mlp/sp1
+cargo test
+cargo run --release -p forward-td-mlp-host -- --execute --case ../../test_vectors/forward_td_mlp_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p forward-td-mlp-host -- --prove --case ../../test_vectors/forward_td_mlp_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/forward_td_mlp
+
+cd zk_backend/one_step_sgd_tiny/sp1
+cargo test
+cargo run --release -p one-step-sgd-tiny-host -- --execute --case ../../test_vectors/one_step_sgd_tiny_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p one-step-sgd-tiny-host -- --prove --case ../../test_vectors/one_step_sgd_tiny_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/one_step_sgd_tiny
+
+cd zk_backend/short_trace/sp1
+cargo test
+cargo run --release -p short-trace-host -- --execute --case ../../test_vectors/short_trace_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p short-trace-host -- --prove --case ../../test_vectors/short_trace_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/short_trace
+
+cd zk_backend/training_update/sp1
+cargo test
+cargo run --release -p training-update-host -- --execute --case ../../test_vectors/training_update_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p training-update-host -- --prove --case ../../test_vectors/training_update_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/training_update
+
+cd zk_backend/training_fragment/sp1
+cargo test
+cargo run --release -p training-fragment-host -- --execute --case ../../test_vectors/training_fragment_k4_case_0.json
+RUN_SP1_PROVE=1 cargo run --release -p training-fragment-host -- --prove --case ../../test_vectors/training_fragment_k4_case_0.json --out-dir ../../../artifacts/reports/provenance/sp1/training_fragment_k4
 ```
 
 Proof commands require the Rust/SP1 toolchain and are not part of the default
@@ -134,6 +339,10 @@ Python regression.
   boundaries.
 - `docs/backend_coverage.md`: relation-by-relation Python oracle and SP1
   coverage.
+- `docs/theorem_artifact_map.md`: theorem-to-relation-to-benchmark mapping for
+  the scoped formal statements.
+- `docs/artifact_reproducibility.md`: reviewer commands, expected outputs,
+  hash verification, and heavy-rerun guidance.
 - `docs/sp1_python_alignment.md`: Python/SP1 field and command alignment.
 - `docs/archive/internal_manifests/dev_commands.md`: developer command reference.
 - `docs/archive/internal_manifests/legacy_status.md`: active vs compatibility entrypoints.
@@ -147,3 +356,5 @@ verifiers without proving they are unused by regression and documentation.
 ## License
 
 MIT. See `LICENSE`.
+
+

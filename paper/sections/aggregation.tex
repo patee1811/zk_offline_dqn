@@ -1,0 +1,12 @@
+The aggregation layer is proof-manifest chunk-chain aggregation. For
+$T\in\{32,64,128\}$, the aggregate statement binds an ordered sequence of
+externally verified $k=8$ child proof manifests. The relation checks child
+proof-manifest hashes, child public-input hashes, chunk boundaries, dataset
+root consistency, config-hash consistency, aggregate roots, online checkpoint
+links, and target checkpoint links.
+
+This is not true recursive aggregation. The aggregate SP1 guest does not run a
+verifier for child proof bytes. The child proofs are externally verified and
+then represented by manifests and hashes inside the aggregate relation. True
+recursive child-proof verification remains future work and is not used as a
+paper claim.

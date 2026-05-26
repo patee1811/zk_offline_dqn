@@ -1,0 +1,16 @@
+{
+  "aggregate_root": "65e77e13a9fab7806f8ad7b744721ec9df6ba842a1395598cfbae06a26966a75",
+  "aggregation_mode": "proof_manifest_chain",
+  "child_proof_verification_inside_guest": false,
+  "chunk_count": 8,
+  "chunk_proof_root": "7138133a415217f28757f34b48dbe03af54514d3cae30e7dfa052a054aae82d5",
+  "chunk_public_inputs_root": "93e47e9631ce3f300218fe6e4ee7d6485c65c4de097e24b4c37f9ff2b3991bb8",
+  "chunk_relation_id": "training_fragment_k8",
+  "chunk_size": 8,
+  "chunk_verify_report_root": "4d9b61644920fbd5ec079d24c533e9eac6fd0519e114adc5a39d2d6a03ee5c25",
+  "claim_scope": "chunk-chain aggregation over externally verified proof manifests",
+  "proof_hash_note": "chunk proof_hash values bind child proof-manifest metadata derived from externally verified k=8 proof provenance; proof bytes are not recursively verified here.",
+  "relation": "training_aggregation",
+  "step_end": 64,
+  "step_start": 0
+}

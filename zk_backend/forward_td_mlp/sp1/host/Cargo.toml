@@ -1,0 +1,20 @@
+[package]
+name = "forward-td-mlp-host"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+forward-td-mlp-shared = { path = "../shared" }
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+sp1-sdk.workspace = true
+td-mvp-shared = { path = "../../../td_mvp/sp1/shared" }
+tokio.workspace = true
+
+[build-dependencies]
+sp1-build.workspace = true
+

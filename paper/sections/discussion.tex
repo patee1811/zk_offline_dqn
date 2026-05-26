@@ -1,69 +1,133 @@
-\subsection{What Has Been Checked}
+% ===================================================================
+%  Section IX: Discussion
+% ===================================================================
 
-The current system checks a precise stack of relation statements: a private
-transition or minibatch belongs to a committed trajectory dataset; fixed-point
-TD target, TD error, SmoothL1 loss, and public claimed outputs are recomputed
-correctly; selected forward-TD rows anchor Q-values to committed MLP weights;
-and one micro-scale SGD update is consistent with the checked gradients,
-deltas, learning rate, and post-model commitment.
+\subsection{What the System Verifies}
 
-The main engineering result is that the canonical TD MVP statement is not only
-checked by a Python script. It is implemented in a concrete SP1 zkVM backend
-and validated with proof generation and verification on Kaggle. The wider
-relation stack remains Python-oracle and report-backed unless separate SP1
-validation summaries are produced for those fixtures.
+The current system checks a precise stack of relation statements: (i)~a
+private transition belongs to a committed replay dataset via Merkle
+membership; (ii)~fixed-point TD target, TD error, SmoothL1 loss, and public
+claimed outputs are recomputed correctly; (iii)~Q-values are anchored to
+committed MLP weights through model-grounded forward execution;
+(iv)~gradients, SGD deltas, and post-update checkpoints are consistent with
+the checked forward pass; (v)~multi-step training fragments chain all of the
+above through deterministic sampling and checkpoint linking; and
+(vi)~proof-manifest chunk-chain aggregation binds externally verified child
+fragment manifests.
 
-\subsection{What Has Not Been Proved}
+Each of these layers has both a Python semantic oracle implementation (Layer~2
+in \Cref{fig:verification-stack}) and an SP1 proof-backed implementation
+(Layer~3--5), with explicit backend coverage documented in
+\Cref{tab:backend-coverage}.
 
-The paper deliberately avoids claiming full proof-of-training. The current SP1
-backend still does not prove:
+\subsection{What the System Does Not Claim}
+
+Several important limitations are inherent to the current scope:
+
 \begin{itemize}[leftmargin=1.5em]
-    \item checkpoint-to-checkpoint consistency;
-    \item target-network synchronization over long traces;
-    \item replay-sampling correctness over a full training run;
-    \item Adam optimizer state;
-    \item model selection, early stopping, or best-checkpoint choice.
+  \item \textbf{No full training proof.} The system does not prove that a
+  final checkpoint follows from initialization through all replay batches,
+  target-network synchronizations, optimizer states, or model-selection
+  decisions.
+
+  \item \textbf{No Adam proof.} The tiny update scope is limited to simple SGD.
+  Modern DQN implementations typically use Adam; proving Adam's per-parameter
+  adaptive learning rates and momentum terms remains future work.
+
+  \item \textbf{No large-scale proofs.} The benchmarks use CartPole and
+  MountainCar (classic control) and small PointMaze environments.
+  Atari-scale or MuJoCo-scale proofs would require more efficient
+  neural-network circuits.
+
+  \item \textbf{No true recursive aggregation.} The aggregation proof binds
+  child proof manifests but does not recursively verify child proof bytes
+  inside the aggregate SP1 guest.
+
+  \item \textbf{No honest collection for public data.} Minari/D4RL imports
+  are source-integrity commitments. The system does not prove that the
+  original data was collected honestly.
 \end{itemize}
-The witness-Q TD relation remains useful as a smaller layer, while the
-forward-TD MLP and tiny one-step SGD relations cover selected model-grounded
-and update-grounded cases.
 
-\subsection{Why the Scoped Claim Is Still Useful}
+\subsection{Why Scoped Claims Remain Valuable}
 
-A narrow claim is not a weakness if it is the right decomposition point.
-Offline DQN training contains several distinct verifiability problems:
-membership in committed trajectories, TD arithmetic, neural-network evaluation,
-gradient computation, optimizer semantics, and trace composition. The present
-work validates one backend layer and gives a tested Python artifact path for
-future trace composition. In a Q1 systems/security framing, the contribution should be read
-as a reproducible ZK-backed verification pipeline for selected RL-specific
-relations, not as an end-to-end zkML training system.
+A narrow claim is not a weakness if it represents the right decomposition
+point. Offline DQN training contains several distinct verifiability
+sub-problems: membership in committed trajectories, TD arithmetic,
+neural-network evaluation, gradient computation, optimizer semantics, and
+trace composition. By proving each sub-problem independently and composing
+them through checkpoint chaining, the system provides a modular foundation
+that can be extended to cover additional sub-problems without redesigning
+the entire pipeline.
 
-\subsection{Scalability}
+From a systems/security perspective, the contribution should be read as a
+\emph{reproducible ZK-backed verification pipeline for RL-specific relations},
+not as an end-to-end zkML training system. The theorem-to-artifact mapping
+(\Cref{sec:relations}) ensures that every formal claim has traceable
+implementation, test, and benchmark evidence.
 
-The TD MVP SP1 validation is prototype-scale. Proof generation takes minutes,
-while verification is fast. The proof size is recorded for the canonical
-vector. This is encouraging for artifact-level verification,
-but it is far from sufficient for full training traces. Scaling to practical
-training proofs will require aggregating many update steps and likely using
-recursion or specialized circuits for repeated linear algebra.
+\subsection{Scalability Considerations}
 
-\subsection{Benchmark Scope}
+The SP1 proof cost data (\Cref{tab:proof-cost}) reveals that proving is
+prototype-scale: the most expensive relation (training fragment $k\!=\!8$)
+takes approximately 7.3 minutes, while verification is consistently fast
+($<$\,0.21\,s). Several scaling directions are available:
 
-The TD-2/4/8 fixtures now use distinct committed transitions. The benchmark is
-still small-scale: CartPole and MountainCar are classic-control tasks, and the
-MountainCar dataset is a seeded random-policy artifact rather than a
-policy-performance result.
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{GPU acceleration.} SP1 GPU proving may reduce proving costs
+  enough to make most relation proofs practical for routine artifact checks.
+  \item \textbf{Future work: true recursive aggregation.} Verifying child proofs inside the
+  aggregate guest would eliminate the need for external child-proof
+  verification and enable arbitrarily long training traces.
+  \item \textbf{Precompile optimization.} SP1 precompiles for SHA-256 and
+  matrix operations could reduce cycle counts for forward/backward MLP
+  computations.
+  \item \textbf{Batched proving.} Amortizing proof generation across multiple
+  training steps through segment-level parallelism could improve throughput.
+\end{itemize}
 
-\subsection{Submission Positioning}
+\subsection{Comparison with Existing ZK Training Systems}
 
-For a Q1 journal submission, the paper should be positioned as a
-security/systems artifact. The strongest defensible claim is:
-\begin{quote}
-relation-level offline DQN verification over committed trajectory data, with a
-validated SP1 proof for the TD MVP canonical vector and Python semantic oracles
-for model-grounded and update-grounded extensions.
-\end{quote}
-The paper should not be positioned as solving full verifiable RL training.
-Reviewers should be able to see exactly which relation is proved and which
-parts remain future work.
+\Cref{tab:comparison} provides a qualitative comparison with related ZK
+training verification systems. Our system addresses RL-specific semantics
+(replay membership, Bellman targets, target-network synchronization) and
+provides an artifact-level tamper-rejection benchmark for the supported
+relations.
+
+\begin{table*}[!t]
+\centering
+\small
+\caption{Qualitative comparison with related ZK training verification systems.
+\checkmark: supported; $\sim$: partial; ---: not addressed.}
+\label{tab:comparison}
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Feature} &
+\textbf{PoL~\cite{jia2021proofoflearning}} &
+\textbf{zkDL~\cite{zkdl2023}} &
+\textbf{Kaizen~\cite{kaizen2024}} &
+\textbf{zkPoT~\cite{zkpotvicinity2025}} &
+\textbf{vCNN~\cite{vcnn2024}} &
+\textbf{Ours} \\
+\midrule
+ZK proof backend & --- & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+Training verification & $\sim$ & \checkmark & \checkmark & \checkmark & --- & $\sim$ \\
+RL-specific relations & --- & --- & --- & --- & --- & \checkmark \\
+Replay membership proof & --- & --- & --- & --- & --- & \checkmark \\
+Bellman/TD target proof & --- & --- & --- & --- & --- & \checkmark \\
+Target-network proof & --- & --- & --- & --- & --- & \checkmark \\
+Dataset commitment & --- & --- & --- & --- & --- & \checkmark \\
+Checkpoint chaining & --- & --- & \checkmark & --- & --- & \checkmark \\
+Multi-step composition & --- & \checkmark & \checkmark & --- & --- & \checkmark \\
+Recursive aggregation & --- & --- & \checkmark & --- & --- & $\sim$ \\
+Tamper-rejection benchmark & --- & --- & --- & --- & --- & \checkmark \\
+Artifact reproducibility & $\sim$ & --- & --- & --- & --- & \checkmark \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{0.96\textwidth}
+\footnotesize
+For our system, $\sim$ means proof-backed training fragments or
+proof-manifest aggregation only; it does not denote a full end-to-end DQN
+training proof or recursive child-proof verification.
+\end{minipage}
+\end{table*}

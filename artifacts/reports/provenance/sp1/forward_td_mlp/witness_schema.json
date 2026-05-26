@@ -1,0 +1,9 @@
+{
+  "notes": [
+    "Mirrors td_mvp_shared forward_td_mlp_v1 arithmetic and membership checks."
+  ],
+  "private_witness": "forward_td_mlp_v1 private section: transition, Merkle path, online/target quantized MLPs, and forward witnesses",
+  "public_inputs": "forward_td_mlp_v1 public section",
+  "relation": "forward_td_mlp",
+  "schema_version": "sp1_forward_td_mlp_witness_schema_v1"
+}

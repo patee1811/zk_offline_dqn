@@ -1,4 +1,4 @@
-"""Check Phase 7 report source availability without running benchmarks."""
+"""Check paper report source availability without running benchmarks."""
 
 from __future__ import annotations
 

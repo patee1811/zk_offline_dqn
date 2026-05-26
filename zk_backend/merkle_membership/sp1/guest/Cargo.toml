@@ -1,0 +1,8 @@
+[package]
+name = "merkle-membership-guest"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+sp1-zkvm.workspace = true
+merkle-membership-shared = { path = "../shared" }

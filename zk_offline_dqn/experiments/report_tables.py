@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 from zk_offline_dqn.experiments import benchmark_manifest, paper_numbers
+from zk_offline_dqn.tamper_benchmarks.cases import MANDATORY_CATEGORIES
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -223,8 +224,380 @@ def generate_reports(out_dir: Path | str | None = None, root: Path | None = None
     )
     write_benchmark_snapshot(paths["benchmark_snapshot"], numbers, sp1_status)
 
-    return {key: rel(path) for key, path in paths.items()}
+    outputs = {key: rel(path) for key, path in paths.items()}
+    table3 = target / "table3_tamper_rejection.csv"
+    if table3.exists():
+        outputs["table3_tamper_rejection"] = rel(table3)
+    return outputs
 
 
 def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
-    return benchmark_manifest.check_sources(root)
+    base = root or ROOT
+    result = benchmark_manifest.check_sources(base)
+    table1 = check_table1_rl_performance(base)
+    table2 = check_table2_zk_proof_cost(base)
+    table3 = check_table3_tamper_rejection(base)
+    theorem_map = check_theorem_artifact_map_sources(base)
+    artifact_package = check_artifact_package_sources(base)
+    result["table1_rl_performance"] = table1
+    result["table2_zk_proof_cost"] = table2
+    result["table3_tamper_rejection"] = table3
+    result["theorem_artifact_map"] = theorem_map
+    result["artifact_package"] = artifact_package
+    if (
+        table1["status"] != "passed"
+        or table2["status"] != "passed"
+        or table3["status"] != "passed"
+        or theorem_map["status"] != "passed"
+        or artifact_package["status"] != "passed"
+    ):
+        result["status"] = "failed"
+    return result
+
+
+def check_table1_rl_performance(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    table_dir = base / "artifacts/reports/final_ndss"
+    required = [
+        "table1_rl_performance.csv",
+        "table1_rl_performance.json",
+        "table1_rl_performance.tex",
+        "table1_rl_performance.md",
+        "table1_rl_performance_status.json",
+    ]
+    missing = [name for name in required if not (table_dir / name).exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "completed_public_rows": 0,
+            "required_public_size_coverage": {},
+            "reason": "Table 1 compact outputs are missing",
+        }
+
+    payload = read_json(table_dir / "table1_rl_performance.json") or {}
+    rows = payload.get("rows", [])
+    completed_public = [
+        row
+        for row in rows
+        if row.get("status") == "completed"
+        and row.get("dataset_source_type") == "public_source_integrity"
+    ]
+    status_payload = read_json(table_dir / "table1_rl_performance_status.json") or {}
+    status_text = json.dumps(status_payload, sort_keys=True)
+    coverage = {}
+    for size in ("10000", "50000", "100000"):
+        covered = any(size in str(row.get("dataset", "")) for row in rows)
+        documented = size in status_text
+        coverage[size] = {"row_present": covered, "documented_in_status": documented}
+
+    reasons = []
+    if not completed_public:
+        reasons.append("no completed public Minari/D4RL Table 1 row")
+    if not all(item["row_present"] or item["documented_in_status"] for item in coverage.values()):
+        reasons.append("required public 10k/50k/100k coverage is undocumented")
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "completed_public_rows": len(completed_public),
+        "required_public_size_coverage": coverage,
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_table2_zk_proof_cost(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    table_dir = base / "artifacts/reports/final_ndss"
+    required = [
+        "table2_zk_proof_cost.csv",
+        "table2_zk_proof_cost.json",
+        "table2_zk_proof_cost.tex",
+        "table2_zk_proof_cost.md",
+        "table2_zk_proof_cost_status.json",
+    ]
+    missing = [name for name in required if not (table_dir / name).exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "reason": "Table 2 compact outputs are missing",
+            "proof_verified_rows": 0,
+        }
+
+    payload = read_json(table_dir / "table2_zk_proof_cost.json") or {}
+    rows = payload.get("rows", [])
+    required_relations = {
+        "td_mvp",
+        "merkle_membership",
+        "forward_td_mlp",
+        "one_step_sgd_tiny",
+        "short_trace",
+        "training_update",
+        "training_fragment_k1",
+        "training_fragment_k4",
+        "training_fragment_k8",
+        "training_aggregation_manifest_t32",
+        "training_aggregation_manifest_t64",
+        "training_aggregation_manifest_t128",
+    }
+    present_text = " ".join(
+        " ".join(str(value) for value in row.values()) for row in rows if isinstance(row, dict)
+    )
+    missing_relations = sorted(relation for relation in required_relations if relation not in present_text)
+    required_fields = [
+        "Prove Time (s)",
+        "Verify Time (s)",
+        "Proof Size (bytes)",
+        "Cycle Count",
+        "Peak RSS (MB)",
+        "Status",
+    ]
+    missing_fields = [
+        field
+        for field in required_fields
+        if any(isinstance(row, dict) and field not in row for row in rows)
+    ]
+    proof_verified = [row for row in rows if isinstance(row, dict) and row.get("Status") == "proof_verified"]
+    merkle_size_rows = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        if row.get("Relation") == "merkle_membership" and row.get("Scale Axis") == "dataset_size":
+            merkle_size_rows[str(row.get("Dataset Size"))] = row
+    metric_gaps = []
+    for row in proof_verified:
+        for field in ["Prove Time (s)", "Verify Time (s)", "Proof Size (bytes)", "Cycle Count"]:
+            if row.get(field) in {None, ""}:
+                metric_gaps.append(f"{row.get('Case ID')}:{field}")
+    reasons = []
+    if missing_relations:
+        reasons.append("missing required proof rows: " + ", ".join(missing_relations))
+    if missing_fields:
+        reasons.append("missing required fields: " + ", ".join(sorted(set(missing_fields))))
+    if not proof_verified:
+        reasons.append("no proof_verified Table 2 rows")
+    if metric_gaps:
+        reasons.append("proof_verified metric gaps: " + ", ".join(metric_gaps[:10]))
+    for size in ("1000", "10000", "100000"):
+        if size not in merkle_size_rows:
+            reasons.append(f"missing Merkle dataset-size row: {size}")
+    for size in ("10000", "100000"):
+        row = merkle_size_rows.get(size)
+        if row and row.get("Status") not in {"proof_verified", "failed_oom", "failed_timeout", "failed_compile", "failed_verify", "failed_environment"}:
+            reasons.append(f"Merkle dataset-size row {size} has unattempted status: {row.get('Status')}")
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "missing_required_relations": missing_relations,
+        "proof_verified_rows": len(proof_verified),
+        "merkle_dataset_size_rows": {size: row.get("Status") for size, row in merkle_size_rows.items()},
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_table3_tamper_rejection(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    table_dir = base / "artifacts/reports/final_ndss"
+    required = [
+        "table3_tamper_rejection.csv",
+        "table3_tamper_rejection.json",
+        "table3_tamper_rejection.tex",
+        "table3_tamper_rejection.md",
+        "table3_tamper_rejection_status.json",
+    ]
+    missing = [name for name in required if not (table_dir / name).exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "reason": "Table 3 compact outputs are missing",
+            "mandatory_category_coverage": {},
+            "accepted_unexpectedly": [],
+        }
+
+    payload = read_json(table_dir / "table3_tamper_rejection.json") or {}
+    rows = payload.get("rows", [])
+    accepted = [
+        row.get("Tamper ID")
+        for row in rows
+        if isinstance(row, dict) and row.get("Status") == "accepted_unexpectedly"
+    ]
+    coverage = {}
+    for category in MANDATORY_CATEGORIES:
+        matched = [
+            row
+            for row in rows
+            if isinstance(row, dict)
+            and (
+                row.get("Tamper Category") == category
+                or category in str(row.get("Tamper ID", "")).lower()
+            )
+        ]
+        coverage[category] = {
+            "rows": len(matched),
+            "rejected_as_expected": sum(
+                1 for row in matched if row.get("Status") == "rejected_as_expected"
+            ),
+        }
+    missing_categories = [
+        category
+        for category, item in coverage.items()
+        if item["rejected_as_expected"] < 1
+    ]
+    reasons = []
+    if accepted:
+        reasons.append("accepted_unexpectedly rows: " + ", ".join(str(item) for item in accepted[:10]))
+    if missing_categories:
+        reasons.append("missing mandatory rejected categories: " + ", ".join(missing_categories))
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "mandatory_category_coverage": coverage,
+        "accepted_unexpectedly": accepted,
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_theorem_artifact_map_sources(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    paths = {
+        "theorem_map": base / "docs/theorem_artifact_map.md",
+        "theorems_tex": base / "paper/sections/theorems.tex",
+        "threat_model_tex": base / "paper/sections/threat_model.tex",
+    }
+    missing = [name for name, path in paths.items() if not path.exists()]
+    if missing:
+        return {
+            "status": "failed",
+            "missing_files": missing,
+            "reason": "Phase 9 theorem/threat-model files are missing",
+        }
+    text = "\n".join(path.read_text(encoding="utf-8", errors="replace") for path in paths.values())
+    lowered = text.lower()
+    missing_theorems = [f"Theorem {idx}" for idx in range(1, 9) if f"theorem {idx}" not in lowered]
+    required_terms = [
+        "relation/component",
+        "sp1 backend / verifier",
+        "primary tests",
+        "table 2 row",
+        "table 3 row",
+        "proof-manifest",
+        "not true recursive",
+        "public benchmark",
+        "honest collection",
+        "reward",
+    ]
+    missing_terms = [term for term in required_terms if term not in lowered]
+    unsafe = [
+        phrase
+        for phrase in [
+            "we prove offline dqn training",
+            "prove full dqn training",
+            "true recursive aggregation soundness",
+            "public benchmark honest collection proof",
+        ]
+        if phrase in lowered
+    ]
+    reasons = []
+    if missing_theorems:
+        reasons.append("missing theorem labels: " + ", ".join(missing_theorems))
+    if missing_terms:
+        reasons.append("missing required terms: " + ", ".join(missing_terms))
+    if unsafe:
+        reasons.append("unsafe phrases: " + ", ".join(unsafe))
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": [],
+        "missing_theorems": missing_theorems,
+        "missing_terms": missing_terms,
+        "unsafe_phrases": unsafe,
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def check_artifact_package_sources(root: Path | None = None) -> Dict[str, Any]:
+    base = root or ROOT
+    final_dir = base / "artifacts/reports/final_ndss"
+    required_files = [
+        base / "Makefile",
+        base / "Dockerfile",
+        base / ".dockerignore",
+        base / "requirements.lock",
+        base / "docs/artifact_reproducibility.md",
+        final_dir / "artifact_manifest.json",
+        final_dir / "dataset_hashes.json",
+        final_dir / "proof_hashes.json",
+        final_dir / "paper_numbers.json",
+    ]
+    missing = [rel(path) for path in required_files if not path.exists()]
+
+    required_targets = [
+        "reproduce-small",
+        "reproduce-data-audit",
+        "reproduce-sp1-proofs",
+        "reproduce-benchmarks",
+        "reproduce-tamper",
+        "reproduce-paper-tables",
+        "artifact-manifest",
+    ]
+    make_text = (base / "Makefile").read_text(encoding="utf-8", errors="replace") if (base / "Makefile").exists() else ""
+    readme_text = (base / "README.md").read_text(encoding="utf-8", errors="replace").lower() if (base / "README.md").exists() else ""
+    missing_targets = [target for target in required_targets if f"{target}:" not in make_text]
+    missing_readme_commands = [target for target in required_targets if f"make {target}" not in readme_text]
+
+    manifest_gaps: List[str] = []
+    raw_references: List[str] = []
+    manifest_path = final_dir / "artifact_manifest.json"
+    if manifest_path.exists():
+        manifest = read_json(manifest_path) or {}
+        for key in [
+            "git_commit",
+            "generated_at",
+            "python_version",
+            "platform",
+            "commands",
+            "files",
+            "tables",
+            "proof_provenance",
+            "dataset_hashes",
+            "omitted_artifacts",
+        ]:
+            if key not in manifest:
+                manifest_gaps.append(key)
+        manifest_text = json.dumps(
+            {
+                "files": manifest.get("files", {}),
+                "tables": manifest.get("tables", {}),
+                "proof_provenance": [
+                    {k: v for k, v in item.items() if k != "proof_binary_omitted_reason"}
+                    for item in manifest.get("proof_provenance", [])
+                    if isinstance(item, dict)
+                ],
+            },
+            sort_keys=True,
+        ).lower()
+        for forbidden in ["raw_episodes.jsonl", ".receipt", ".proof", "proof.bin"]:
+            if forbidden in manifest_text:
+                raw_references.append(forbidden)
+
+    reasons = []
+    if missing:
+        reasons.append("missing files: " + ", ".join(missing))
+    if missing_targets:
+        reasons.append("missing Make targets: " + ", ".join(missing_targets))
+    if missing_readme_commands:
+        reasons.append("README missing commands: " + ", ".join(missing_readme_commands))
+    if manifest_gaps:
+        reasons.append("artifact manifest missing keys: " + ", ".join(manifest_gaps))
+    if raw_references:
+        reasons.append("artifact manifest references raw/proof binaries: " + ", ".join(raw_references))
+
+    return {
+        "status": "passed" if not reasons else "failed",
+        "missing_files": missing,
+        "missing_make_targets": missing_targets,
+        "missing_readme_commands": missing_readme_commands,
+        "manifest_gaps": manifest_gaps,
+        "raw_references": raw_references,
+        "reason": "; ".join(reasons) if reasons else None,
+    }

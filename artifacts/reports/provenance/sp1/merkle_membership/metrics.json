@@ -1,0 +1,14 @@
+{
+  "backend_version": "0.1.0",
+  "cycle_count": 103106,
+  "git_commit": "e0cc83fb60629870fb3350118f3c564f9a4fc104",
+  "proof_generated": true,
+  "proof_size_bytes": 2779510,
+  "proof_verified": true,
+  "prove_time_seconds": 121.703486901,
+  "public_inputs_sha256": "0a43b22dcfca73f64fc401123ce5ce00ea0b978134e7f79306d8bd827f6aa1ed",
+  "relation": "merkle_membership",
+  "sp1_version": "6.1.0",
+  "test_vector_sha256": "016c16a4786f7f35d508f8f1f0ed7b3351111dc64b9ba4fcbe4ed2313f031576",
+  "verify_time_seconds": 0.148949679
+}

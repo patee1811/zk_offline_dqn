@@ -1,69 +1,116 @@
 \appendices
 
-\section{Artifact Files}
+\section{Artifact Files and Reproducibility}
 \label{app:artifact-files}
 
-The aggregate benchmark package is:
+The source code and all artifacts are available at
+\url{https://github.com/patee1811/zk_offline_dqn}.
+
+\subsection{Benchmark Package}
+
+The aggregate benchmark reports reside under:
 {\scriptsize
 \begin{verbatim}
-artifacts/benchmarks/final_ndss/summary.json
-artifacts/benchmarks/final_ndss/benchmark_matrix.csv
-artifacts/benchmarks/final_ndss/tamper_matrix.csv
-artifacts/benchmarks/final_ndss/summary.md
-artifacts/benchmarks/final_ndss/reproduction.md
+artifacts/reports/final_ndss/
+  table1_rl_performance.{json,csv,md,tex}
+  table2_zk_proof_cost.{json,csv,md,tex}
+  table3_tamper_rejection.{json,csv,md,tex}
+  paper_numbers.json
+  artifact_manifest.json
 \end{verbatim}
 }
 
-Component sources are:
+\subsection{SP1 Provenance}
+
+Compact SP1 provenance (metrics, public inputs, verify reports, hash
+inventories) is committed under:
 {\scriptsize
 \begin{verbatim}
-artifacts/benchmarks/final_ndss/source_summaries/distinct_td_sp1/summary.json
-artifacts/benchmarks/final_ndss/source_summaries/forward_td_mlp_sp1/summary.json
-artifacts/benchmarks/final_ndss/source_summaries/second_env_mountaincar/summary.json
-artifacts/benchmarks/final_ndss/source_summaries/one_step_sgd_tiny_sp1/summary.json
-artifacts/regression_summary.json
+artifacts/reports/provenance/sp1/
+  td_mvp/
+  merkle_membership/
+  forward_td_mlp/
+  one_step_sgd_tiny/
+  short_trace/
+  training_update/
+  training_fragment_k{1,4,8}/
+  training_aggregation_t{32,64,128}/
 \end{verbatim}
 }
+\noindent Proof binaries and receipts are not committed. Reviewers can verify
+provenance hashes without re-running the prover.
 
-\section{Reproduction Commands}
+\subsection{Reproduction Commands}
 \label{app:reproducibility}
 
-Run the fast Python smoke path from the repository root:
+The reviewer fast path from the repository root:
+{\scriptsize
+\begin{verbatim}
+make reproduce-small
+\end{verbatim}
+}
+\noindent This produces a tiny dataset audit report, validates compact proof
+provenance, regenerates paper tables, checks theorem/artifact mappings, and
+writes the artifact manifest. Additional targets:
+{\scriptsize
+\begin{verbatim}
+make reproduce-data-audit
+make reproduce-smoke-sources
+make reproduce-sp1-proofs
+make reproduce-benchmarks
+make reproduce-tamper
+make reproduce-paper-tables
+make artifact-manifest
+\end{verbatim}
+}
+\noindent Heavy SP1, benchmark, and tamper targets require the SP1 toolchain
+and the corresponding \texttt{RUN\_HEAVY\_*} environment flag.
+
+\subsection{Full Python Regression}
+
+The Python regression suite runs 15 checks:
 {\scriptsize
 \begin{verbatim}
 python scripts/experiments/run_full_regression.py
-python scripts/experiments/check_report_sources.py
-python scripts/experiments/generate_paper_reports.py
 \end{verbatim}
 }
+\noindent Checks include: compile validation, minibatch TD verification,
+forward-TD consistency, one-step update verification, short-trace verification
+(contiguous and seeded), negative/tamper tests for one-step, short-trace,
+minibatch, and TD~MVP relations, and paper-number consistency checks.
 
-Run the scoped TD MVP SP1 validation on Linux, WSL2 Ubuntu, or Kaggle with SP1
-installed:
-{\tiny
-\begin{verbatim}
-cd zk_backend/td_mvp/sp1
-cargo test
-cargo run --release -p td-mvp-host -- --execute
-RUN_SP1_PROVE=1 cargo run --release -p td-mvp-host -- --prove
-\end{verbatim}
-}
-
-The Kaggle wrapper can request the same proof path through:
-{\tiny
-\begin{verbatim}
-python scripts/experiments/run_phase6_kaggle_validation.py --use-local-archive --run-sp1-setup --run-sp1-execute --run-sp1-prove
-\end{verbatim}
-}
-
-\section{Tamper-Test Definitions}
+\section{Tamper Test Definitions}
 \label{app:tamper-tests}
 
-The final tamper matrix includes distinct-batch attacks on duplicate index,
-wrong item index, swapped item order, wrong item loss, wrong claimed batch
-average, and wrong path order. It includes forward-TD attacks on online model
-weight, target model weight, activation, ReLU mask, argmax, selected target
-value, and claimed batch loss. It includes tiny-update attacks on gradient
-tensor, delta tensor, learning rate, post model weight, post model commitment,
-and SmoothL1 gradient. The broader regression suite also retains legacy TD MVP
-tamper tests for schema, reward, done, rounding, Merkle, target, and TD-error
-cases.
+The tamper benchmark covers the following adversarial modification categories:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Data-level}: reward, next state, done flag, action, raw
+  trajectory hash, collection log hash.
+  \item \textbf{Commitment-level}: Merkle path, Merkle leaf, leaf index,
+  dataset root, manifest hash, audit report hash.
+  \item \textbf{Computation-level}: Q value, TD target, loss, gradient,
+  checkpoint hash.
+  \item \textbf{Trace-level}: minibatch index, target network sync, step
+  order.
+  \item \textbf{Verification-level}: proof public input (roots, hashes,
+  relation ID mismatch).
+\end{itemize}
+
+For SP1-backed relations, tamper tests include both host-precheck-enabled
+mode (where the host JSON parser may catch obvious violations) and
+host-precheck-disabled mode (where rejection must come from the guest
+relation logic or SP1 verification).
+
+\section{Theorem--Artifact Mapping}
+\label{app:theorem-map}
+
+Each theorem in \Cref{sec:relations} is mapped to relation modules under
+\texttt{zk\_offline\_dqn/relations/}, SP1 backend workspaces under
+\texttt{zk\_backend/}, unit and negative tests under \texttt{tests/}, and the
+corresponding Table~\ref{tab:proof-cost}/Table~\ref{tab:tamper-summary} rows.
+\noindent The full mapping is maintained in
+\begin{center}
+\scriptsize\path{docs/theorem_artifact_map.md}\\
+\path{scripts/experiments/check_theorem_artifact_map.py}
+\end{center}

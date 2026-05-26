@@ -1,0 +1,49 @@
+Dataset,Family,Source,Transitions,Baseline,Seeds,Avg Return,Std Return,Norm. Score,Success Rate,Train Steps,Status
+cartpole-random-v1,cartpole,audited_self_collected,9204,bc,3,11.000 +/- 0.852,0.852,,0.000 +/- 0.000,5000,completed
+cartpole-random-v1,cartpole,audited_self_collected,9204,offline_dqn,3,161.900 +/- 49.897,49.897,,0.000 +/- 0.000,5000,completed
+cartpole-random-v1,cartpole,audited_self_collected,9204,double_dqn,3,192.900 +/- 69.318,69.318,,0.000 +/- 0.000,5000,completed
+cartpole-random-v1,cartpole,audited_self_collected,9204,cql_lite,3,199.000 +/- 34.766,34.766,,0.000 +/- 0.000,5000,completed
+cartpole-random-v1,cartpole,audited_self_collected,9204,bc_continuous,0,,,,,0,incompatible_skipped
+cartpole-random-v1,cartpole,audited_self_collected,9204,iql_lite,0,,,,,0,incompatible_skipped
+mountaincar-random-v1,mountaincar,audited_self_collected,10000,bc,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
+mountaincar-random-v1,mountaincar,audited_self_collected,10000,offline_dqn,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
+mountaincar-random-v1,mountaincar,audited_self_collected,10000,double_dqn,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
+mountaincar-random-v1,mountaincar,audited_self_collected,10000,cql_lite,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
+mountaincar-random-v1,mountaincar,audited_self_collected,10000,bc_continuous,0,,,,,0,incompatible_skipped
+mountaincar-random-v1,mountaincar,audited_self_collected,10000,iql_lite,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,bc,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,offline_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,double_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,cql_lite,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,bc_continuous,3,174.000 +/- 27.151,27.151,,0.833 +/- 0.125,5000,completed
+minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,iql_lite,3,163.400 +/- 15.144,15.144,,0.700 +/- 0.082,5000,completed
+minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,bc,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,offline_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,double_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,cql_lite,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,bc_continuous,3,166.167 +/- 21.417,21.417,,0.767 +/- 0.125,5000,completed
+minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,iql_lite,3,166.667 +/- 21.344,21.344,,0.767 +/- 0.125,5000,completed
+minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,bc,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,offline_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,double_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,cql_lite,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,bc_continuous,3,142.433 +/- 13.241,13.241,,0.600 +/- 0.245,5000,completed
+minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,iql_lite,3,142.567 +/- 16.017,16.017,,0.500 +/- 0.163,5000,completed
+minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,bc,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,offline_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,double_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,cql_lite,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,bc_continuous,3,186.901 +/- 8.134,8.134,,0.833 +/- 0.125,5000,completed
+minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,iql_lite,3,173.787 +/- 9.096,9.096,,0.567 +/- 0.094,5000,completed
+minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,bc,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,offline_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,double_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,cql_lite,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,bc_continuous,3,185.394 +/- 10.913,10.913,,0.767 +/- 0.125,5000,completed
+minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,iql_lite,3,173.724 +/- 10.247,10.247,,0.600 +/- 0.082,5000,completed
+minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,bc,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,offline_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,double_dqn,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,cql_lite,0,,,,,0,incompatible_skipped
+minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,bc_continuous,3,175.766 +/- 8.057,8.057,,0.600 +/- 0.245,5000,completed
+minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,iql_lite,3,170.032 +/- 12.930,12.930,,0.567 +/- 0.047,5000,completed

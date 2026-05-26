@@ -1,0 +1,5 @@
+{
+  "expected_runtime_location": "artifacts/kaggle_phase4_complete_outputs/extracted/phase4_complete_outputs/sp1/short_trace/proof.bin",
+  "proof_binary_committed": false,
+  "reason": "proof binary is generated artifact and may be large"
+}

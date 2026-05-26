@@ -1,0 +1,124 @@
+{
+  "metadata": {
+    "case_id": "merkle_membership_dataset_10000",
+    "dataset_dir": "/kaggle/working/zk_offline_dqn/artifacts/datasets/minari-pointmaze-umaze-v2-10000",
+    "dataset_size": 10000,
+    "merkle_depth": 14,
+    "merkle_tree_sha256": "6813f52e00bfed81a908df8e5eeeca69d05669f34f3717bb62180022e183147f",
+    "requested_dataset_size": 10000
+  },
+  "private_witness": {
+    "merkle_path": [
+      {
+        "current_index": 5000,
+        "current_is_left": true,
+        "level": 0,
+        "sibling_hash": "d63cfef3c7dd24540d387407b52b6e69331d24095028b9d4caf42a2dde1197a2",
+        "sibling_index": 5001
+      },
+      {
+        "current_index": 2500,
+        "current_is_left": true,
+        "level": 1,
+        "sibling_hash": "500bc523acc9c05d3b9243c424212fb0d59fb4c3ea937bd1d9a2bc960d5e3084",
+        "sibling_index": 2501
+      },
+      {
+        "current_index": 1250,
+        "current_is_left": true,
+        "level": 2,
+        "sibling_hash": "05930a94a8f7ea15a8285c929ad3d1ec24f3b807b9c93f265cbe5f1f5fbdae4e",
+        "sibling_index": 1251
+      },
+      {
+        "current_index": 625,
+        "current_is_left": false,
+        "level": 3,
+        "sibling_hash": "285547937f8e4b0488468ee461c58f31e7e8bb4435c6341de75ccd40a7e03550",
+        "sibling_index": 624
+      },
+      {
+        "current_index": 312,
+        "current_is_left": true,
+        "level": 4,
+        "sibling_hash": "79da39b1f716802e518fd70ae88d7850fcadc3c4c845819d5e2908fa21786ec5",
+        "sibling_index": 313
+      },
+      {
+        "current_index": 156,
+        "current_is_left": true,
+        "level": 5,
+        "sibling_hash": "d3a22b8e1ef0b63dcaecbdac3d9fa560e04ae7bfe82962e0d824c852a5be51e3",
+        "sibling_index": 157
+      },
+      {
+        "current_index": 78,
+        "current_is_left": true,
+        "level": 6,
+        "sibling_hash": "bccf470446e0ae1b80ffc8200280f8fd8ae323b6f2c68bd4a4bdecb567c0757a",
+        "sibling_index": 79
+      },
+      {
+        "current_index": 39,
+        "current_is_left": false,
+        "level": 7,
+        "sibling_hash": "0cbc91269493398c1e5b693fb1d13273a43b4650383b161e75931e936b79bee8",
+        "sibling_index": 38
+      },
+      {
+        "current_index": 19,
+        "current_is_left": false,
+        "level": 8,
+        "sibling_hash": "6c71d775f2e195abf21660d777a686a8bd6e80143eecf94e243b536418f0885d",
+        "sibling_index": 18
+      },
+      {
+        "current_index": 9,
+        "current_is_left": false,
+        "level": 9,
+        "sibling_hash": "9827cf90871849db260af0f3d853955a70a25ec7864e1fc4517d2f21f72b6f7b",
+        "sibling_index": 8
+      },
+      {
+        "current_index": 4,
+        "current_is_left": true,
+        "level": 10,
+        "sibling_hash": "3000e42ff1aa6f7e5fe98668ee9bcfa1dc4c1fa79ffc1887449a01d2cf778c2f",
+        "sibling_index": 5
+      },
+      {
+        "current_index": 2,
+        "current_is_left": true,
+        "level": 11,
+        "sibling_hash": "2b54865d7ad4482b8853d954c43ed452c7a1aa8c75036a80aa501f0818964454",
+        "sibling_index": 3
+      },
+      {
+        "current_index": 1,
+        "current_is_left": false,
+        "level": 12,
+        "sibling_hash": "52075bff65b98682fc194acdaeda63f339307e63cc4f9d7866ac8dc195c9aa57",
+        "sibling_index": 0
+      },
+      {
+        "current_index": 0,
+        "current_is_left": true,
+        "level": 13,
+        "sibling_hash": "dc4659f87c9860a5a17d7ad5848f5ce77714e213d09e6552be62f81d0cfe71a9",
+        "sibling_index": 1
+      }
+    ]
+  },
+  "public_inputs": {
+    "audit_report_hash": "7b0012c262f8d064b440a230075604b2945161fa94e1a61adf29c0af104512b9",
+    "collection_log_final_hash": null,
+    "dataset_id": "minari-pointmaze-umaze-v2-10000",
+    "dataset_root": "2a48ec939444bf083f70fa8aa0979a6793a8ba30497dd7769092c07a9dcad738",
+    "dataset_type": "public_benchmark",
+    "leaf_hash": "2a03a2e4254c34c7f8e80734cf9458977a3b7f8a6fdb1c50284a79477a329028",
+    "leaf_index": 5000,
+    "manifest_hash": "4eb6b484fbd315b4cbc193468755efc51ade38a594d4ee2a84a9a0f2ec4aea05",
+    "raw_trajectory_hash": "93ec140b4404e347b91a7dfa4700599308d395f35d6151e84f6fcbb419900bd2"
+  },
+  "schema_version": "sp1_merkle_membership_case_v1"
+}

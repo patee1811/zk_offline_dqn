@@ -1,0 +1,145 @@
+{
+  "metadata": {
+    "case_id": "merkle_membership_dataset_100000",
+    "dataset_dir": "/kaggle/working/zk_offline_dqn/artifacts/datasets/minari-pointmaze-umaze-v2-100000",
+    "dataset_size": 100000,
+    "merkle_depth": 17,
+    "merkle_tree_sha256": "0b99eed96c0d3e0bc652c31590cde3bf1a9378f24b39c90b46f2b400812608e4",
+    "requested_dataset_size": 100000
+  },
+  "private_witness": {
+    "merkle_path": [
+      {
+        "current_index": 50000,
+        "current_is_left": true,
+        "level": 0,
+        "sibling_hash": "138d9fdbb691cb9ecf2ed15523d0b2100709fff60f493382a9039aeda9cd66a3",
+        "sibling_index": 50001
+      },
+      {
+        "current_index": 25000,
+        "current_is_left": true,
+        "level": 1,
+        "sibling_hash": "4db1cbe3b5a078b2d911a6d96a39ed3eaf45d6daed7a0bc8142706ea412c2a8a",
+        "sibling_index": 25001
+      },
+      {
+        "current_index": 12500,
+        "current_is_left": true,
+        "level": 2,
+        "sibling_hash": "9420f544ed1dc6275b994d883a1825320f9995d03e4d98b7f25c7e663dc26986",
+        "sibling_index": 12501
+      },
+      {
+        "current_index": 6250,
+        "current_is_left": true,
+        "level": 3,
+        "sibling_hash": "24efa175f230bc0f4a55bd86df91a5534e56182e52752ca96bfa0d69958a596a",
+        "sibling_index": 6251
+      },
+      {
+        "current_index": 3125,
+        "current_is_left": false,
+        "level": 4,
+        "sibling_hash": "ec593bf9d9e08d35336f265b817abe822981ea94af1496c0b14716355f6dca1b",
+        "sibling_index": 3124
+      },
+      {
+        "current_index": 1562,
+        "current_is_left": true,
+        "level": 5,
+        "sibling_hash": "d996c7c81126247eec32025ad50c7bec6e4f444ac2cf9c87c746e63b1b95c997",
+        "sibling_index": 1563
+      },
+      {
+        "current_index": 781,
+        "current_is_left": false,
+        "level": 6,
+        "sibling_hash": "58160dbb6ae242cba5b9548d03318d58c9ac7e4f90d4c289306e4d8af16ace3d",
+        "sibling_index": 780
+      },
+      {
+        "current_index": 390,
+        "current_is_left": true,
+        "level": 7,
+        "sibling_hash": "9dce8a457568f8ec9ed27ed52dddfbf861487911ea9b3ededd07c98ed5c28159",
+        "sibling_index": 391
+      },
+      {
+        "current_index": 195,
+        "current_is_left": false,
+        "level": 8,
+        "sibling_hash": "78fe054bde7602ddf1ad4abf8988d6a6a3fb0d611e7950e0d7f9c8c253bfcd4d",
+        "sibling_index": 194
+      },
+      {
+        "current_index": 97,
+        "current_is_left": false,
+        "level": 9,
+        "sibling_hash": "f3d32a1185c56c17fe35d9e054fc1003b0f381d0ae89ab78b94ec7c0993d2eb9",
+        "sibling_index": 96
+      },
+      {
+        "current_index": 48,
+        "current_is_left": true,
+        "level": 10,
+        "sibling_hash": "a2a6190c563eb4d8edd48ecf089748f0c3c4c5174640dc1983f71f9944293d70",
+        "sibling_index": 49
+      },
+      {
+        "current_index": 24,
+        "current_is_left": true,
+        "level": 11,
+        "sibling_hash": "556deb3dc4c6a05b1cf5b551e67eb38e44136213bfeed6265fecd707190e1f95",
+        "sibling_index": 25
+      },
+      {
+        "current_index": 12,
+        "current_is_left": true,
+        "level": 12,
+        "sibling_hash": "640cfa939af0ab93fd0762921db9c236a6099eed149eb1a1868cb8c8c60b3a67",
+        "sibling_index": 13
+      },
+      {
+        "current_index": 6,
+        "current_is_left": true,
+        "level": 13,
+        "sibling_hash": "fda2067e0a87716b06588243b22d87539f6c843729d57155e4d447e804aa0a93",
+        "sibling_index": 7
+      },
+      {
+        "current_index": 3,
+        "current_is_left": false,
+        "level": 14,
+        "sibling_hash": "4adabc58066bf715967cca0d4852793754d7f6be7c01096a9eedb69bc0be1b85",
+        "sibling_index": 2
+      },
+      {
+        "current_index": 1,
+        "current_is_left": false,
+        "level": 15,
+        "sibling_hash": "998ddbd75494b8fb3bf777a7c877e30b93c62c14cfe526b8a861532ad16f0778",
+        "sibling_index": 0
+      },
+      {
+        "current_index": 0,
+        "current_is_left": true,
+        "level": 16,
+        "sibling_hash": "fdff16f913b6e366f975f63f6091f8b253282bb89ba6dece4ea9e925d5f2d958",
+        "sibling_index": 1
+      }
+    ]
+  },
+  "public_inputs": {
+    "audit_report_hash": "95d6c0dbda2f6f65b0b3d27dce28d062b0fa61a778d57ef7a9d1f4e8a8678e4c",
+    "collection_log_final_hash": null,
+    "dataset_id": "minari-pointmaze-umaze-v2-100000",
+    "dataset_root": "ca9383c9905155cd8216584109cc1bbedcc5af463b51bcc71ec731e802404239",
+    "dataset_type": "public_benchmark",
+    "leaf_hash": "a89a946637d69774e61a43adb0663d3f5a2de8e5900f875219b140ad61712d61",
+    "leaf_index": 50000,
+    "manifest_hash": "b9f2a9a5627f0ab573ff9cd3a16a500c4f6110bf01bf2f1f425b32566f821ec0",
+    "raw_trajectory_hash": "3510ecd9c452a22f8e762b347174f59fbae154f952bd8e92e4778fe081e58e5e"
+  },
+  "schema_version": "sp1_merkle_membership_case_v1"
+}

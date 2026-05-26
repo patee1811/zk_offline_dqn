@@ -1,0 +1,69 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "case": "tamper_leaf_hash",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "expected": "verification_failure",
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "canonical_transition_hash_mismatch"
+    },
+    {
+      "case": "tamper_dataset_root",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "expected": "verification_failure",
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "dataset_root_mismatch"
+    },
+    {
+      "case": "tamper_path_sibling",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "expected": "verification_failure",
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "dataset_root_mismatch"
+    },
+    {
+      "case": "tamper_leaf_index",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "expected": "verification_failure",
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "path_current_index_mismatch"
+    },
+    {
+      "case": "tamper_manifest_hash_public_input",
+      "execute_passed": false,
+      "execute_return_code": 1,
+      "expected": "public_input_mismatch_failure",
+      "passed": true,
+      "reference_accepted": true,
+      "reference_reason": null
+    },
+    {
+      "case": "tamper_audit_report_hash_public_input",
+      "execute_passed": false,
+      "execute_return_code": 1,
+      "expected": "public_input_mismatch_failure",
+      "passed": true,
+      "reference_accepted": true,
+      "reference_reason": null
+    },
+    {
+      "case": "tamper_collection_log_hash_public_input",
+      "execute_passed": false,
+      "execute_return_code": 1,
+      "expected": "public_input_mismatch_failure",
+      "passed": true,
+      "reference_accepted": true,
+      "reference_reason": null
+    }
+  ],
+  "relation": "merkle_membership"
+}

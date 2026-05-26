@@ -1,0 +1,288 @@
+{
+  "all_passed": true,
+  "batch_size": 1,
+  "checks": [
+    {
+      "case": "tamper_sampler_seed",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "deterministic sample index mismatch"
+    },
+    {
+      "case": "tamper_minibatch_index",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "deterministic sample index mismatch"
+    },
+    {
+      "case": "tamper_step_order",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "step_id mismatch"
+    },
+    {
+      "case": "tamper_dataset_root",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "dataset_root mismatch"
+    },
+    {
+      "case": "tamper_manifest_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "provenance witness mismatch"
+    },
+    {
+      "case": "tamper_audit_report_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "provenance witness mismatch"
+    },
+    {
+      "case": "tamper_collection_log_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "provenance witness mismatch"
+    },
+    {
+      "case": "tamper_leaf_hash",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_hash mismatch"
+    },
+    {
+      "case": "tamper_merkle_path",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "dataset_root mismatch"
+    },
+    {
+      "case": "tamper_leaf_index",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_index must match deterministic sample index"
+    },
+    {
+      "case": "tamper_state_at_step",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_hash mismatch"
+    },
+    {
+      "case": "tamper_action_at_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_hash mismatch"
+    },
+    {
+      "case": "tamper_reward_at_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_hash mismatch"
+    },
+    {
+      "case": "tamper_next_state_at_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_hash mismatch"
+    },
+    {
+      "case": "tamper_terminated_at_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_hash mismatch"
+    },
+    {
+      "case": "tamper_truncated_at_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "leaf_hash mismatch"
+    },
+    {
+      "case": "tamper_online_weight_before_step",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "checkpoint_hash_before mismatch"
+    },
+    {
+      "case": "tamper_target_weight_before_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "target_checkpoint_hash_before mismatch"
+    },
+    {
+      "case": "tamper_online_weight_after_step",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "online_model_after mismatch"
+    },
+    {
+      "case": "tamper_target_weight_after_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "target_model_after mismatch"
+    },
+    {
+      "case": "tamper_checkpoint_hash_before_step",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "checkpoint_hash_before mismatch"
+    },
+    {
+      "case": "tamper_checkpoint_hash_after_step",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "checkpoint_hash_after mismatch"
+    },
+    {
+      "case": "tamper_final_checkpoint_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "final_checkpoint_hash mismatch"
+    },
+    {
+      "case": "tamper_q_online_action",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_q_target_next",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_td_target",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_td_error",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_loss",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_gradient",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_learning_rate",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_gamma",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_update_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_trace_hash",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "trace_hash mismatch"
+    },
+    {
+      "case": "tamper_target_sync_interval",
+      "execute_passed": null,
+      "execute_return_code": null,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    },
+    {
+      "case": "tamper_target_sync_event",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "intermediates mismatch"
+    }
+  ],
+  "num_steps": 4,
+  "relation": "training_fragment"
+}
