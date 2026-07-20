@@ -41,12 +41,6 @@ scoped to the TD MVP backend and
 - `archive/internal_manifests/threat_model.md` - prover/verifier assumptions,
   non-goals, and boundaries.
 
-## Migration Logs
-
-Internal refactor logs are archived under `docs/archive/refactor_history/`.
-They are useful for auditing how the repository reached its current layout, but
-reviewer-facing workflows should start with the docs listed above.
-
 ## Core Commands
 
 Run the full Python regression:

@@ -347,7 +347,6 @@ Python regression.
 - `docs/archive/internal_manifests/dev_commands.md`: developer command reference.
 - `docs/archive/internal_manifests/legacy_status.md`: active vs compatibility entrypoints.
 - `docs/archive/internal_manifests/reporting_policy.md`: which generated reports should be committed.
-- `docs/archive/refactor_history/refactor_final_summary.md`: completed phases and remaining limitations.
 
 Legacy scripts are intentionally kept for compatibility. Prefer the unified CLI
 and current scripts for new work, but do not remove legacy exporters or
