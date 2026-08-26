@@ -1,5 +1,8 @@
 # Introduced by the AI harness. The repo had no formatter/linter config.
-# format-after-edit and pre-commit run ruff only on touched files.
+# format-after-edit and pre-commit run `ruff check --fix` on touched files only.
+# `ruff format` is deliberately not wired into either hook: it reflows whole
+# files, burying small changes in unrelated diff. The [format] block below only
+# takes effect when someone runs `ruff format` by hand.
 # Do not add `ruff format --check` to CI until the tree is reformatted.
 
 target-version = "py39"

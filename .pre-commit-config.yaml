@@ -4,15 +4,14 @@
 
 default_install_hook_types: [pre-commit, commit-msg]
 
+# ruff format is deliberately absent. It reflows whole files, so a two-line
+# fix arrives as a hundred-line diff and the real change becomes unreviewable.
+# The tree predates any formatter; reformat it in one dedicated commit first,
+# then this can be reconsidered.
+
 repos:
   - repo: local
     hooks:
-      - id: ruff-format-staged
-        name: ruff format (staged Python)
-        language: python
-        additional_dependencies: [ruff]
-        types: [python]
-        entry: ruff format
       - id: ruff-check-staged
         name: ruff check (staged Python)
         language: python

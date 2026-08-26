@@ -53,7 +53,8 @@ def main() -> int:
                 )
                 return 0
             cmd_prefix = [python, "-m", "ruff"]
-        run(cmd_prefix + ["format", str(path)])
+        # No `ruff format`: it reflows the whole file, so an edit to two lines
+        # lands as a hundred-line diff. The tree predates any formatter.
         run(cmd_prefix + ["check", "--fix", str(path)])
         return 0
 
