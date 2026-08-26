@@ -47,6 +47,8 @@ PAST_OR_GERUND = re.compile(
     re.IGNORECASE,
 )
 NON_ASCII = re.compile(r"[^\x00-\x7F]")
+# git writes these subjects itself and they cannot be Conventional Commits.
+GIT_GENERATED = re.compile(r"^(Merge|Revert) ")
 
 
 def fail(message: str) -> int:
@@ -79,6 +81,8 @@ def validate(message: str, on_fail=fail) -> int:
     if not lines:
         return on_fail("commit message is empty")
     header = lines[0].strip()
+    if GIT_GENERATED.match(header):
+        return 0
     if len(header) > 72:
         return on_fail(f"subject longer than 72 characters ({len(header)}): {header!r}")
     if NON_ASCII.search(header):
@@ -152,7 +156,10 @@ def main(argv: list[str] | None = None) -> int:
             command = str(tool_input.get("command") or "")
         if not re.search(r"(?:^|[;&|]\s*)git\s+commit\b", command):
             return 0
-        if re.search(r"--no-verify\b|(?:^|\s)-n(?:\s|$)", command):
+        # Strip the -m payload before looking for flags: a message that merely
+        # describes the bypass flag is not an attempt to use it.
+        flags_only = re.sub(r'-m\s+(["\']).*?\1', " ", command, flags=re.S)
+        if re.search(r"--no-verify\b|(?:^|\s)-n(?:\s|$)", flags_only):
             return deny_hook(
                 "git commit --no-verify bypasses the commit-msg gate; drop the flag"
             )

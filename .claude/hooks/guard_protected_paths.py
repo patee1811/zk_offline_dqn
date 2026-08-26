@@ -45,6 +45,12 @@ def is_blocked(rel: str) -> str | None:
     return None
 
 
+def is_scratch(posix: str) -> bool:
+    """The session scratchpad is a sanctioned temp area, not the repo."""
+    lowered = posix.lower()
+    return "/temp/claude/" in lowered or "/scratchpad/" in lowered or lowered.startswith("/tmp/")
+
+
 def main() -> int:
     payload = read_payload()
     raw = file_path_from(payload)
@@ -55,7 +61,7 @@ def main() -> int:
         rel = path.resolve().relative_to(repo_root().resolve()).as_posix()
     except ValueError:
         rel = raw.replace("\\", "/")
-        if os.path.isabs(raw):
+        if os.path.isabs(raw) and not is_scratch(rel):
             deny(f"refusing write outside the repo: {raw}")
     reason = is_blocked(rel)
     if reason:
