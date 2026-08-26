@@ -139,6 +139,13 @@ paper/*.out
 paper/*.toc
 paper/*.synctex.gz
 paper/*.pdf
+baocao/*.aux
+baocao/*.lof
+baocao/*.log
+baocao/*.lot
+baocao/*.out
+baocao/*.toc
+baocao/*.synctex.gz
 
 # =============================================================================
 # Tool Caches

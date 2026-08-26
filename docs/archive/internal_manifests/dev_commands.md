@@ -172,12 +172,7 @@ docs/reproducibility.md
 docs/sp1_python_alignment.md
 docs/archive/internal_manifests/legacy_status.md
 docs/archive/internal_manifests/reporting_policy.md
-docs/archive/refactor_history/refactor_final_summary.md
 ```
-
-Migration logs are archived under `docs/archive/refactor_history/`. They are
-useful for audit history, but they are not the first docs a reviewer should
-read.
 
 ## All Default Checks
 
