@@ -47,9 +47,16 @@ class ProfileCase:
     extra_args: List[str] = field(default_factory=list)
     expect: str = "proof_verified"
     notes: str = ""
+    # A Python driver, relative to the repo root, that orchestrates the host
+    # instead of the profiler calling cargo directly. Recursion needs one
+    # because the case JSON has to be generated before the host will accept it.
+    driver: List[str] = field(default_factory=list)
 
     @property
     def workspace(self) -> Path:
+        # Driver cases run from the repo root so their relative paths resolve.
+        if self.driver:
+            return ROOT
         return ROOT / "zk_backend" / self.relation / "sp1"
 
 
@@ -75,12 +82,34 @@ CASES: tuple[ProfileCase, ...] = (
                 notes="253.2s, proof-manifest chain mode"),
     # The rows Table 2 records as failures. Profiling these is the point of the
     # campaign: a peak with a stage name turns failed_oom into a fixable number.
-    ProfileCase("recursive_native_groth16", "training_aggregation", "training-aggregation-host",
-                proof_mode="groth16_bn254", expect="failed_oom",
-                notes="Table 2 native_flat_recursive_t32 failed_oom; Groth16 wrap needs ~14GB CPU RAM"),
-    ProfileCase("recursive_native_compressed", "training_aggregation", "training-aggregation-host",
-                proof_mode="native_sp1", expect="failed_oom",
-                notes="Table 2 binary_tree_native_t16 failed_oom; compressed recursion"),
+    #
+    # The aggregation host takes --mode, not --proof-mode, and it refuses a
+    # mode the case JSON does not declare. All three committed vectors say
+    # proof_manifest_chain, so a recursive_sp1 case has to be generated first
+    # by run_phase7_sp1_training_aggregation_validation.py --aggregation-mode
+    # recursive_sp1. These two cases run that generator under the profiler.
+    ProfileCase("recursive_native_t32", "training_aggregation", "training-aggregation-host",
+                driver=[
+                    "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
+                    "--targets", "32",
+                    "--aggregation-mode", "recursive_sp1",
+                    "--child-proof-mode", "native_sp1",
+                    "--run-child-proves", "--run-prove", "--continue-on-failure",
+                ],
+                expect="failed_oom",
+                notes="Table 2 native_flat_recursive_t32 failed_oom"),
+    ProfileCase("recursive_binary_tree_t32", "training_aggregation", "training-aggregation-host",
+                driver=[
+                    "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
+                    "--targets", "32",
+                    "--aggregation-mode", "recursive_sp1",
+                    "--aggregation-topology", "binary_tree",
+                    "--child-proof-mode", "native_sp1",
+                    "--run-child-proves", "--run-prove", "--continue-on-failure",
+                ],
+                expect="failed_oom",
+                notes="Table 2 binary_tree_native_t16 failed_oom; arity 2 is the "
+                      "configuration SUMMER's arity-10 choice argues against"),
 )
 
 
@@ -93,6 +122,14 @@ def relative_to_root(path: Path) -> str:
 
 
 def build_command(case: ProfileCase, *, execute_only: bool) -> List[str]:
+    if case.driver:
+        driver = list(case.driver)
+        if execute_only:
+            driver = [arg for arg in driver if arg != "--run-prove"]
+            if "--run-execute" not in driver:
+                driver.append("--run-execute")
+        return [sys.executable, *driver]
+
     mode = "--execute" if execute_only else "--prove"
     command = ["cargo", "run", "--release", "-p", case.host_package, "--", mode]
     if not execute_only and case.proof_mode != "core":
