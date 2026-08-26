@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional
 
-from zk_offline_dqn.core.merkle import recompute_root_from_path
+from zk_offline_dqn.merkle import recompute_root_from_path
 from zk_offline_dqn.data_pipeline import canonical_json_bytes, sha256_hex_bytes
 
 

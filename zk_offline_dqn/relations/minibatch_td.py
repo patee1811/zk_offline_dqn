@@ -8,8 +8,8 @@ from zk_offline_dqn.artifacts.schemas import (
     SCHEMA_MINIBATCH_TD_V1,
     require_schema_version,
 )
-from zk_offline_dqn.core.merkle import hash_leaf as hash_leaf_serialized
-from zk_offline_dqn.core.merkle import verify_merkle_path
+from zk_offline_dqn.merkle import hash_leaf as hash_leaf_serialized
+from zk_offline_dqn.merkle import verify_merkle_path
 from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
     compute_td_target_fp,

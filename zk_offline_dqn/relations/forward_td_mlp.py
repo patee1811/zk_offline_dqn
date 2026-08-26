@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 from zk_offline_dqn import zk_specs
 from zk_offline_dqn.artifacts.schemas import SCHEMA_FORWARD_TD_MLP_V1
-from zk_offline_dqn.core.merkle import (
+from zk_offline_dqn.merkle import (
     hash_leaf as hash_leaf_serialized,
     recompute_root_from_path,
 )

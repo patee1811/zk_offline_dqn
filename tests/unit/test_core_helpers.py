@@ -1,16 +1,17 @@
 import unittest
 
-from zk_offline_dqn.core import merkle, td_arithmetic
+from zk_offline_dqn import merkle
+from zk_offline_dqn import zk_specs
 
 
 class CoreHelperTests(unittest.TestCase):
     def test_fixed_point_td_helpers_are_deterministic(self):
-        reward_fp = td_arithmetic.encode_fp(1.0)
-        q_target_max_fp = td_arithmetic.encode_fp(0.769)
+        reward_fp = zk_specs.encode_fp(1.0)
+        q_target_max_fp = zk_specs.encode_fp(0.769)
 
-        self.assertEqual(td_arithmetic.compute_bootstrapped_fp(q_target_max_fp), 761)
+        self.assertEqual(zk_specs.compute_bootstrapped_fp(q_target_max_fp), 761)
         self.assertEqual(
-            td_arithmetic.compute_td_target_fp(
+            zk_specs.compute_td_target_fp(
                 reward_fp=reward_fp,
                 done=0,
                 q_target_max_fp=q_target_max_fp,
@@ -18,7 +19,7 @@ class CoreHelperTests(unittest.TestCase):
             1761,
         )
         self.assertEqual(
-            td_arithmetic.compute_td_target_fp(
+            zk_specs.compute_td_target_fp(
                 reward_fp=reward_fp,
                 done=1,
                 q_target_max_fp=q_target_max_fp,

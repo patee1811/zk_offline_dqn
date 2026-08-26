@@ -6,7 +6,7 @@ import subprocess
 import sys
 import unittest
 
-from zk_offline_dqn.core.merkle import build_merkle_levels, build_merkle_path, hash_leaf
+from zk_offline_dqn.merkle import build_merkle_levels, build_merkle_path, hash_leaf
 from zk_offline_dqn.relations.membership import check_transition_membership_artifact
 from zk_offline_dqn.verifiers.membership import (
     format_transition_membership_report,
