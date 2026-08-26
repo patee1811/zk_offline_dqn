@@ -3,6 +3,8 @@
 
 module.exports = {
   extends: ["@commitlint/config-conventional"],
+  // Mirrors GIT_GENERATED in validate_commit_msg.py.
+  ignores: [(message) => /^(Merge|Revert) /.test(message)],
   rules: {
     "type-enum": [
       2,
