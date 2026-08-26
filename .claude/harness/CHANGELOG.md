@@ -1,5 +1,19 @@
 # Harness changelog
 
+## 2026-08-27 — 1.2.0
+
+**Kích hoạt:** phiên chuẩn bị nộp A* làm lộ ba điều về backend SP1 mà không rule nào ghi, và hai trong ba đã dẫn tới kết luận sai trước khi kiểm mã nguồn.
+
+**Lý do:** rule vùng tồn tại để agent không phải suy ra API từ đầu mỗi phiên. Ba mục này đều là kiến thức không đọc được từ tên hàm — phải mở `main.rs` hoặc đọc log mới biết.
+
+**Đã thêm:**
+
+- `sp1-backend.md`: prover chạy CPU, không GPU. Tám host hardcode `.cpu()`, không có feature `cuda`. Kế hoạch trước đó mở đầu bằng ngưỡng VRAM — hoàn toàn không liên quan.
+- `sp1-backend.md`: host aggregation nhận `--mode`, không `--proof-mode`, và từ chối mode mà case JSON không khai báo. Hai case recursion suýt chạy sai tham số rồi bị đọc nhầm là OOM.
+- `experiments.md`: build mọi host trước khi đo bộ nhớ. Lần đo đầu, biên dịch `merkle_membership` lọt vào cửa sổ đo và 9915MB rơi nhầm vào `setup`.
+
+**Ghi chú:** `capture_learning.py` không bắt được ba mục này vì `SESSION_NOTES.md` chưa bao giờ tồn tại — hook chỉ đọc file đó và không ai tạo. Thu nhận tự động hiện là đường chết; xem lại ở lần sync sau.
+
 ## 2026-08-26 — 1.1.0
 
 **Kích hoạt:** phiên đầu tiên dùng harness thật (R1 refactor + merge phase-10) làm lộ bốn chỗ cổng chặn bắt nhầm.

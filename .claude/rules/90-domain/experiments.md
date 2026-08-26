@@ -16,4 +16,5 @@ Lý do: script nặng lẫn với checker sẽ làm reviewer tưởng đã prove
 - `run_full_regression.py` = 15 check Python, cần fixture CI. SP1 prove không nằm trong đó.
 - Report builders trong `zk_offline_dqn/experiments/` chỉ đọc snapshot. Output mặc định `artifacts/reports/final_ndss/`.
 - Kaggle outputs gitignore. Không commit kernel output.
+- Đo bộ nhớ trên Kaggle: build **mọi** host trước khi đo. Lần chạy 1 chỉ warm `short-trace-host`, nên biên dịch `merkle_membership` lọt vào cửa sổ đo và 9915MB rơi vào `setup` thay vì `prove`.
 - `Makefile` dùng Unix (`mkdir -p`). Trên Windows: Git Bash/WSL, không PowerShell thuần cho target reproduce.

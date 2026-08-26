@@ -40,3 +40,24 @@ Format:
 **Đích đề xuất:** đã áp dụng vào `.claude/hooks/guard_protected_paths.py` (1.1.0).
 **Độ tin cậy:** cao (chặn một thao tác hợp lệ)
 **Trạng thái:** đã áp dụng (1.1.0)
+
+## 2026-08-27 — phát hiện mới — scope backends
+**Kích hoạt:** kế hoạch A* mở đầu bằng "VRAM ≥24GB — bạn có 30GB — đủ". Kiểm mã nguồn: cả tám host hardcode `ProverClient::builder().cpu()`, không có feature `cuda` ở đâu.
+**Bài học:** ngưỡng VRAM của SP1 không áp dụng cho artifact này. Nút thắt luôn là RAM CPU. Ba dòng `failed_oom` là CPU RAM cạn, và PLONK ~60GB là ứng viên hàng đầu vì không có gì khác tranh bộ nhớ.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`
+**Độ tin cậy:** cao (đọc trực tiếp tám `main.rs` + grep Cargo.toml)
+**Trạng thái:** đã áp dụng (1.2.0)
+
+## 2026-08-27 — thất bại — scope backends
+**Kích hoạt:** hai case recursion trong campaign dùng `--proof-mode groth16_bn254`. Host aggregation không có cờ đó — nó nhận `--mode`, và từ chối mode mà case JSON không khai báo. Cả ba vector đã commit đều `proof_manifest_chain`.
+**Bài học:** nếu đẩy nguyên lên Kaggle, hai case fail vì sai tham số và tôi sẽ đọc nhầm là OOM — đúng thứ chiến dịch tồn tại để đo. Recursion phải sinh case trước bằng `run_phase7_sp1_training_aggregation_validation.py`.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`; đã sửa campaign (PR #33, `0db8a21`).
+**Độ tin cậy:** cao (đọc `main.rs:40` + ba test vector)
+**Trạng thái:** đã áp dụng (1.2.0)
+
+## 2026-08-27 — thất bại — scope experiments
+**Kích hoạt:** lần đo bộ nhớ đầu tiên báo `merkle_membership` đỉnh 9915MB ở giai đoạn `setup`. Log cho thấy `Finished release profile in 10m 44s` — build chạy trong cửa sổ đo.
+**Bài học:** warmup chỉ build `short-trace-host`, hai workspace kia compile lúc đang đo. Dòng đó là chi phí biên dịch, không phải proving. Build mọi host trước khi đo.
+**Đích đề xuất:** `rules/90-domain/experiments.md`; kernel lần 2 đã build cả 5 host.
+**Độ tin cậy:** cao (log Kaggle)
+**Trạng thái:** đã áp dụng (1.2.0)
