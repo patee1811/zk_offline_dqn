@@ -128,11 +128,11 @@ def summarize(samples: List[Dict[str, float]], boundaries: Dict[str, float]) -> 
     }
 
 
-def run(command: List[str], interval: float) -> Dict[str, Any]:
+def run(command: List[str], interval: float, cwd: Optional[Path] = None) -> Dict[str, Any]:
     started = time.monotonic()
     process = subprocess.Popen(
         command,
-        cwd=ROOT,
+        cwd=str(cwd or ROOT),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -157,6 +157,7 @@ def run(command: List[str], interval: float) -> Dict[str, Any]:
 
     result: Dict[str, Any] = {
         "command": command,
+        "cwd": str(cwd or ROOT),
         "returncode": returncode,
         "status": "completed" if returncode == 0 else "failed",
         "wall_seconds": round(time.monotonic() - started, 3),
@@ -191,6 +192,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Row label, e.g. training_fragment_k8. Recorded in the output.",
     )
     parser.add_argument(
+        "--cwd",
+        help="Directory to run the command in. Defaults to the repo root; an "
+        "SP1 host needs its own workspace so cargo can find Cargo.toml.",
+    )
+    parser.add_argument(
         "command",
         nargs=argparse.REMAINDER,
         help="Host command, after a bare --.",
@@ -200,12 +206,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = build_parser().parse_args(argv)
-    command = [part for part in args.command if part != "--"]
+    # argparse.REMAINDER keeps the leading "--". Drop only that one: a
+    # `cargo run -p host -- --prove` needs its second separator intact, or
+    # cargo claims --prove for itself.
+    command = list(args.command)
+    if command and command[0] == "--":
+        command = command[1:]
     if not command:
         sys.stderr.write("no command given; pass it after --\n")
         return 2
 
-    result = run(command, args.interval)
+    result = run(command, args.interval, Path(args.cwd) if args.cwd else None)
     result["label"] = args.label
 
     payload = json.dumps(result, indent=2, sort_keys=True)
