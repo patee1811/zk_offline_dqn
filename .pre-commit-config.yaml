@@ -1,0 +1,27 @@
+# Optional git-side gates. Same rules as Claude hooks.
+# Install: pip install pre-commit && pre-commit install --hook-type pre-commit --hook-type commit-msg
+# ruff is not a runtime dependency; skip if missing.
+
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format-staged
+        name: ruff format (staged Python)
+        language: python
+        additional_dependencies: [ruff]
+        types: [python]
+        entry: ruff format
+      - id: ruff-check-staged
+        name: ruff check (staged Python)
+        language: python
+        additional_dependencies: [ruff]
+        types: [python]
+        entry: ruff check --fix
+      - id: conventional-commit-msg
+        name: conventional commit message
+        language: python
+        stages: [commit-msg]
+        always_run: true
+        entry: python .claude/hooks/validate_commit_msg.py --commit-msg-file
