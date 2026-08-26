@@ -1,0 +1,146 @@
+{
+  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "language": "vietnamese",
+  "env": {
+    "PYTHONPATH": ".",
+    "MPLBACKEND": "Agg",
+    "OMP_NUM_THREADS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git rev-parse *)",
+      "Bash(git branch *)",
+      "Bash(python -m compileall *)",
+      "Bash(python -m unittest *)",
+      "Bash(python scripts/experiments/check_paper_claims.py *)",
+      "Bash(python scripts/experiments/check_report_sources.py *)",
+      "Bash(python scripts/experiments/check_theorem_artifact_map.py *)",
+      "Bash(python -m zk_offline_dqn.cli.main --help *)",
+      "Bash(python -m ruff *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force origin master *)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(secrets/**)",
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Edit(secrets/**)",
+      "Edit(infra/prod/**)",
+      "Edit(migrations/**)",
+      "Write(.env)",
+      "Write(.env.*)",
+      "Write(secrets/**)",
+      "Write(infra/prod/**)",
+      "Write(migrations/**)"
+    ],
+    "ask": [
+      "Edit(paper/**)",
+      "Write(paper/**)",
+      "Edit(docs/claim_matrix.md)",
+      "Write(docs/claim_matrix.md)",
+      "Edit(zk_backend/test_vectors/**)",
+      "Write(zk_backend/test_vectors/**)",
+      "Edit(artifacts/reports/final_ndss/**)",
+      "Write(artifacts/reports/final_ndss/**)",
+      "Edit(zk_offline_dqn/zk_specs.py)",
+      "Edit(zk_offline_dqn/artifact_schema_versions.py)",
+      "Bash(git push *)",
+      "Bash(git push origin master *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/session_start_context.py",
+            "timeout": 10,
+            "statusMessage": "Loading harness context"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/guard_protected_paths.py",
+            "timeout": 5,
+            "statusMessage": "Guarding protected paths"
+          },
+          {
+            "type": "command",
+            "command": "python .claude/hooks/block_secrets.py",
+            "timeout": 5,
+            "statusMessage": "Scanning for secrets"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/validate_commit_msg.py",
+            "timeout": 5,
+            "statusMessage": "Checking commit message"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/format_after_edit.py",
+            "timeout": 20,
+            "statusMessage": "Formatting edited file"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/capture_learning.py",
+            "timeout": 5,
+            "statusMessage": "Capturing harness learnings"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/capture_learning.py",
+            "timeout": 5,
+            "statusMessage": "Capturing harness learnings"
+          }
+        ]
+      }
+    ]
+  }
+}

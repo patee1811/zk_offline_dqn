@@ -17,7 +17,7 @@ from zk_offline_dqn.artifacts.schemas import (
     require_schema_version,
 )
 from zk_offline_dqn.commitments import canonical_checkpoint_state_commitments
-from zk_offline_dqn.core.merkle import recompute_root_from_path
+from zk_offline_dqn.merkle import recompute_root_from_path
 from zk_offline_dqn.zk_specs import (
     compute_smooth_l1_loss_fp,
     compute_td_target_fp,

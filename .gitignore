@@ -146,6 +146,14 @@ paper/*.pdf
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+debug.log
+
+# =============================================================================
+# AI harness (local-only)
+# =============================================================================
+.claude/settings.local.json
+.claude/harness/INBOX.local.md
+.claude/harness/SESSION_NOTES.md
 
 # =============================================================================
 # Kaggle / Local Validation Outputs

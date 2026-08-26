@@ -8,7 +8,7 @@ from zk_offline_dqn.artifacts.schemas import (
     SCHEMA_TD_MVP_BATCH_TEST_VECTOR_V1,
     SCHEMA_TD_MVP_TEST_VECTOR_V1,
 )
-from zk_offline_dqn.core.merkle import hash_leaf, verify_merkle_path
+from zk_offline_dqn.merkle import hash_leaf, verify_merkle_path
 from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
