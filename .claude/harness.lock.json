@@ -1,0 +1,53 @@
+{
+  "harnessVersion": "1.0.0",
+  "generatedAt": "2026-08-26T01:49:55Z",
+  "generatedBy": "ai-harness-bootstrap",
+  "projectFingerprint": {
+    "language": "Python 3.9+ (CI 3.11; local venv 3.10.5)",
+    "secondaryLanguage": "Rust 2021 / SP1 6.1.0",
+    "packageManager": "pip + setuptools (requirements.lock || requirements.txt)",
+    "defaultBranch": "master",
+    "ticketSystem": "GitHub Pull Requests (no required Issues)"
+  },
+  "components": {
+    "rules": [
+      "00-nguyen-tac-coi-loi.md",
+      "10-phong-cach-code.md",
+      "20-comment-va-tai-lieu.md",
+      "30-kiem-thu.md",
+      "40-git-va-commit.md",
+      "50-bao-mat-va-secret.md",
+      "60-bao-tri-harness.md",
+      "90-domain/relations.md",
+      "90-domain/verifiers.md",
+      "90-domain/sp1-backend.md",
+      "90-domain/data-pipeline.md",
+      "90-domain/paper-claims.md",
+      "90-domain/artifacts-schema.md",
+      "90-domain/experiments.md"
+    ],
+    "skills": [
+      "onboard",
+      "plan-change",
+      "commit",
+      "review",
+      "harness-sync",
+      "postmortem"
+    ],
+    "agents": [
+      "code-reviewer.md",
+      "test-author.md",
+      "docs-author.md"
+    ],
+    "hooks": [
+      "session_start_context.py",
+      "guard_protected_paths.py",
+      "block_secrets.py",
+      "format_after_edit.py",
+      "validate_commit_msg.py",
+      "capture_learning.py"
+    ]
+  },
+  "lastSync": "2026-08-26T01:49:55Z",
+  "pendingInboxEntries": 0
+}

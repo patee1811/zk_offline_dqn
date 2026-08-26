@@ -1,0 +1,8 @@
+{
+  "env": {
+    "PYTHONPATH": "."
+  },
+  "permissions": {
+    "allow": []
+  }
+}

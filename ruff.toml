@@ -1,0 +1,25 @@
+# Introduced by the AI harness. The repo had no formatter/linter config.
+# format-after-edit and pre-commit run `ruff check --fix` on touched files only.
+# `ruff format` is deliberately not wired into either hook: it reflows whole
+# files, burying small changes in unrelated diff. The [format] block below only
+# takes effect when someone runs `ruff format` by hand.
+# Do not add `ruff format --check` to CI until the tree is reformatted.
+
+target-version = "py39"
+line-length = 100
+extend-exclude = [
+    ".venv",
+    "artifacts",
+    "baocao",
+    "paper",
+    "data",
+    "models",
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+
+[lint]
+# Syntax/undefined-name only. Broader rules would fail the existing tree.
+select = ["E9", "F63", "F7", "F82"]

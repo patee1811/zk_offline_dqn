@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional, Sequence
 
-from zk_offline_dqn.core.merkle import hash_leaf, verify_merkle_path
+from zk_offline_dqn.merkle import hash_leaf, verify_merkle_path
 from zk_offline_dqn.zk_specs import serialize_transition_leaf
 
 
