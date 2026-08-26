@@ -53,6 +53,8 @@ artifacts/reports/*
 !artifacts/reports/phase8_3_tamper_benchmark/**
 !artifacts/reports/provenance/
 !artifacts/reports/provenance/**
+!artifacts/reports/memory_profile/
+!artifacts/reports/memory_profile/**
 artifacts/reports/phase8_1_rl_benchmark/checkpoints/
 artifacts/reports/phase8_1_rl_benchmark/tensorboard/
 artifacts/reports/phase8_1_rl_benchmark/wandb/

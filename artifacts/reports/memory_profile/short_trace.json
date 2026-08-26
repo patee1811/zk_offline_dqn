@@ -1,0 +1,65 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "-p",
+    "short-trace-host",
+    "--",
+    "--prove"
+  ],
+  "cwd": "/kaggle/working/zk_offline_dqn/zk_backend/short_trace/sp1",
+  "label": "short_trace",
+  "memory": {
+    "peak_rss_mb": 9852.754,
+    "peak_stage": "prove",
+    "sample_count": 550,
+    "stages": {
+      "prove": {
+        "mean_rss_mb": 8192.165,
+        "peak_rss_mb": 9852.754,
+        "samples": 261
+      },
+      "setup": {
+        "mean_rss_mb": 3821.559,
+        "peak_rss_mb": 6919.422,
+        "samples": 288
+      },
+      "teardown": {
+        "mean_rss_mb": 6465.934,
+        "peak_rss_mb": 6465.934,
+        "samples": 1
+      }
+    }
+  },
+  "returncode": 0,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {
+    "execute": 143.855,
+    "prove": 274.807,
+    "verify": 274.807
+  },
+  "status": "completed",
+  "stdout_tail": [
+    "warning: short-trace-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"",
+    "warning: short-trace-host@0.1.0: short-trace-guest built at 2026-08-26 16:05:45",
+    "    Finished `release` profile [optimized] target(s) in 2.08s",
+    "warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1",
+    "note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`",
+    "     Running `target/release/short-trace-host --prove`",
+    "case_path = ../../test_vectors/short_trace_case_0.json",
+    "host_precheck = true",
+    "start_checkpoint_hash = f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c",
+    "final_checkpoint_hash = 594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1",
+    "execution_ok = true",
+    "execution_time_sec = 0.027850",
+    "cycle_count = 115363",
+    "exit_code = 0",
+    "proof_generated = true",
+    "proof_verified = true",
+    "proving_time_sec = 117.120712",
+    "verification_time_sec = 0.151836",
+    "proof_size_bytes = 2779261"
+  ],
+  "wall_seconds": 275.635
+}

@@ -105,18 +105,60 @@ Note that `setup` includes `cargo build`. A first run on a clean machine
 attributes gigabytes of compilation to that stage; build once before profiling,
 or read `setup` as build cost rather than proving cost.
 
-## What was verified, and where
+## First results, 2026-08-27
 
-The harness was exercised end to end on Windows against a real
-`cargo run --release -p short-trace-host -- --prove`: 273 samples over 88.8
+Three cases ran on Kaggle under SP1 6.1.0, all with `proof_generated = true`
+and `proof_verified = true`. This is the first memory data this artifact has.
+
+| Case | Peak RSS | Peak stage | Prove | Cycles |
+| --- | --- | --- | --- | --- |
+| short_trace | 9853 MB | prove | 117.1 s | 115,363 |
+| training_update batch1 | 10,791 MB | prove | 136.3 s | 469,460 |
+| merkle_membership | 9915 MB | setup | 118.7 s | — |
+
+Two checks that the run is comparable to the committed table: cycle counts
+match Table 2 exactly (115,363 and 469,460), and merkle_membership proved in
+118.7 s against Table 2's 121.7 s, a 2.5% spread.
+
+Three findings.
+
+**Proving needs about 10 GB.** Every case peaked between 9.8 and 10.8 GB. On a
+30 GB machine that leaves roughly 19 GB of headroom, so the core proof stage is
+not what exhausts memory. Groth16 wrapping at about 14 GB also fits. PLONK at
+about 60 GB does not, which makes it the leading explanation for the
+`failed_environment` row.
+
+**Peak scales with cycles, weakly.** From 115 k to 469 k cycles — a factor of
+four — the peak moved from 9853 MB to 10,791 MB, under 10%. A large fixed cost
+dominates. Extrapolating to the k=8 fragment at 4.8 M cycles, ten times more
+again, still suggests low tens of GB rather than hundreds. That has to be
+measured, not assumed.
+
+**merkle_membership peaked in `setup`, not `prove`.** Its build ran inside the
+profiled window: the log shows `Finished release profile in 10m 44s` before the
+host started. The warm-up build only covered `short-trace-host`, so the other
+two workspaces compiled during profiling. For that row, read 9915 MB as
+compilation, and treat the peak stage as unreliable. Build every host before
+profiling, or read `setup` as build cost.
+
+Raw output is in `artifacts/reports/memory_profile/`.
+
+## What is still unmeasured
+
+The two rows that motivated the campaign — `recursive_native_groth16` and
+`recursive_native_compressed` — have not been profiled yet, nor has
+training_fragment_k8 at 4.8 M cycles. Those are the next run.
+
+## Harness verification
+
+Exercised end to end on Windows against a real `cargo run --release -p
+short-trace-host -- --prove` before the Kaggle run: 273 samples over 88.8
 seconds, peak 2850.8 MB. The build then failed because `sp1-jit` does not
-compile on Windows, which is the reason proving runs on Kaggle in the first
-place. The sampling, stage attribution, and summary writing are confirmed
-working; the proving numbers themselves have to come from Linux with a GPU.
+compile on Windows, which is why proving runs on Kaggle.
 
-Fault paths that were tested: psutil missing (reports it and exits cleanly),
-child process killed mid-run (still reports `peak_stage`), unknown case label
-(names it), missing workspace (skips with a reason).
+Fault paths tested: psutil missing (reports it and exits cleanly), child
+process killed mid-run (still reports `peak_stage`), unknown case label (names
+it), missing workspace (skips with a reason).
 
 ## If a case still OOMs
 

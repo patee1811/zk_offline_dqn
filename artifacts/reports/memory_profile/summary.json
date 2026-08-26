@@ -1,0 +1,111 @@
+{
+  "cases": [
+    {
+      "expected": "proof_verified",
+      "host_package": "short-trace-host",
+      "label": "short_trace",
+      "mode": "prove",
+      "notes": "82.3s in Table 2, the cheapest proof-backed row",
+      "peak_rss_mb": 9852.754,
+      "peak_stage": "prove",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/short_trace.json",
+      "proof_mode": "core",
+      "relation": "short_trace",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "execute": 143.855,
+        "prove": 274.807,
+        "verify": 274.807
+      },
+      "stages": {
+        "prove": {
+          "mean_rss_mb": 8192.165,
+          "peak_rss_mb": 9852.754,
+          "samples": 261
+        },
+        "setup": {
+          "mean_rss_mb": 3821.559,
+          "peak_rss_mb": 6919.422,
+          "samples": 288
+        },
+        "teardown": {
+          "mean_rss_mb": 6465.934,
+          "peak_rss_mb": 6465.934,
+          "samples": 1
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 275.815
+    },
+    {
+      "expected": "proof_verified",
+      "host_package": "training-update-host",
+      "label": "training_update_batch1",
+      "mode": "prove",
+      "notes": "104.8s",
+      "peak_rss_mb": 10791.375,
+      "peak_stage": "prove",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/training_update_batch1.json",
+      "proof_mode": "core",
+      "relation": "training_update",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "execute": 783.506,
+        "prove": 934.026,
+        "verify": 934.026
+      },
+      "stages": {
+        "prove": {
+          "mean_rss_mb": 8649.154,
+          "peak_rss_mb": 10791.375,
+          "samples": 301
+        },
+        "setup": {
+          "mean_rss_mb": 1636.517,
+          "peak_rss_mb": 6906.547,
+          "samples": 1561
+        },
+        "teardown": {
+          "mean_rss_mb": 6864.688,
+          "peak_rss_mb": 6864.688,
+          "samples": 1
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 934.995
+    },
+    {
+      "expected": "proof_verified",
+      "host_package": "merkle-membership-host",
+      "label": "merkle_membership",
+      "mode": "prove",
+      "notes": "121.7s",
+      "peak_rss_mb": 9914.965,
+      "peak_stage": "setup",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/merkle_membership.json",
+      "proof_mode": "core",
+      "relation": "merkle_membership",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "prove": 935.514,
+        "verify": 935.515
+      },
+      "stages": {
+        "setup": {
+          "mean_rss_mb": 2601.694,
+          "peak_rss_mb": 9914.965,
+          "samples": 1864
+        },
+        "teardown": {
+          "mean_rss_mb": 5237.919,
+          "peak_rss_mb": 7044.066,
+          "samples": 2
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 936.648
+    }
+  ],
+  "mode": "prove",
+  "sample_interval_seconds": 0.5
+}
