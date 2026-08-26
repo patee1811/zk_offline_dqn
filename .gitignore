@@ -146,6 +146,7 @@ paper/*.pdf
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+debug.log
 
 # =============================================================================
 # AI harness (local-only)
