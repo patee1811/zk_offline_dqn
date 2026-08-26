@@ -8,7 +8,7 @@ paths:
 Lý do: agent mới hay mang “best practice” ngoài vào rồi phá lớp relation/verifier.
 
 - Hòa vào code xung quanh. Repo này thắng mọi hướng dẫn ngoài. `Dict[str, Any]` cho JSON artifact là style đã chọn, không phải mùi cần siết kiểu.
-- Đọc trước khi viết. Tìm helper trong `zk_offline_dqn/{merkle,zk_specs,io_utils}.py` và wrapper `core/` trước khi tạo bản sao.
+- Đọc trước khi viết. Tìm helper trong `zk_offline_dqn/{merkle,zk_specs,io_utils}.py` trước khi tạo bản sao.
 - Thay đổi nhỏ nhất giải quyết trọn vẹn vấn đề. Không nhét refactor vào một feature.
 - Không khái quát hóa phòng xa. Relation mới chỉ khi có vector + provenance, không “để sau dùng”.
 - Ưu tiên xóa hơn thêm. Ưu tiên nhàm chán hơn thông minh.

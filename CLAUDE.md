@@ -32,8 +32,7 @@ SP1 prove **không** nằm trong regression Python. `RUN_SP1_PROVE=1 cargo run -
 | `zk_offline_dqn/artifacts/` | Schema version, IO, field roles |
 | `zk_offline_dqn/cli/` | `verify` / `benchmark` / `report` |
 | `zk_offline_dqn/backends/sp1/` | Fixture/lệnh/metric Python; **không** prove khi import |
-| `zk_offline_dqn/core/` | Wrapper merkle/TD — phải khớp module gốc |
-| `zk_offline_dqn/{merkle,zk_specs,io_utils}.py` | Logic gốc; đừng nhân bản |
+| `zk_offline_dqn/{merkle,zk_specs,io_utils}.py` | Logic gốc Merkle/TD/IO — một đường import duy nhất |
 | `zk_backend/<relation>/sp1/` | Workspace Rust host/guest/shared, SP1 6.1.0 |
 | `zk_backend/test_vectors/` | Vector canonical đã khóa |
 | `scripts/experiments/` | Regression, benchmark, Kaggle, paper reports |
@@ -57,7 +56,7 @@ SP1 prove **không** nằm trong regression Python. `RUN_SP1_PROVE=1 cargo run -
 5. `relations/` không phụ thuộc đường dẫn file hay argparse.
 6. Cấm claim: full DQN training, Adam, honest public collection, true recursive aggregation, mọi relation đều có SP1. Theorem 7 = proof-manifest chain, không verify child proof trong SP1. Scanner: `scripts/experiments/check_paper_claims.py`.
 7. Report (`generate_paper_reports.py`) **không** chạy lại prove/benchmark nặng.
-8. Wrapper `core.merkle` / `core.td_arithmetic` re-export — đổi một bên phải khớp bên kia (`test_active_import_surface`).
+8. Merkle/TD chỉ có một đường import: `zk_offline_dqn.merkle`, `zk_offline_dqn.zk_specs`. Không tạo lại wrapper re-export.
 9. Fixture regression (pkl, merkle JSON, `.pt`) phải có trước khi `run_full_regression.py`.
 10. `Dict[str, Any]` cho JSON artifact là style repo, không phải mùi cần “làm chặt kiểu”.
 

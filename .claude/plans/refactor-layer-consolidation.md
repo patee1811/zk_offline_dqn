@@ -1,6 +1,7 @@
 # Kế hoạch refactor: gộp lớp và làm sạch tên
 
-Trạng thái: **đề xuất, chưa thực hiện**. Ngày: 2026-08-26.
+Trạng thái: **R1 đã thực hiện 2026-08-26. R2 và R3 vẫn là đề xuất bị từ chối.**
+Ngày lập: 2026-08-26.
 
 Bối cảnh: người dùng thấy cấu trúc "lộn xộn, không đồng bộ". Khảo sát cho thấy
 phần lớn cảm giác đó đến từ **tên trùng qua nhiều lớp**, không phải code trùng.

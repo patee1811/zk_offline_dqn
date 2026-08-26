@@ -20,7 +20,7 @@ Nguyên tắc: code nói cái gì, comment nói tại sao.
 | Lý do lựa chọn | `// 1000` rồi SHA256 — khớp artifact đã commit |
 | Đánh đổi | Phase 7 = `proof_manifest_chain`, không verify child proof trong SP1 |
 | Bất biến | `(a * b) // fp_scale`, không `round` |
-| Cách lách lỗi | wrapper `core.merkle` re-export vì Phase 1B không migrate |
+| Cách lách lỗi | `scripts/artifacts_export/` giữ lại vì `run_full_regression.py` còn gọi |
 | Hiệu năng | chỉ khi có số đo (Kaggle cycle count), không đoán |
 | Bảo mật | field `private` trong `artifacts/field_roles.py` |
 | Việc cần làm | `TODO(human): đo thật` hoặc `TODO(owner): … (#n)` |

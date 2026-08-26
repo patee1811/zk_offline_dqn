@@ -15,6 +15,6 @@ description: >
 4. **Schema** — `schema_version` / field roles có đổi lén không?
 5. **Test** — có golden/negative tương ứng không? Có skip trần không?
 6. **Secret / artifact** — `proof.bin`, kaggle output, token?
-7. **Wrapper** — `core.merkle` / `core.td_arithmetic` còn khớp module gốc?
+7. **Import** — Merkle/TD có đi thẳng `zk_offline_dqn.merkle` / `zk_offline_dqn.zk_specs` không, hay dựng lại lớp re-export?
 
 Ghi finding: file:line, tác động, mức (block / nên sửa / ghi chú). Không rewrite cả PR.
