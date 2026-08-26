@@ -12,7 +12,17 @@
 - `sp1-backend.md`: host aggregation nhận `--mode`, không `--proof-mode`, và từ chối mode mà case JSON không khai báo. Hai case recursion suýt chạy sai tham số rồi bị đọc nhầm là OOM.
 - `experiments.md`: build mọi host trước khi đo bộ nhớ. Lần đo đầu, biên dịch `merkle_membership` lọt vào cửa sổ đo và 9915MB rơi nhầm vào `setup`.
 
-**Ghi chú:** `capture_learning.py` không bắt được ba mục này vì `SESSION_NOTES.md` chưa bao giờ tồn tại — hook chỉ đọc file đó và không ai tạo. Thu nhận tự động hiện là đường chết; xem lại ở lần sync sau.
+**Ghi chú:** `capture_learning.py` không bắt được ba mục này vì `SESSION_NOTES.md` chưa bao giờ tồn tại — hook chỉ đọc file đó và không ai tạo. Đã sửa ngay trong phiên, xem 1.2.1.
+
+## 2026-08-27 — 1.2.1
+
+**Kích hoạt:** 1.2.0 ghi nhận thu nhận tự động là đường chết. Người dùng duyệt sửa luôn.
+
+**Lý do:** ba mục của 1.2.0 vào INBOX chỉ vì gõ tay. Một vòng lặp tự tiến hóa mà khâu thu nhận không bao giờ chạy thì chỉ là vòng lặp trên giấy.
+
+**Đã sửa:** `capture_learning.py` đọc transcript phiên thay vì file không ai viết. Nó quét message của người dùng tìm mẫu sửa lưng (Việt và Anh) và append candidate với độ tin cậy `thấp (tự động)` — `/harness-sync` vẫn là nơi quyết định.
+
+**Kiểm chứng trên transcript thật của phiên này:** trước khi lọc, bộ dò trả 3 kết quả, trong đó 2 là thân skill bị chèn vào lượt user (11k và 249k ký tự). Thêm trần 2000 ký tự thì còn đúng 1 — chính câu người dùng sửa "30GB GPU đâu, ý tôi là 30GB CPU". Dedup theo chuỗi con chặn ghi lại mục đã có.
 
 ## 2026-08-26 — 1.1.0
 
