@@ -18,4 +18,4 @@ Lý do: unittest + fixture JSON là bằng chứng reviewable; pytest/mock bừa
 - Vá bug: thêm test fail trước. Không `skip` thiếu `TODO(owner)` / lý do fixture vắng (`skipUnless(...exists())` đã dùng).
 - Coverage không phải mục tiêu. Không viết assert chỉ để tăng số.
 - Đụng paper/README/docs: chạy `python scripts/experiments/check_paper_claims.py`.
-- Regression 15 check: `run_full_regression.py` cần fixture CI (pkl, merkle JSON, `.pt`). Thiếu thì nói rõ, đừng bịa pass.
+- Regression 15 check: `run_full_regression.py` cần fixture CI (pkl, merkle JSON, `.pt`). Thiếu thì nói rõ, đừng bịa pass. Test đọc **output** của nó (`regression_summary.json`, `*_python_smoke/summary.json` — đều gitignore) phải `skipTest`, không fail: clone sạch không có chúng.

@@ -18,12 +18,34 @@ FIXTURE_PATHS = [
     / "artifacts/fixtures/one_step_sgd_tiny/one_step_sgd_tiny_valid.json",
 ]
 
+# benchmark_manifest marks these required, but run_full_regression.py writes
+# them and .gitignore excludes them, so a fresh clone has none. Their absence
+# is a missing prerequisite, not a regression.
+GENERATED_SOURCES = [
+    ROOT / "artifacts/regression_summary.json",
+    ROOT / "artifacts/benchmarks/distinct_td_sp1_python_smoke/summary.json",
+    ROOT / "artifacts/benchmarks/forward_td_mlp_sp1_python_smoke/summary.json",
+    ROOT / "artifacts/benchmarks/one_step_sgd_tiny_sp1_python_smoke/summary.json",
+]
+
 
 def file_digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 class ReportGenerationTests(unittest.TestCase):
+    def require_generated_sources(self) -> None:
+        missing = [
+            path.relative_to(ROOT).as_posix()
+            for path in GENERATED_SOURCES
+            if not path.exists()
+        ]
+        if missing:
+            self.skipTest(
+                "run scripts/experiments/run_full_regression.py first; "
+                f"missing generated sources: {missing}"
+            )
+
     def test_manifest_entries_are_importable(self) -> None:
         entries = benchmark_manifest.benchmark_entries()
         entry_ids = {entry.entry_id for entry in entries}
@@ -31,6 +53,7 @@ class ReportGenerationTests(unittest.TestCase):
         self.assertIn("sp1_td_mvp_prove", entry_ids)
 
     def test_report_generation_outputs_files_with_provenance(self) -> None:
+        self.require_generated_sources()
         before = {path: file_digest(path) for path in FIXTURE_PATHS if path.exists()}
         with tempfile.TemporaryDirectory() as tmp:
             outputs = report_tables.generate_reports(Path(tmp), root=ROOT)
@@ -62,6 +85,7 @@ class ReportGenerationTests(unittest.TestCase):
         self.assertEqual(before, after)
 
     def test_source_check_allows_optional_missing_only(self) -> None:
+        self.require_generated_sources()
         result = report_tables.check_report_sources(ROOT)
         self.assertIn(result["status"], {"passed", "failed"})
         self.assertIsInstance(result["missing_optional"], list)
