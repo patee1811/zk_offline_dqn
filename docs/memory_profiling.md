@@ -105,49 +105,88 @@ Note that `setup` includes `cargo build`. A first run on a clean machine
 attributes gigabytes of compilation to that stage; build once before profiling,
 or read `setup` as build cost rather than proving cost.
 
-## First results, 2026-08-27
+## Results, 2026-08-27
 
-Three cases ran on Kaggle under SP1 6.1.0, all with `proof_generated = true`
-and `proof_verified = true`. This is the first memory data this artifact has.
+Ten cases across two Kaggle sessions under SP1 6.1.0. Every proof-backed row
+reported `proof_generated = true` and `proof_verified = true`.
 
-| Case | Peak RSS | Peak stage | Prove | Cycles |
+| Case | Peak RSS | Peak stage | Cycles measured | Result |
 | --- | --- | --- | --- | --- |
-| short_trace | 9853 MB | prove | 117.1 s | 115,363 |
-| training_update batch1 | 10,791 MB | prove | 136.3 s | 469,460 |
-| merkle_membership | 9915 MB | setup | 118.7 s | — |
+| short_trace | 9853 MB | prove | 115,363 | proved |
+| td_mvp | 10,520 MB | setup | — | proved, build in window |
+| training_update batch1 | 10,791 MB | prove | 469,460 | proved |
+| one_step_sgd_tiny | 11,595 MB | prove | 868,763 | proved |
+| training_aggregation (t32) | 12,109 MB | prove | 798,934 | proved |
+| forward_td_mlp | 14,790 MB | prove | 1,547,234 | proved |
+| training_fragment (k4) | 16,175 MB | prove | 2,597,494 | proved |
+| merkle_membership | 9915 MB | setup | — | proved, build in window |
+| **recursive_native_t32** | **29,140 MB** | setup | — | **failed** |
+| **recursive_binary_tree_t32** | **28,383 MB** | setup | — | **failed** |
 
-Two checks that the run is comparable to the committed table: cycle counts
-match Table 2 exactly (115,363 and 469,460), and merkle_membership proved in
-118.7 s against Table 2's 121.7 s, a 2.5% spread.
+Cycle counts match Table 2 exactly where they were measured, and
+merkle_membership proved in 118.7 s against Table 2's 121.7 s, a 2.5% spread.
 
-Three findings.
+Two rows are labelled for the vector they actually ran, not the one intended.
+The fragment and aggregation hosts default to `training_fragment_k4_case_0`
+and `training_aggregation_t32_case_0`, and run 2 passed no `--case`, so it
+profiled k4 at 2.6 M cycles and t32 at 799 k cycles. The campaign now passes
+`--case` explicitly; k8 at 4.8 M and t128 at 2.5 M are still unmeasured.
 
-**Proving needs about 10 GB.** Every case peaked between 9.8 and 10.8 GB. On a
-30 GB machine that leaves roughly 19 GB of headroom, so the core proof stage is
-not what exhausts memory. Groth16 wrapping at about 14 GB also fits. PLONK at
-about 60 GB does not, which makes it the leading explanation for the
-`failed_environment` row.
+### Proving fits in 30 GB; recursion does not
 
-**Peak scales with cycles, weakly.** From 115 k to 469 k cycles — a factor of
-four — the peak moved from 9853 MB to 10,791 MB, under 10%. A large fixed cost
-dominates. Extrapolating to the k=8 fragment at 4.8 M cycles, ten times more
-again, still suggests low tens of GB rather than hundreds. That has to be
-measured, not assumed.
+Every proof-backed relation peaked between 9.8 and 16.2 GB. The largest
+measured, the k4 fragment at 2.6 M cycles, used 16.2 GB — comfortable on a
+30 GB machine, and Groth16 wrapping at about 14 GB fits alongside it. The k8
+fragment at 4.8 M cycles has not been measured, but the scaling below puts it
+well inside the ceiling.
 
-**merkle_membership peaked in `setup`, not `prove`.** Its build ran inside the
-profiled window: the log shows `Finished release profile in 10m 44s` before the
-host started. The warm-up build only covered `short-trace-host`, so the other
-two workspaces compiled during profiling. For that row, read 9915 MB as
-compilation, and treat the peak stage as unreliable. Build every host before
-profiling, or read `setup` as build cost.
+Both recursion cases peaked at 28–29 GB against a 30 GB ceiling, then died.
+Neither left an error message: the aggregation host was invoked, printed its
+build banner, and the process ended. A child that vanishes without a diagnostic
+at 29 GB on a 30 GB box is the signature of the kernel OOM killer, not a logic
+fault. The log contains no allocation-failure text, which is consistent —
+SIGKILL gives the process no chance to report.
 
-Raw output is in `artifacts/reports/memory_profile/`.
+This is the number Table 2's `failed_oom` never carried. The gap is not a
+factor of ten; it is a few gigabytes.
 
-## What is still unmeasured
+### Peak grows with cycles, sublinearly
 
-The two rows that motivated the campaign — `recursive_native_groth16` and
-`recursive_native_compressed` — have not been profiled yet, nor has
-training_fragment_k8 at 4.8 M cycles. Those are the next run.
+From 115 k to 2.6 M cycles — a factor of 23 — the peak moved from 9853 MB to
+16,175 MB, a factor of 1.6. A large fixed cost dominates and the marginal cost
+per cycle is small. On that trend the k8 fragment at 4.8 M cycles lands near
+20 GB, still inside a 30 GB ceiling; that remains a projection, not a
+measurement.
+
+### Rows to read with care
+
+`td_mvp` and `merkle_membership` both peaked in `setup` because their builds
+ran inside the profiled window. Run 2 warmed five hosts but not `td-mvp-host`.
+Read those two peaks as compilation cost.
+
+The recursion peaks are also attributed to `setup`, but for a different reason:
+those cases run a Python driver that generates the recursive case and proves
+child nodes before the aggregate step, so no `proving_time_sec` marker is ever
+printed and every sample falls in the first bucket. The peak value is real; the
+stage label is not meaningful for driver cases.
+
+Raw output is in `artifacts/reports/memory_profile/`, with `summary.json` for
+run 1 and `summary_run2.json` for run 2.
+
+## What this changes
+
+Dropping PLONK was already the first recommendation; these numbers make it
+unavoidable. PLONK wrapping needs about 60 GB, and recursion alone reaches 29 GB
+before wrapping starts.
+
+The remaining levers, in order:
+
+1. Lower the shard size. SP1 defaults to about 2 M cycles per shard.
+2. Widen and flatten the recursion tree. Arity 2 at depth 4 peaked at 28.4 GB;
+   SUMMER chose arity 10 at depth 2 explicitly for memory.
+3. Rent a machine with 64 GB or more for one T=16 run. Since proving is CPU
+   only, that is a RAM instance, not a GPU one, and the shortfall is small
+   enough that 64 GB should be ample.
 
 ## Harness verification
 

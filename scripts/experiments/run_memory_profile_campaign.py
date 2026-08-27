@@ -76,9 +76,14 @@ CASES: tuple[ProfileCase, ...] = (
                 notes="142.7s"),
     ProfileCase("td_mvp", "td_mvp", "td-mvp-host",
                 notes="167.7s"),
+    # --case is required on these two. Their hosts default to k4 and t32
+    # respectively, so run 2 profiled the wrong vectors under the right labels.
     ProfileCase("training_fragment_k8", "training_fragment", "training-fragment-host",
+                extra_args=["--case", "../../test_vectors/training_fragment_k8_case_0.json",
+                            "--max-steps", "8"],
                 notes="440.6s, the most expensive proof-backed row at 4.8M cycles"),
     ProfileCase("training_aggregation_t128", "training_aggregation", "training-aggregation-host",
+                extra_args=["--case", "../../test_vectors/training_aggregation_t128_case_0.json"],
                 notes="253.2s, proof-manifest chain mode"),
     # The rows Table 2 records as failures. Profiling these is the point of the
     # campaign: a peak with a stage name turns failed_oom into a fixable number.
