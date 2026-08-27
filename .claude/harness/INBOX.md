@@ -61,3 +61,10 @@ Format:
 **Đích đề xuất:** `rules/90-domain/experiments.md`; kernel lần 2 đã build cả 5 host.
 **Độ tin cậy:** cao (log Kaggle)
 **Trạng thái:** đã áp dụng (1.2.0)
+
+## 2026-08-27 — người sửa — scope harness
+**Kích hoạt:** người dùng sửa lại trong phiên
+**Bài học:** tôi có bảo 30GB GPU đâu, ý tôi là 30GB CPU ý=))
+**Đích đề xuất:** /harness-sync quyết định
+**Độ tin cậy:** thấp (tự động, chưa duyệt)
+**Trạng thái:** chờ xử lý
