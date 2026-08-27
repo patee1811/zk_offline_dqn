@@ -93,6 +93,32 @@ CASES: tuple[ProfileCase, ...] = (
     # proof_manifest_chain, so a recursive_sp1 case has to be generated first
     # by run_phase7_sp1_training_aggregation_validation.py --aggregation-mode
     # recursive_sp1. These two cases run that generator under the profiler.
+    # T=32 aggregates four k=8 children; T=16 aggregates two. The aggregate
+    # step holds every child proof at once for the in-circuit verification,
+    # so halving the children is the one lever that shrinks the peak without
+    # touching chunk_size, FP_SCALE, or the network — all of which anchor
+    # committed vectors. T=16 is still real recursion, and it is the row
+    # Table 2 already names (binary_tree_native_t16).
+    ProfileCase("recursive_native_t16", "training_aggregation", "training-aggregation-host",
+                driver=[
+                    "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
+                    "--targets", "16",
+                    "--aggregation-mode", "recursive_sp1",
+                    "--child-proof-mode", "native_sp1",
+                    "--run-child-proves", "--run-prove", "--continue-on-failure",
+                ],
+                expect="unknown",
+                notes="two k=8 children instead of four; half the aggregate load of t32"),
+    ProfileCase("recursive_native_t8", "training_aggregation", "training-aggregation-host",
+                driver=[
+                    "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
+                    "--targets", "8",
+                    "--aggregation-mode", "recursive_sp1",
+                    "--child-proof-mode", "native_sp1",
+                    "--run-child-proves", "--run-prove", "--continue-on-failure",
+                ],
+                expect="unknown",
+                notes="one child; degenerate aggregation, but proves the circuit runs"),
     ProfileCase("recursive_native_t32", "training_aggregation", "training-aggregation-host",
                 driver=[
                     "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
@@ -102,7 +128,7 @@ CASES: tuple[ProfileCase, ...] = (
                     "--run-child-proves", "--run-prove", "--continue-on-failure",
                 ],
                 expect="failed_oom",
-                notes="Table 2 native_flat_recursive_t32 failed_oom"),
+                notes="Table 2 native_flat_recursive_t32 failed_oom; measured 29255 MB"),
     ProfileCase("recursive_binary_tree_t32", "training_aggregation", "training-aggregation-host",
                 driver=[
                     "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
