@@ -5,3 +5,10 @@ resolver = "2"
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
+
+# SP1 chay sha2 thuan Rust rat cham trong zkVM. Patch nay thay bang ban
+# dung precompile SHA-256. Muc dich o day la do xem no co cham toi duong
+# verify_sp1_proof khong -- tai lieu SP1 khong noi ro.
+# Doi chieu bang cycle_count tu execute mode, khong can prove.
+[patch.crates-io]
+sha2 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", package = "sha2", tag = "patch-sha2-0.10.8-sp1-6.0.0" }
