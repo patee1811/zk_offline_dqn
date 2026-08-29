@@ -1,0 +1,33 @@
+{
+  "cases": [
+    {
+      "expected": "unknown",
+      "host_package": "training-aggregation-host",
+      "label": "recursive_native_t16",
+      "mode": "prove",
+      "notes": "two k=8 children instead of four; half the aggregate load of t32",
+      "peak_rss_mb": 60138.977,
+      "peak_stage": "setup",
+      "profile_path": "/home/ec2-user/memory_profile_ec2/recursive_native_t16/recursive_native_t16.json",
+      "proof_mode": "core",
+      "relation": "training_aggregation",
+      "returncode": 1,
+      "stage_boundaries_seconds": {
+        "execute": 1123.876,
+        "prove": 1123.876,
+        "verify": 1123.876
+      },
+      "stages": {
+        "setup": {
+          "mean_rss_mb": 21624.769,
+          "peak_rss_mb": 60138.977,
+          "samples": 2227
+        }
+      },
+      "status": "failed",
+      "wall_seconds": 1123.969
+    }
+  ],
+  "mode": "prove",
+  "sample_interval_seconds": 0.5
+}

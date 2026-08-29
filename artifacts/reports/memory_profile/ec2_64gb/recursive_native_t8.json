@@ -1,0 +1,48 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
+    "--targets",
+    "8",
+    "--aggregation-mode",
+    "recursive_sp1",
+    "--child-proof-mode",
+    "native_sp1",
+    "--run-child-proves",
+    "--run-prove",
+    "--continue-on-failure"
+  ],
+  "cwd": "/home/ec2-user/zk",
+  "label": "recursive_native_t8",
+  "memory": {
+    "peak_rss_mb": 59369.094,
+    "peak_stage": "setup",
+    "sample_count": 1368,
+    "stages": {
+      "setup": {
+        "mean_rss_mb": 20867.24,
+        "peak_rss_mb": 59369.094,
+        "samples": 1368
+      }
+    }
+  },
+  "returncode": 1,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {},
+  "status": "failed",
+  "stdout_tail": [
+    "Traceback (most recent call last):",
+    "  File \"/home/ec2-user/zk/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 719, in <module>",
+    "    raise SystemExit(main())",
+    "  File \"/home/ec2-user/zk/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 680, in main",
+    "    status = validate_case(",
+    "  File \"/home/ec2-user/zk/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 318, in validate_case",
+    "    tamper = run_tamper_checks(case_path, out_dir, run_execute=bool(execute and execute[\"passed\"]))",
+    "  File \"/home/ec2-user/zk/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 230, in run_tamper_checks",
+    "    mutated = tampered_case(case, name)",
+    "  File \"/home/ec2-user/zk/zk_offline_dqn/backends/sp1/training_aggregation.py\", line 171, in tampered_case",
+    "    chunks[0], chunks[1] = chunks[1], chunks[0]",
+    "IndexError: list index out of range"
+  ],
+  "wall_seconds": 690.471
+}
