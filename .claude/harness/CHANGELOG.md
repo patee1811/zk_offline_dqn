@@ -1,5 +1,28 @@
 # Harness changelog
 
+## 2026-08-30 — 1.3.1
+
+**Kích hoạt:** cwd phiên đổi sang `.claude/`, cả bảy hook chết và khóa luôn Bash + Edit.
+
+**Lý do:** hook cưỡng chế đường biên, nên một hook không chạy được sẽ chặn mọi việc. Đường dẫn tương đối làm điều đó phụ thuộc vào chỗ người dùng đang đứng.
+
+**Đã sửa:** cả bảy `command` trong `settings.json` dùng `\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/...` thay cho đường dẫn tương đối. Đây là mẫu trong tài liệu hooks chính thức. Kiểm chứng bằng cách chạy lại Bash từ chính `.claude/`.
+
+## 2026-08-30 — 1.3.0
+
+**Kích hoạt:** phiên thuê máy ngoài để phá trần bộ nhớ recursion. Mất một lần chạy 14 giờ và hai giả thuyết bị bác bỏ bằng số đo.
+
+**Lý do:** ba bài học đều tốn thật — một cái tốn 14 giờ máy, hai cái còn lại tốn hai vòng sweep. Không rule nào phủ chúng.
+
+**Đã thêm:**
+
+- `experiments.md`: máy thuê chạy prove phải on-demand, không spot. Instance spot biến mất sau 14 giờ cùng toàn bộ kết quả.
+- `experiments.md`: kết quả phải rời khỏi máy trước khi máy chết; terminate chỉ sau khi kiểm tarball có trên đĩa.
+- `experiments.md`: đỉnh RSS recursion không phụ thuộc khối lượng — T=8 đo 30399MB, T=32 đo 29255MB. Giảm target không lách được trần.
+- `sp1-backend.md`: arity cây recursion cố định ở 4. `SP1_WORKER_MAX_COMPOSE_ARITY` được đọc nhưng `compress_proof_shape_from_arity` panic với mọi giá trị khác.
+
+**Đã bỏ:** mục `2026-08-27 — người sửa` (GPU/CPU) — hook `capture_learning` bắt đúng, nhưng bài học đã được ghi tay vào `sp1-backend.md` cùng ngày. Đánh dấu trùng, không thêm rule.
+
 ## 2026-08-27 — 1.2.0
 
 **Kích hoạt:** phiên chuẩn bị nộp A* làm lộ ba điều về backend SP1 mà không rule nào ghi, và hai trong ba đã dẫn tới kết luận sai trước khi kiểm mã nguồn.

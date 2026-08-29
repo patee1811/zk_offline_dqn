@@ -17,3 +17,4 @@ Lý do: import Python không được kích hoạt prove; claim SP1 chỉ đúng
 - Host precheck phải gọi shared verifier trước prove, trừ `--skip-host-precheck`.
 - Prover chạy **CPU**: cả tám host hardcode `ProverClient::builder().cpu()`, không có feature `cuda`. Nút thắt là RAM CPU, không phải VRAM. Wrap Groth16 ~14GB, PLONK ~60GB.
 - Host aggregation nhận `--mode` (`proof_manifest_chain` | `recursive_sp1`), **không** phải `--proof-mode`, và từ chối mode mà case JSON không khai báo. Ba vector đã commit đều `proof_manifest_chain`; muốn recursion phải sinh case bằng `run_phase7_sp1_training_aggregation_validation.py --aggregation-mode recursive_sp1`.
+- Arity cây recursion **cố định ở 4**. `SP1_WORKER_MAX_COMPOSE_ARITY` có tồn tại và được đọc, nhưng `compress_proof_shape_from_arity` trả `None` cho mọi giá trị khác `DEFAULT_ARITY = 4` rồi `.expect()` panic. Cách arity-10 của SUMMER không áp dụng được cho SP1.

@@ -65,6 +65,34 @@ Format:
 ## 2026-08-27 — người sửa — scope harness
 **Kích hoạt:** người dùng sửa lại trong phiên
 **Bài học:** tôi có bảo 30GB GPU đâu, ý tôi là 30GB CPU ý=))
-**Đích đề xuất:** /harness-sync quyết định
+**Đích đề xuất:** đã có trong `rules/90-domain/sp1-backend.md` từ 1.2.0 — hook bắt đúng nhưng trùng bản ghi tay cùng ngày.
 **Độ tin cậy:** thấp (tự động, chưa duyệt)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.2.0, trùng)
+
+## 2026-08-30 — thất bại — scope experiments
+**Kích hoạt:** instance spot `i-0ec16b5228e081751` chạy 14 giờ rồi biến mất khỏi `describe-instances`. Script có thể đã xong nhưng `memory_profile_ec2.tar.gz` nằm cùng máy.
+**Bài học:** spot rẻ hơn ~$1.2 cho 3 giờ, đổi lại AWS thu hồi bất cứ lúc nào. Với việc chạy một lần thì đó là đổi chác tệ. Và kết quả phải rời khỏi máy trước khi máy chết — terminate chỉ sau khi kiểm tarball có trên đĩa.
+**Đích đề xuất:** `rules/90-domain/experiments.md`
+**Độ tin cậy:** cao (mất một lần chạy thật)
+**Trạng thái:** đã áp dụng (1.3.0)
+
+## 2026-08-30 — thất bại — scope backends
+**Kích hoạt:** hai arm `wide_tree` và `both` panic sau 1–3 giây với `arity not supported`, sau khi đặt `SP1_WORKER_MAX_COMPOSE_ARITY=10`.
+**Bài học:** biến đó tồn tại và được `env::var` đọc, nhưng `compress_proof_shape_from_arity` (`sp1-prover-6.1.0/src/shapes.rs:190`) chỉ khớp `DEFAULT_ARITY = 4`, mọi giá trị khác trả `None` rồi `.expect()` panic. Cách arity-10 của SUMMER không chuyển sang SP1 được.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`
+**Độ tin cậy:** cao (đọc mã nguồn 6.1.0 + hai lần panic)
+**Trạng thái:** đã áp dụng (1.3.0)
+
+## 2026-08-30 — phát hiện mới — scope experiments
+**Kích hoạt:** sweep bốn cấu hình recursion: T=8 (1 child) 30399MB, T=16 (2 child) 29612MB, T=32 (4 child) 29255MB.
+**Bài học:** đỉnh RSS không tương quan với số proof con — giả thuyết "làm nhỏ dữ liệu để lách trần" sai. Chi phí nằm ở việc dựng mạch recursion của SP1, phát sinh dù gộp một hay bốn proof.
+**Đích đề xuất:** `rules/90-domain/experiments.md`
+**Độ tin cậy:** cao (bốn phép đo)
+**Trạng thái:** đã áp dụng (1.3.0)
+
+## 2026-08-30 — thất bại — scope harness
+**Kích hoạt:** một lệnh `cd .claude` làm cwd phiên đổi, và cả bảy hook chết với `can't open file ...\.claude\.claude\hooks\...`. Hook fail thì chặn cả Bash lẫn Edit — không sửa được bằng chính hai công cụ đó.
+**Bài học:** `"command": "python .claude/hooks/x.py"` phân giải theo cwd phiên, không phải repo root. Tài liệu chính thức dùng `$CLAUDE_PROJECT_DIR`, biến này Claude Code luôn đặt về root. Đã sửa cả bảy.
+**Đích đề xuất:** `.claude/settings.json` (đã áp dụng); `rules/60-bao-tri-harness.md`
+**Độ tin cậy:** cao (tự khóa mình một lần, xác minh bằng docs hooks-guide)
+**Trạng thái:** đã áp dụng (1.3.1)
