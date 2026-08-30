@@ -96,3 +96,10 @@ Format:
 **Đích đề xuất:** `.claude/settings.json` (đã áp dụng); `rules/60-bao-tri-harness.md`
 **Độ tin cậy:** cao (tự khóa mình một lần, xác minh bằng docs hooks-guide)
 **Trạng thái:** đã áp dụng (1.3.1)
+
+## 2026-08-30 — phát hiện mới — scope backends
+**Kích hoạt:** chạy lại vector đã commit dưới `cargo-prove 92b8eab`: `training_aggregation_t32` cho 798811 so với 785786 ghi ở `713544d` (+1.66%); `short_trace` cho 115324 so với 115363 (−0.03%). Output relation khớp cả hai.
+**Bài học:** `cycle_count` tất định theo cặp `(guest ELF, input)`. Provenance chỉ khóa input; không có `rust-toolchain.toml` nào, `sp1up` luôn cài toolchain mới nhất, và `sp1_version` là chuỗi hardcode ghi phiên bản crate. Đã thêm `guest_elf_sha256` vào cả 7 host. Pin toolchain: `sp1up --version v6.1.0`.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`
+**Độ tin cậy:** cao (hai phép đo + `sha256sum` ELF khớp field ghi ra)
+**Trạng thái:** chờ

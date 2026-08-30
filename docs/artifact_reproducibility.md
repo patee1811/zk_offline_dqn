@@ -93,6 +93,18 @@ guest code the compiler happened to lay out differently, so it cannot be
 corrected by scaling. Table 2 cycle counts should be read as measurements taken
 on the toolchain of their recording date, not as invariants of the relation.
 
+### Pinning the toolchain
+
+The Cargo manifests pin the SP1 crates to `=6.1.0`, but a bare `sp1up`
+installs the latest `succinct` toolchain regardless. Pin both halves:
+
+```text
+sp1up --version v6.1.0
+```
+
+CI does not install the SP1 toolchain at all -- heavy proving is outside the
+Python regression -- so this pin matters only when rerunning proofs by hand.
+
 ### Detecting the mismatch
 
 Provenance now records `guest_elf_sha256` alongside `test_vector_sha256`, so a
