@@ -104,6 +104,7 @@ async fn run_with_prover<P: Prover>(
     case_path: &Path,
 ) -> Result<()> {
     let elf = include_elf!("training-aggregation-guest");
+    let guest_elf_sha256 = hex_sha256(&elf);
     let mut cycle_count: Option<u64> = None;
 
     if args.execute || args.prove || !args.prove {
@@ -193,6 +194,7 @@ async fn run_with_prover<P: Prover>(
             proof_size_bytes,
             cycle_count,
             case_path,
+            &guest_elf_sha256,
         )?;
         println!("proof_generated = true");
         println!("proof_verified = true");
@@ -299,6 +301,7 @@ fn write_provenance(
     proof_size_bytes: u64,
     cycle_count: Option<u64>,
     case_path: &Path,
+    guest_elf_sha256: &str,
 ) -> Result<()> {
     let recursive = input.public_inputs.aggregation_mode == "recursive_sp1";
     let binary = input.public_inputs.aggregation_topology.as_deref() == Some("binary_tree");
@@ -330,6 +333,7 @@ fn write_provenance(
             "sp1_version": "6.1.0",
             "git_commit": git_commit(),
             "test_vector_sha256": sha256_file(case_path)?,
+            "guest_elf_sha256": guest_elf_sha256,
             "public_inputs_sha256": sha256_json(&input.public_inputs)?,
             "child_proof_count": input.private_witness.child_proofs.len(),
             "child_proof_verification_inside_guest": recursive,

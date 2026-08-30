@@ -58,6 +58,49 @@ The manifest records SHA256 hashes for paper tables, source files, compact SP1
 provenance, dataset roots, manifest hashes, and audit-report hashes. It does
 not include raw dataset contents.
 
+## What Reruns Reproduce Bit-for-Bit
+
+Rerunning an SP1 host reproduces the *relation output* exactly and the *cost
+measurements* only approximately. The two are worth separating, because only
+the first is a correctness claim.
+
+| Field | Reproducible | Depends on |
+| --- | --- | --- |
+| `aggregate_root`, public outputs | yes, exactly | test vector + relation code |
+| `public_inputs_sha256`, `test_vector_sha256` | yes, exactly | committed inputs |
+| `cycle_count` | no | the compiled guest ELF |
+| `prove_time_seconds`, `verify_time_seconds` | no | machine, core count, load |
+| `proof_size_bytes` | no | the compiled guest ELF |
+
+`cycle_count` is deterministic given a fixed `(guest ELF, input)` pair, but the
+guest ELF is not fixed across time. Nothing in the repository pins the
+`succinct` Rust toolchain: `sp1up` installs whichever version is current, so the
+same guest source compiles to a different ELF as SP1 releases move. The
+`sp1_version` field records the crate version and does not capture this.
+
+### Measured examples
+
+Rerunning committed test vectors under `cargo-prove 92b8eab` (2026-08-26):
+
+| Relation | Recorded | Rerun | Delta | Relation output |
+| --- | --- | --- | --- | --- |
+| `training_aggregation_t32` | 785786 | 798811 | +1.66% | `aggregate_root` matches |
+| `short_trace` | 115363 | 115324 | -0.03% | `proof_verified = true` |
+
+Relation outputs match in both cases, so the relations are unchanged; only the
+compiled programs differ. The drift is not a fixed offset -- it depends on which
+guest code the compiler happened to lay out differently, so it cannot be
+corrected by scaling. Table 2 cycle counts should be read as measurements taken
+on the toolchain of their recording date, not as invariants of the relation.
+
+### Detecting the mismatch
+
+Provenance now records `guest_elf_sha256` alongside `test_vector_sha256`, so a
+rerun pins both halves of the `(program, input)` pair that determines
+`cycle_count`. A reviewer whose `guest_elf_sha256` differs from the committed
+one should expect different cycle counts and identical relation outputs. Entries
+recorded before this field was added do not carry it.
+
 ## Windows, PowerShell, Linux, and Kaggle
 
 On Windows without `make`, run the Python commands listed in the `Makefile` or

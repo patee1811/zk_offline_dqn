@@ -61,6 +61,7 @@ async fn main() -> Result<()> {
 
     let client = ProverClient::builder().cpu().build().await;
     let elf = include_elf!("training-fragment-guest");
+    let guest_elf_sha256 = hex_sha256(&elf);
     let mut cycle_count: Option<u64> = None;
 
     if args.execute || args.prove || !args.prove {
@@ -155,6 +156,7 @@ async fn main() -> Result<()> {
             proof_size_bytes,
             cycle_count,
             &case_path,
+            &guest_elf_sha256,
         )?;
         println!("proof_generated = true");
         println!("proof_verified = true");
@@ -252,6 +254,7 @@ fn write_provenance(
     proof_size_bytes: u64,
     cycle_count: Option<u64>,
     case_path: &Path,
+    guest_elf_sha256: &str,
 ) -> Result<()> {
     write_json(out_dir.join("public_inputs.json"), &input.public_inputs)?;
     write_json(out_dir.join("witness_schema.json"), &witness_schema())?;
@@ -271,6 +274,7 @@ fn write_provenance(
             "sp1_version": "6.1.0",
             "git_commit": git_commit(),
             "test_vector_sha256": sha256_file(case_path)?,
+            "guest_elf_sha256": guest_elf_sha256,
             "public_inputs_sha256": sha256_json(&input.public_inputs)?,
             "target_sync_events": expected.target_sync_events,
             "notes": ["SP1 proof-backed multi-step training fragment for a canonical tiny MLP vector; not full DQN training, Adam, all replay batches, or recursive aggregation."]
