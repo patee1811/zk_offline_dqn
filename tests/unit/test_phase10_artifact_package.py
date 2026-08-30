@@ -84,11 +84,24 @@ class Phase10ArtifactPackageTests(unittest.TestCase):
         ]:
             self.assertIn(title, main + (ROOT / "paper/sections/conclusion.tex").read_text(encoding="utf-8"))
 
-    def test_paper_does_not_claim_true_recursive_aggregation(self):
-        text = "\n".join(path.read_text(encoding="utf-8", errors="replace") for path in (ROOT / "paper/sections").glob("*.tex")).lower()
-        self.assertNotIn("true recursive aggregation soundness", text)
+    def test_paper_scopes_recursive_aggregation(self):
+        """Recursive aggregation may be claimed, but only within what was measured.
+
+        It is proof-backed for T in {16,32,64} on a CUDA prover. The paper must
+        keep the two aggregation modes distinct, state the GPU requirement, and
+        keep saying which corners are untested. This replaces a blanket ban that
+        no longer matches the artifact.
+        """
+        text = chr(10).join(path.read_text(encoding="utf-8", errors="replace") for path in (ROOT / "paper/sections").glob("*.tex")).lower()
+        # Both modes stay named; recursion must not swallow the manifest rows.
         self.assertIn("proof-manifest chunk-chain aggregation", text)
-        self.assertIn("does not recursively verify child proof", text)
+        self.assertIn("recursive aggregation", text)
+        # The limits that make the claim honest.
+        self.assertIn("cuda prover", text)
+        self.assertIn("untested", text)
+        # Corners never measured.
+        self.assertNotIn("recursive aggregation at t=128", text)
+        self.assertNotIn("plonk child proofs are proof-backed", text)
 
     def test_report_sources_include_artifact_package(self):
         result = check_artifact_package_sources(ROOT)

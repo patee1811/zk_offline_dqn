@@ -11,8 +11,10 @@ commitments via SHA-256 Merkle trees, fixed-point relation witnesses for
 temporal-difference (TD) arithmetic and neural-network forward/backward
 computations, SP1 zkVM proof generation and verification for a scoped set of
 relation families and scaling configurations, multi-step training-fragment
-proofs for $k \in \{1, 4, 8\}$ steps, and proof-manifest chunk-chain
-aggregation for training traces up to $T \in \{32, 64, 128\}$ steps. We
+proofs for $k \in \{1, 4, 8\}$ steps, proof-manifest chunk-chain
+aggregation for training traces up to $T \in \{32, 64, 128\}$ steps, and
+recursive aggregation for $T \in \{16, 32, 64\}$ in which the aggregate guest
+verifies each child proof cryptographically. We
 formalize eight security theorems covering
 replay membership, dataset commitment, Bellman target correctness, update
 correctness, checkpoint-chain soundness, training-fragment soundness, and
@@ -21,11 +23,12 @@ is mapped to implemented relations, SP1 backend code, tests, and benchmark
 evidence. Experimental evaluation on CartPole, MountainCar,
 and PointMaze D4RL benchmark datasets demonstrates that all reported
 proof-verified configurations achieve verification in under~0.21\,s with proof
-sizes below~2.84\,MB, while a tamper-rejection benchmark covering~166
+sizes below~2.84\,MB, while a tamper-rejection benchmark covering~236
 adversarial test cases yields zero unexpectedly accepted tampering attempts
 across~19 tamper categories. The contribution is a deliberately scoped
-security/systems artifact: it does not claim complete DQN training soundness,
-Adam optimizer proofs, or true recursive child-proof aggregation.
+security/systems artifact: it does not claim complete DQN training soundness
+or Adam optimizer proofs, and its recursive aggregation requires a CUDA prover
+and is demonstrated up to $T = 64$.
 \end{abstract}
 
 \begin{IEEEkeywords}

@@ -54,7 +54,7 @@ SP1 prove **không** nằm trong regression Python. `RUN_SP1_PROVE=1 cargo run -
 3. Leaf: `",".join(str(int(x)))` rồi SHA256 hex; node trong: `SHA256(bytes.fromhex(L)+bytes.fromhex(R))`; lá lẻ **duplicate** (kiểu Bitcoin).
 4. Chuỗi `schema_version` tương thích ngược trừ khi được duyệt migration.
 5. `relations/` không phụ thuộc đường dẫn file hay argparse.
-6. Cấm claim: full DQN training, Adam, honest public collection, true recursive aggregation, mọi relation đều có SP1. Theorem 7 = proof-manifest chain, không verify child proof trong SP1. Scanner: `scripts/experiments/check_paper_claims.py`.
+6. Cấm claim: full DQN training, Adam, honest public collection, mọi relation đều có SP1, recursion T=128, child proof PLONK, recursion trên CPU. Theorem 7 nay gồm **hai** chế độ: proof-manifest chain T={32,64,128} và recursive_sp1 verify child trong guest T={16,32,64} — chế độ sau **chỉ chạy trên prover CUDA**. Scanner: `scripts/experiments/check_paper_claims.py`.
 7. Report (`generate_paper_reports.py`) **không** chạy lại prove/benchmark nặng.
 8. Merkle/TD chỉ có một đường import: `zk_offline_dqn.merkle`, `zk_offline_dqn.zk_specs`. Không tạo lại wrapper re-export.
 9. Fixture regression (pkl, merkle JSON, `.pt`) phải có trước khi `run_full_regression.py`.

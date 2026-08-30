@@ -40,8 +40,13 @@ NEGATED_PHRASES = [
     "prove offline dqn training",
     "prove full dqn training",
     "proof coverage for every relation",
-    "true recursive aggregation",
-    "true recursive aggregation proof-backed",
+    # Recursive aggregation is now proof-backed at T in {16,32,64}, so the broad
+    # phrase is no longer forbidden. What remains unproven is guarded instead:
+    # T=128, PLONK child proofs, and recursion on a CPU prover.
+    "recursive aggregation at t=128",
+    "recursive aggregation for t=128",
+    "plonk child proofs are proof-backed",
+    "recursive aggregation on cpu",
     "honest public collection proof",
     "adam proof",
     "batch-size 4/8/16 training proof",
@@ -54,6 +59,7 @@ NEGATED_PHRASES = [
 ]
 
 ALLOWED_NEGATION_MARKERS = [
+    "untested",
     "not ",
     "does not ",
     "do not ",

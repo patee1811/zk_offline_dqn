@@ -1,12 +1,28 @@
-The aggregation layer is proof-manifest chunk-chain aggregation. For
-$T\in\{32,64,128\}$, the aggregate statement binds an ordered sequence of
-externally verified $k=8$ child proof manifests. The relation checks child
-proof-manifest hashes, child public-input hashes, chunk boundaries, dataset
-root consistency, config-hash consistency, aggregate roots, online checkpoint
-links, and target checkpoint links.
+The aggregation layer supports two modes. Proof-manifest chunk-chain
+aggregation binds an ordered sequence of externally verified $k=8$ child proof
+manifests for $T\in\{32,64,128\}$. The relation checks child proof-manifest
+hashes, child public-input hashes, chunk boundaries, dataset root consistency,
+config-hash consistency, aggregate roots, online checkpoint links, and target
+checkpoint links.
 
-This is not true recursive aggregation. The aggregate SP1 guest does not run a
-verifier for child proof bytes. The child proofs are externally verified and
-then represented by manifests and hashes inside the aggregate relation. True
-recursive child-proof verification remains future work and is not used as a
-paper claim.
+Recursive aggregation additionally verifies the child proofs cryptographically
+inside the aggregate SP1 guest. For $T\in\{16,32,64\}$ with a flat topology, and
+for $T=16$ with a binary-tree topology, the guest calls the SP1 proof verifier
+on each child rather than binding a manifest hash. Child verification dominates
+the cost at roughly $1.5\times10^{8}$ cycles per child: $3.09\times10^{8}$ cycles
+at $T=16$, $6.15\times10^{8}$ at $T=32$, and $1.23\times10^{9}$ at $T=64$.
+
+Recursive aggregation requires a CUDA prover. Peak device memory is
+$18.4$~GB and does not vary with $T$: across measurements spanning a twentyfold
+range in cycle count, peak memory stayed within $0.5\%$. The cost is
+constructing the recursion circuit, not the number of children. The CPU prover
+did not complete any of these configurations within $61$~GB of host memory,
+which is why earlier versions of this artifact reported them as resource
+failures.
+
+Child proofs may also be supplied as Groth16 proofs over BN254, which the guest
+verifies in-circuit. This is measured but not recommended: it costs
+$6.16\times10^{9}$ cycles at $T=16$, twenty times the native path, because
+verifying a pairing-based proof inside the zkVM is more expensive than verifying
+SP1's own recursive proof format. PLONK child proofs are untested. Recursive
+aggregation at $T=128$ is untested.
