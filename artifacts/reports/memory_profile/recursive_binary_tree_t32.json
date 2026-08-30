@@ -1,0 +1,56 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
+    "--targets",
+    "32",
+    "--aggregation-mode",
+    "recursive_sp1",
+    "--aggregation-topology",
+    "binary_tree",
+    "--child-proof-mode",
+    "native_sp1",
+    "--run-child-proves",
+    "--run-prove",
+    "--continue-on-failure"
+  ],
+  "cwd": "/kaggle/working/zk_offline_dqn",
+  "label": "recursive_binary_tree_t32",
+  "memory": {
+    "peak_rss_mb": 28383.043,
+    "peak_stage": "setup",
+    "sample_count": 7454,
+    "stages": {
+      "setup": {
+        "mean_rss_mb": 12761.455,
+        "peak_rss_mb": 28383.043,
+        "samples": 7454
+      }
+    }
+  },
+  "returncode": 1,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {},
+  "status": "failed",
+  "stdout_tail": [
+    "Traceback (most recent call last):",
+    "  File \"/kaggle/working/zk_offline_dqn/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 719, in <module>",
+    "    raise SystemExit(main())",
+    "                     ^^^^^^",
+    "  File \"/kaggle/working/zk_offline_dqn/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 666, in main",
+    "    case_path, child_statuses, internal_dirs = prepare_binary_native_case(",
+    "                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/kaggle/working/zk_offline_dqn/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 577, in prepare_binary_native_case",
+    "    left_material, left_status = _prove_binary_node_material(",
+    "                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/kaggle/working/zk_offline_dqn/scripts/experiments/run_phase7_sp1_training_aggregation_validation.py\", line 527, in _prove_binary_node_material",
+    "    raise RuntimeError(",
+    "RuntimeError: binary internal proof 0 failed: warning: training-aggregation-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"",
+    "warning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-08-26 18:29:45",
+    "    Finished `release` profile [optimized] target(s) in 0.85s",
+    "warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1",
+    "note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`",
+    "     Running `target/release/training-aggregation-host --prove --case /kaggle/working/zk_offline_dqn/artifacts/reports/provenance/sp1/_binary_native_work/t32/level1/level1_left_case.json --mode recursive_sp1 --out-dir /kaggle/working/zk_offline_dqn/artifacts/reports/provenance/sp1/_binary_native_work/t32/level1/level1_left --child-proof-mode native_sp1 --topology binary_tree`"
+  ],
+  "wall_seconds": 3737.699
+}

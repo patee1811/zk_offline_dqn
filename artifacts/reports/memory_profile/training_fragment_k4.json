@@ -1,0 +1,68 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "-p",
+    "training-fragment-host",
+    "--",
+    "--prove"
+  ],
+  "cwd": "/kaggle/working/zk_offline_dqn/zk_backend/training_fragment/sp1",
+  "label": "training_fragment_k8",
+  "memory": {
+    "peak_rss_mb": 16174.66,
+    "peak_stage": "prove",
+    "sample_count": 919,
+    "stages": {
+      "prove": {
+        "mean_rss_mb": 11192.636,
+        "peak_rss_mb": 16174.66,
+        "samples": 637
+      },
+      "setup": {
+        "mean_rss_mb": 3846.642,
+        "peak_rss_mb": 6903.801,
+        "samples": 281
+      },
+      "teardown": {
+        "mean_rss_mb": 8472.637,
+        "peak_rss_mb": 8472.637,
+        "samples": 1
+      }
+    }
+  },
+  "returncode": 0,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {
+    "execute": 140.366,
+    "prove": 460.022,
+    "verify": 460.022
+  },
+  "status": "completed",
+  "stdout_tail": [
+    "warning: training-fragment-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"",
+    "warning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-08-26 18:14:48",
+    "    Finished `release` profile [optimized] target(s) in 2.32s",
+    "warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1",
+    "note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`",
+    "     Running `target/release/training-fragment-host --prove`",
+    "case_path = ../../test_vectors/training_fragment_k4_case_0.json",
+    "host_precheck = true",
+    "num_steps = 4",
+    "dataset_root = 55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e",
+    "start_checkpoint_hash = 622e834e2b84b32c7a4b8efbb5c1943d23e229ec0a17f83c35d170bc44b3f35d",
+    "final_checkpoint_hash = 12b9c6bd706fb4813e16288ef767b13b59be33917187e81fad7feafd11660790",
+    "target_sync_events = 1",
+    "execution_ok = true",
+    "execution_time_sec = 0.185825",
+    "cycle_count = 2597494",
+    "exit_code = 0",
+    "proof_generated = true",
+    "proof_verified = true",
+    "proving_time_sec = 304.981735",
+    "verification_time_sec = 0.164484",
+    "proof_size_bytes = 2811655"
+  ],
+  "wall_seconds": 461.248
+}

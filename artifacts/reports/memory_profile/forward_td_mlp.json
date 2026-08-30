@@ -1,0 +1,65 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "-p",
+    "forward-td-mlp-host",
+    "--",
+    "--prove"
+  ],
+  "cwd": "/kaggle/working/zk_offline_dqn/zk_backend/forward_td_mlp/sp1",
+  "label": "forward_td_mlp",
+  "memory": {
+    "peak_rss_mb": 14789.891,
+    "peak_stage": "prove",
+    "sample_count": 747,
+    "stages": {
+      "prove": {
+        "mean_rss_mb": 10223.229,
+        "peak_rss_mb": 14789.891,
+        "samples": 467
+      },
+      "setup": {
+        "mean_rss_mb": 3844.168,
+        "peak_rss_mb": 6903.832,
+        "samples": 279
+      },
+      "teardown": {
+        "mean_rss_mb": 8096.117,
+        "peak_rss_mb": 8096.117,
+        "samples": 1
+      }
+    }
+  },
+  "returncode": 0,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {
+    "execute": 139.413,
+    "prove": 373.626,
+    "verify": 373.626
+  },
+  "status": "completed",
+  "stdout_tail": [
+    "warning: forward-td-mlp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"",
+    "warning: forward-td-mlp-host@0.1.0: forward-td-mlp-guest built at 2026-08-26 17:50:27",
+    "    Finished `release` profile [optimized] target(s) in 2.04s",
+    "warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1",
+    "note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`",
+    "     Running `target/release/forward-td-mlp-host --prove`",
+    "case_path = ../../test_vectors/forward_td_mlp_case_0.json",
+    "host_precheck = true",
+    "dataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+    "claimed_batch_loss_fp = 496",
+    "execution_ok = true",
+    "execution_time_sec = 0.124609",
+    "cycle_count = 1547234",
+    "exit_code = 0",
+    "proof_generated = true",
+    "proof_verified = true",
+    "proving_time_sec = 219.547157",
+    "verification_time_sec = 0.162417",
+    "proof_size_bytes = 2797873"
+  ],
+  "wall_seconds": 374.744
+}

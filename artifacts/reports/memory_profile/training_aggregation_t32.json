@@ -1,0 +1,67 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "-p",
+    "training-aggregation-host",
+    "--",
+    "--prove"
+  ],
+  "cwd": "/kaggle/working/zk_offline_dqn/zk_backend/training_aggregation/sp1",
+  "label": "training_aggregation_t128",
+  "memory": {
+    "peak_rss_mb": 12109.027,
+    "peak_stage": "prove",
+    "sample_count": 679,
+    "stages": {
+      "prove": {
+        "mean_rss_mb": 9431.813,
+        "peak_rss_mb": 12109.027,
+        "samples": 387
+      },
+      "setup": {
+        "mean_rss_mb": 3830.509,
+        "peak_rss_mb": 6903.277,
+        "samples": 288
+      },
+      "teardown": {
+        "mean_rss_mb": 6295.726,
+        "peak_rss_mb": 6980.355,
+        "samples": 4
+      }
+    }
+  },
+  "returncode": 0,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {
+    "execute": 144.111,
+    "prove": 338.15,
+    "verify": 338.15
+  },
+  "status": "completed",
+  "stdout_tail": [
+    "warning: training-aggregation-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"",
+    "warning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-08-26 18:29:45",
+    "    Finished `release` profile [optimized] target(s) in 2.51s",
+    "warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1",
+    "note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`",
+    "     Running `target/release/training-aggregation-host --prove`",
+    "case_path = ../../test_vectors/training_aggregation_t32_case_0.json",
+    "host_precheck = true",
+    "aggregation_mode = proof_manifest_chain",
+    "chunk_count = 4",
+    "step_end = 32",
+    "aggregate_root = 598436e928ebc81d9c03313ae7b6a193108435799238ca6554ff38f64e335b25",
+    "execution_ok = true",
+    "execution_time_sec = 0.209519",
+    "cycle_count = 798934",
+    "exit_code = 0",
+    "proof_generated = true",
+    "proof_verified = true",
+    "proving_time_sec = 178.594132",
+    "verification_time_sec = 0.155732",
+    "proof_size_bytes = 2795159"
+  ],
+  "wall_seconds": 340.316
+}

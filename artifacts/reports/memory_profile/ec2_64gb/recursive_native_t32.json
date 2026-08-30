@@ -1,0 +1,80 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "scripts/experiments/run_phase7_sp1_training_aggregation_validation.py",
+    "--targets",
+    "32",
+    "--aggregation-mode",
+    "recursive_sp1",
+    "--child-proof-mode",
+    "native_sp1",
+    "--run-child-proves",
+    "--run-prove",
+    "--continue-on-failure"
+  ],
+  "cwd": "/home/ec2-user/zk",
+  "label": "recursive_native_t32",
+  "memory": {
+    "peak_rss_mb": 60816.367,
+    "peak_stage": "setup",
+    "sample_count": 3537,
+    "stages": {
+      "setup": {
+        "mean_rss_mb": 18251.464,
+        "peak_rss_mb": 60816.367,
+        "samples": 3537
+      }
+    }
+  },
+  "returncode": 1,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {
+    "execute": 1784.752,
+    "prove": 1784.752,
+    "verify": 1784.752
+  },
+  "status": "failed",
+  "stdout_tail": [
+    "      \"chunk_count\": 4,",
+    "      \"chunk_manifest_saved\": false,",
+    "      \"chunk_size\": 8,",
+    "      \"claim_status\": \"not_proof_backed\",",
+    "      \"execute\": {",
+    "        \"command\": \"cargo run --release -p training-aggregation-host -- --execute --case /home/ec2-user/zk/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t32_case_0.json --mode recursive_sp1 --child-proof-mode native_sp1\",",
+    "        \"passed\": true,",
+    "        \"return_code\": 0,",
+    "        \"stderr_tail\": \"warning: training-aggregation-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-08-29 18:18:51\\n    Finished `release` profile [optimized] target(s) in 0.26s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `target/release/training-aggregation-host --execute --case /home/ec2-user/zk/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t32_case_0.json --mode recursive_sp1 --child-proof-mode native_sp1`\",",
+    "        \"stdout_tail\": \"case_path = /home/ec2-user/zk/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t32_case_0.json\\nhost_precheck = true\\naggregation_mode = recursive_sp1\\nchunk_count = 4\\nstep_end = 32\\naggregate_root = b99f1f572298723d9f346c912dc341220c2b0744207ebd1f1340d30192856eef\\nexecution_ok = true\\nexecution_time_sec = 18.898078\\ncycle_count = 615462741\\nexit_code = 0\"",
+    "      },",
+    "      \"execute_passed\": true,",
+    "      \"leaf_chunk_count\": null,",
+    "      \"metrics_saved\": false,",
+    "      \"proof\": {",
+    "        \"command\": \"cargo run --release -p training-aggregation-host -- --prove --case /home/ec2-user/zk/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t32_case_0.json --mode recursive_sp1 --out-dir /home/ec2-user/zk/artifacts/reports/provenance/sp1/training_aggregation_recursive_t32 --child-proof-mode native_sp1\",",
+    "        \"passed\": false,",
+    "        \"return_code\": -9,",
+    "        \"stderr_tail\": \"warning: training-aggregation-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-08-29 18:18:51\\n    Finished `release` profile [optimized] target(s) in 0.27s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `target/release/training-aggregation-host --prove --case /home/ec2-user/zk/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t32_case_0.json --mode recursive_sp1 --out-dir /home/ec2-user/zk/artifacts/reports/provenance/sp1/training_aggregation_recursive_t32 --child-proof-mode native_sp1`\",",
+    "        \"stdout_tail\": \"case_path = /home/ec2-user/zk/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t32_case_0.json\\nhost_precheck = true\\naggregation_mode = recursive_sp1\\nchunk_count = 4\\nstep_end = 32\\naggregate_root = b99f1f572298723d9f346c912dc341220c2b0744207ebd1f1340d30192856eef\\nexecution_ok = true\\nexecution_time_sec = 18.820190\\ncycle_count = 615462741\\nexit_code = 0\"",
+    "      },",
+    "      \"proof_artifact_policy_saved\": false,",
+    "      \"proof_generated\": false,",
+    "      \"proof_verified\": false,",
+    "      \"public_inputs_saved\": false,",
+    "      \"recursive_child_proof_manifest_saved\": false,",
+    "      \"reference_passed\": true,",
+    "      \"relation\": \"training_aggregation\",",
+    "      \"roots_match_reference\": true,",
+    "      \"step_end\": 32,",
+    "      \"step_start\": 0,",
+    "      \"tamper_report_saved\": true,",
+    "      \"tamper_test_passed\": true,",
+    "      \"tree_depth\": null,",
+    "      \"verify_report_saved\": false,",
+    "      \"witness_schema_saved\": false",
+    "    }",
+    "  ],",
+    "  \"relation\": \"training_aggregation\"",
+    "}"
+  ],
+  "wall_seconds": 1784.769
+}

@@ -1,0 +1,235 @@
+{
+  "cases": [
+    {
+      "expected": "proof_verified",
+      "host_package": "one-step-sgd-tiny-host",
+      "label": "one_step_sgd_tiny",
+      "mode": "prove",
+      "notes": "122.7s",
+      "peak_rss_mb": 11594.797,
+      "peak_stage": "prove",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/one_step_sgd_tiny.json",
+      "proof_mode": "core",
+      "relation": "one_step_sgd_tiny",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "execute": 158.774,
+        "prove": 344.109,
+        "verify": 344.109
+      },
+      "stages": {
+        "prove": {
+          "mean_rss_mb": 9225.571,
+          "peak_rss_mb": 11594.797,
+          "samples": 370
+        },
+        "setup": {
+          "mean_rss_mb": 3753.318,
+          "peak_rss_mb": 6911.77,
+          "samples": 317
+        },
+        "teardown": {
+          "mean_rss_mb": 5631.398,
+          "peak_rss_mb": 7777.73,
+          "samples": 2
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 345.325
+    },
+    {
+      "expected": "proof_verified",
+      "host_package": "forward-td-mlp-host",
+      "label": "forward_td_mlp",
+      "mode": "prove",
+      "notes": "142.7s",
+      "peak_rss_mb": 14789.891,
+      "peak_stage": "prove",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/forward_td_mlp.json",
+      "proof_mode": "core",
+      "relation": "forward_td_mlp",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "execute": 139.413,
+        "prove": 373.626,
+        "verify": 373.626
+      },
+      "stages": {
+        "prove": {
+          "mean_rss_mb": 10223.229,
+          "peak_rss_mb": 14789.891,
+          "samples": 467
+        },
+        "setup": {
+          "mean_rss_mb": 3844.168,
+          "peak_rss_mb": 6903.832,
+          "samples": 279
+        },
+        "teardown": {
+          "mean_rss_mb": 8096.117,
+          "peak_rss_mb": 8096.117,
+          "samples": 1
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 374.929
+    },
+    {
+      "expected": "proof_verified",
+      "host_package": "td-mvp-host",
+      "label": "td_mvp",
+      "mode": "prove",
+      "notes": "167.7s",
+      "peak_rss_mb": 10519.504,
+      "peak_stage": "setup",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/td_mvp.json",
+      "proof_mode": "core",
+      "relation": "td_mvp",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "prove": 297.853,
+        "verify": 297.853
+      },
+      "stages": {
+        "setup": {
+          "mean_rss_mb": 6278.17,
+          "peak_rss_mb": 10519.504,
+          "samples": 595
+        },
+        "teardown": {
+          "mean_rss_mb": 6365.566,
+          "peak_rss_mb": 6365.566,
+          "samples": 1
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 299.06
+    },
+    {
+      "expected": "proof_verified",
+      "host_package": "training-fragment-host",
+      "label": "training_fragment_k4",
+      "mode": "prove",
+      "notes": "host defaulted to k4 vector; --case was not passed",
+      "peak_rss_mb": 16174.66,
+      "peak_stage": "prove",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/training_fragment_k4.json",
+      "proof_mode": "core",
+      "relation": "training_fragment",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "execute": 140.366,
+        "prove": 460.022,
+        "verify": 460.022
+      },
+      "stages": {
+        "prove": {
+          "mean_rss_mb": 11192.636,
+          "peak_rss_mb": 16174.66,
+          "samples": 637
+        },
+        "setup": {
+          "mean_rss_mb": 3846.642,
+          "peak_rss_mb": 6903.801,
+          "samples": 281
+        },
+        "teardown": {
+          "mean_rss_mb": 8472.637,
+          "peak_rss_mb": 8472.637,
+          "samples": 1
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 461.422
+    },
+    {
+      "expected": "proof_verified",
+      "host_package": "training-aggregation-host",
+      "label": "training_aggregation_t32",
+      "mode": "prove",
+      "notes": "host defaulted to t32 vector; --case was not passed",
+      "peak_rss_mb": 12109.027,
+      "peak_stage": "prove",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/training_aggregation_t32.json",
+      "proof_mode": "core",
+      "relation": "training_aggregation",
+      "returncode": 0,
+      "stage_boundaries_seconds": {
+        "execute": 144.111,
+        "prove": 338.15,
+        "verify": 338.15
+      },
+      "stages": {
+        "prove": {
+          "mean_rss_mb": 9431.813,
+          "peak_rss_mb": 12109.027,
+          "samples": 387
+        },
+        "setup": {
+          "mean_rss_mb": 3830.509,
+          "peak_rss_mb": 6903.277,
+          "samples": 288
+        },
+        "teardown": {
+          "mean_rss_mb": 6295.726,
+          "peak_rss_mb": 6980.355,
+          "samples": 4
+        }
+      },
+      "status": "completed",
+      "wall_seconds": 340.491
+    },
+    {
+      "expected": "failed_oom",
+      "host_package": "training-aggregation-host",
+      "label": "recursive_native_t32",
+      "mode": "prove",
+      "notes": "Table 2 native_flat_recursive_t32 failed_oom",
+      "peak_rss_mb": 29140.199,
+      "peak_stage": "setup",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/recursive_native_t32.json",
+      "proof_mode": "core",
+      "relation": "training_aggregation",
+      "returncode": 1,
+      "stage_boundaries_seconds": {
+        "execute": 4127.646,
+        "prove": 4127.646,
+        "verify": 4127.646
+      },
+      "stages": {
+        "setup": {
+          "mean_rss_mb": 12492.771,
+          "peak_rss_mb": 29140.199,
+          "samples": 8232
+        }
+      },
+      "status": "failed",
+      "wall_seconds": 4128.009
+    },
+    {
+      "expected": "failed_oom",
+      "host_package": "training-aggregation-host",
+      "label": "recursive_binary_tree_t32",
+      "mode": "prove",
+      "notes": "Table 2 binary_tree_native_t16 failed_oom; arity 2 is the configuration SUMMER's arity-10 choice argues against",
+      "peak_rss_mb": 28383.043,
+      "peak_stage": "setup",
+      "profile_path": "/kaggle/working/memory_profile_outputs/memory_profile/recursive_binary_tree_t32.json",
+      "proof_mode": "core",
+      "relation": "training_aggregation",
+      "returncode": 1,
+      "stage_boundaries_seconds": {},
+      "stages": {
+        "setup": {
+          "mean_rss_mb": 12761.455,
+          "peak_rss_mb": 28383.043,
+          "samples": 7454
+        }
+      },
+      "status": "failed",
+      "wall_seconds": 3738.522
+    }
+  ],
+  "mode": "prove",
+  "sample_interval_seconds": 0.5
+}

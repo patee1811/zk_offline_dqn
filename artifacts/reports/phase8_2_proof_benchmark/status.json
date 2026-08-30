@@ -15,7 +15,7 @@
   ],
   "execute_only_rows": 3,
   "failed_resource_rows": 3,
-  "mode": "paper",
+  "mode": "smoke",
   "phase": "8.2",
   "proof_verified_rows": 15,
   "row_count": 25,

@@ -51,6 +51,7 @@ async fn main() -> Result<()> {
 
     let client = ProverClient::builder().cpu().build().await;
     let elf = include_elf!("merkle-membership-guest");
+    let guest_elf_sha256 = hex_sha256(&elf);
     let expected = if let Some(path) = &args.expected_public_inputs {
         expected_public_output_from_public_inputs(&load_public_inputs(path)?)
     } else {
@@ -124,6 +125,7 @@ async fn main() -> Result<()> {
             proof_size_bytes,
             cycle_count,
             &case_path,
+            &guest_elf_sha256,
         )?;
 
         println!("proof_generated = true");
@@ -200,6 +202,7 @@ fn write_provenance(
     proof_size_bytes: u64,
     cycle_count: Option<u64>,
     case_path: &Path,
+    guest_elf_sha256: &str,
 ) -> Result<()> {
     write_json(out_dir.join("public_inputs.json"), &input.public_inputs)?;
     write_json(out_dir.join("witness_schema.json"), &witness_schema())?;
@@ -220,6 +223,7 @@ fn write_provenance(
             "sp1_version": "6.1.0",
             "git_commit": git_commit,
             "test_vector_sha256": test_vector_sha256,
+            "guest_elf_sha256": guest_elf_sha256,
             "public_inputs_sha256": public_inputs_sha256,
         }),
     )?;

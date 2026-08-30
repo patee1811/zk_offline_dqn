@@ -1,0 +1,37 @@
+[02:14:19] packages
+info: downloading installer
+warn: It looks like you have an existing rustup settings file at:
+warn: /home/ec2-user/.rustup/settings.toml
+warn: Rustup will install the default toolchain as specified in the settings file,
+warn: instead of the one inferred from the default host triple.
+info: profile set to default
+info: default host triple is x86_64-unknown-linux-gnu
+info: syncing channel updates for stable-x86_64-unknown-linux-gnu
+info: latest update on 2026-08-20 for version 1.98.0 (88d9e12ae 2026-08-18)
+info: downloading 6 components
+info: default toolchain set to stable-x86_64-unknown-linux-gnu
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0   0     0   0     0     0     0  --:--:-- --:--:-- --:--:--     0100    15   0    15   0     0   494     0  --:--:-- --:--:-- --:--:--   500
+100  2234 100  2234   0     0  8072     0  --:--:-- --:--:-- --:--:--  8072
+cargo-prove sp1 (d454975 2026-04-11T01:54:01.305546215Z)
+[02:15:21] building fragment host (needed to prove children)
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+[02:19:31] proving 2 child fragments, then building the t16 case
+    }
+  ],
+  "relation": "training_aggregation"
+}
+[02:40:34] case ready: 5108475 bytes
+child payload: 1426 bytes, leading len=31 -> bincode
+[02:40:34] === WITH sha2 patch ===
+    execution_ok = true
+    execution_time_sec = 9.375139
+    cycle_count = 309399516
+patch removed
+[02:41:36] === WITHOUT sha2 patch (baseline) ===
+    execution_ok = true
+    execution_time_sec = 9.363949
+    cycle_count = 309399516
+[02:43:28] done

@@ -782,6 +782,69 @@ def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> Lis
     return child_cases
 
 
+# Field order of TrainingFragmentOutput in
+# zk_backend/training_fragment/sp1/shared/src/lib.rs. bincode is positional, so
+# this list is the encoding: reorder it and the guest decodes garbage.
+FRAGMENT_OUTPUT_FIELDS: tuple[tuple[str, str], ...] = (
+    ("schema_version", "str"),
+    ("relation", "str"),
+    ("case_id", "str"),
+    ("dataset_id_hash", "str"),
+    ("dataset_type", "str"),
+    ("dataset_root", "str"),
+    ("manifest_hash", "str"),
+    ("audit_report_hash", "str"),
+    ("collection_log_final_hash", "str"),
+    ("raw_trajectory_hash", "str"),
+    ("start_checkpoint_hash", "str"),
+    ("final_checkpoint_hash", "str"),
+    ("start_target_checkpoint_hash", "str"),
+    ("final_target_checkpoint_hash", "str"),
+    ("num_steps", "u64"),
+    ("batch_size", "u64"),
+    ("fixed_point_scale", "i64"),
+    ("gamma", "i64"),
+    ("learning_rate", "i64"),
+    ("sampler_seed", "u64"),
+    ("sampler_type", "str"),
+    ("dataset_size", "u64"),
+    ("target_sync_interval", "u64"),
+    ("target_sync_mode", "str"),
+    ("global_step_start", "u64"),
+    ("trace_hash", "str"),
+    ("checkpoint_chain_hash", "str"),
+    ("minibatch_indices_hash", "str"),
+    ("loss_trace_hash", "str"),
+    ("gradient_trace_hash", "str"),
+    ("update_trace_hash", "str"),
+    ("target_sync_events", "u64"),
+)
+
+
+def encode_fragment_output_bincode(output: Mapping[str, Any]) -> bytes:
+    """Serialize a fragment output the way SP1 commits it.
+
+    ``sp1_lib::io::commit`` calls ``bincode::serialize_into``, and the guest
+    reads child public values with ``bincode::deserialize``. A JSON payload
+    here makes the guest panic on the first length prefix it reads.
+
+    bincode's default config: little-endian, fixed-int, so a String is a u64
+    length followed by its UTF-8 bytes, and usize is encoded as u64.
+    """
+    out = bytearray()
+    for name, kind in FRAGMENT_OUTPUT_FIELDS:
+        value = output[name]
+        if kind == "str":
+            data = str(value).encode("utf-8")
+            out += len(data).to_bytes(8, "little")
+            out += data
+        elif kind == "u64":
+            out += int(value).to_bytes(8, "little")
+        else:
+            out += int(value).to_bytes(8, "little", signed=True)
+    return bytes(out)
+
+
 def placeholder_child_material(
     child_case: Mapping[str, Any],
     chunk_id: int,
@@ -791,7 +854,7 @@ def placeholder_child_material(
     output = verify_fragment_case(child_case).public_output
     if output is None:
         raise AssertionError("placeholder child case rejected")
-    public_values = json.dumps(output, sort_keys=True, separators=(",", ":")).encode("utf-8").hex()
+    public_values = encode_fragment_output_bincode(output).hex()
     proof_bytes = hashlib.sha256(
         f"recursive_child_placeholder_proof_{chunk_id}".encode("utf-8")
     ).digest().hex()

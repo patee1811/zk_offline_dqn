@@ -22,7 +22,7 @@ Ba nguồn **chỉ** ghi vào `.claude/harness/INBOX.md` (append), không sửa 
 
 Mẫu mục: ngày — nguồn — scope; Kích hoạt; Bài học; Đích đề xuất; Độ tin cậy; Trạng thái: chờ xử lý.
 
-`capture_learning.py` chỉ đọc dòng `LEARNING:` trong `SESSION_NOTES.md` (gitignore).
+`capture_learning.py` đọc transcript phiên, quét message của người dùng tìm mẫu sửa lưng ("không phải", "ý tôi là", "đừng", "i meant"), rồi append candidate. Nó vẫn đọc dòng `LEARNING:` trong `SESSION_NOTES.md` (gitignore) nếu ai đó viết. Message dài hơn 2000 ký tự bị bỏ — đó là text skill chèn vào, không phải lời người.
 
 ## Hợp nhất — /harness-sync
 

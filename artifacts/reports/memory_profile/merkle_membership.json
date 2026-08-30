@@ -1,0 +1,80 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "-p",
+    "merkle-membership-host",
+    "--",
+    "--prove"
+  ],
+  "cwd": "/kaggle/working/zk_offline_dqn/zk_backend/merkle_membership/sp1",
+  "label": "merkle_membership",
+  "memory": {
+    "peak_rss_mb": 9914.965,
+    "peak_stage": "setup",
+    "sample_count": 1866,
+    "stages": {
+      "setup": {
+        "mean_rss_mb": 2601.694,
+        "peak_rss_mb": 9914.965,
+        "samples": 1864
+      },
+      "teardown": {
+        "mean_rss_mb": 5237.919,
+        "peak_rss_mb": 7044.066,
+        "samples": 2
+      }
+    }
+  },
+  "returncode": 0,
+  "sample_interval_seconds": 0.5,
+  "stage_boundaries_seconds": {
+    "prove": 935.514,
+    "verify": 935.515
+  },
+  "status": "completed",
+  "stdout_tail": [
+    "   Compiling tonic v0.12.3",
+    "   Compiling hashbrown v0.15.5",
+    "   Compiling hyper-rustls v0.27.9",
+    "   Compiling tower-http v0.6.11",
+    "   Compiling dirs v5.0.1",
+    "   Compiling sp1-verifier v6.1.0",
+    "   Compiling async-scoped v0.9.0",
+    "   Compiling serial_test_derive v3.4.0",
+    "   Compiling number_prefix v0.4.0",
+    "   Compiling minimal-lexical v0.2.1",
+    "   Compiling symlink v0.1.0",
+    "   Compiling tracing-appender v0.2.5",
+    "   Compiling nom v7.1.3",
+    "   Compiling indicatif v0.17.11",
+    "   Compiling serial_test v3.4.0",
+    "   Compiling sp1-build v6.1.0",
+    "   Compiling reqwest v0.12.28",
+    "   Compiling lru v0.12.5",
+    "   Compiling sp1-recursion-circuit v6.1.0",
+    "   Compiling opentelemetry v0.23.0",
+    "   Compiling merkle-membership-host v0.1.0 (/kaggle/working/zk_offline_dqn/zk_backend/merkle_membership/sp1/host)",
+    "   Compiling eventsource-stream v0.2.3",
+    "   Compiling merkle-membership-shared v0.1.0 (/kaggle/working/zk_offline_dqn/zk_backend/merkle_membership/sp1/shared)",
+    "   Compiling sp1-prover v6.1.0",
+    "   Compiling sp1-sdk v6.1.0",
+    "warning: merkle-membership-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"",
+    "warning: merkle-membership-host@0.1.0: merkle-membership-guest built at 2026-08-26 16:39:23",
+    "    Finished `release` profile [optimized] target(s) in 10m 44s",
+    "warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1",
+    "note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`",
+    "     Running `target/release/merkle-membership-host --prove`",
+    "case_path = ../../test_vectors/merkle_membership_case_0.json",
+    "host_precheck = true",
+    "dataset_root = 35530014f44124a75ef1a6b21bc5be491356caa4c2d123b162f9ab2161d337ba",
+    "leaf_hash = 01ae3a0e03fc3249561a0f9c2f2d6e67b9befaa2358d5d1a21ed7226c3ee0aab",
+    "proof_generated = true",
+    "proof_verified = true",
+    "proving_time_sec = 118.675514",
+    "verification_time_sec = 0.144814",
+    "proof_size_bytes = 2779510"
+  ],
+  "wall_seconds": 936.464
+}
