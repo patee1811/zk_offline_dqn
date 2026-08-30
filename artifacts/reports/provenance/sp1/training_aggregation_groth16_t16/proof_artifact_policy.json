@@ -1,0 +1,5 @@
+{
+  "expected_runtime_location": "artifacts/kaggle_phase7_groth16_t16_t32_outputs/extracted/phase7_groth16_t16_t32_outputs/sp1/training_aggregation_groth16_t16/proof.bin",
+  "proof_binary_committed": false,
+  "reason": "proof binary is generated artifact and may be large"
+}

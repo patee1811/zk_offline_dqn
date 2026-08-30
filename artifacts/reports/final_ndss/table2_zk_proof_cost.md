@@ -24,8 +24,10 @@
 | merkle_membership | dataset_1000 | dataset_size | proof_verified | 156.107731501 | 0.191457503 | 2782421 | 305813 | 10197.246 |
 | merkle_membership | dataset_10000 | dataset_size | proof_verified | 179.624867853 | 0.194838999 | 2783446 | 400355 | 10511.125 |
 | merkle_membership | dataset_100000 | dataset_size | proof_verified | 168.670838206 | 0.195268144 | 2783959 | 470808 | 10552.805 |
-| native_flat_recursive_t32 | true_recursive_native | recursive_aggregation | failed_oom |  |  |  |  |  |
-| groth16_plonk_recursive_t16 | snark_export | recursive_aggregation | failed_environment |  |  |  |  |  |
-| binary_tree_native_t16 | binary_native_recursive | recursive_aggregation | failed_oom |  |  |  |  |  |
+| native_flat_recursive_t16 | true_recursive_native | recursive_aggregation | proof_verified | 141.768684256 | 0.050294035 | 1274074 | 309406040 |  |
+| native_flat_recursive_t32 | true_recursive_native | recursive_aggregation | proof_verified | 300.803338259 | 0.050045529 | 1274074 | 615456629 |  |
+| native_flat_recursive_t64 | true_recursive_native | recursive_aggregation | proof_verified | 580.393456991 | 0.050349188 | 1274074 | 1230443488 |  |
+| binary_tree_native_t16 | binary_native_recursive | recursive_aggregation | proof_verified | 153.550414155 | 0.050195607 | 1274640 | 308585812 |  |
+| groth16_recursive_t16 | groth16_child_proofs | recursive_aggregation | proof_verified | 1589.694720276 | 63.126057846 | 1463614739 | 6162312409 |  |
 
 Table 2 is ZK-proof-cost-only; unsupported and execute-only rows are not proof-backed.
