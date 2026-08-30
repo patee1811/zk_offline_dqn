@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
             args.mode
         ));
     }
-    let case_path = resolve_case_path(args.case)?;
+    let case_path = resolve_case_path(args.case.clone())?;
     let input = load_input(&case_path)?;
     if input.public_inputs.aggregation_mode != args.mode {
         return Err(anyhow!("--mode does not match case aggregation_mode"));
@@ -74,19 +74,47 @@ async fn main() -> Result<()> {
         println!("host_precheck = skipped");
     }
 
-    let client = ProverClient::builder().cpu().build().await;
+    // CPU stays the default so every committed provenance number keeps the
+    // prover it was measured on. SP1_CUDA=1 opts into the GPU prover, which is
+    // the open question for native recursion: the 615M-cycle aggregate ran out
+    // of memory at both 30 GB and 61 GB of host RAM. The GPU path needs CUDA
+    // compute capability >= 8.0 and 24 GB VRAM, so it is not a drop-in swap.
+    let use_cuda = std::env::var("SP1_CUDA").map(|v| v == "1").unwrap_or(false);
+    if use_cuda {
+        println!("prover = cuda");
+        let client = ProverClient::builder().cuda().build().await;
+        run_with_prover(client, &args, &input, &expected, &case_path).await
+    } else {
+        println!("prover = cpu");
+        let client = ProverClient::builder().cpu().build().await;
+        run_with_prover(client, &args, &input, &expected, &case_path).await
+    }
+}
+
+/// Execute and optionally prove with whichever prover was selected.
+///
+/// CPU and CUDA build different concrete types and `Prover` has associated
+/// types, so this cannot be a boxed trait object -- the selection has to be a
+/// generic call from each branch.
+async fn run_with_prover<P: Prover>(
+    client: P,
+    args: &Args,
+    input: &TrainingAggregationInput,
+    expected: &TrainingAggregationOutput,
+    case_path: &Path,
+) -> Result<()> {
     let elf = include_elf!("training-aggregation-guest");
     let mut cycle_count: Option<u64> = None;
 
     if args.execute || args.prove || !args.prove {
-        let stdin = build_stdin(&input)?;
+        let stdin = build_stdin(input)?;
         let start = Instant::now();
         let (mut public_values, report) = client
             .execute(elf.clone(), stdin)
             .await
             .context("SP1 execution failed")?;
         let output = public_values.read::<TrainingAggregationOutput>();
-        if output != expected {
+        if output != *expected {
             return Err(anyhow!("SP1 public output did not match expected output"));
         }
         cycle_count = Some(report.total_instruction_count());
@@ -122,8 +150,8 @@ async fn main() -> Result<()> {
         });
         fs::create_dir_all(&out_dir)
             .with_context(|| format!("failed to create {}", out_dir.display()))?;
-        let stdin = build_stdin(&input)?;
-        let pk = client.setup(elf).await.context("SP1 setup failed")?;
+        let stdin = build_stdin(input)?;
+        let pk = client.setup(elf).await.map_err(|e| anyhow!("SP1 setup failed: {e}"))?;
         let prove_start = Instant::now();
         let proof = if input.public_inputs.aggregation_mode == "recursive_sp1"
             && input.public_inputs.child_proof_mode.as_deref() == Some("native_sp1")
@@ -132,12 +160,12 @@ async fn main() -> Result<()> {
                 .prove(&pk, stdin)
                 .compressed()
                 .await
-                .context("SP1 recursive aggregate proof generation failed")?
+                .map_err(|e| anyhow!("SP1 recursive aggregate proof generation failed: {e}"))?
         } else {
             client
                 .prove(&pk, stdin)
                 .await
-                .context("SP1 proof generation failed")?
+                .map_err(|e| anyhow!("SP1 proof generation failed: {e}"))?
         };
         let proving_time_sec = prove_start.elapsed().as_secs_f64();
         let verify_start = Instant::now();
@@ -154,17 +182,17 @@ async fn main() -> Result<()> {
             && input.public_inputs.child_proof_mode.as_deref() == Some("native_sp1")
             && input.public_inputs.node_id.as_deref() != Some("root")
         {
-            write_native_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+            write_native_recursive_child_material(&out_dir, &proof, &pk, expected)?;
         }
         write_provenance(
             &out_dir,
-            &input,
-            &expected,
+            input,
+            expected,
             proving_time_sec,
             verification_time_sec,
             proof_size_bytes,
             cycle_count,
-            &case_path,
+            case_path,
         )?;
         println!("proof_generated = true");
         println!("proof_verified = true");
