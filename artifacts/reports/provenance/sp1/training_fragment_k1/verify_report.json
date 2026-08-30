@@ -28,6 +28,7 @@
     "final_target_checkpoint_hash": "44d0964c620bdbe7bf6e0ddc586e0a2d841ef36c6abecc0c4657ebc1a79ffc53",
     "fixed_point_scale": 1000,
     "gamma": 990,
+    "global_step_start": 0,
     "gradient_trace_hash": "39872e7863a8c9495405c2c49a7f02c0dbf860c432adbba412d283e85caf05f6",
     "learning_rate": 10,
     "loss_trace_hash": "566158b6402ff7077585fdd85fb459677a8c525aeb5d1f567fcec9f09a2be5c8",

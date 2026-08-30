@@ -78,20 +78,39 @@ guest ELF is not fixed across time. Nothing in the repository pins the
 same guest source compiles to a different ELF as SP1 releases move. The
 `sp1_version` field records the crate version and does not capture this.
 
-### Measured examples
+### What the committed numbers now are
 
-Rerunning committed test vectors under `cargo-prove 92b8eab` (2026-08-26):
+Every proof-backed Table 2 row except the three `dataset_*` rows was re-measured
+on the pinned toolchain (`cargo-prove d454975`, `rustc 1.93.0-dev`) from the
+committed test vectors, and each carries a `guest_elf_sha256`. The three
+`merkle_membership dataset_*` rows keep their earlier measurements: they are
+built from `artifacts/datasets/<prefix>-<size>/`, which is generated and not in
+the repository, so they cannot be reproduced from a clean clone. Their
+provenance has no `guest_elf_sha256`, which is how to tell them apart.
 
-| Relation | Recorded | Rerun | Delta | Relation output |
-| --- | --- | --- | --- | --- |
-| `training_aggregation_t32` | 785786 | 798811 | +1.66% | `aggregate_root` matches |
-| `short_trace` | 115363 | 115324 | -0.03% | `proof_verified = true` |
+What the re-measurement changed, and why:
 
-Relation outputs match in both cases, so the relations are unchanged; only the
-compiled programs differ. The drift is not a fixed offset -- it depends on which
-guest code the compiler happened to lay out differently, so it cannot be
-corrected by scaling. Table 2 cycle counts should be read as measurements taken
-on the toolchain of their recording date, not as invariants of the relation.
+| Rows | Change | Cause |
+| --- | --- | --- |
+| `training_aggregation_t32/t64/t128` | +13148, +20271, +42082 (~1.7%) | the guest program changed |
+| `training_update`, `forward_td_mlp`, `one_step_sgd_tiny` | -34, -32, -32 | toolchain |
+| `training_fragment_k1/k4/k8` | +44, +53, +48 | toolchain |
+| `merkle_membership`, `short_trace` | none | reproduced exactly |
+
+The aggregation rows are the large ones and they are not toolchain drift. Four
+commits added recursive-aggregation support to that guest after the numbers were
+recorded (`a89ffe7`, `d6b3c01`, `b57df3b`, `4eb519a`), so the guest carries code
+the measured program did not have -- visible as the null `child_proof_mode`,
+`aggregation_topology`, and `node_id` fields that appear in the newer
+`public_inputs.json`. The old numbers described an older program.
+
+The remaining deltas are tens of cycles on programs whose guest and shared
+sources have not changed since their recorded commit. They vary in sign, so they
+are not a fixed offset that could be corrected by scaling.
+
+Prove and verify times moved much more than cycle counts, because the rerun used
+a 16-vCPU machine rather than the original Kaggle instance. Times are machine
+measurements; cycle counts are program measurements.
 
 ### Pinning the toolchain
 

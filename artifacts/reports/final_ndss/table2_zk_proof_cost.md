@@ -3,17 +3,17 @@
 | Relation | Variant | Scale Axis | Status | Prove Time (s) | Verify Time (s) | Proof Size (bytes) | Cycle Count | Peak RSS (MB) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | td_mvp | canonical | relation | proof_verified | 167.726006 | 0.190326 | 2783869 | 385048 |  |
-| merkle_membership | canonical | merkle_depth | proof_verified | 121.703486901 | 0.148949679 | 2779510 | 103106 |  |
-| forward_td_mlp | canonical_tiny | network | proof_verified | 142.746280097 | 0.123545696 | 2797873 | 1547234 |  |
-| one_step_sgd_tiny | canonical_tiny | network | proof_verified | 122.726966833 | 0.124717015 | 2790039 | 868763 |  |
-| short_trace | canonical | trace_length | proof_verified | 82.303272706 | 0.122530074 | 2779261 | 115363 |  |
-| training_update | batch1_tiny | batch_size | proof_verified | 104.785579262 | 0.125128546 | 2785287 | 469460 |  |
-| training_fragment_k1 | k1 | trace_length | proof_verified | 163.091462145 | 0.15497829 | 2791463 | 896397 |  |
-| training_fragment_k4 | k4 | trace_length | proof_verified | 254.133800348 | 0.154101191 | 2811647 | 2597290 |  |
-| training_fragment_k8 | k8 | trace_length | proof_verified | 440.619541167 | 0.20885854 | 2837975 | 4839664 |  |
-| training_aggregation_manifest_t32 | proof_manifest_chain | aggregation_t | proof_verified | 159.549469094 | 0.155103988 | 2789805 | 785786 |  |
-| training_aggregation_manifest_t64 | proof_manifest_chain | aggregation_t | proof_verified | 198.514597771 | 0.164456533 | 2797701 | 1350040 |  |
-| training_aggregation_manifest_t128 | proof_manifest_chain | aggregation_t | proof_verified | 253.231674938 | 0.154249751 | 2812038 | 2465680 |  |
+| merkle_membership | canonical | merkle_depth | proof_verified | 22.785337436 | 0.086338611 | 2779510 | 103106 |  |
+| forward_td_mlp | canonical_tiny | network | proof_verified | 38.199231461 | 0.085754065 | 2797873 | 1547202 |  |
+| one_step_sgd_tiny | canonical_tiny | network | proof_verified | 31.490491452 | 0.086747461 | 2790039 | 868731 |  |
+| short_trace | canonical | trace_length | proof_verified | 23.366843571 | 0.086860989 | 2779261 | 115363 |  |
+| training_update | batch1_tiny | batch_size | proof_verified | 27.07648813 | 0.086269964 | 2785287 | 469426 |  |
+| training_fragment_k1 | k1 | trace_length | proof_verified | 31.485706142 | 0.087077918 | 2791471 | 896441 |  |
+| training_fragment_k4 | k4 | trace_length | proof_verified | 46.931900136 | 0.087250954 | 2811655 | 2597343 |  |
+| training_fragment_k8 | k8 | trace_length | proof_verified | 66.827780725 | 0.088758991 | 2837983 | 4839712 |  |
+| training_aggregation_manifest_t32 | proof_manifest_chain | aggregation_t | proof_verified | 32.527659745 | 0.086539079 | 2795159 | 798934 |  |
+| training_aggregation_manifest_t64 | proof_manifest_chain | aggregation_t | proof_verified | 39.215078766 | 0.086923859 | 2802543 | 1370311 |  |
+| training_aggregation_manifest_t128 | proof_manifest_chain | aggregation_t | proof_verified | 47.811965974 | 0.087003947 | 2816880 | 2507762 |  |
 | training_fragment_k16 | k16 | trace_length | execute_only |  |  |  |  |  |
 | training_fragment_k32 | k32 | trace_length | execute_only |  |  |  |  |  |
 | training_fragment_k128 | k128 | trace_length | execute_only |  |  |  |  |  |
