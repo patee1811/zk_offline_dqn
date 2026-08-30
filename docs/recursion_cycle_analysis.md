@@ -66,19 +66,42 @@ proof, the totals would be:
 Still large, but in the range where a proof has succeeded before, rather than
 127 times beyond it.
 
-This is a property of SP1 6.1.0's recursion path for this relation, not a
-budget problem. Two directions are worth testing, neither of them buying a
-bigger machine:
+## The sha2 patch does not help
 
-1. Confirm whether the SP1 6.1.0 recursion verifier is precompile-backed on
-   this path, and whether a `[patch.crates-io]` block for the SP1 crypto
-   crates changes the cycle count. No workspace in `zk_backend/` declares one.
-2. Ask upstream whether `verify_sp1_proof` is expected to cost ~153 M cycles
-   per child in 6.1.0. If it is, native recursion is out of reach for this
-   relation until that path is accelerated.
+SP1 recommends patching `sha2` to a precompile-backed build, and no workspace
+under `zk_backend/` declared one. That made it the leading hypothesis: pure
+Rust SHA-256 inside the guest would explain an unaccelerated cost.
 
-Until one of those lands, Theorem 7 stays scoped to proof-manifest chain
-aggregation — not from lack of effort, but because the alternative was
-measured and costs 127x more than anything this artifact has proved.
+Measured A/B on one machine, execute mode, real child proofs from
+`--run-child-proves`:
+
+| Arm | Cycle count |
+| --- | --- |
+| With `patch-sha2-0.10.8-sp1-6.0.0` | 309,399,516 |
+| Without, baseline | 309,399,516 |
+
+Identical to the cycle. The patch was reverted; it changes nothing on this
+path and would only add an unexplained dependency.
+
+The run also reproduces the earlier 61 GB measurement of 309,402,836 cycles to
+within 0.001%, which confirms the number is stable across machines.
+
+So the 153M per child is not SHA-256. It is the recursion verifier itself,
+and nothing in the program's own dependencies reaches it.
+
+## What is left
+
+Two directions, neither of them a bigger machine:
+
+1. Ask Succinct whether `verify_sp1_proof` is expected to cost ~153 M cycles
+   per child in 6.1.0, and whether a precompiled path exists that a program
+   can opt into. The sha2 patch is now ruled out, so the question is specific.
+2. Accept the cost and keep Theorem 7 scoped to proof-manifest chain
+   aggregation.
+
+Until the first lands, the second stands — not from lack of effort, but
+because native recursion was attempted at 30 GB and 61 GB, measured at 127x
+the largest relation this artifact has proved, and the one available
+optimization was tested and had no effect.
 
 Raw profiles: `artifacts/reports/memory_profile/ec2_64gb/`.
