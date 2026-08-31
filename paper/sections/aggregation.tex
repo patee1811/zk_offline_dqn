@@ -21,8 +21,12 @@ which is why earlier versions of this artifact reported them as resource
 failures.
 
 Child proofs may also be supplied as Groth16 proofs over BN254, which the guest
-verifies in-circuit. This is measured but not recommended: it costs
-$6.16\times10^{9}$ cycles at $T=16$, twenty times the native path, because
-verifying a pairing-based proof inside the zkVM is more expensive than verifying
-SP1's own recursive proof format. PLONK child proofs are untested. Recursive
-aggregation at $T=128$ is untested.
+verifies in-circuit. The trade is sharp in both directions. Verifying a
+pairing-based proof inside the zkVM costs $6.16\times10^{9}$ cycles at $T=16$,
+twenty times the native path, because it is more expensive than verifying SP1's
+own recursive proof format. But a Groth16 child proof is $356$ bytes rather than
+megabytes of STARK, so the aggregate witness collapses: the $T=16$ case file is
+$13$~KB against $5.1$~MB for the same size with native children, a factor of
+$388$. For an artifact that must ship reproducible cases, that is the difference
+between committing a case and omitting it. PLONK child proofs are untested.
+Recursive aggregation at $T=128$ is untested.

@@ -184,3 +184,5 @@ zk_offline_dqn_phase6b_workspace.zip
 # cases and 5 MB for the binary-tree ones. Same reason proof.bin is excluded.
 artifacts/reports/provenance/sp1/_recursive_cases/
 artifacts/reports/provenance/sp1/_binary_native_cases/
+# The Groth16-child case is 13 KB because its children are 356-byte proofs;
+# it is committed next to its provenance so that row reproduces.
