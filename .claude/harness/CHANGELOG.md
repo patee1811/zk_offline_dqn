@@ -1,5 +1,18 @@
 # Harness changelog
 
+## 2026-08-31 — 1.4.0
+
+**Kích hoạt:** recursion native chạy được trên GPU sau khi thất bại ở 30GB và 61GB RAM host; và một lượt chạy GPU 4 giờ phải làm lại vì gọi host trực tiếp nên thiếu `tamper_report.json`.
+
+**Lý do:** dòng "cả tám host hardcode `.cpu()`, nút thắt là RAM CPU" nay sai và sẽ dẫn agent sau đi lại ngõ cụt. Hai bài học còn lại đều tốn máy thật.
+
+**Đã sửa:**
+
+- `sp1-backend.md`: dòng prover CPU thay bằng sự thật đo được — nút thắt là hằng số dựng mạch (>61GB RAM host, 18.4GB VRAM), GPU cần CC ≥ 8.0 và ≥24GB VRAM, `sp1-cuda` 6.1.0 không cần Docker.
+- `sp1-backend.md`: thêm `cycle_count` tất định theo `(guest ELF, input)`, provenance ghi `guest_elf_sha256`, đo lại phải `sp1up --version v6.1.0`.
+- `experiments.md`: siết dòng bộ nhớ recursion — nay có số đo GPU, hằng số qua 20 lần chênh cycles.
+- `experiments.md`: thêm provenance recursion phải qua script phase, `--out-dir` phải tuyệt đối.
+
 ## 2026-08-30 — 1.3.1
 
 **Kích hoạt:** cwd phiên đổi sang `.claude/`, cả bảy hook chết và khóa luôn Bash + Edit.

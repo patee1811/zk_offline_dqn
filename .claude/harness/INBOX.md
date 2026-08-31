@@ -102,18 +102,18 @@ Format:
 **Bài học:** `cycle_count` tất định theo cặp `(guest ELF, input)`. Provenance chỉ khóa input; không có `rust-toolchain.toml` nào, `sp1up` luôn cài toolchain mới nhất, và `sp1_version` là chuỗi hardcode ghi phiên bản crate. Đã thêm `guest_elf_sha256` vào cả 7 host. Pin toolchain: `sp1up --version v6.1.0`.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`
 **Độ tin cậy:** cao (hai phép đo + `sha256sum` ELF khớp field ghi ra)
-**Trạng thái:** chờ
+**Trạng thái:** đã áp dụng (1.4.0)
 
 ## 2026-08-31 — phát hiện mới — scope backends
 **Kích hoạt:** recursion native chạy được trên A10G (CC 8.6, 23GB VRAM) ở T=16/32/64 phẳng và T=16 cây nhị phân, đỉnh 18.4GB VRAM không đổi qua 20 lần chênh lệch cycles; CPU không hoàn tất trong 61GB.
 **Bài học:** dòng "Prover chạy **CPU**: cả tám host hardcode `ProverClient::builder().cpu()`, không có feature `cuda`. Nút thắt là RAM CPU, không phải VRAM" nay sai với `training_aggregation` (đã có `SP1_CUDA=1`). Nút thắt là **hằng số dựng mạch recursion**, không phải khối lượng: >61GB trên RAM host, 18.4GB trên VRAM. `sp1-cuda` 6.1.0 **không cần Docker** — tải `sp1-gpu-server` rồi nối qua Unix socket. Yêu cầu: CC ≥ 8.0, ≥24GB VRAM.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md` dòng 18
 **Độ tin cậy:** cao (6 phép đo, hai tô-pô, hai chế độ child proof)
-**Trạng thái:** chờ
+**Trạng thái:** đã áp dụng (1.4.0)
 
 ## 2026-08-31 — thất bại — scope experiments
 **Kích hoạt:** gọi host aggregation trực tiếp để sinh provenance recursion; test `test_recursive_committed_provenance_if_present_is_complete` fail vì thiếu `tamper_report.json`. Phải chạy lại 4 giờ máy GPU.
 **Bài học:** provenance phải sinh qua script phase (`run_phase7 --run-prove`), không gọi host trực tiếp — chỉ script phase mới chạy vòng quét tamper. Ngoài ra `--out-dir` tương đối phân giải theo cwd của cargo nên rơi vào `zk_backend/<rel>/sp1/artifacts/...`; luôn truyền đường tuyệt đối.
 **Đích đề xuất:** `rules/90-domain/experiments.md`
 **Độ tin cậy:** cao (mất một lượt chạy)
-**Trạng thái:** chờ
+**Trạng thái:** đã áp dụng (1.4.0)
