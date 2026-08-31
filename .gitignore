@@ -179,3 +179,8 @@ kaggle_phase6_sp1_validation/
 kaggle_phase6_outputs/
 zk_offline_dqn_phase6b_workspace.zip
 *_phase6b_workspace.zip
+
+# Recursion case files embed child proof bytes as witness: 30 MB for the flat
+# cases and 5 MB for the binary-tree ones. Same reason proof.bin is excluded.
+artifacts/reports/provenance/sp1/_recursive_cases/
+artifacts/reports/provenance/sp1/_binary_native_cases/

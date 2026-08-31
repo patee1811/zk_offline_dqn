@@ -155,8 +155,9 @@ verified $k=8$ training fragment. The relation checks:
   \item Target checkpoint links are consistent across chunk boundaries.
   \item Aggregate roots cover the declared step ranges.
 \end{itemize}
-This is not true recursive aggregation: the aggregate SP1 guest does
-not execute a verifier for child proof bytes.
+In manifest mode the aggregate SP1 guest does not execute a verifier for
+child proof bytes. In recursive mode it does, at roughly $1.5\times10^{8}$
+cycles per child.
 
 \subsection{Backend Coverage Summary}
 

@@ -169,8 +169,9 @@ The aggregation relation checks the following for $T \in \{32, 64, 128\}$:
   \item Aggregate roots cover the declared step ranges without gaps.
 \end{enumerate}
 
-\noindent\textbf{Important limitation.} This is proof-manifest-chain
-aggregation, not true recursive aggregation. The aggregate SP1 guest does not
-run a verifier for child proof bytes. Child proofs are externally verified and
-then represented by their manifest hashes inside the aggregate relation. True
-recursive child-proof verification remains future work.
+\noindent\textbf{Two aggregation modes.} Manifest-chain aggregation represents
+child proofs by their manifest hashes; the child proofs are verified outside
+the aggregate relation. Recursive aggregation instead runs the SP1 verifier on
+each child inside the aggregate guest, so acceptance establishes child validity
+rather than assuming it. Recursive mode is established for $T\in\{16,32,64\}$ and
+requires a CUDA prover; the $T\in\{32,64,128\}$ results remain manifest chains.

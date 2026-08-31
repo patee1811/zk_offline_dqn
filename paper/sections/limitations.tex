@@ -32,8 +32,10 @@ public collection proofs.
 The Python verifier path also reveals or processes witness data directly and
 therefore should not be treated as a privacy-preserving verifier.
 
-Finally, the current artifact has proof-manifest chunk-chain aggregation, with
-no true recursive aggregation. The SP1 proof cost is still
+Finally, aggregation comes in two forms. Manifest chunk-chain aggregation
+covers $T\in\{32,64,128\}$; recursive aggregation, which verifies each child
+proof inside the guest, is established for $T\in\{16,32,64\}$ and requires a
+CUDA device with roughly $20$~GB of memory. The SP1 proof cost is still
 prototype-scale: verification is fast, but proving can take minutes for the
 reported relations.
 Scaling beyond these scoped relations will require more efficient

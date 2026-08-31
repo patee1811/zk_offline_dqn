@@ -16,8 +16,9 @@ The key technical contributions are:
   \item SP1 proof-backed relation families and configurations covering replay
   membership (with dataset-size scaling to 100k leaves), Bellman/TD
   arithmetic, forward MLP evidence, one-step SGD updates, checkpoint chains,
-  multi-step training fragments ($k \in \{1, 4, 8\}$), and proof-manifest
-  chunk-chain aggregation ($T \in \{32, 64, 128\}$).
+  multi-step training fragments ($k \in \{1, 4, 8\}$), proof-manifest
+  chunk-chain aggregation ($T \in \{32, 64, 128\}$), and recursive
+  aggregation with in-guest child-proof verification ($T \in \{16, 32, 64\}$).
 
   \item Eight formal security theorems, each mapped to implemented relation
   code, SP1 backend, tests, and benchmark evidence, providing full traceability
@@ -25,7 +26,7 @@ The key technical contributions are:
 
   \item A comprehensive experimental evaluation demonstrating fast verification
   ($<$\,0.21\,s), compact proofs ($<$\,2.84\,MB), and tamper rejection across
-  166 adversarial test cases with zero unexpectedly accepted rows.
+  236 adversarial test cases with zero unexpectedly accepted rows.
 \end{enumerate}
 
 The contribution is a deliberately scoped security/systems artifact.
@@ -37,10 +38,13 @@ the entire pipeline without heavy proof regeneration.
 
 Several directions can extend the current system:
 
-\textbf{Future work: true recursive aggregation.} The highest-priority extension is
-implementing recursive child-proof verification inside the aggregate SP1 guest.
-This would eliminate the need for external child-proof verification and enable
-arbitrarily long training-trace proofs from $W_0$ to $W_T$.
+\textbf{Future work: recursion beyond $T = 64$ and off the GPU.} Recursive
+child-proof verification inside the aggregate SP1 guest is implemented and
+measured for $T \in \{16, 32, 64\}$, which removes the need for external
+child-proof verification at those sizes. Two limits remain. Peak device memory
+is flat in $T$, so longer traces are plausible but untested beyond $T = 64$.
+And the CPU prover does not complete these configurations within $61$~GB, so
+reproducing them presently requires a CUDA device with at least $20$~GB.
 
 \textbf{Adam optimizer proofs.} Extending the update relation to cover Adam's
 per-parameter adaptive learning rates, first and second moment estimates, and

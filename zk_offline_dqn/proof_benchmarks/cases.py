@@ -39,5 +39,43 @@ CORE_CASES = [
 ]
 
 
+# Recursive aggregation, where the aggregate guest cryptographically verifies
+# each child proof rather than binding a manifest hash. These rows read real
+# provenance; the status field is the fallback used when it is absent, which is
+# what these rows were before a GPU prover made them reachable.
+RECURSIVE_CASES = [
+    ProofCase(
+        "native_flat_recursive_t16", "recursive_aggregation", "native_flat_recursive_t16",
+        "true_recursive_native", "recursive_aggregation", "training_aggregation_recursive_t16",
+        network="tiny", aggregation_t=16, status="failed_oom",
+        notes="child proofs verified inside the aggregate SP1 guest; requires a CUDA prover",
+    ),
+    ProofCase(
+        "native_flat_recursive_t32", "recursive_aggregation", "native_flat_recursive_t32",
+        "true_recursive_native", "recursive_aggregation", "training_aggregation_recursive_t32",
+        network="tiny", aggregation_t=32, status="failed_oom",
+        notes="child proofs verified inside the aggregate SP1 guest; requires a CUDA prover",
+    ),
+    ProofCase(
+        "native_flat_recursive_t64", "recursive_aggregation", "native_flat_recursive_t64",
+        "true_recursive_native", "recursive_aggregation", "training_aggregation_recursive_t64",
+        network="tiny", aggregation_t=64, status="failed_oom",
+        notes="child proofs verified inside the aggregate SP1 guest; requires a CUDA prover",
+    ),
+    ProofCase(
+        "binary_tree_native_t16", "recursive_aggregation", "binary_tree_native_t16",
+        "binary_native_recursive", "recursive_aggregation", "training_aggregation_binary_native_t16",
+        network="tiny", aggregation_t=16, status="failed_oom",
+        notes="binary-tree topology; child proofs verified inside the aggregate SP1 guest",
+    ),
+    ProofCase(
+        "groth16_recursive_t16", "recursive_aggregation", "groth16_recursive_t16",
+        "groth16_child_proofs", "recursive_aggregation", "training_aggregation_groth16_t16",
+        network="tiny", aggregation_t=16, status="failed_environment",
+        notes="Groth16 child proofs verified in-guest; 20x the cycles of native child verification; PLONK child proofs are untested",
+    ),
+]
+
+
 def provenance_path(root: Path, case: ProofCase) -> Path | None:
     return None if case.provenance_dir is None else root / "artifacts/reports/provenance/sp1" / case.provenance_dir

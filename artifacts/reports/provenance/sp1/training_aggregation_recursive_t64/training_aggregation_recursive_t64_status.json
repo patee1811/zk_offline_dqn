@@ -1,0 +1,43 @@
+{
+  "aggregation_manifest_saved": true,
+  "aggregation_mode": "recursive_sp1",
+  "aggregation_topology": null,
+  "child_proof_mode": "native_sp1",
+  "child_proof_verification_inside_guest": true,
+  "chunk_count": 8,
+  "chunk_manifest_saved": true,
+  "chunk_size": 8,
+  "claim_status": "sp1_true_recursive_aggregation_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p training-aggregation-host -- --execute --case /home/ubuntu/repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t64_case_0.json --mode recursive_sp1 --child-proof-mode native_sp1",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-aggregation-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-08-30 17:15:43\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-aggregation-host --execute --case /home/ubuntu/repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t64_case_0.json --mode recursive_sp1 --child-proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+    "stdout_tail": "case_path = /home/ubuntu/repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t64_case_0.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 8\nstep_end = 64\naggregate_root = 05e78d5310069da7c1b0734ec8793e8460586c02d1cf32d3910afecbf6e99413\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 37.216237\ncycle_count = 1230443488\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "leaf_chunk_count": null,
+  "metrics_saved": true,
+  "proof": {
+    "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t64_case_0.json --mode recursive_sp1 --out-dir /home/ubuntu/repo/artifacts/reports/provenance/sp1/training_aggregation_recursive_t64 --child-proof-mode native_sp1",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-aggregation-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-08-30 17:15:43\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-aggregation-host --prove --case /home/ubuntu/repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t64_case_0.json --mode recursive_sp1 --out-dir /home/ubuntu/repo/artifacts/reports/provenance/sp1/training_aggregation_recursive_t64 --child-proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+    "stdout_tail": "case_path = /home/ubuntu/repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t64_case_0.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 8\nstep_end = 64\naggregate_root = 05e78d5310069da7c1b0734ec8793e8460586c02d1cf32d3910afecbf6e99413\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 37.112553\ncycle_count = 1230443488\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 580.393457\nverification_time_sec = 0.050349\nproof_size_bytes = 1274074"
+  },
+  "proof_artifact_policy_saved": true,
+  "proof_generated": true,
+  "proof_verified": true,
+  "public_inputs_saved": true,
+  "recursive_child_proof_manifest_saved": true,
+  "reference_passed": true,
+  "relation": "training_aggregation",
+  "roots_match_reference": true,
+  "step_end": 64,
+  "step_start": 0,
+  "tamper_report_saved": true,
+  "tamper_test_passed": true,
+  "tree_depth": null,
+  "verify_report_saved": true,
+  "witness_schema_saved": true
+}

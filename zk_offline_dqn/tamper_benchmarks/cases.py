@@ -225,6 +225,7 @@ def build_case_matrix(*, includes: Mapping[str, bool], smoke: bool = False) -> L
         cases.extend(training_fragment_cases(smoke=smoke))
     if includes.get("aggregation"):
         cases.extend(aggregation_cases(smoke=smoke))
+        cases.extend(recursive_aggregation_cases(smoke=smoke))
     if includes.get("proof_public_input"):
         cases.extend(proof_public_input_cases(smoke=smoke))
     return cases
@@ -510,7 +511,69 @@ def aggregation_cases(*, smoke: bool = False) -> List[TamperCase]:
                     manifest_hash_checked=category == "manifest_hash",
                     checkpoint_hash_checked=category in {"checkpoint_hash", "proof_public_input"},
                     target_sync_checked=category == "target_network_sync",
-                    notes="proof-manifest-chain only; does not recursively verify child proofs inside SP1",
+                    notes="proof-manifest-chain mode; child proofs are bound by hash, not verified in-guest (see the recursive rows for in-guest verification)",
+                )
+            )
+    return cases
+
+
+def recursive_aggregation_cases(*, smoke: bool = False) -> List[TamperCase]:
+    """Tamper cases that only mean something when children are verified in-guest.
+
+    Manifest mode binds a child by its hash, so attacking the proof bytes or the
+    verifying key changes nothing it checks. Recursive mode runs the verifier, so
+    these are the attacks that separate the two. The last one is the sharpest:
+    every child proof is individually valid and the chain between them is broken.
+    """
+    configs = (
+        [("training_aggregation_recursive_t16", 16, "flat")]
+        if smoke
+        else [
+            ("training_aggregation_recursive_t16", 16, "flat"),
+            ("training_aggregation_recursive_t32", 32, "flat"),
+            ("training_aggregation_recursive_t64", 64, "flat"),
+            ("training_aggregation_binary_native_t16", 16, "binary_tree"),
+            ("training_aggregation_groth16_t16", 16, "groth16_child"),
+        ]
+    )
+    mapping = [
+        ("child_proof_bytes", "proof_public_input", "tamper_child_proof_bytes", "corrupt child proof bytes"),
+        ("child_public_values", "proof_public_input", "tamper_child_public_values", "corrupt child public values"),
+        ("child_vkey_hash", "proof_public_input", "tamper_child_vkey_hash", "substitute an unexpected child verifying key"),
+        ("child_proof_order", "minibatch_index", "tamper_child_proof_order", "reorder child proofs"),
+        ("valid_child_wrong_position", "minibatch_index", "tamper_valid_child_proof_wrong_position", "move a valid child proof to the wrong position"),
+        ("valid_children_broken_chain", "checkpoint_hash", "tamper_individually_valid_child_proofs_broken_chain", "keep every child proof valid but break the checkpoint chain"),
+        ("child_step_start", "minibatch_index", "tamper_child_step_start", "change child step_start"),
+        ("child_step_end", "minibatch_index", "tamper_child_step_end", "change child step_end"),
+        ("child_input_checkpoint", "checkpoint_hash", "tamper_child_input_checkpoint_hash", "change child input checkpoint hash"),
+        ("child_output_checkpoint", "checkpoint_hash", "tamper_child_output_checkpoint_hash", "change child output checkpoint hash"),
+        ("child_target_checkpoint", "target_network_sync", "tamper_child_target_checkpoint_hash", "change child target checkpoint hash"),
+        ("child_dataset_root", "dataset_root", "tamper_child_dataset_root", "change child dataset root"),
+        ("child_config_hash", "manifest_hash", "tamper_child_config_hash", "change child config hash"),
+    ]
+    cases: List[TamperCase] = []
+    for provenance, target, topology in configs:
+        for suffix, category, tamper_name, mutation in mapping:
+            cases.append(
+                _case(
+                    f"tamper_recursive_{suffix}_{provenance}",
+                    category,
+                    provenance,
+                    mutation,
+                    "public_input_binding" if category == "proof_public_input" else "python_semantic_oracle",
+                    "aggregation",
+                    tamper_name,
+                    artifact=f"artifacts/reports/provenance/sp1/{provenance}/tamper_report.json",
+                    fixture_path=f"artifacts/reports/provenance/sp1/{provenance}/public_inputs.json",
+                    provenance_dir=provenance,
+                    backend="SP1 recursive aggregation",
+                    proof_backed=True,
+                    public_input_binding=category == "proof_public_input",
+                    dataset_root_checked=category == "dataset_root",
+                    manifest_hash_checked=category == "manifest_hash",
+                    checkpoint_hash_checked=category in {"checkpoint_hash", "proof_public_input"},
+                    target_sync_checked=category == "target_network_sync",
+                    notes=f"child proofs verified inside the aggregate guest; T={target}, {topology} topology; requires a CUDA prover",
                 )
             )
     return cases

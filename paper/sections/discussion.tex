@@ -39,9 +39,11 @@ Several important limitations are inherent to the current scope:
   Atari-scale or MuJoCo-scale proofs would require more efficient
   neural-network circuits.
 
-  \item \textbf{No true recursive aggregation.} The aggregation proof binds
-  child proof manifests but does not recursively verify child proof bytes
-  inside the aggregate SP1 guest.
+  \item \textbf{Recursive aggregation needs a GPU.} The aggregate guest
+  verifies child proofs cryptographically for $T \in \{16, 32, 64\}$, but only
+  under a CUDA prover: peak device memory is $18.4$~GB, and the CPU prover did
+  not complete within $61$~GB of host memory. $T = 128$ is untested, and the
+  $T \in \{32, 64, 128\}$ rows in Table~2 remain proof-manifest chains.
 
   \item \textbf{No honest collection for public data.} Minari/D4RL imports
   are source-integrity commitments. The system does not prove that the

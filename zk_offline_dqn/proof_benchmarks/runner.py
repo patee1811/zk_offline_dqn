@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-from .cases import CORE_CASES, ProofCase, provenance_path
+from .cases import CORE_CASES, RECURSIVE_CASES, ProofCase, provenance_path
 from .merkle_cases import find_dataset_for_size, write_merkle_membership_case
 from .metrics import load_json, normalize_metrics, run_measured, sha256_file, validate_status
 from .reporting import write_table2_outputs
@@ -36,7 +36,7 @@ def build_rows(
     rows.extend(_dataset_merkle_rows(base, dataset_sizes, merkle_depth_proof_scaling=merkle_depth_proof_scaling))
     rows.extend(_aggregation_scaling_rows(base, aggregation_targets))
     if include_known_failures:
-        rows.extend(_known_failure_rows())
+        rows.extend(_recursive_aggregation_rows(base))
     return _dedupe_rows(rows)
 
 
@@ -331,42 +331,14 @@ def _aggregation_scaling_rows(root: Path, targets: Iterable[int]) -> List[Dict[s
     return rows
 
 
-def _known_failure_rows() -> List[Dict[str, Any]]:
-    return [
-        _base_row(
-            category="known_failure",
-            relation="native_flat_recursive_t32",
-            variant="true_recursive_native",
-            scale_axis="recursive_aggregation",
-            aggregation_t=32,
-            proof_backed=False,
-            status="failed_oom",
-            case_id="native_flat_recursive_t32",
-            notes="execute passed; final proof failed OOM; not true proof-backed recursion",
-        ),
-        _base_row(
-            category="known_failure",
-            relation="groth16_plonk_recursive_t16",
-            variant="snark_export",
-            scale_axis="recursive_aggregation",
-            aggregation_t=16,
-            proof_backed=False,
-            status="failed_environment",
-            case_id="groth16_plonk_recursive_t16",
-            notes="child SNARK export blocked on Kaggle Docker/Gnark path",
-        ),
-        _base_row(
-            category="known_failure",
-            relation="binary_tree_native_t16",
-            variant="binary_native_recursive",
-            scale_axis="recursive_aggregation",
-            aggregation_t=16,
-            proof_backed=False,
-            status="failed_oom",
-            case_id="binary_tree_native_t16",
-            notes="execute passed; final proof failed OOM; not true recursion proof",
-        ),
-    ]
+def _recursive_aggregation_rows(root: Path) -> List[Dict[str, Any]]:
+    """Rows for aggregation that verifies child proofs inside the guest.
+
+    These were hardcoded as known failures while the CPU prover ran out of
+    memory on them. They now read provenance like every other proof-backed row,
+    and fall back to the recorded failure status when it is absent.
+    """
+    return [_row_from_case(root, case) for case in RECURSIVE_CASES]
 
 
 def _base_row(

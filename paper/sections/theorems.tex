@@ -127,13 +127,16 @@ breaks the recomputed trace.  Longer fragments $k\in\{16,32,128\}$ have
 reference/execute evidence only and are not SP1 proof-backed in this artifact.
 \end{proof}
 
-\begin{theorem}[Proof-manifest chunk-chain aggregation soundness]
+\begin{theorem}[Chunk-chain and recursive aggregation soundness]
 \label{thm:manifest-aggregation}
 For accepted proof-manifest-chain aggregation instances with
 $T\in\{32,64,128\}$, the aggregate public statement binds an ordered sequence
 of externally verified $k=8$ child proof manifests with consistent
 dataset/config hashes, chunk boundaries, aggregate roots, and online/target
-checkpoint links.
+checkpoint links.  For accepted recursive instances with $T\in\{16,32,64\}$ under a
+flat topology, and $T=16$ under a binary-tree topology, the aggregate
+additionally establishes that each child proof verifies under the expected
+child verifying key.
 \end{theorem}
 \begin{proof}[Proof sketch]
 The aggregation relation recomputes child manifest hashes, public-input hashes,
@@ -144,11 +147,14 @@ to equal the input checkpoint of the next.  Tampering with child proof hashes,
 child public-input hashes, chunk order, checkpoint links, dataset roots,
 configuration hashes, or aggregate roots is rejected.
 
-This theorem is deliberately not a recursive aggregation theorem.  The current
-aggregate relation binds child proof manifests and checkpoint links; it does
-not execute a verifier for child proofs inside the aggregate SP1 guest.
-Soundness for true recursive child-proof aggregation is not claimed and remains
-future work.
+In recursive mode the guest additionally runs the SP1 proof verifier on each
+child proof against the expected child verifying key, so acceptance implies the
+children are valid proofs rather than merely well-formed manifests.  This
+strengthens the statement from binding external verification to establishing it
+in-circuit.  The two modes are separate: the $T\in\{32,64,128\}$ rows remain
+manifest chains, and recursive instances are established only at the sizes
+listed above.  Recursive proving requires a CUDA device; it is not a soundness
+condition but a reproduction requirement.  $T=128$ recursion is untested.
 \end{proof}
 
 \begin{theorem}[Zero-knowledge and privacy boundary]

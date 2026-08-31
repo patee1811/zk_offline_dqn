@@ -1,0 +1,30 @@
+{
+  "aggregation_mode": "recursive_sp1",
+  "aggregation_topology": null,
+  "backend_version": "0.1.0",
+  "binary_tree_internal_node_count": 0,
+  "child_proof_count": 2,
+  "child_proof_mode": "native_sp1",
+  "child_proof_verification_inside_guest": true,
+  "chunk_count": 2,
+  "chunk_size": 8,
+  "cycle_count": 309406040,
+  "git_commit": null,
+  "guest_elf_sha256": "ef2dc48ccdaef82a09d7ea775f2670ea53db096830ef0b5a5d5c2a4d78d29359",
+  "leaf_chunk_count": null,
+  "notes": [
+    "SP1 true recursive aggregation; native_sp1 child training-fragment proofs are verified inside the aggregate guest."
+  ],
+  "proof_generated": true,
+  "proof_size_bytes": 1274074,
+  "proof_verified": true,
+  "prove_time_seconds": 141.768684256,
+  "public_inputs_sha256": "a99db01b4c758a91b84d697268e9c33ec52a24788b8fbe8e0efd7c4f75dad900",
+  "relation": "training_aggregation",
+  "sp1_version": "6.1.0",
+  "step_end": 16,
+  "step_start": 0,
+  "test_vector_sha256": "a306930e4906d39c2d432ed079f3e17e6cc7f139439e5cf591e658fcdcb99b06",
+  "tree_depth": null,
+  "verify_time_seconds": 0.050294035
+}
