@@ -112,6 +112,25 @@ Prove and verify times moved much more than cycle counts, because the rerun used
 a 16-vCPU machine rather than the original Kaggle instance. Times are machine
 measurements; cycle counts are program measurements.
 
+### Recursive aggregation cases
+
+Recursion has no committed test vector in `zk_backend/test_vectors/`, because
+the case embeds the child proofs as witness. With native children that runs
+5.1 MB at T=16, 10 MB at T=32, and 20 MB at T=64 -- the same reason `proof.bin`
+is not committed. Those rows are measured but do not reproduce byte-for-byte
+from a clean clone.
+
+The Groth16-child variant is the exception. A Groth16 child proof is 356 bytes,
+so its T=16 case is 13 KB, and it is committed at
+`artifacts/reports/provenance/sp1/training_aggregation_groth16_t16/case_0.json`
+with a sha256 matching the `test_vector_sha256` in that directory's
+`metrics.json`. That row reproduces exactly, given a CUDA prover.
+
+The flat T=16 case is not recoverable: the Groth16 run also used `--targets 16`
+and overwrote it at the shared generated path. Its provenance is valid; the
+input that produced it is gone. Regenerating it produces a different case,
+because the chunk proof root depends on the child proof files of that run.
+
 ### Pinning the toolchain
 
 The Cargo manifests pin the SP1 crates to `=6.1.0`, but a bare `sp1up`
