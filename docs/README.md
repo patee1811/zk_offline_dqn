@@ -6,6 +6,9 @@ is not edited by cleanup phases unless explicitly approved.
 
 ## Start Here
 
+- `giai_thich_toan_dien.md` - onboarding walkthrough in Vietnamese: vocabulary, problem,
+  why this stack, architecture, results, honest limits, and a defence Q&A. Start here if
+  the project is new to you.
 - `architecture.md` - current code and workflow architecture.
 - `reproducibility.md` - regression, SP1 validation, and report regeneration.
 - `sp1_python_alignment.md` - Python/SP1 field and command alignment.
