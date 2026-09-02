@@ -1,5 +1,5 @@
 {
-  "harnessVersion": "1.4.0",
+  "harnessVersion": "1.5.0",
   "generatedAt": "2026-08-26T01:49:55Z",
   "generatedBy": "ai-harness-bootstrap",
   "projectFingerprint": {
@@ -48,6 +48,6 @@
       "capture_learning.py"
     ]
   },
-  "lastSync": "2026-08-30T01:30:00Z",
+  "lastSync": "2026-09-02T18:00:00Z",
   "pendingInboxEntries": 0
 }

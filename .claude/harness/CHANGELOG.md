@@ -1,5 +1,19 @@
 # Harness changelog
 
+## 2026-09-02 — 1.5.0
+
+**Kích hoạt:** phiên tổng quát hóa cây gộp (việc 0.2) và lượt prove lại 8 dòng `training_aggregation` sau khi guest ELF trôi. Bốn bài học, ba trong đó tốn máy thật hoặc suýt đưa số sai vào Table 2.
+
+**Lý do:** hai mục là luật đo được (arity, cycles) giúp agent sau ước chi phí trên giấy thay vì thuê GPU. Hai mục còn lại là bẫy im lặng — không có cảnh báo nào ở output, nên chỉ rule mới chặn được.
+
+**Đã sửa:**
+
+- `sp1-backend.md`: dòng arity nay tách rõ **hai** thứ cùng tên — arity nén nội bộ SP1 (=4, panic nếu đổi) và arity cây gộp của repo (=2, nằm trong schema qua sáu field `left_/right_child_*`). Đổi cái sau là migration, không phải chỉnh tham số.
+- `sp1-backend.md`: dòng prover nay ghi `SP1_CUDA` im lặng theo **cả hai chiều** — host thiếu feature thì bỏ qua biến và chạy CPU; host có feature thì đổi phần cứng của phép đo mà output không ghi lại. Kèm số đo cả hai chiều.
+- `sp1-backend.md`: thêm sửa `shared/src/lib.rs` làm trôi ELF của **mọi** dòng dùng chung guest (8 dòng, không phải 3) — quét theo relation, không theo tên thư mục.
+- `sp1-backend.md`: thêm `git archive` trên Windows áp `core.autocrlf`, làm lệch toàn bộ Witness Schema SHA256.
+- `experiments.md`: dòng bộ nhớ recursion nay là luật hai vế — bộ nhớ phẳng, cycles tuyến tính ở ≈154M mỗi lượt verify con, giữ nguyên khi proof con là proof đệ quy. Kèm công thức a(N−1)/(a−1) để ước cây bất kỳ.
+
 ## 2026-08-31 — 1.4.0
 
 **Kích hoạt:** recursion native chạy được trên GPU sau khi thất bại ở 30GB và 61GB RAM host; và một lượt chạy GPU 4 giờ phải làm lại vì gọi host trực tiếp nên thiếu `tamper_report.json`.

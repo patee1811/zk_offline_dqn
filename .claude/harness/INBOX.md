@@ -117,3 +117,31 @@ Format:
 **Đích đề xuất:** `rules/90-domain/experiments.md`
 **Độ tin cậy:** cao (mất một lượt chạy)
 **Trạng thái:** đã áp dụng (1.4.0)
+
+## 2026-09-02 — phát hiện mới — scope backends
+**Kích hoạt:** việc 0.2 tổng quát hóa cây gộp. Cân nhắc đổi arity 2 sang 8 để rẻ hơn, rồi đọc schema mới thấy sáu field `left_/right_child_{public_values,proof,vkey}_hash` là public input.
+**Bài học:** repo có **hai** thứ tên arity. Arity nén nội bộ SP1 cố định ở 4 (đã ghi từ 1.3.0). Arity cây gộp cố định ở 2 và nằm trong schema — đổi nó là migration + vô hiệu provenance đã commit, không phải chỉnh tham số. Độ sâu thì tự do sau khi nới `leaf_chunk_count` thành mọi lũy thừa 2 ≥ 2.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md` — gộp vào dòng arity cũ.
+**Độ tin cậy:** cao (đọc `relations/training_aggregation.py:250-255` + `shared/src/lib.rs`)
+**Trạng thái:** đã áp dụng (1.5.0)
+
+## 2026-09-02 — phát hiện mới — scope experiments
+**Kích hoạt:** prove cây T=128 sâu 4 cho 309.951.502 cycles với 2 proof con, khớp các dòng 2/4/8 con đã đo.
+**Bài học:** cycles recursion ≈ 154M mỗi lượt verify con, tuyến tính và độc lập với độ sâu — giữ nguyên cả khi proof con chính là proof đệ quy, không chỉ proof lá. Cây N lá arity a có a(N−1)/(a−1) lượt verify, nên ước được chi phí trên giấy trước khi thuê máy. Đây là mặt đối lập của luật bộ nhớ phẳng đã ghi ở 1.3.0/1.4.0.
+**Đích đề xuất:** `rules/90-domain/experiments.md` — siết chung một dòng với luật bộ nhớ.
+**Độ tin cậy:** cao (4 phép đo, hai tô-pô, khớp trong 0,5%)
+**Trạng thái:** đã áp dụng (1.5.0)
+
+## 2026-09-02 — thất bại — scope backends
+**Kích hoạt:** nới `leaf_chunk_count` trong `shared/src/lib.rs` làm đổi guest ELF. Tôi báo cáo "3 dòng bị ảnh hưởng" sau khi chỉ nhìn các thư mục tên `*recursive*`; quét lại cả relation thì ra **8** dòng, gồm cả 3 dòng manifest chain.
+**Bài học:** mọi dòng dùng chung một guest đều trôi `guest_elf_sha256`, không riêng nhánh vừa sửa. Quét theo relation, đừng quét theo tên thư mục khớp với thay đổi. Ngoài ra `git archive` trên Windows áp `core.autocrlf` nên hash witness schema lệch — dùng `git -c core.autocrlf=false -c core.eol=lf archive`.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`
+**Độ tin cậy:** cao (báo sai một lần, sửa bằng cách quét toàn relation)
+**Trạng thái:** đã áp dụng (1.5.0)
+
+## 2026-09-02 — thất bại — scope backends
+**Kích hoạt:** lượt prove lại đặt `SP1_CUDA=1` cho tất cả. Ba dòng manifest chain rơi từ 32,5/39,2/47,8s xuống 1,4/1,7/2,4s — không phải relation nhanh lên mà vì số cũ đo trên CPU. Ghi thẳng vào Table 2 sẽ trộn hai loại phần cứng trong một cột.
+**Bài học:** `SP1_CUDA` im lặng theo cả hai chiều. Host không có feature: bỏ qua biến, chạy CPU, GPU đứng im 0% (16 proof lá mất ~6 phút/lá). Host có feature: đổi phần cứng của phép đo mà output không ghi lại, kết quả trông vẫn hợp lệ nhưng không so được với số đã commit. Chiều thứ hai nguy hiểm hơn. Kiểm `nvidia-smi`, đừng tin biến môi trường.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md` dòng prover
+**Độ tin cậy:** cao (quan sát cả hai chiều trong cùng một phiên)
+**Trạng thái:** đã áp dụng (1.5.0)
