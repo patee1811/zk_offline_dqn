@@ -492,9 +492,13 @@ fn verify_binary_public(public: &TrainingAggregationPublicInputs, chunks: &[Chun
     assert_eq!(chunks.len(), 2, "binary tree fan-in mismatch");
     assert_eq!(public.chunk_count, 2, "binary chunk_count mismatch");
     assert_eq!(public.child_count, Some(2), "binary child_count mismatch");
+    // A node covers every leaf beneath it, so this doubles per level: 2 at depth 1,
+    // 4 at depth 2, 16 at depth 4. The old Some(2) | Some(4) match capped the tree
+    // at depth 2, which caps a provable training run at 32 steps.
+    let leaf_chunk_count = public.leaf_chunk_count.expect("missing leaf_chunk_count");
     assert!(
-        matches!(public.leaf_chunk_count, Some(2) | Some(4)),
-        "binary leaf_chunk_count mismatch"
+        leaf_chunk_count >= 2 && leaf_chunk_count & (leaf_chunk_count - 1) == 0,
+        "binary leaf_chunk_count must be a power of two >= 2"
     );
     assert!(
         public.node_depth.unwrap_or_default() >= 1,

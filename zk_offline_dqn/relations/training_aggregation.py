@@ -232,8 +232,11 @@ def _verify_binary_public(public: Mapping[str, Any], chunks: Sequence[Mapping[st
         raise AssertionError("binary tree fan-in mismatch")
     if int(public.get("child_count", 0)) != 2:
         raise AssertionError("binary child_count mismatch")
-    if int(public.get("leaf_chunk_count", 0)) not in {2, 4}:
-        raise AssertionError("binary leaf_chunk_count mismatch")
+    leaf_chunk_count = int(public.get("leaf_chunk_count", 0))
+    # A node covers every leaf beneath it, so this doubles per level: 2 at depth 1,
+    # 4 at depth 2, 16 at depth 4. The old {2, 4} bound capped the tree at depth 2.
+    if leaf_chunk_count < 2 or leaf_chunk_count & (leaf_chunk_count - 1):
+        raise AssertionError("binary leaf_chunk_count must be a power of two >= 2")
     if int(public.get("node_depth", 0)) < 1:
         raise AssertionError("binary node_depth mismatch")
     if int(public.get("node_range_start", -1)) != int(public["step_start"]):
