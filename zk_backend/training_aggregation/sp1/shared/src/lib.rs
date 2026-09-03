@@ -7,6 +7,14 @@ const NATIVE_CHILD_PROOF_MODE: &str = "native_sp1";
 const GROTH16_CHILD_PROOF_MODE: &str = "groth16_bn254";
 const PLONK_CHILD_PROOF_MODE: &str = "plonk_bn254";
 const LEAF_CHILD_RELATION_ID: &str = "training_fragment_k8";
+
+/// Relation id of the fragment proof a chunk of this size cites.
+///
+/// Must match `chunk_relation_id` in the Python relation byte for byte: it
+/// lands inside config_hash, which is a public input.
+fn leaf_relation_id(chunk_size: u64) -> String {
+    format!("training_fragment_k{}", chunk_size)
+}
 const BINARY_NODE_RELATION_ID: &str = "training_aggregation_binary_node";
 const BINARY_TOPOLOGY: &str = "binary_tree";
 
@@ -248,16 +256,21 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
         .first()
         .map(|chunk| chunk.relation_id.as_str())
         .unwrap_or(LEAF_CHILD_RELATION_ID);
+    let leaf_id = leaf_relation_id(public.chunk_size);
     assert_eq!(
         public.chunk_relation_id,
         if binary {
             first_relation
         } else {
-            LEAF_CHILD_RELATION_ID
+            leaf_id.as_str()
         },
         "chunk relation mismatch"
     );
-    assert_eq!(public.chunk_size, 8, "chunk_size mismatch");
+    // Every other use below already treats chunk_size as a variable. Pinning it
+    // to 8 capped a leaf at eight steps, which is the term that drives the whole
+    // aggregation cost: 5000 steps needed 625 leaves and 1248 in-guest child
+    // verifications. A 128-step leaf needs 40 and 78.
+    assert!(public.chunk_size > 0, "chunk_size must be positive");
     assert_eq!(
         public.chunk_count,
         witness.chunks.len(),
@@ -570,6 +583,7 @@ fn verify_chunk_chain(
     chunks: &[ChunkRecord],
     binary: bool,
 ) {
+    let leaf_id = leaf_relation_id(public.chunk_size);
     for (idx, chunk) in chunks.iter().enumerate() {
         assert_eq!(chunk.chunk_id, idx, "chunk order mismatch");
         let span = chunk.step_end - chunk.step_start;
@@ -583,21 +597,15 @@ fn verify_chunk_chain(
                 "chunk relation_id mismatch"
             );
             assert!(
-                matches!(
-                    chunk.relation_id.as_str(),
-                    LEAF_CHILD_RELATION_ID | BINARY_NODE_RELATION_ID
-                ),
+                chunk.relation_id == leaf_id || chunk.relation_id == BINARY_NODE_RELATION_ID,
                 "binary child relation_id mismatch"
             );
-            if chunk.relation_id == LEAF_CHILD_RELATION_ID {
+            if chunk.relation_id == leaf_id {
                 assert_eq!(span, public.chunk_size, "leaf chunk step span mismatch");
             }
         } else {
             assert_eq!(span, public.chunk_size, "chunk step span mismatch");
-            assert_eq!(
-                chunk.relation_id, LEAF_CHILD_RELATION_ID,
-                "chunk relation_id mismatch"
-            );
+            assert_eq!(chunk.relation_id, leaf_id, "chunk relation_id mismatch");
         }
         assert_eq!(
             chunk.dataset_root, public.dataset_root,
@@ -771,8 +779,9 @@ fn verify_recursive_children(
             .expect("child Plonk proof verification failed"),
             _ => panic!("unsupported child proof mode"),
         }
+        let leaf_id = leaf_relation_id(public.chunk_size);
         match chunk.relation_id.as_str() {
-            LEAF_CHILD_RELATION_ID => {
+            id if id == leaf_id => {
                 let child_output: TrainingFragmentOutput = bincode::deserialize(&public_values)
                     .expect("child public values decode failed");
                 assert_fragment_child_output(public, chunk, &child_output);
@@ -1065,8 +1074,9 @@ fn base_chunk_values(chunk: &ChunkRecord) -> Vec<String> {
 
 fn child_config_hash(child: &TrainingFragmentOutput) -> String {
     let payload = format!(
-        "{{\"batch_size\":{},\"chunk_relation_id\":\"training_fragment_k8\",\"dataset_size\":{},\"fixed_point_scale\":{},\"format\":\"training_aggregation_chunk_config_v1\",\"gamma\":{},\"learning_rate\":{},\"sampler_seed\":{},\"sampler_type\":\"{}\",\"target_sync_interval\":{},\"target_sync_mode\":\"{}\"}}",
+        "{{\"batch_size\":{},\"chunk_relation_id\":\"training_fragment_k{}\",\"dataset_size\":{},\"fixed_point_scale\":{},\"format\":\"training_aggregation_chunk_config_v1\",\"gamma\":{},\"learning_rate\":{},\"sampler_seed\":{},\"sampler_type\":\"{}\",\"target_sync_interval\":{},\"target_sync_mode\":\"{}\"}}",
         child.batch_size,
+        child.num_steps,
         child.dataset_size,
         child.fixed_point_scale,
         child.gamma,

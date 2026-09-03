@@ -60,6 +60,7 @@ def write_generated_recursive_case(
     *,
     child_materials: List[Dict[str, Any]] | None = None,
     child_proof_mode: str | None = None,
+    chunk_size: int = 8,
 ) -> Path:
     out_path = Path(path) if path is not None else recursive_case_path_for_target(target)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,6 +68,7 @@ def write_generated_recursive_case(
         json.dumps(
             generate_recursive_case(
                 target,
+                chunk_size=chunk_size,
                 child_materials=child_materials,
                 **({"child_proof_mode": child_proof_mode} if child_proof_mode else {}),
             ),

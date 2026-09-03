@@ -384,10 +384,11 @@ def prepare_recursive_case(
     *,
     child_proof_mode: str,
     run_child_proves: bool,
+    chunk_size: int = 8,
 ) -> tuple[Path, List[Dict[str, Any]]]:
     if child_proof_mode not in RECURSIVE_CHILD_PROOF_MODES:
         raise SystemExit(f"unsupported --child-proof-mode {child_proof_mode}")
-    child_cases = generate_recursive_child_cases(target)
+    child_cases = generate_recursive_child_cases(target, chunk_size=chunk_size)
     work_dir = out_root / "_recursive_child_work" / f"t{target}"
     case_dir = work_dir / "cases"
     materials: List[Dict[str, Any]] = []
@@ -402,7 +403,7 @@ def prepare_recursive_case(
                     case_path=case_path,
                     mode="prove",
                     out_dir=child_out,
-                    max_steps=8,
+                    max_steps=chunk_size,
                     proof_mode=child_proof_mode,
                 ),
                 cwd=FRAGMENT_BACKEND_DIR,
@@ -443,6 +444,7 @@ def prepare_recursive_case(
         case_path,
         child_materials=materials,
         child_proof_mode=child_proof_mode,
+        chunk_size=chunk_size,
     )
     write_json(work_dir / "child_proof_status.json", {"children": child_statuses})
     return case_path, child_statuses
@@ -453,6 +455,7 @@ def _prepare_leaf_materials(
     work_dir: Path,
     *,
     run_child_proves: bool,
+    chunk_size: int = 8,
 ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     case_dir = work_dir / "leaf_cases"
     materials: List[Dict[str, Any]] = []
@@ -467,7 +470,7 @@ def _prepare_leaf_materials(
                     case_path=case_path,
                     mode="prove",
                     out_dir=child_out,
-                    max_steps=8,
+                    max_steps=chunk_size,
                     proof_mode=CHILD_PROOF_MODE,
                 ),
                 cwd=FRAGMENT_BACKEND_DIR,
@@ -593,8 +596,9 @@ def prepare_binary_native_case(
     out_root: Path,
     *,
     run_child_proves: bool,
+    chunk_size: int = 8,
 ) -> tuple[Path, List[Dict[str, Any]], Dict[str, Path]]:
-    child_cases = generate_recursive_child_cases(target)
+    child_cases = generate_recursive_child_cases(target, chunk_size=chunk_size)
     leaves = len(child_cases)
     if leaves < 2 or leaves & (leaves - 1):
         raise SystemExit(
@@ -602,7 +606,7 @@ def prepare_binary_native_case(
         )
     work_dir = out_root / "_binary_native_work" / f"t{target}"
     leaf_materials, statuses = _prepare_leaf_materials(
-        child_cases, work_dir, run_child_proves=run_child_proves
+        child_cases, work_dir, run_child_proves=run_child_proves, chunk_size=chunk_size
     )
     internal_dirs: Dict[str, Path] = {}
 
@@ -660,8 +664,8 @@ def main() -> int:
     parser.add_argument("--run-prove", action="store_true")
     parser.add_argument("--continue-on-failure", action="store_true")
     args = parser.parse_args()
-    if args.chunk_size != 8:
-        raise SystemExit("Phase 7 requires --chunk-size 8")
+    if args.chunk_size <= 0:
+        raise SystemExit("--chunk-size must be positive")
     if args.aggregation_mode not in {"proof_manifest_chain", RECURSIVE_AGGREGATION_MODE}:
         raise SystemExit("unsupported --aggregation-mode")
     if args.aggregation_topology not in {None, BINARY_AGGREGATION_TOPOLOGY}:
@@ -687,6 +691,7 @@ def main() -> int:
                 target,
                 out_root,
                 run_child_proves=args.run_child_proves,
+                chunk_size=args.chunk_size,
             )
         elif args.aggregation_mode == RECURSIVE_AGGREGATION_MODE:
             case_path, child_statuses = prepare_recursive_case(
@@ -694,6 +699,7 @@ def main() -> int:
                 out_root,
                 child_proof_mode=args.child_proof_mode,
                 run_child_proves=args.run_child_proves,
+                chunk_size=args.chunk_size,
             )
         else:
             case_path = write_generated_case(target)
