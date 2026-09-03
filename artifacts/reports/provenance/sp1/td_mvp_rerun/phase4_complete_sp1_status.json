@@ -1,0 +1,107 @@
+{
+  "all_passed": true,
+  "relations": [
+    {
+      "detail": {
+        "claim_status": "sp1_proof_backed",
+        "execute": {
+          "command": "cargo run --release -p forward-td-mlp-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json",
+          "passed": true,
+          "return_code": 0,
+          "stderr_tail": "warning: forward-td-mlp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: forward-td-mlp-host@0.1.0: forward-td-mlp-guest built at 2026-09-02 21:10:30\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/forward-td-mlp-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json`",
+          "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 496\nexecution_ok = true\nexecution_time_sec = 0.096984\ncycle_count = 1547202\nexit_code = 0"
+        },
+        "execute_passed": true,
+        "metrics_saved": false,
+        "proof": {
+          "command": "cargo run --release -p forward-td-mlp-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/forward_td_mlp",
+          "passed": true,
+          "return_code": 0,
+          "stderr_tail": "warning: forward-td-mlp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: forward-td-mlp-host@0.1.0: forward-td-mlp-guest built at 2026-09-02 21:10:30\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/forward-td-mlp-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/forward_td_mlp`",
+          "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 496\nexecution_ok = true\nexecution_time_sec = 0.097675\ncycle_count = 1547202\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 79.313263\nverification_time_sec = 0.115940\nproof_size_bytes = 2797873"
+        },
+        "proof_generated": false,
+        "proof_verified": true,
+        "public_inputs_saved": false,
+        "reference_passed": true,
+        "relation": "forward_td_mlp",
+        "tamper_test_passed": true,
+        "verify_report_saved": false,
+        "witness_schema_saved": false
+      },
+      "passed": true,
+      "relation": "forward_td_mlp",
+      "return_code": 0,
+      "stderr_tail": "",
+      "stdout_tail": "{\n  \"claim_status\": \"sp1_proof_backed\",\n  \"execute\": {\n    \"command\": \"cargo run --release -p forward-td-mlp-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json\",\n    \"passed\": true,\n    \"return_code\": 0,\n    \"stderr_tail\": \"warning: forward-td-mlp-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: forward-td-mlp-host@0.1.0: forward-td-mlp-guest built at 2026-09-02 21:10:30\\n    Finished `release` profile [optimized] target(s) in 0.36s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `/home/ubuntu/shared-target/release/forward-td-mlp-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json`\",\n    \"stdout_tail\": \"case_path = /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json\\nhost_precheck = true\\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\\nclaimed_batch_loss_fp = 496\\nexecution_ok = true\\nexecution_time_sec = 0.096984\\ncycle_count = 1547202\\nexit_code = 0\"\n  },\n  \"execute_passed\": true,\n  \"metrics_saved\": false,\n  \"proof\": {\n    \"command\": \"cargo run --release -p forward-td-mlp-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/forward_td_mlp\",\n    \"passed\": true,\n    \"return_code\": 0,\n    \"stderr_tail\": \"warning: forward-td-mlp-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: forward-td-mlp-host@0.1.0: forward-td-mlp-guest built at 2026-09-02 21:10:30\\n    Finished `release` profile [optimized] target(s) in 0.36s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `/home/ubuntu/shared-target/release/forward-td-mlp-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/forward_td_mlp`\",\n    \"stdout_tail\": \"case_path = /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json\\nhost_precheck = true\\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\\nclaimed_batch_loss_fp = 496\\nexecution_ok = true\\nexecution_time_sec = 0.097675\\ncycle_count = 1547202\\nexit_code = 0\\nproof_generated = true\\nproof_verified = true\\nproving_time_sec = 79.313263\\nverification_time_sec = 0.115940\\nproof_size_bytes = 2797873\"\n  },\n  \"proof_generated\": false,\n  \"proof_verified\": true,\n  \"public_inputs_saved\": false,\n  \"reference_passed\": true,\n  \"relation\": \"forward_td_mlp\",\n  \"tamper_test_passed\": true,\n  \"verify_report_saved\": false,\n  \"witness_schema_saved\": false\n}"
+    },
+    {
+      "detail": {
+        "claim_status": "sp1_proof_backed",
+        "execute": {
+          "command": "cargo run --release -p one-step-sgd-tiny-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json",
+          "passed": true,
+          "return_code": 0,
+          "stderr_tail": "warning: one-step-sgd-tiny-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: one-step-sgd-tiny-host@0.1.0: one-step-sgd-tiny-guest built at 2026-09-02 21:11:26\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/one-step-sgd-tiny-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json`",
+          "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 556\nexecution_ok = true\nexecution_time_sec = 0.063821\ncycle_count = 868731\nexit_code = 0"
+        },
+        "execute_passed": true,
+        "metrics_saved": false,
+        "proof": {
+          "command": "cargo run --release -p one-step-sgd-tiny-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/one_step_sgd_tiny",
+          "passed": true,
+          "return_code": 0,
+          "stderr_tail": "warning: one-step-sgd-tiny-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: one-step-sgd-tiny-host@0.1.0: one-step-sgd-tiny-guest built at 2026-09-02 21:11:26\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/one-step-sgd-tiny-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/one_step_sgd_tiny`",
+          "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 556\nexecution_ok = true\nexecution_time_sec = 0.064283\ncycle_count = 868731\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 63.869073\nverification_time_sec = 0.116546\nproof_size_bytes = 2790039"
+        },
+        "proof_generated": false,
+        "proof_verified": true,
+        "public_inputs_saved": false,
+        "reference_passed": true,
+        "relation": "one_step_sgd_tiny",
+        "tamper_test_passed": true,
+        "verify_report_saved": false,
+        "witness_schema_saved": false
+      },
+      "passed": true,
+      "relation": "one_step_sgd_tiny",
+      "return_code": 0,
+      "stderr_tail": "",
+      "stdout_tail": "{\n  \"claim_status\": \"sp1_proof_backed\",\n  \"execute\": {\n    \"command\": \"cargo run --release -p one-step-sgd-tiny-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json\",\n    \"passed\": true,\n    \"return_code\": 0,\n    \"stderr_tail\": \"warning: one-step-sgd-tiny-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: one-step-sgd-tiny-host@0.1.0: one-step-sgd-tiny-guest built at 2026-09-02 21:11:26\\n    Finished `release` profile [optimized] target(s) in 0.34s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `/home/ubuntu/shared-target/release/one-step-sgd-tiny-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json`\",\n    \"stdout_tail\": \"case_path = /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json\\nhost_precheck = true\\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\\nclaimed_batch_loss_fp = 556\\nexecution_ok = true\\nexecution_time_sec = 0.063821\\ncycle_count = 868731\\nexit_code = 0\"\n  },\n  \"execute_passed\": true,\n  \"metrics_saved\": false,\n  \"proof\": {\n    \"command\": \"cargo run --release -p one-step-sgd-tiny-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/one_step_sgd_tiny\",\n    \"passed\": true,\n    \"return_code\": 0,\n    \"stderr_tail\": \"warning: one-step-sgd-tiny-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: one-step-sgd-tiny-host@0.1.0: one-step-sgd-tiny-guest built at 2026-09-02 21:11:26\\n    Finished `release` profile [optimized] target(s) in 0.35s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `/home/ubuntu/shared-target/release/one-step-sgd-tiny-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/one_step_sgd_tiny`\",\n    \"stdout_tail\": \"case_path = /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json\\nhost_precheck = true\\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\\nclaimed_batch_loss_fp = 556\\nexecution_ok = true\\nexecution_time_sec = 0.064283\\ncycle_count = 868731\\nexit_code = 0\\nproof_generated = true\\nproof_verified = true\\nproving_time_sec = 63.869073\\nverification_time_sec = 0.116546\\nproof_size_bytes = 2790039\"\n  },\n  \"proof_generated\": false,\n  \"proof_verified\": true,\n  \"public_inputs_saved\": false,\n  \"reference_passed\": true,\n  \"relation\": \"one_step_sgd_tiny\",\n  \"tamper_test_passed\": true,\n  \"verify_report_saved\": false,\n  \"witness_schema_saved\": false\n}"
+    },
+    {
+      "detail": {
+        "claim_status": "sp1_proof_backed",
+        "execute": {
+          "command": "cargo run --release -p short-trace-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json",
+          "passed": true,
+          "return_code": 0,
+          "stderr_tail": "warning: short-trace-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: short-trace-host@0.1.0: short-trace-guest built at 2026-09-02 21:12:20\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/short-trace-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json`",
+          "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json\nhost_precheck = true\nstart_checkpoint_hash = f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c\nfinal_checkpoint_hash = 594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1\nexecution_ok = true\nexecution_time_sec = 0.019524\ncycle_count = 115363\nexit_code = 0"
+        },
+        "execute_passed": true,
+        "metrics_saved": false,
+        "proof": {
+          "command": "cargo run --release -p short-trace-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/short_trace",
+          "passed": true,
+          "return_code": 0,
+          "stderr_tail": "warning: short-trace-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: short-trace-host@0.1.0: short-trace-guest built at 2026-09-02 21:12:20\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/short-trace-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/short_trace`",
+          "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json\nhost_precheck = true\nstart_checkpoint_hash = f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c\nfinal_checkpoint_hash = 594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1\nexecution_ok = true\nexecution_time_sec = 0.019484\ncycle_count = 115363\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 46.314149\nverification_time_sec = 0.115187\nproof_size_bytes = 2779261"
+        },
+        "proof_generated": false,
+        "proof_verified": true,
+        "public_inputs_saved": false,
+        "reference_passed": true,
+        "relation": "short_trace",
+        "tamper_test_passed": true,
+        "verify_report_saved": false,
+        "witness_schema_saved": false
+      },
+      "passed": true,
+      "relation": "short_trace",
+      "return_code": 0,
+      "stderr_tail": "",
+      "stdout_tail": "{\n  \"claim_status\": \"sp1_proof_backed\",\n  \"execute\": {\n    \"command\": \"cargo run --release -p short-trace-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json\",\n    \"passed\": true,\n    \"return_code\": 0,\n    \"stderr_tail\": \"warning: short-trace-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: short-trace-host@0.1.0: short-trace-guest built at 2026-09-02 21:12:20\\n    Finished `release` profile [optimized] target(s) in 0.34s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `/home/ubuntu/shared-target/release/short-trace-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json`\",\n    \"stdout_tail\": \"case_path = /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json\\nhost_precheck = true\\nstart_checkpoint_hash = f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c\\nfinal_checkpoint_hash = 594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1\\nexecution_ok = true\\nexecution_time_sec = 0.019524\\ncycle_count = 115363\\nexit_code = 0\"\n  },\n  \"execute_passed\": true,\n  \"metrics_saved\": false,\n  \"proof\": {\n    \"command\": \"cargo run --release -p short-trace-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/short_trace\",\n    \"passed\": true,\n    \"return_code\": 0,\n    \"stderr_tail\": \"warning: short-trace-host@0.1.0: rustc +succinct --version: \\\"rustc 1.93.0-dev\\\\n\\\"\\nwarning: short-trace-host@0.1.0: short-trace-guest built at 2026-09-02 21:12:20\\n    Finished `release` profile [optimized] target(s) in 0.34s\\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\\n     Running `/home/ubuntu/shared-target/release/short-trace-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/short_trace`\",\n    \"stdout_tail\": \"case_path = /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json\\nhost_precheck = true\\nstart_checkpoint_hash = f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c\\nfinal_checkpoint_hash = 594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1\\nexecution_ok = true\\nexecution_time_sec = 0.019484\\ncycle_count = 115363\\nexit_code = 0\\nproof_generated = true\\nproof_verified = true\\nproving_time_sec = 46.314149\\nverification_time_sec = 0.115187\\nproof_size_bytes = 2779261\"\n  },\n  \"proof_generated\": false,\n  \"proof_verified\": true,\n  \"public_inputs_saved\": false,\n  \"reference_passed\": true,\n  \"relation\": \"short_trace\",\n  \"tamper_test_passed\": true,\n  \"verify_report_saved\": false,\n  \"witness_schema_saved\": false\n}"
+    }
+  ]
+}

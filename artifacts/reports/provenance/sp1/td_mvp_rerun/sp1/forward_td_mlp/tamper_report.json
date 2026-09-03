@@ -1,0 +1,134 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "case": "tamper_reward",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: leaf mismatch: actual=[18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0] expected=[18, -45, -28, -32, 0, 2000, 17, -239, -29, 252, 0]"
+    },
+    {
+      "case": "tamper_action",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: leaf mismatch: actual=[18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0] expected=[18, -45, -28, -32, 1, 1000, 17, -239, -29, 252, 0]"
+    },
+    {
+      "case": "tamper_done",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: leaf mismatch: actual=[18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0] expected=[18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 1]"
+    },
+    {
+      "case": "tamper_state",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: leaf mismatch: actual=[18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0] expected=[268, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0]"
+    },
+    {
+      "case": "tamper_next_state",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: leaf mismatch: actual=[18, -45, -28, -32, 0, 1000, 17, -239, -29, 252, 0] expected=[18, -45, -28, -32, 0, 1000, 267, -239, -29, 252, 0]"
+    },
+    {
+      "case": "tamper_online_weight",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: online_model_commitment mismatch: actual='ee57bfe691a1799eb9f49e1cc7a7577be3eeddb0070ef17196a6b3ca4e54112c' expected='48168b4db9242da839e8e4b9fd3bd81e2a515d1d525fc681a320f313a76dfeb2'"
+    },
+    {
+      "case": "tamper_target_weight",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: target_model_commitment mismatch: actual='5783660949916829caa4dbe136a6910b1862e3f85579411172f438b27ee9a65b' expected='6614608a80b2d0cb3d1b5a9a2f817c7c6f39a2aa226fa9e217bff7af221e6296'"
+    },
+    {
+      "case": "tamper_q_online_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: q_online_action_fp mismatch: actual=-39 expected=-40"
+    },
+    {
+      "case": "tamper_q_target_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: q_target_max_fp mismatch: actual=-44 expected=-45"
+    },
+    {
+      "case": "tamper_td_target_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: target_fp mismatch: actual=957 expected=956"
+    },
+    {
+      "case": "tamper_td_error_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: td_error_fp mismatch: actual=-995 expected=-996"
+    },
+    {
+      "case": "tamper_loss_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: claimed_batch_loss_fp mismatch: actual=497 expected=496"
+    },
+    {
+      "case": "tamper_checkpoint_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: online_model_commitment mismatch: actual='0000000000000000000000000000000000000000000000000000000000000000' expected='ee57bfe691a1799eb9f49e1cc7a7577be3eeddb0070ef17196a6b3ca4e54112c'"
+    },
+    {
+      "case": "tamper_dataset_root_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: dataset_root mismatch: actual='c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4' expected='1111111111111111111111111111111111111111111111111111111111111111'"
+    },
+    {
+      "case": "tamper_manifest_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: network_spec_hash mismatch: actual='2222222222222222222222222222222222222222222222222222222222222222' expected='0131e97e09367b80598558b6a101342f9204d826480f9d9c266e33b4cd71fdac'"
+    },
+    {
+      "case": "tamper_audit_report_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: target_model_commitment mismatch: actual='3333333333333333333333333333333333333333333333333333333333333333' expected='5783660949916829caa4dbe136a6910b1862e3f85579411172f438b27ee9a65b'"
+    }
+  ],
+  "relation": "forward_td_mlp"
+}

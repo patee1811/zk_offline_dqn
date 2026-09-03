@@ -1,0 +1,43 @@
+{
+  "aggregation_manifest_saved": true,
+  "aggregation_mode": "proof_manifest_chain",
+  "aggregation_topology": null,
+  "child_proof_mode": null,
+  "child_proof_verification_inside_guest": false,
+  "chunk_count": 4,
+  "chunk_manifest_saved": true,
+  "chunk_size": 8,
+  "claim_status": "sp1_proof_backed_manifest_chain_not_true_recursion",
+  "execute": {
+    "command": "cargo run --release -p training-aggregation-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/training_aggregation_t32_case_0.json --mode proof_manifest_chain",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-aggregation-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-02 09:20:05\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-aggregation-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/training_aggregation_t32_case_0.json --mode proof_manifest_chain`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/training_aggregation_t32_case_0.json\nhost_precheck = true\naggregation_mode = proof_manifest_chain\nchunk_count = 4\nstep_end = 32\naggregate_root = d85bd50d3c6bf675f79cbf15e427bafe05216b7d4dff29c9aa87549fe7f772f5\nprover = cpu\nexecution_ok = true\nexecution_time_sec = 0.115768\ncycle_count = 798918\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "leaf_chunk_count": null,
+  "metrics_saved": true,
+  "proof": {
+    "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/training_aggregation_t32_case_0.json --mode proof_manifest_chain --out-dir /home/ubuntu/repo/artifacts/reports/provenance/sp1/training_aggregation_t32",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-aggregation-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-02 09:20:05\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-aggregation-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/training_aggregation_t32_case_0.json --mode proof_manifest_chain --out-dir /home/ubuntu/repo/artifacts/reports/provenance/sp1/training_aggregation_t32`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/training_aggregation_t32_case_0.json\nhost_precheck = true\naggregation_mode = proof_manifest_chain\nchunk_count = 4\nstep_end = 32\naggregate_root = d85bd50d3c6bf675f79cbf15e427bafe05216b7d4dff29c9aa87549fe7f772f5\nprover = cpu\nexecution_ok = true\nexecution_time_sec = 0.115613\ncycle_count = 798918\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 68.763754\nverification_time_sec = 0.115338\nproof_size_bytes = 2795159"
+  },
+  "proof_artifact_policy_saved": true,
+  "proof_generated": true,
+  "proof_verified": true,
+  "public_inputs_saved": true,
+  "recursive_child_proof_manifest_saved": false,
+  "reference_passed": true,
+  "relation": "training_aggregation",
+  "roots_match_reference": true,
+  "step_end": 32,
+  "step_start": 0,
+  "tamper_report_saved": true,
+  "tamper_test_passed": true,
+  "tree_depth": null,
+  "verify_report_saved": true,
+  "witness_schema_saved": true
+}

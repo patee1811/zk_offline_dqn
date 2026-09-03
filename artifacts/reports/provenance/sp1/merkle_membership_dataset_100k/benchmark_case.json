@@ -1,7 +1,7 @@
 {
   "metadata": {
     "case_id": "merkle_membership_dataset_100000",
-    "dataset_dir": "/kaggle/working/zk_offline_dqn/artifacts/datasets/minari-pointmaze-umaze-v2-100000",
+    "dataset_dir": "/home/ubuntu/repo/artifacts/datasets/minari-pointmaze-umaze-v2-100000",
     "dataset_size": 100000,
     "merkle_depth": 17,
     "merkle_tree_sha256": "0b99eed96c0d3e0bc652c31590cde3bf1a9378f24b39c90b46f2b400812608e4",

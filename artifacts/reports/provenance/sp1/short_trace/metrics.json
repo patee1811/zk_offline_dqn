@@ -9,10 +9,10 @@
   "proof_generated": true,
   "proof_size_bytes": 2779261,
   "proof_verified": true,
-  "prove_time_seconds": 23.366843571,
+  "prove_time_seconds": 46.339151098,
   "public_inputs_sha256": "aab726149bfde7b76428143b1d7852bec3e07c8481b508aac57e7f5535434afb",
   "relation": "short_trace",
   "sp1_version": "6.1.0",
   "test_vector_sha256": "543b382c7e85215f685568cffeec2802722275842e5e22413d71c7e801f9dbb9",
-  "verify_time_seconds": 0.086860989
+  "verify_time_seconds": 0.115517681
 }

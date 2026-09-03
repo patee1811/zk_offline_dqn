@@ -11,11 +11,11 @@
   "proof_generated": true,
   "proof_size_bytes": 2811655,
   "proof_verified": true,
-  "prove_time_seconds": 46.931900136,
+  "prove_time_seconds": 99.026958486,
   "public_inputs_sha256": "86ed388ec555cf31bebb6c1f60949c2597cbc6e48c6005668be4bd8338371996",
   "relation": "training_fragment",
   "sp1_version": "6.1.0",
   "target_sync_events": 1,
   "test_vector_sha256": "067a75af027f0fd6bd63b23e8d087b0bce8b3039d81852ad8bc5753bdb6865f2",
-  "verify_time_seconds": 0.087250954
+  "verify_time_seconds": 0.117276306
 }

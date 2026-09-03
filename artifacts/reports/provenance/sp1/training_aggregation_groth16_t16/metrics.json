@@ -8,23 +8,23 @@
   "child_proof_verification_inside_guest": true,
   "chunk_count": 2,
   "chunk_size": 8,
-  "cycle_count": 6162312409,
+  "cycle_count": 6162569246,
   "git_commit": null,
-  "guest_elf_sha256": "ef2dc48ccdaef82a09d7ea775f2670ea53db096830ef0b5a5d5c2a4d78d29359",
+  "guest_elf_sha256": "996035c56703594649741861acac5153d6156b7bbca53b93dea408df9ccde107",
   "leaf_chunk_count": null,
   "notes": [
     "SP1 true recursive aggregation; groth16_bn254 child training-fragment proofs are verified inside the aggregate guest."
   ],
   "proof_generated": true,
-  "proof_size_bytes": 1463614739,
+  "proof_size_bytes": 1463617811,
   "proof_verified": true,
-  "prove_time_seconds": 1589.694720276,
-  "public_inputs_sha256": "b552f9c3cb9ac10a10f8c4220eb653570a8b7d7c50f0a5cf09ddac1a9f21a806",
+  "prove_time_seconds": 1592.429129133,
+  "public_inputs_sha256": "b3a860f6dbedca0e27019bbed9a5b7028547fb853981bdecc1867d893095b57a",
   "relation": "training_aggregation",
   "sp1_version": "6.1.0",
   "step_end": 16,
   "step_start": 0,
-  "test_vector_sha256": "b1206953c51b77f00e142692e66ccb4d3f08cd9e34705a18eaf3ce030c372383",
+  "test_vector_sha256": "01bb0e69b733cd4780b2801a86c95f78701c293a484932adccbc586095b15c7a",
   "tree_depth": null,
-  "verify_time_seconds": 63.126057846
+  "verify_time_seconds": 63.036939158
 }

@@ -4,7 +4,7 @@
   "child_proof_mode": "native_sp1",
   "children": [
     {
-      "child_proof_hash": "0b26794f46d78a2c1300012e598e472b966b30fc1092a161338fef7b3333964c",
+      "child_proof_hash": "a45942ec7e67ca600b2b3e710eeae1a2e309427e7ed990cd13511dc30c03ad5d",
       "child_public_inputs_hash": "9627a0cb4ffaa7adb140f9db538a6016b459b58aa5a1470fc1b3a9515c1c60a1",
       "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
       "chunk_id": 0,
@@ -13,7 +13,7 @@
       "step_start": 0
     },
     {
-      "child_proof_hash": "7a7765fef00a6adff88fc0ce01c527b6baa76109240a646d0d1b241bdba7acba",
+      "child_proof_hash": "d6dc5f23215c9cb290ca6267178177e438ff818fa33f37530972464cbd92480e",
       "child_public_inputs_hash": "4fd106e84741931c08b01bede8fa412620621ea5c7504aface84b24ec658548d",
       "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
       "chunk_id": 1,

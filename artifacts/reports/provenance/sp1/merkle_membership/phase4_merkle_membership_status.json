@@ -1,0 +1,26 @@
+{
+  "claim_status": "sp1_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p merkle-membership-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/merkle_membership_case_0.json",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: merkle-membership-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: merkle-membership-host@0.1.0: merkle-membership-guest built at 2026-09-02 21:08:44\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/merkle-membership-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/merkle_membership_case_0.json`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/merkle_membership_case_0.json\nhost_precheck = true\ndataset_root = 35530014f44124a75ef1a6b21bc5be491356caa4c2d123b162f9ab2161d337ba\nleaf_hash = 01ae3a0e03fc3249561a0f9c2f2d6e67b9befaa2358d5d1a21ed7226c3ee0aab\nexecution_ok = true\nexecution_time_sec = 0.018807\ncycle_count = 103106\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "metrics_saved": true,
+  "proof": {
+    "command": "cargo run --release -p merkle-membership-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/merkle_membership_case_0.json --out-dir artifacts/reports/provenance/sp1/merkle_membership",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: merkle-membership-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: merkle-membership-host@0.1.0: merkle-membership-guest built at 2026-09-02 21:08:44\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/merkle-membership-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/merkle_membership_case_0.json --out-dir artifacts/reports/provenance/sp1/merkle_membership`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/merkle_membership_case_0.json\nhost_precheck = true\ndataset_root = 35530014f44124a75ef1a6b21bc5be491356caa4c2d123b162f9ab2161d337ba\nleaf_hash = 01ae3a0e03fc3249561a0f9c2f2d6e67b9befaa2358d5d1a21ed7226c3ee0aab\nproof_generated = true\nproof_verified = true\nproving_time_sec = 45.722450\nverification_time_sec = 0.114510\nproof_size_bytes = 2779510"
+  },
+  "proof_generated": false,
+  "proof_verified": true,
+  "public_inputs_saved": true,
+  "reference_passed": true,
+  "relation": "merkle_membership",
+  "tamper_test_passed": true,
+  "witness_schema_saved": true
+}

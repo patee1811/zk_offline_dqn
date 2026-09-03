@@ -10,10 +10,10 @@
   "proof_generated": true,
   "proof_size_bytes": 2785287,
   "proof_verified": true,
-  "prove_time_seconds": 27.07648813,
+  "prove_time_seconds": 55.049392314,
   "public_inputs_sha256": "68d13327e446f770ae98f0e27df3f3340e6283826b9f6555ff7c94eb375ecaeb",
   "relation": "training_update",
   "sp1_version": "6.1.0",
   "test_vector_sha256": "4234b61a958584bef877b738e766ab8d265ef4a2e9ff40ca75b19022eae783a6",
-  "verify_time_seconds": 0.086269964
+  "verify_time_seconds": 0.116141615
 }

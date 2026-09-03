@@ -1,0 +1,27 @@
+{
+  "claim_status": "sp1_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p one-step-sgd-tiny-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: one-step-sgd-tiny-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: one-step-sgd-tiny-host@0.1.0: one-step-sgd-tiny-guest built at 2026-09-02 21:11:26\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/one-step-sgd-tiny-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 556\nexecution_ok = true\nexecution_time_sec = 0.063821\ncycle_count = 868731\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "metrics_saved": false,
+  "proof": {
+    "command": "cargo run --release -p one-step-sgd-tiny-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/one_step_sgd_tiny",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: one-step-sgd-tiny-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: one-step-sgd-tiny-host@0.1.0: one-step-sgd-tiny-guest built at 2026-09-02 21:11:26\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/one-step-sgd-tiny-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/one_step_sgd_tiny`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/one_step_sgd_tiny_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 556\nexecution_ok = true\nexecution_time_sec = 0.064283\ncycle_count = 868731\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 63.869073\nverification_time_sec = 0.116546\nproof_size_bytes = 2790039"
+  },
+  "proof_generated": false,
+  "proof_verified": true,
+  "public_inputs_saved": false,
+  "reference_passed": true,
+  "relation": "one_step_sgd_tiny",
+  "tamper_test_passed": true,
+  "verify_report_saved": false,
+  "witness_schema_saved": false
+}

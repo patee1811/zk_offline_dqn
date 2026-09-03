@@ -16,7 +16,7 @@
   "proof_generated": true,
   "proof_verified": true,
   "public_output": {
-    "aggregate_root": "9f20ff58a7c7955fc0f50c8a4461a38821575eadc7b693b64bf21ddf6c7d4815",
+    "aggregate_root": "6982d94c9acdf5de0cc0b167958759dadad8b6ffd543d503a56c99b879b535df",
     "aggregation_mode": "recursive_sp1",
     "aggregation_topology": null,
     "audit_report_hash": "01a8f3d08426c18f7952673d965a5ab6111c5bc8d6bb21c5d4eda9dc9befd2e4",
@@ -25,7 +25,7 @@
     "child_proof_mode": "native_sp1",
     "child_proof_verification_inside_guest": true,
     "chunk_count": 4,
-    "chunk_proof_root": "751b0df5dc93ba1bb78ab7282864af263e6f454a338953201a2a2217611bab81",
+    "chunk_proof_root": "e83da71534abb5fa44374aaf9c6f8ccb38e0ba4d9e9069057f910ebace18ea51",
     "chunk_public_inputs_root": "f7c22f3b710f84fc7d069122ff3149fa0edcee5da5365013e3f13ddf7cef436c",
     "chunk_relation_id": "training_fragment_k8",
     "chunk_size": 8,

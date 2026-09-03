@@ -1,0 +1,62 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "case": "tamper_gradient",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: gradient_tensors mismatch: actual=[{'weight': [[1, 0, 0, 0], [1, -2, -1, -1], [-1, 3, 2, 2], [-3, 8, 5, 6], [0, -2, -1, -1], [0, 1, 0, 0], [0, -2, -1, -1], [0, 1, 0, 0]], 'bias': [0, 60, -86, -199, 48, -25, 50, -30]}, {'weight': [[0, -54, -15, -45, -32, -33, -8, -36], [0, 0, 0, 0, 0, 0, 0, 0]], 'bias': [-1000, 0]}] expected=[{'weight': [[0, 0, 0, 0], [1, -2, -1, -1], [-1, 3, 2, 2], [-3, 8, 5, 6], [0, -2, -1, -1], [0, 1, 0, 0], [0, -2, -1, -1], [0, 1, 0, 0]], 'bias': [0, 60, -86, -199, 48, -25, 50, -30]}, {'weight': [[0, -54, -15, -45, -32, -33, -8, -36], [0, 0, 0, 0, 0, 0, 0, 0]], 'bias': [-1000, 0]}]"
+    },
+    {
+      "case": "tamper_learning_rate_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: delta_tensors mismatch: actual=[{'weight': [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], 'bias': [0, -6, 8, 19, -4, 2, -5, 3]}, {'weight': [[0, 5, 1, 4, 3, 3, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0]], 'bias': [100, 0]}] expected=[{'weight': [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], 'bias': [0, -6, 8, 20, -4, 2, -5, 3]}, {'weight': [[0, 5, 1, 4, 3, 3, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0]], 'bias': [101, 0]}]"
+    },
+    {
+      "case": "tamper_old_weight",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: pre_model_commitment mismatch: actual='2f630e5b3dac38f89d32ad2a55ab2d42ee5901347c68b4678f4d7555eceba800' expected='802a3727052df43493519282cb93cb71a8aeac0d7f5aa92bf5bb26620b112e63'"
+    },
+    {
+      "case": "tamper_new_weight",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: post_model_commitment mismatch: actual='bbf63fa4fde94f33b52daaf44622931963e0bbd8464bd125d70736d1f0afdb65' expected='52b3bef8b5b37c5115cdcf4389ec992610be95d06e1dfb664af67b06586613de'"
+    },
+    {
+      "case": "tamper_old_checkpoint_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: pre_model_commitment mismatch: actual='0000000000000000000000000000000000000000000000000000000000000000' expected='2f630e5b3dac38f89d32ad2a55ab2d42ee5901347c68b4678f4d7555eceba800'"
+    },
+    {
+      "case": "tamper_new_checkpoint_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: post_model_commitment mismatch: actual='1111111111111111111111111111111111111111111111111111111111111111' expected='bbf63fa4fde94f33b52daaf44622931963e0bbd8464bd125d70736d1f0afdb65'"
+    },
+    {
+      "case": "tamper_update_hash_public",
+      "execute_passed": false,
+      "execute_return_code": 101,
+      "passed": true,
+      "reference_accepted": false,
+      "reference_reason": "AssertionError: delta_tensors mismatch: actual=[{'weight': [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], 'bias': [0, -6, 8, 19, -4, 2, -5, 3]}, {'weight': [[0, 5, 1, 4, 3, 3, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0]], 'bias': [100, 0]}] expected=[{'weight': [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], 'bias': [0, -6, 8, 19, -4, 2, -5, 3]}, {'weight': [[0, 5, 1, 4, 3, 3, 0, 3], [0, 0, 0, 0, 0, 0, 0, 0]], 'bias': [100, 0]}]"
+    }
+  ],
+  "relation": "one_step_sgd_tiny"
+}
