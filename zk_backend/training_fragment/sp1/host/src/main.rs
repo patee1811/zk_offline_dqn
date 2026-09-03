@@ -34,7 +34,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let case_path = resolve_case_path(args.case)?;
+    let case_path = resolve_case_path(args.case.clone())?;
     let input = load_input(&case_path)?;
     if let Some(max_steps) = args.max_steps {
         if input.public_inputs.num_steps > max_steps {
@@ -59,20 +59,48 @@ async fn main() -> Result<()> {
         println!("host_precheck = skipped");
     }
 
-    let client = ProverClient::builder().cpu().build().await;
+    // CPU stays the default so every committed provenance number keeps the
+    // prover it was measured on. SP1_CUDA=1 opts into the GPU prover, which is
+    // what makes large leaves possible at all: on CPU this host is killed by the
+    // OOM reaper at k=16 (9.3M cycles, 31 GB RSS on a 30 GB box), while the GPU
+    // prover holds VRAM flat at ~18 GB across a 20x cycle range.
+    let use_cuda = std::env::var("SP1_CUDA").map(|v| v == "1").unwrap_or(false);
+    if use_cuda {
+        println!("prover = cuda");
+        let client = ProverClient::builder().cuda().build().await;
+        run_with_prover(client, &args, &input, &expected, &case_path).await
+    } else {
+        println!("prover = cpu");
+        let client = ProverClient::builder().cpu().build().await;
+        run_with_prover(client, &args, &input, &expected, &case_path).await
+    }
+}
+
+/// Execute and optionally prove with whichever prover was selected.
+///
+/// CPU and CUDA build different concrete types and `Prover` has associated
+/// types, so this cannot be a boxed trait object -- the selection has to be a
+/// generic call from each branch.
+async fn run_with_prover<P: Prover>(
+    client: P,
+    args: &Args,
+    input: &TrainingFragmentInput,
+    expected: &TrainingFragmentOutput,
+    case_path: &Path,
+) -> Result<()> {
     let elf = include_elf!("training-fragment-guest");
     let guest_elf_sha256 = hex_sha256(&elf);
     let mut cycle_count: Option<u64> = None;
 
     if args.execute || args.prove || !args.prove {
-        let stdin = build_stdin(&input);
+        let stdin = build_stdin(input);
         let start = Instant::now();
         let (mut public_values, report) = client
             .execute(elf.clone(), stdin)
             .await
             .context("SP1 execution failed")?;
         let output = public_values.read::<TrainingFragmentOutput>();
-        if output != expected {
+        if output != *expected {
             return Err(anyhow!("SP1 public output did not match expected output"));
         }
         cycle_count = Some(report.total_instruction_count());
@@ -95,29 +123,32 @@ async fn main() -> Result<()> {
         fs::create_dir_all(&out_dir)
             .with_context(|| format!("failed to create {}", out_dir.display()))?;
 
-        let stdin = build_stdin(&input);
-        let pk = client.setup(elf).await.context("SP1 setup failed")?;
+        let stdin = build_stdin(input);
+        let pk = client
+            .setup(elf)
+            .await
+            .map_err(|e| anyhow!("SP1 setup failed: {e}"))?;
         let prove_start = Instant::now();
         let proof = match args.proof_mode.as_str() {
             "core" => client
                 .prove(&pk, stdin)
                 .await
-                .context("SP1 proof generation failed")?,
+                .map_err(|e| anyhow!("SP1 proof generation failed: {e}"))?,
             "groth16_bn254" => client
                 .prove(&pk, stdin)
                 .groth16()
                 .await
-                .context("SP1 Groth16 proof generation failed")?,
+                .map_err(|e| anyhow!("SP1 Groth16 proof generation failed: {e}"))?,
             "plonk_bn254" => client
                 .prove(&pk, stdin)
                 .plonk()
                 .await
-                .context("SP1 Plonk proof generation failed")?,
+                .map_err(|e| anyhow!("SP1 Plonk proof generation failed: {e}"))?,
             "native_sp1" => client
                 .prove(&pk, stdin)
                 .compressed()
                 .await
-                .context("SP1 compressed proof generation failed")?,
+                .map_err(|e| anyhow!("SP1 compressed proof generation failed: {e}"))?,
             mode => {
                 return Err(anyhow!(
                     "unsupported --proof-mode {mode}; expected core, groth16_bn254, plonk_bn254, or native_sp1"
@@ -140,22 +171,22 @@ async fn main() -> Result<()> {
                 &out_dir,
                 &proof,
                 &pk,
-                &expected,
+                expected,
                 &args.proof_mode,
             )?;
         }
         if args.proof_mode == "native_sp1" {
-            write_native_recursive_child_material(&out_dir, &proof, &pk, &expected)?;
+            write_native_recursive_child_material(&out_dir, &proof, &pk, expected)?;
         }
         write_provenance(
             &out_dir,
-            &input,
-            &expected,
+            input,
+            expected,
             proving_time_sec,
             verification_time_sec,
             proof_size_bytes,
             cycle_count,
-            &case_path,
+            case_path,
             &guest_elf_sha256,
         )?;
         println!("proof_generated = true");
