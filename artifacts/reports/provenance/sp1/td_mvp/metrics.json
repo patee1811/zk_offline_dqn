@@ -1,0 +1,18 @@
+{
+  "backend_version": "0.1.0",
+  "cycle_count": 385048,
+  "git_commit": null,
+  "guest_elf_sha256": "8d4f89cf066f87fc106497bdbef89812bd3adb074e8045a0045f36dc330e3c14",
+  "notes": [
+    "SP1 proof-backed TD target and SmoothL1 loss over a Merkle-committed transition; not full DQN training."
+  ],
+  "proof_generated": true,
+  "proof_size_bytes": 2783869,
+  "proof_verified": true,
+  "prove_time_seconds": 53.948219801,
+  "public_inputs_sha256": "631d0f013151aae0ad033591e360823b446fd84d1bf373d2c508e8a71b22c124",
+  "relation": "td_mvp",
+  "sp1_version": "6.1.0",
+  "test_vector_sha256": "7ad9065afc1d34b21dd5f4a3c130a05cda0f78b60cad5cbf0c191fe0d036bc0b",
+  "verify_time_seconds": 0.115671105
+}

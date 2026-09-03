@@ -1,0 +1,31 @@
+{
+  "notes": [
+    "Verifies Merkle membership of the transition, the fixed-point TD target, and the SmoothL1 loss."
+  ],
+  "private_witness": {
+    "items": "[TdMvpItem]",
+    "leaf": "[i64]",
+    "leaf_hash": "sha256",
+    "merkle_path": [
+      {
+        "current_is_left": "bool",
+        "sibling_hash": "sha256"
+      }
+    ],
+    "td_witness": "TdWitness",
+    "transition": "Transition"
+  },
+  "public_inputs": {
+    "batch_size": "usize?",
+    "claimed_batch_loss_fp": "i64?",
+    "claimed_loss_fp": "i64?",
+    "claimed_target_fp": "i64?",
+    "dataset_root": "sha256",
+    "fp_scale": "i64",
+    "gamma_fp": "i64",
+    "leaf_index": "i64?",
+    "loss_type": "string"
+  },
+  "relation": "td_mvp",
+  "schema_version": "sp1_td_mvp_witness_schema_v1"
+}

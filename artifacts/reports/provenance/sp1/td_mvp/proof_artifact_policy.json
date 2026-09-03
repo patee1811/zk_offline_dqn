@@ -1,0 +1,5 @@
+{
+  "expected_runtime_location": "artifacts/reports/provenance/sp1/td_mvp/proof.bin",
+  "proof_binary_committed": false,
+  "reason": "proof binary is generated artifact and may be large"
+}

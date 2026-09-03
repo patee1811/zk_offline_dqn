@@ -1,0 +1,22 @@
+{
+  "dataset_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+  "fp_scale": 1000,
+  "gamma_fp": 990,
+  "loss_type": "smooth_l1",
+  "claimed_target_fp": 1761,
+  "claimed_loss_fp": 80,
+  "leaf_index": 0,
+  "batch_size": null,
+  "batch_mode": null,
+  "leaf_indices": null,
+  "claimed_batch_loss_fp": null,
+  "network_spec_hash": null,
+  "network_layer_sizes": null,
+  "online_model_commitment": null,
+  "target_model_commitment": null,
+  "claimed_item_losses_fp": null,
+  "optimizer_type": null,
+  "learning_rate_fp": null,
+  "pre_model_commitment": null,
+  "post_model_commitment": null
+}

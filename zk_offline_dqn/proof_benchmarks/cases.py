@@ -24,7 +24,7 @@ class ProofCase:
 
 
 CORE_CASES = [
-    ProofCase("td_mvp", "core", "td_mvp", "canonical", "relation", None, batch_size=1, network="tiny"),
+    ProofCase("td_mvp", "core", "td_mvp", "canonical", "relation", "td_mvp", batch_size=1, network="tiny"),
     ProofCase("merkle_membership", "core", "merkle_membership", "canonical", "merkle_depth", "merkle_membership"),
     ProofCase("forward_td_mlp", "core", "forward_td_mlp", "canonical_tiny", "network", "forward_td_mlp", batch_size=1, network="tiny"),
     ProofCase("one_step_sgd_tiny", "core", "one_step_sgd_tiny", "canonical_tiny", "network", "one_step_sgd_tiny", batch_size=1, network="tiny"),

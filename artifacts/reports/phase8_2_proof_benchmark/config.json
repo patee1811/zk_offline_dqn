@@ -26,9 +26,9 @@
     "tiny",
     "small"
   ],
-  "out_dir": "/home/ubuntu/repo/artifacts/reports/final_ndss",
+  "out_dir": "C:/Users/NGOCDU~1/AppData/Local/Temp/claude/c--Users-Ngoc-Duy-Duytapcode-zk-offline-dqn/3889b663-d3cd-4873-87c6-d4e33929453b/scratchpad/t2final",
   "paper": false,
-  "refresh_proof_metrics": true,
+  "refresh_proof_metrics": false,
   "regenerate_missing_merkle_datasets": false,
   "reuse_existing_provenance": true,
   "reuse_phase2_datasets": true,

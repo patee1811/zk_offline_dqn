@@ -82,62 +82,8 @@ def _row_from_case(root: Path, case: ProofCase) -> Dict[str, Any]:
 
 
 def _load_case_metrics(root: Path, case: ProofCase) -> Dict[str, Any] | None:
-    if case.case_id == "td_mvp":
-        return _td_mvp_metrics(root)
     path = provenance_path(root, case)
     return None if path is None else load_json(path / "metrics.json")
-
-
-def _td_mvp_metrics(root: Path) -> Dict[str, Any] | None:
-    summary = load_json(root / "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json")
-    if not summary:
-        return None
-    execute = _command(summary, "sp1_execute")
-    prove = _command(summary, "sp1_prove")
-    execute_values = _parse_key_values(execute.get("stdout_tail", "") if execute else "")
-    prove_values = _parse_key_values(prove.get("stdout_tail", "") if prove else "")
-    return {
-        "relation": "td_mvp",
-        "proof_generated": prove_values.get("proof_generated") == "true",
-        "proof_verified": prove_values.get("proof_verified") == "true",
-        "prove_time_seconds": _float(prove_values.get("proving_time_sec")),
-        "verify_time_seconds": _float(prove_values.get("verification_time_sec")),
-        "proof_size_bytes": _int(prove_values.get("proof_size_bytes")),
-        "cycle_count": _int(execute_values.get("cycle_count")),
-        "backend_version": "0.1.0",
-        "sp1_version": "6.1.0",
-        "git_commit": summary.get("git_commit"),
-    }
-
-
-def _command(summary: Dict[str, Any], label: str) -> Dict[str, Any] | None:
-    for item in summary.get("commands", []):
-        if item.get("label") == label:
-            return item
-    return None
-
-
-def _parse_key_values(text: str) -> Dict[str, str]:
-    out = {}
-    for line in str(text).splitlines():
-        if "=" in line:
-            key, value = line.split("=", 1)
-            out[key.strip()] = value.strip()
-    return out
-
-
-def _float(value: Any) -> float | None:
-    try:
-        return None if value is None else float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _int(value: Any) -> int | None:
-    try:
-        return None if value is None else int(float(value))
-    except (TypeError, ValueError):
-        return None
 
 
 def _hash_in_provenance(root: Path, case: ProofCase, filename: str) -> str | None:
@@ -146,8 +92,6 @@ def _hash_in_provenance(root: Path, case: ProofCase, filename: str) -> str | Non
 
 
 def _metrics_source(root: Path, case: ProofCase) -> str:
-    if case.case_id == "td_mvp":
-        return "artifacts/reports/provenance/sp1/kaggle_sp1_validation_summary.json"
     path = provenance_path(root, case)
     return "" if path is None else (path / "metrics.json").relative_to(root).as_posix()
 

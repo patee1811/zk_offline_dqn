@@ -2,7 +2,7 @@
 
 | Relation | Variant | Scale Axis | Status | Prove Time (s) | Verify Time (s) | Proof Size (bytes) | Cycle Count | Peak RSS (MB) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| td_mvp | canonical | relation | proof_verified | 167.726006 | 0.190326 | 2783869 | 385048 |  |
+| td_mvp | canonical | relation | proof_verified | 53.948219801 | 0.115671105 | 2783869 | 385048 |  |
 | merkle_membership | canonical | merkle_depth | proof_verified | 45.566397837 | 0.114596454 | 2779510 | 103106 |  |
 | forward_td_mlp | canonical_tiny | network | proof_verified | 79.264680209 | 0.116442351 | 2797873 | 1547202 |  |
 | one_step_sgd_tiny | canonical_tiny | network | proof_verified | 64.081797808 | 0.116264878 | 2790039 | 868731 |  |
