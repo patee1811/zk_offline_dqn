@@ -1,11 +1,11 @@
 {
-  "aggregate_root": "6982d94c9acdf5de0cc0b167958759dadad8b6ffd543d503a56c99b879b535df",
+  "aggregate_root": "46eb89ca2d57d328e8d3e61977f5987513dfdd24423c062a586d1b5ddb1ddf5c",
   "aggregation_mode": "recursive_sp1",
   "aggregation_topology": null,
   "child_proof_mode": "native_sp1",
   "child_proof_verification_inside_guest": true,
   "chunk_count": 4,
-  "chunk_proof_root": "e83da71534abb5fa44374aaf9c6f8ccb38e0ba4d9e9069057f910ebace18ea51",
+  "chunk_proof_root": "d5271d3d1dc0f56312f67218680b404b1c14162d60f6fc5a49bb8dfd4b4c95d4",
   "chunk_public_inputs_root": "f7c22f3b710f84fc7d069122ff3149fa0edcee5da5365013e3f13ddf7cef436c",
   "chunk_relation_id": "training_fragment_k8",
   "chunk_size": 8,

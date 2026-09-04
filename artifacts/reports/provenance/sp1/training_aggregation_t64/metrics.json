@@ -8,9 +8,9 @@
   "child_proof_verification_inside_guest": false,
   "chunk_count": 8,
   "chunk_size": 8,
-  "cycle_count": 1370337,
+  "cycle_count": 1372345,
   "git_commit": null,
-  "guest_elf_sha256": "996035c56703594649741861acac5153d6156b7bbca53b93dea408df9ccde107",
+  "guest_elf_sha256": "7975de7348f4dfbd649962d0f7435be6393ba5e63c9c63e1bfc0a62e97fb3f14",
   "leaf_chunk_count": null,
   "notes": [
     "SP1 proof-backed proof-manifest chunk-chain aggregation; child proof cryptography is not recursively verified inside SP1."
@@ -18,13 +18,13 @@
   "proof_generated": true,
   "proof_size_bytes": 2802543,
   "proof_verified": true,
-  "prove_time_seconds": 83.51705198,
-  "public_inputs_sha256": "4dd2d0c7601b58591abbb0f74290a382d1ac783d4e8671c01a8482853e8178e3",
+  "prove_time_seconds": 83.345884299,
+  "public_inputs_sha256": "9b0a4b6473a98f722c05cf4c9706525186387f60f623458b11d3bbbd360eb92d",
   "relation": "training_aggregation",
   "sp1_version": "6.1.0",
   "step_end": 64,
   "step_start": 0,
-  "test_vector_sha256": "a4bbdcf19a1e424c30165f7023b41988f764a4532c873389d17f63a6432c27cf",
+  "test_vector_sha256": "80b6371b6183bd5efdcb6333d843e697d26a76a748e3f639c14822bf692bf557",
   "tree_depth": null,
-  "verify_time_seconds": 0.115726414
+  "verify_time_seconds": 0.115835967
 }
