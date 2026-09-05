@@ -4,56 +4,56 @@
 \label{tab:rl-performance}
 \begin{tabular}{llllllllllll}
 \toprule
-Dataset & Family & Source & Transitions & Baseline & Seeds & Avg Return & Std Return & Norm. Score & Success Rate & Train Steps & Status \\
+Dataset & Family & Source & Transitions & Baseline & Optimizer & Seeds & Avg Return & Std Return & Norm. Score & Success Rate & Train Steps & Status \\
 \midrule
-cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & bc & 3 & 11.000 $\pm$ 0.852 & 0.852 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & offline\_dqn & 3 & 161.900 $\pm$ 49.897 & 49.897 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & double\_dqn & 3 & 192.900 $\pm$ 69.318 & 69.318 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & cql\_lite & 3 & 199.000 $\pm$ 34.766 & 34.766 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & bc\_continuous &  &  &  &  &  &  & incompatible\_skipped \\
-cartpole-random-v1 & cartpole & audited\_self\_collected & 9204 & iql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & bc & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & offline\_dqn & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & double\_dqn & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & cql\_lite & 3 & -200.000 $\pm$ 0.000 & 0.000 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
-mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & bc\_continuous &  &  &  &  &  &  & incompatible\_skipped \\
-mountaincar-random-v1 & mountaincar & audited\_self\_collected & 10000 & iql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & bc\_continuous & 3 & 174.000 $\pm$ 27.151 & 27.151 &  & 0.833 $\pm$ 0.125 & 5000 & completed \\
-minari-pointmaze-umaze-v2-10000 & minari-pointmaze-umaze & public\_source\_integrity & 10000 & iql\_lite & 3 & 163.400 $\pm$ 15.144 & 15.144 &  & 0.700 $\pm$ 0.082 & 5000 & completed \\
-minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & bc\_continuous & 3 & 166.167 $\pm$ 21.417 & 21.417 &  & 0.767 $\pm$ 0.125 & 5000 & completed \\
-minari-pointmaze-umaze-v2-50000 & minari-pointmaze-umaze & public\_source\_integrity & 50000 & iql\_lite & 3 & 166.667 $\pm$ 21.344 & 21.344 &  & 0.767 $\pm$ 0.125 & 5000 & completed \\
-minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & bc\_continuous & 3 & 142.433 $\pm$ 13.241 & 13.241 &  & 0.600 $\pm$ 0.245 & 5000 & completed \\
-minari-pointmaze-umaze-v2-100000 & minari-pointmaze-umaze & public\_source\_integrity & 100000 & iql\_lite & 3 & 142.567 $\pm$ 16.017 & 16.017 &  & 0.500 $\pm$ 0.163 & 5000 & completed \\
-minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & bc\_continuous & 3 & 186.901 $\pm$ 8.134 & 8.134 &  & 0.833 $\pm$ 0.125 & 5000 & completed \\
-minari-pointmaze-umaze-dense-v2-10000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 10000 & iql\_lite & 3 & 173.787 $\pm$ 9.096 & 9.096 &  & 0.567 $\pm$ 0.094 & 5000 & completed \\
-minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & bc\_continuous & 3 & 185.394 $\pm$ 10.913 & 10.913 &  & 0.767 $\pm$ 0.125 & 5000 & completed \\
-minari-pointmaze-umaze-dense-v2-50000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 50000 & iql\_lite & 3 & 173.724 $\pm$ 10.247 & 10.247 &  & 0.600 $\pm$ 0.082 & 5000 & completed \\
-minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & bc &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & offline\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & double\_dqn &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & cql\_lite &  &  &  &  &  &  & incompatible\_skipped \\
-minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & bc\_continuous & 3 & 175.766 $\pm$ 8.057 & 8.057 &  & 0.600 $\pm$ 0.245 & 5000 & completed \\
-minari-pointmaze-umaze-dense-v2-100000 & minari-pointmaze-umaze-dense & public\_source\_integrity & 100000 & iql\_lite & 3 & 170.032 $\pm$ 12.930 & 12.930 &  & 0.567 $\pm$ 0.047 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & bc & adam & 3 & 9.433 $\pm$ 0.287 & 0.287 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & bc & sgd & 3 & 32.767 $\pm$ 21.940 & 21.940 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & offline\_dqn & adam & 3 & 254.267 $\pm$ 176.772 & 176.772 &  & 0.333 $\pm$ 0.471 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & offline\_dqn & sgd & 3 & 291.933 $\pm$ 41.451 & 41.451 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & double\_dqn & adam & 3 & 86.100 $\pm$ 11.258 & 11.258 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & double\_dqn & sgd & 3 & 307.800 $\pm$ 53.766 & 53.766 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & cql\_lite & adam & 3 & 217.967 $\pm$ 185.826 & 185.826 &  & 0.267 $\pm$ 0.377 & 5000 & completed \\
+cartpole-random-v2 & cartpole-random & audited\_self\_collected & 50006 & cql\_lite & sgd & 3 & 304.167 $\pm$ 48.320 & 48.320 &  & 0.100 $\pm$ 0.141 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & bc & adam & 3 & 268.433 $\pm$ 8.588 & 8.588 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & bc & sgd & 3 & 337.767 $\pm$ 82.514 & 82.514 &  & 0.167 $\pm$ 0.170 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & offline\_dqn & adam & 3 & 9.300 $\pm$ 0.216 & 0.216 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & offline\_dqn & sgd & 3 & 9.700 $\pm$ 0.726 & 0.726 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & double\_dqn & adam & 3 & 9.300 $\pm$ 0.216 & 0.216 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & double\_dqn & sgd & 3 & 9.733 $\pm$ 0.772 & 0.772 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & cql\_lite & adam & 3 & 235.667 $\pm$ 18.998 & 18.998 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-medium-v2 & cartpole-medium & audited\_self\_collected & 50045 & cql\_lite & sgd & 3 & 243.767 $\pm$ 96.404 & 96.404 &  & 0.167 $\pm$ 0.236 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & bc & adam & 3 & 438.700 $\pm$ 86.691 & 86.691 &  & 0.833 $\pm$ 0.236 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & bc & sgd & 3 & 491.667 $\pm$ 8.209 & 8.209 &  & 0.933 $\pm$ 0.047 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & offline\_dqn & adam & 3 & 9.300 $\pm$ 0.216 & 0.216 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & offline\_dqn & sgd & 3 & 16.300 $\pm$ 9.477 & 9.477 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & double\_dqn & adam & 3 & 9.300 $\pm$ 0.216 & 0.216 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & double\_dqn & sgd & 3 & 9.567 $\pm$ 0.170 & 0.170 &  & 0.000 $\pm$ 0.000 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & cql\_lite & adam & 3 & 445.167 $\pm$ 77.546 & 77.546 &  & 0.867 $\pm$ 0.189 & 5000 & completed \\
+cartpole-expert-v2 & cartpole-expert & audited\_self\_collected & 50261 & cql\_lite & sgd & 3 & 192.867 $\pm$ 178.971 & 178.971 &  & 0.133 $\pm$ 0.189 & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & bc & adam & 3 & -300.331 $\pm$ 231.287 & 231.287 &  &  & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & bc & sgd & 3 & -377.995 $\pm$ 175.087 & 175.087 &  &  & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & offline\_dqn & adam & 3 & -134.523 $\pm$ 4.348 & 4.348 &  &  & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & offline\_dqn & sgd & 3 & -210.367 $\pm$ 12.873 & 12.873 &  &  & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & double\_dqn & adam & 3 & -63.234 $\pm$ 103.793 & 103.793 &  &  & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & double\_dqn & sgd & 3 & -185.829 $\pm$ 21.585 & 21.585 &  &  & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & cql\_lite & adam & 3 & -204.056 $\pm$ 38.208 & 38.208 &  &  & 5000 & completed \\
+lunarlander-random-v1 & lunarlander-random & audited\_self\_collected & 50020 & cql\_lite & sgd & 3 & -165.653 $\pm$ 25.808 & 25.808 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & bc & adam & 3 & 23.859 $\pm$ 32.551 & 32.551 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & bc & sgd & 3 & -190.058 $\pm$ 95.696 & 95.696 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & offline\_dqn & adam & 3 & -337.334 $\pm$ 175.025 & 175.025 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & offline\_dqn & sgd & 3 & -352.260 $\pm$ 112.461 & 112.461 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & double\_dqn & adam & 3 & -238.419 $\pm$ 73.088 & 73.088 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & double\_dqn & sgd & 3 & -364.008 $\pm$ 104.069 & 104.069 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & cql\_lite & adam & 3 & -70.155 $\pm$ 54.873 & 54.873 &  &  & 5000 & completed \\
+lunarlander-medium-v1 & lunarlander-medium & audited\_self\_collected & 50586 & cql\_lite & sgd & 3 & -285.667 $\pm$ 103.087 & 103.087 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & bc & adam & 3 & 159.758 $\pm$ 30.328 & 30.328 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & bc & sgd & 3 & -52.737 $\pm$ 2.875 & 2.875 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & offline\_dqn & adam & 3 & -162.358 $\pm$ 73.489 & 73.489 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & offline\_dqn & sgd & 3 & -520.224 $\pm$ 95.103 & 95.103 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & double\_dqn & adam & 3 & -398.238 $\pm$ 260.151 & 260.151 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & double\_dqn & sgd & 3 & -533.538 $\pm$ 95.498 & 95.498 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & cql\_lite & adam & 3 & 133.326 $\pm$ 63.649 & 63.649 &  &  & 5000 & completed \\
+lunarlander-expert-v1 & lunarlander-expert & audited\_self\_collected & 50552 & cql\_lite & sgd & 3 & -387.359 $\pm$ 180.121 & 180.121 &  &  & 5000 & completed \\
 \bottomrule
 \end{tabular}
 \end{table}

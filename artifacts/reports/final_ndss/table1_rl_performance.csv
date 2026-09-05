@@ -1,49 +1,49 @@
-Dataset,Family,Source,Transitions,Baseline,Seeds,Avg Return,Std Return,Norm. Score,Success Rate,Train Steps,Status
-cartpole-random-v1,cartpole,audited_self_collected,9204,bc,3,11.000 +/- 0.852,0.852,,0.000 +/- 0.000,5000,completed
-cartpole-random-v1,cartpole,audited_self_collected,9204,offline_dqn,3,161.900 +/- 49.897,49.897,,0.000 +/- 0.000,5000,completed
-cartpole-random-v1,cartpole,audited_self_collected,9204,double_dqn,3,192.900 +/- 69.318,69.318,,0.000 +/- 0.000,5000,completed
-cartpole-random-v1,cartpole,audited_self_collected,9204,cql_lite,3,199.000 +/- 34.766,34.766,,0.000 +/- 0.000,5000,completed
-cartpole-random-v1,cartpole,audited_self_collected,9204,bc_continuous,0,,,,,0,incompatible_skipped
-cartpole-random-v1,cartpole,audited_self_collected,9204,iql_lite,0,,,,,0,incompatible_skipped
-mountaincar-random-v1,mountaincar,audited_self_collected,10000,bc,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
-mountaincar-random-v1,mountaincar,audited_self_collected,10000,offline_dqn,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
-mountaincar-random-v1,mountaincar,audited_self_collected,10000,double_dqn,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
-mountaincar-random-v1,mountaincar,audited_self_collected,10000,cql_lite,3,-200.000 +/- 0.000,0.000,,0.000 +/- 0.000,5000,completed
-mountaincar-random-v1,mountaincar,audited_self_collected,10000,bc_continuous,0,,,,,0,incompatible_skipped
-mountaincar-random-v1,mountaincar,audited_self_collected,10000,iql_lite,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,bc,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,offline_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,double_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,cql_lite,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,bc_continuous,3,174.000 +/- 27.151,27.151,,0.833 +/- 0.125,5000,completed
-minari-pointmaze-umaze-v2-10000,minari-pointmaze-umaze,public_source_integrity,10000,iql_lite,3,163.400 +/- 15.144,15.144,,0.700 +/- 0.082,5000,completed
-minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,bc,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,offline_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,double_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,cql_lite,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,bc_continuous,3,166.167 +/- 21.417,21.417,,0.767 +/- 0.125,5000,completed
-minari-pointmaze-umaze-v2-50000,minari-pointmaze-umaze,public_source_integrity,50000,iql_lite,3,166.667 +/- 21.344,21.344,,0.767 +/- 0.125,5000,completed
-minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,bc,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,offline_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,double_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,cql_lite,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,bc_continuous,3,142.433 +/- 13.241,13.241,,0.600 +/- 0.245,5000,completed
-minari-pointmaze-umaze-v2-100000,minari-pointmaze-umaze,public_source_integrity,100000,iql_lite,3,142.567 +/- 16.017,16.017,,0.500 +/- 0.163,5000,completed
-minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,bc,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,offline_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,double_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,cql_lite,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,bc_continuous,3,186.901 +/- 8.134,8.134,,0.833 +/- 0.125,5000,completed
-minari-pointmaze-umaze-dense-v2-10000,minari-pointmaze-umaze-dense,public_source_integrity,10000,iql_lite,3,173.787 +/- 9.096,9.096,,0.567 +/- 0.094,5000,completed
-minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,bc,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,offline_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,double_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,cql_lite,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,bc_continuous,3,185.394 +/- 10.913,10.913,,0.767 +/- 0.125,5000,completed
-minari-pointmaze-umaze-dense-v2-50000,minari-pointmaze-umaze-dense,public_source_integrity,50000,iql_lite,3,173.724 +/- 10.247,10.247,,0.600 +/- 0.082,5000,completed
-minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,bc,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,offline_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,double_dqn,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,cql_lite,0,,,,,0,incompatible_skipped
-minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,bc_continuous,3,175.766 +/- 8.057,8.057,,0.600 +/- 0.245,5000,completed
-minari-pointmaze-umaze-dense-v2-100000,minari-pointmaze-umaze-dense,public_source_integrity,100000,iql_lite,3,170.032 +/- 12.930,12.930,,0.567 +/- 0.047,5000,completed
+Dataset,Family,Source,Transitions,Baseline,Optimizer,Seeds,Avg Return,Std Return,Norm. Score,Success Rate,Train Steps,Status
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,bc,adam,3,9.433 +/- 0.287,0.287,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,bc,sgd,3,32.767 +/- 21.940,21.940,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,offline_dqn,adam,3,254.267 +/- 176.772,176.772,,0.333 +/- 0.471,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,offline_dqn,sgd,3,291.933 +/- 41.451,41.451,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,double_dqn,adam,3,86.100 +/- 11.258,11.258,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,double_dqn,sgd,3,307.800 +/- 53.766,53.766,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,cql_lite,adam,3,217.967 +/- 185.826,185.826,,0.267 +/- 0.377,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,cql_lite,sgd,3,304.167 +/- 48.320,48.320,,0.100 +/- 0.141,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,bc,adam,3,268.433 +/- 8.588,8.588,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,bc,sgd,3,337.767 +/- 82.514,82.514,,0.167 +/- 0.170,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,offline_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,offline_dqn,sgd,3,9.700 +/- 0.726,0.726,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,double_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,double_dqn,sgd,3,9.733 +/- 0.772,0.772,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,cql_lite,adam,3,235.667 +/- 18.998,18.998,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,cql_lite,sgd,3,243.767 +/- 96.404,96.404,,0.167 +/- 0.236,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,bc,adam,3,438.700 +/- 86.691,86.691,,0.833 +/- 0.236,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,bc,sgd,3,491.667 +/- 8.209,8.209,,0.933 +/- 0.047,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,offline_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,offline_dqn,sgd,3,16.300 +/- 9.477,9.477,,0.000 +/- 0.000,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,double_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,double_dqn,sgd,3,9.567 +/- 0.170,0.170,,0.000 +/- 0.000,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,cql_lite,adam,3,445.167 +/- 77.546,77.546,,0.867 +/- 0.189,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,cql_lite,sgd,3,192.867 +/- 178.971,178.971,,0.133 +/- 0.189,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,bc,adam,3,-300.331 +/- 231.287,231.287,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,bc,sgd,3,-377.995 +/- 175.087,175.087,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,offline_dqn,adam,3,-134.523 +/- 4.348,4.348,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,offline_dqn,sgd,3,-210.367 +/- 12.873,12.873,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,double_dqn,adam,3,-63.234 +/- 103.793,103.793,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,double_dqn,sgd,3,-185.829 +/- 21.585,21.585,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,cql_lite,adam,3,-204.056 +/- 38.208,38.208,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,cql_lite,sgd,3,-165.653 +/- 25.808,25.808,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,bc,adam,3,23.859 +/- 32.551,32.551,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,bc,sgd,3,-190.058 +/- 95.696,95.696,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,offline_dqn,adam,3,-337.334 +/- 175.025,175.025,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,offline_dqn,sgd,3,-352.260 +/- 112.461,112.461,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,double_dqn,adam,3,-238.419 +/- 73.088,73.088,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,double_dqn,sgd,3,-364.008 +/- 104.069,104.069,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,cql_lite,adam,3,-70.155 +/- 54.873,54.873,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,cql_lite,sgd,3,-285.667 +/- 103.087,103.087,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,bc,adam,3,159.758 +/- 30.328,30.328,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,bc,sgd,3,-52.737 +/- 2.875,2.875,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,offline_dqn,adam,3,-162.358 +/- 73.489,73.489,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,offline_dqn,sgd,3,-520.224 +/- 95.103,95.103,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,double_dqn,adam,3,-398.238 +/- 260.151,260.151,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,double_dqn,sgd,3,-533.538 +/- 95.498,95.498,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,cql_lite,adam,3,133.326 +/- 63.649,63.649,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,cql_lite,sgd,3,-387.359 +/- 180.121,180.121,,,5000,completed
