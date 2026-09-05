@@ -88,6 +88,23 @@ def _finite(loss: torch.Tensor, name: str) -> None:
         raise FloatingPointError(f"{name} became NaN or Inf")
 
 
+# The proved relation applies `post = pre - learning_rate * grad`: no momentum,
+# no adaptive term, and a rate that has to survive encode_fp at FP_SCALE=1000,
+# so it must be a multiple of 0.001. The Adam default of 3e-4 encodes to 0 and
+# cannot be expressed at all. 0.01 is the rate the committed test vectors use
+# (learning_rate_fp=10), which makes this the configuration the proof system
+# actually verifies rather than a tuned stand-in for it.
+PROVED_SGD_LEARNING_RATE = 0.01
+
+
+def _make_optimizer(parameters, optimizer: str, learning_rate: float):
+    if optimizer == "adam":
+        return torch.optim.Adam(parameters, lr=learning_rate)
+    if optimizer == "sgd":
+        return torch.optim.SGD(parameters, lr=PROVED_SGD_LEARNING_RATE)
+    raise ValueError(f"unsupported optimizer: {optimizer}")
+
+
 def train_behavior_cloning_discrete(
     dataset: OfflineDataset,
     *,
@@ -96,13 +113,14 @@ def train_behavior_cloning_discrete(
     device: str = "cpu",
     batch_size: int = 64,
     learning_rate: float = 3e-4,
+    optimizer_name: str = "adam",
 ) -> TorchPolicy:
     if dataset.action_kind != "discrete":
         raise ValueError("discrete BC requires scalar integer actions")
     seed_everything(seed)
     target_device = _device(device)
     policy = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
-    optimizer = torch.optim.Adam(policy.parameters(), lr=learning_rate)
+    optimizer = _make_optimizer(policy.parameters(), optimizer_name, learning_rate)
     policy.train()
     for _ in range(max(1, int(train_steps))):
         batch = _batch(dataset, batch_size, target_device)
@@ -132,6 +150,7 @@ def train_offline_q(
     gamma: float = 0.99,
     target_update_interval: int = 100,
     cql_alpha: float = 0.1,
+    optimizer_name: str = "adam",
 ) -> TorchPolicy:
     if dataset.action_kind != "discrete":
         raise ValueError("offline Q baselines require scalar integer actions")
@@ -142,7 +161,7 @@ def train_offline_q(
     online = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
     target = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
     target.load_state_dict(online.state_dict())
-    optimizer = torch.optim.Adam(online.parameters(), lr=learning_rate)
+    optimizer = _make_optimizer(online.parameters(), optimizer_name, learning_rate)
 
     for step in range(max(1, int(train_steps))):
         batch = _batch(dataset, batch_size, target_device)

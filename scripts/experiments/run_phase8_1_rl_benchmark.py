@@ -53,6 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--paper", action="store_true")
     parser.add_argument("--datasets", nargs="+")
     parser.add_argument("--baselines", nargs="+")
+    parser.add_argument("--optimizers", nargs="+", choices=["adam", "sgd"])
     parser.add_argument("--seeds", nargs="+", type=int)
     parser.add_argument("--train-steps", type=int)
     parser.add_argument("--eval-episodes", type=int)
@@ -102,6 +103,10 @@ def _mode_defaults(args: argparse.Namespace) -> None:
         )
     if args.baselines is None:
         args.baselines = ["bc", "offline_dqn", "double_dqn", "cql_lite"]
+    if args.optimizers is None:
+        # The zk relation verifies plain SGD, so an Adam-only table does not
+        # report what the proof system actually checks.
+        args.optimizers = ["adam", "sgd"] if paper else ["adam"]
     if args.seeds is None:
         args.seeds = [0, 1, 2] if paper else [0]
     if args.train_steps is None:
@@ -258,7 +263,18 @@ def _expected_baselines(dataset_name: str, baselines: Iterable[str]) -> List[str
     return [baseline for baseline in baselines if baseline in expected]
 
 
-def _train_policy(dataset, baseline: str, seed: int, args: argparse.Namespace):
+def _optimizers_for(baseline: str, args: argparse.Namespace) -> List[str]:
+    """Only the discrete baselines carry the optimizer axis.
+
+    The continuous ones take no optimizer_name, so running them twice would
+    report the same Adam numbers under two labels.
+    """
+    if baseline in DISCRETE_BASELINES:
+        return list(args.optimizers)
+    return ["adam"]
+
+
+def _train_policy(dataset, baseline: str, seed: int, args: argparse.Namespace, optimizer: str):
     kwargs = {
         "train_steps": args.train_steps,
         "seed": seed,
@@ -266,9 +282,11 @@ def _train_policy(dataset, baseline: str, seed: int, args: argparse.Namespace):
         "batch_size": args.batch_size,
     }
     if baseline == "bc":
-        return train_behavior_cloning_discrete(dataset, **kwargs)
+        return train_behavior_cloning_discrete(dataset, optimizer_name=optimizer, **kwargs)
     if baseline in {"offline_dqn", "double_dqn", "cql_lite"}:
-        return train_offline_q(dataset, algorithm=baseline, **kwargs)
+        return train_offline_q(dataset, algorithm=baseline, optimizer_name=optimizer, **kwargs)
+    # The continuous baselines carry no optimizer axis: they are outside the
+    # relation this paper proves, and only reachable through --baselines.
     if baseline == "bc_continuous":
         return train_behavior_cloning_continuous(dataset, **kwargs)
     if baseline == "iql_lite":
@@ -303,6 +321,7 @@ def _aggregate_seed_metrics(
     *,
     dataset,
     baseline: str,
+    optimizer: str,
     seed_metrics: List[Dict[str, Any]],
     train_steps: int,
     eval_episodes: int,
@@ -311,6 +330,7 @@ def _aggregate_seed_metrics(
     result: Dict[str, Any] = {
         "dataset": dataset.name,
         "baseline": baseline,
+        "optimizer": optimizer,
         "status": "completed",
         "rollout_eval_status": "completed",
         "num_seeds": len(seed_metrics),
@@ -437,76 +457,82 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
                 incompatible.update(_dataset_result_fields(dataset))
                 incompatible["rollout_eval_status"] = "not_run"
                 incompatible["seed_list"] = []
+                incompatible["optimizer"] = None
                 results.append(incompatible)
                 raw_runs.append(incompatible)
                 continue
 
-            seed_metrics: List[Dict[str, Any]] = []
-            failure = None
-            for seed in args.seeds:
-                try:
-                    policy = _train_policy(dataset, baseline, seed, args)
-                    summary = evaluate_policy(
-                        policy,
-                        dataset,
-                        seeds=[seed],
-                        eval_episodes=args.eval_episodes,
+            for optimizer in _optimizers_for(baseline, args):
+                seed_metrics: List[Dict[str, Any]] = []
+                failure = None
+                for seed in args.seeds:
+                    try:
+                        policy = _train_policy(dataset, baseline, seed, args, optimizer)
+                        summary = evaluate_policy(
+                            policy,
+                            dataset,
+                            seeds=[seed],
+                            eval_episodes=args.eval_episodes,
+                        )
+                        seed_metric = dict(summary.metrics)
+                        seed_metric["seed"] = seed
+                        seed_metrics.append(seed_metric)
+                        raw_runs.append(
+                            {
+                                "dataset": dataset.name,
+                                "baseline": baseline,
+                                "optimizer": optimizer,
+                                "seed": seed,
+                                "metrics": seed_metric,
+                                "returns": summary.returns,
+                                "successes": summary.successes,
+                                "status": "completed",
+                                "rollout_eval_status": "completed",
+                                **_dataset_result_fields(dataset),
+                            }
+                        )
+                    except Exception as exc:
+                        failure = str(exc)
+                        raw_runs.append(
+                            {
+                                "dataset": dataset.name,
+                                "baseline": baseline,
+                                "optimizer": optimizer,
+                                "seed": seed,
+                                "status": "failed",
+                                "reason": failure,
+                                "rollout_eval_status": "failed",
+                                **_dataset_result_fields(dataset),
+                            }
+                        )
+                        break
+                if failure is not None:
+                    failed = skipped_result_rows(
+                        dataset.name,
+                        [baseline],
+                        source_type=dataset.source_type,
+                        reason=failure,
+                        status="failed",
+                        dataset_family=dataset.metadata.get("dataset_family"),
+                    )[0]
+                    failed.update(_dataset_result_fields(dataset))
+                    failed["seed_list"] = list(args.seeds)
+                    failed["rollout_eval_status"] = "failed"
+                    failed["train_steps"] = int(args.train_steps)
+                    failed["optimizer"] = optimizer
+                    results.append(failed)
+                else:
+                    results.append(
+                        _aggregate_seed_metrics(
+                            dataset=dataset,
+                            baseline=baseline,
+                            optimizer=optimizer,
+                            seed_metrics=seed_metrics,
+                            train_steps=args.train_steps,
+                            eval_episodes=args.eval_episodes,
+                            seeds=args.seeds,
+                        )
                     )
-                    seed_metric = dict(summary.metrics)
-                    seed_metric["seed"] = seed
-                    seed_metrics.append(seed_metric)
-                    raw_runs.append(
-                        {
-                            "dataset": dataset.name,
-                            "baseline": baseline,
-                            "seed": seed,
-                            "metrics": seed_metric,
-                            "returns": summary.returns,
-                            "successes": summary.successes,
-                            "status": "completed",
-                            "rollout_eval_status": "completed",
-                            **_dataset_result_fields(dataset),
-                        }
-                    )
-                except Exception as exc:
-                    failure = str(exc)
-                    raw_runs.append(
-                        {
-                            "dataset": dataset.name,
-                            "baseline": baseline,
-                            "seed": seed,
-                            "status": "failed",
-                            "reason": failure,
-                            "rollout_eval_status": "failed",
-                            **_dataset_result_fields(dataset),
-                        }
-                    )
-                    break
-            if failure is not None:
-                failed = skipped_result_rows(
-                    dataset.name,
-                    [baseline],
-                    source_type=dataset.source_type,
-                    reason=failure,
-                    status="failed",
-                    dataset_family=dataset.metadata.get("dataset_family"),
-                )[0]
-                failed.update(_dataset_result_fields(dataset))
-                failed["seed_list"] = list(args.seeds)
-                failed["rollout_eval_status"] = "failed"
-                failed["train_steps"] = int(args.train_steps)
-                results.append(failed)
-            else:
-                results.append(
-                    _aggregate_seed_metrics(
-                        dataset=dataset,
-                        baseline=baseline,
-                        seed_metrics=seed_metrics,
-                        train_steps=args.train_steps,
-                        eval_episodes=args.eval_episodes,
-                        seeds=args.seeds,
-                    )
-                )
 
     public_requested_ids = [
         dataset_name for dataset_name in dataset_names if public_family_for_dataset_id(dataset_name) is not None
@@ -530,6 +556,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
         "mode": "paper" if args.paper else "smoke",
         "datasets": dataset_names,
         "baselines": args.baselines,
+        "optimizers": args.optimizers,
         "completed_rows": sum(result["status"] == "completed" for result in results),
         "skipped_rows": sum(result["status"] == "skipped" for result in results),
         "incompatible_skipped_rows": sum(
@@ -556,6 +583,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
         "datasets": dataset_names,
         "requested_datasets": args.datasets,
         "baselines": args.baselines,
+        "optimizers": args.optimizers,
         "seeds": args.seeds,
         "train_steps": args.train_steps,
         "eval_episodes": args.eval_episodes,

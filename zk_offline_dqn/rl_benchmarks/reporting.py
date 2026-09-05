@@ -19,6 +19,7 @@ TABLE_COLUMNS = [
     "Source",
     "Transitions",
     "Baseline",
+    "Optimizer",
     "Seeds",
     "Avg Return",
     "Std Return",
@@ -55,6 +56,7 @@ def table_row(result: Dict[str, Any]) -> Dict[str, Any]:
         "Source": result.get("dataset_source_type", ""),
         "Transitions": result.get("dataset_num_transitions"),
         "Baseline": result["baseline"],
+        "Optimizer": result.get("optimizer") or "",
         "Seeds": result.get("num_seeds"),
         "Avg Return": _mean_std(
             result.get("average_return_mean"), result.get("average_return_std")
