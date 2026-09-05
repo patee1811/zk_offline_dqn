@@ -10,7 +10,10 @@ from scripts.data.audit_replay_dataset import audit_dataset
 from scripts.data.commit_audited_dataset import commit_dataset
 from scripts.experiments.run_phase8_1_rl_benchmark import public_benchmark_gate_failed
 from zk_offline_dqn.data_pipeline import RAW_EPISODES_NAME, write_jsonl, write_manifest
-from zk_offline_dqn.experiments.report_tables import check_table1_rl_performance
+from zk_offline_dqn.experiments.report_tables import (
+    check_public_dataset_coverage,
+    check_table1_rl_performance,
+)
 from zk_offline_dqn.rl_benchmarks.agents import (
     cql_lite_loss,
     train_behavior_cloning_continuous,
@@ -153,13 +156,113 @@ class Phase81RlBenchmarkTests(unittest.TestCase):
                 ],
             )
 
-    def test_report_source_checker_rejects_table_without_completed_public_row(self):
+    def test_report_source_checker_rejects_table_without_the_proved_optimizer(self):
         with tempfile.TemporaryDirectory() as tmp:
             table_dir = Path(tmp) / "artifacts/reports/final_ndss"
-            write_table_outputs([self._result()], table_dir, status={"phase": "8.1"})
+            adam_only = self._result()
+            adam_only["optimizer"] = "adam"
+            write_table_outputs([adam_only], table_dir, status={"phase": "8.1"})
             result = check_table1_rl_performance(Path(tmp))
             self.assertEqual(result["status"], "failed")
-            self.assertIn("no completed public", result["reason"])
+            self.assertIn("optimizer the relation proves", result["reason"])
+
+    def test_report_source_checker_rejects_rows_outside_the_proved_relation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            table_dir = Path(tmp) / "artifacts/reports/final_ndss"
+            continuous = self._result(
+                dataset="minari-pointmaze-umaze-v2-10000",
+                source="public_source_integrity",
+            )
+            continuous["optimizer"] = "sgd"
+            write_table_outputs([continuous], table_dir, status={"phase": "8.1"})
+            result = check_table1_rl_performance(Path(tmp))
+            self.assertEqual(result["status"], "failed")
+            self.assertIn("outside the proved discrete relation", result["reason"])
+
+    def test_report_source_checker_accepts_a_discrete_sgd_table(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            table_dir = Path(tmp) / "artifacts/reports/final_ndss"
+            proved = self._result()
+            proved["optimizer"] = "sgd"
+            write_table_outputs([proved], table_dir, status={"phase": "8.1"})
+            result = check_table1_rl_performance(Path(tmp))
+            self.assertEqual(result["status"], "passed", result["reason"])
+
+    def test_public_coverage_needs_a_dataset_at_every_scale_point(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            table_dir = self._write_public_coverage_fixture(
+                Path(tmp), sizes=("10000", "100000"), proved_size="10000"
+            )
+            self.assertTrue(table_dir.exists())
+            result = check_public_dataset_coverage(Path(tmp))
+            self.assertEqual(result["status"], "failed")
+            self.assertIn("50000", result["reason"])
+
+    def test_public_coverage_needs_a_proof_against_a_committed_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_public_coverage_fixture(
+                Path(tmp), sizes=("10000", "50000", "100000"), proved_size=None
+            )
+            result = check_public_dataset_coverage(Path(tmp))
+            self.assertEqual(result["status"], "failed")
+            self.assertIn("merkle_membership", result["reason"])
+
+    def test_public_coverage_passes_when_a_committed_root_is_proved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_public_coverage_fixture(
+                Path(tmp), sizes=("10000", "50000", "100000"), proved_size="50000"
+            )
+            result = check_public_dataset_coverage(Path(tmp))
+            self.assertEqual(result["status"], "passed", result["reason"])
+            self.assertEqual(
+                result["proof_verified_public_datasets"],
+                ["minari-pointmaze-umaze-v2-50000"],
+            )
+
+    def _write_public_coverage_fixture(self, base: Path, *, sizes, proved_size):
+        """Lay out the two files the public-coverage gate reads.
+
+        proved_size names the dataset whose committed root a Table 2
+        merkle_membership row proves, or None for a table that proves nothing.
+        """
+        import json as _json
+
+        table_dir = base / "artifacts/reports/final_ndss"
+        table_dir.mkdir(parents=True, exist_ok=True)
+        roots = {f"minari-pointmaze-umaze-v2-{size}": f"{int(size):064x}" for size in sizes}
+        (table_dir / "dataset_hashes.json").write_text(
+            _json.dumps(
+                {
+                    "rows": [
+                        {"dataset_id": dataset_id, "merkle_root": root}
+                        for dataset_id, root in roots.items()
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        rows = []
+        if proved_size is not None:
+            metrics_rel = "artifacts/reports/provenance/sp1/merkle_case/metrics.json"
+            metrics_path = base / metrics_rel
+            metrics_path.parent.mkdir(parents=True, exist_ok=True)
+            metrics_path.write_text(
+                _json.dumps(
+                    {"dataset_root": roots[f"minari-pointmaze-umaze-v2-{proved_size}"]}
+                ),
+                encoding="utf-8",
+            )
+            rows.append(
+                {
+                    "Relation": "merkle_membership",
+                    "Status": "proof_verified",
+                    "Metrics Source": metrics_rel,
+                }
+            )
+        (table_dir / "table2_zk_proof_cost.json").write_text(
+            _json.dumps({"rows": rows}), encoding="utf-8"
+        )
+        return table_dir
 
     def test_missing_public_dataset_is_not_downloaded_directly(self):
         with tempfile.TemporaryDirectory() as tmp:

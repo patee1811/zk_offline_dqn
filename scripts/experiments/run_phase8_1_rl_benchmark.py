@@ -32,11 +32,14 @@ from zk_offline_dqn.rl_benchmarks.datasets import (
     validate_phase2_dataset,
 )
 from zk_offline_dqn.rl_benchmarks.evaluate import evaluate_policy
-from zk_offline_dqn.rl_benchmarks.reporting import skipped_result_rows, write_table_outputs
+from zk_offline_dqn.rl_benchmarks.reporting import (
+    CONTINUOUS_BASELINES,
+    DISCRETE_BASELINES,
+    skipped_result_rows,
+    write_table_outputs,
+)
 
 
-DISCRETE_BASELINES = {"bc", "offline_dqn", "double_dqn", "cql_lite"}
-CONTINUOUS_BASELINES = {"bc_continuous", "iql_lite"}
 DEFAULT_PUBLIC_SIZES = [10000, 50000, 100000]
 PUBLIC_FAMILY_ALIASES = {
     "umaze": "minari-pointmaze-umaze",

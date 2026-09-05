@@ -8,10 +8,13 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 from zk_offline_dqn.experiments import benchmark_manifest, paper_numbers
+from zk_offline_dqn.rl_benchmarks.reporting import DISCRETE_BASELINES
 from zk_offline_dqn.tamper_benchmarks.cases import MANDATORY_CATEGORIES
 
 
 ROOT = Path(__file__).resolve().parents[2]
+# Scale points the artifact claims it can consume a public benchmark at.
+PUBLIC_SCALE_POINTS = ("10000", "50000", "100000")
 DEFAULT_OUT_DIR = ROOT / "artifacts/reports/final_ndss"
 
 
@@ -235,17 +238,20 @@ def check_report_sources(root: Path | None = None) -> Dict[str, Any]:
     base = root or ROOT
     result = benchmark_manifest.check_sources(base)
     table1 = check_table1_rl_performance(base)
+    public_coverage = check_public_dataset_coverage(base)
     table2 = check_table2_zk_proof_cost(base)
     table3 = check_table3_tamper_rejection(base)
     theorem_map = check_theorem_artifact_map_sources(base)
     artifact_package = check_artifact_package_sources(base)
     result["table1_rl_performance"] = table1
+    result["public_dataset_coverage"] = public_coverage
     result["table2_zk_proof_cost"] = table2
     result["table3_tamper_rejection"] = table3
     result["theorem_artifact_map"] = theorem_map
     result["artifact_package"] = artifact_package
     if (
         table1["status"] != "passed"
+        or public_coverage["status"] != "passed"
         or table2["status"] != "passed"
         or table3["status"] != "passed"
         or theorem_map["status"] != "passed"
@@ -277,30 +283,105 @@ def check_table1_rl_performance(root: Path | None = None) -> Dict[str, Any]:
 
     payload = read_json(table_dir / "table1_rl_performance.json") or {}
     rows = payload.get("rows", [])
-    completed_public = [
-        row
-        for row in rows
-        if row.get("status") == "completed"
-        and row.get("dataset_source_type") == "public_source_integrity"
-    ]
-    status_payload = read_json(table_dir / "table1_rl_performance_status.json") or {}
-    status_text = json.dumps(status_payload, sort_keys=True)
-    coverage = {}
-    for size in ("10000", "50000", "100000"):
-        covered = any(size in str(row.get("dataset", "")) for row in rows)
-        documented = size in status_text
-        coverage[size] = {"row_present": covered, "documented_in_status": documented}
+    completed = [row for row in rows if row.get("status") == "completed"]
+
+    # Public-benchmark evidence used to be asserted here, on a completed
+    # PointMaze row. PointMaze is continuous-action, so those rows only ever
+    # ran baselines outside the proved relation; the evidence now lives in
+    # check_public_dataset_coverage, against Table 2.
+    outside_relation = sorted(
+        {
+            str(row.get("baseline"))
+            for row in completed
+            if row.get("baseline") not in DISCRETE_BASELINES
+        }
+    )
+    optimizers = sorted({str(row.get("optimizer")) for row in completed if row.get("optimizer")})
 
     reasons = []
-    if not completed_public:
-        reasons.append("no completed public Minari/D4RL Table 1 row")
-    if not all(item["row_present"] or item["documented_in_status"] for item in coverage.values()):
-        reasons.append("required public 10k/50k/100k coverage is undocumented")
+    if not completed:
+        reasons.append("no completed Table 1 row")
+    if outside_relation:
+        reasons.append(
+            "completed rows outside the proved discrete relation: " + ", ".join(outside_relation)
+        )
+    if completed and "sgd" not in optimizers:
+        # An Adam-only table reports a learning rate that encode_fp cannot even
+        # represent, so it describes training the proof system cannot verify.
+        reasons.append("no row trained under the optimizer the relation proves")
     return {
         "status": "passed" if not reasons else "failed",
         "missing_files": [],
-        "completed_public_rows": len(completed_public),
-        "required_public_size_coverage": coverage,
+        "completed_rows": len(completed),
+        "optimizers": optimizers,
+        "baselines_outside_relation": outside_relation,
+        "reason": "; ".join(reasons) if reasons else None,
+    }
+
+
+def _public_dataset_size(dataset_id: str) -> str | None:
+    if not dataset_id.startswith("minari-"):
+        return None
+    tail = dataset_id.rsplit("-", 1)[-1]
+    return tail if tail.isdigit() else None
+
+
+def check_public_dataset_coverage(root: Path | None = None) -> Dict[str, Any]:
+    """Public-benchmark evidence, which Table 2 carries and Table 1 no longer does.
+
+    Two halves, kept separate because they fail for different reasons: the
+    artifact has to commit a public dataset at each claimed scale point, and it
+    has to prove membership against one of those commitments. Asserting them
+    through a completed RL row conflated both with a third thing -- whether some
+    baseline happened to be action-compatible with the dataset.
+    """
+    base = root or ROOT
+    table_dir = base / "artifacts/reports/final_ndss"
+
+    hashes = read_json(table_dir / "dataset_hashes.json") or {}
+    committed_roots: Dict[str, str] = {}
+    for row in hashes.get("rows", []):
+        dataset_id = str(row.get("dataset_id", ""))
+        size = _public_dataset_size(dataset_id)
+        merkle_root = row.get("merkle_root")
+        if size and merkle_root:
+            committed_roots[dataset_id] = str(merkle_root)
+
+    coverage = {
+        size: sorted(
+            dataset_id
+            for dataset_id in committed_roots
+            if _public_dataset_size(dataset_id) == size
+        )
+        for size in PUBLIC_SCALE_POINTS
+    }
+
+    table2 = read_json(table_dir / "table2_zk_proof_cost.json") or {}
+    proved_roots = set()
+    for row in table2.get("rows", []):
+        if row.get("Relation") != "merkle_membership" or row.get("Status") != "proof_verified":
+            continue
+        source = row.get("Metrics Source")
+        metrics = read_json(base / str(source)) if source else None
+        if metrics and metrics.get("dataset_root"):
+            proved_roots.add(str(metrics["dataset_root"]))
+    proved_public = sorted(
+        dataset_id
+        for dataset_id, merkle_root in committed_roots.items()
+        if merkle_root in proved_roots
+    )
+
+    reasons = []
+    uncovered = [size for size, ids in coverage.items() if not ids]
+    if uncovered:
+        reasons.append("no committed public dataset at scale " + ", ".join(uncovered))
+    if not proved_public:
+        reasons.append("no proof_verified merkle_membership row on a committed public dataset")
+    return {
+        "status": "passed" if not reasons else "failed",
+        "committed_public_datasets": sorted(committed_roots),
+        "scale_point_coverage": coverage,
+        "proof_verified_public_datasets": proved_public,
         "reason": "; ".join(reasons) if reasons else None,
     }
 

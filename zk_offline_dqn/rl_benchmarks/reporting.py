@@ -13,6 +13,12 @@ TABLE_FILENAMES = {
     "md": "table1_rl_performance.md",
     "status": "table1_rl_performance_status.json",
 }
+# The relation this paper proves is discrete-action Offline-DQN. Baselines are
+# split here rather than in the runner so the report gate can check that a
+# completed Table 1 row is inside that domain.
+DISCRETE_BASELINES = {"bc", "offline_dqn", "double_dqn", "cql_lite"}
+CONTINUOUS_BASELINES = {"bc_continuous", "iql_lite"}
+
 TABLE_COLUMNS = [
     "Dataset",
     "Family",
