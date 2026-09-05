@@ -6,7 +6,7 @@ import copy
 import hashlib
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any, Dict, List, Mapping, Sequence, Tuple
 
 from zk_offline_dqn.relations.training_update import (
     apply_sgd_update,
@@ -360,6 +360,7 @@ def generate_case(
     online_start: Mapping[str, Any] | None = None,
     target_start: Mapping[str, Any] | None = None,
     case_id: str | None = None,
+    layer_sizes: Sequence[int] | None = None,
 ) -> Dict[str, Any]:
     scale = 1000
     public = {
@@ -394,15 +395,27 @@ def generate_case(
         "gradient_trace_hash": "",
         "update_trace_hash": "",
     }
-    dataset = [_transition_for_index(index, scale) for index in range(dataset_size)]
+    obs_dim = int(layer_sizes[0]) if layer_sizes is not None else 2
+    dataset = [
+        _transition_for_index(index, scale, obs_dim) for index in range(dataset_size)
+    ]
+    action_dim = int(layer_sizes[-1]) if layer_sizes is not None else 2
     leaves = [
-        hash_leaf(serialize_transition_leaf(item, obs_dim=2, action_dim=2))
+        hash_leaf(serialize_transition_leaf(item, obs_dim=obs_dim, action_dim=action_dim))
         for item in dataset
     ]
     root, paths = _merkle_paths(leaves)
     public["dataset_root"] = root
-    online = copy.deepcopy(online_start) if online_start is not None else _initial_online_model(scale)
-    target = copy.deepcopy(target_start) if target_start is not None else _initial_target_model(scale)
+    online = (
+        copy.deepcopy(online_start)
+        if online_start is not None
+        else _initial_online_model(scale, layer_sizes)
+    )
+    target = (
+        copy.deepcopy(target_start)
+        if target_start is not None
+        else _initial_target_model(scale, layer_sizes)
+    )
     public["start_checkpoint_hash"] = model_commitment(online, scale)
     public["start_target_checkpoint_hash"] = model_commitment(target, scale)
     steps = []
@@ -495,7 +508,11 @@ def _hash_label(label: str) -> str:
     return hashlib.sha256(label.encode("utf-8")).hexdigest()
 
 
-def _initial_online_model(scale: int) -> Dict[str, Any]:
+def _initial_online_model(
+    scale: int, layer_sizes: Sequence[int] | None = None
+) -> Dict[str, Any]:
+    if layer_sizes is not None and list(layer_sizes) != [2, 2, 2]:
+        return _synthetic_model(scale, list(layer_sizes))
     return {
         "format": "quantized_mlp_v1",
         "layer_sizes": [2, 2, 2],
@@ -507,18 +524,60 @@ def _initial_online_model(scale: int) -> Dict[str, Any]:
     }
 
 
-def _initial_target_model(scale: int) -> Dict[str, Any]:
-    model = _initial_online_model(scale)
+def _synthetic_model(scale: int, layer_sizes: List[int]) -> Dict[str, Any]:
+    """Deterministic fixed-point weights for an arbitrary MLP shape.
+
+    Used to measure proof cost against network size. Values are small and
+    spread around zero so activations do not saturate the fixed-point range.
+    """
+    layers = []
+    for idx in range(len(layer_sizes) - 1):
+        fan_in, fan_out = layer_sizes[idx], layer_sizes[idx + 1]
+        weight = [
+            [(((i * 31 + j * 17 + idx * 7) % 41) - 20) * 25 for j in range(fan_in)]
+            for i in range(fan_out)
+        ]
+        bias = [(((i * 13 + idx * 5) % 11) - 5) * 10 for i in range(fan_out)]
+        layers.append({"weight": weight, "bias": bias})
+    return {
+        "format": "quantized_mlp_v1",
+        "layer_sizes": list(layer_sizes),
+        "fp_scale": scale,
+        "layers": layers,
+    }
+
+
+def _initial_target_model(
+    scale: int, layer_sizes: Sequence[int] | None = None
+) -> Dict[str, Any]:
+    model = _initial_online_model(scale, layer_sizes)
+    if layer_sizes is not None and list(layer_sizes) != [2, 2, 2]:
+        # Nudge one weight so the target differs from the online net, the same
+        # way the committed [2, 2, 2] fixture does.
+        model["layers"][0]["weight"][0][0] += 50
+        return model
     model["layers"][0]["weight"][0][0] = 650
     model["layers"][1]["bias"][1] = -20
     return model
 
 
-def _transition_for_index(index: int, scale: int) -> Dict[str, Any]:
+def _transition_for_index(index: int, scale: int, obs_dim: int = 2) -> Dict[str, Any]:
     state0 = ((index % 11) - 5) * 100
     state1 = (((index * 3) % 13) - 6) * 80
     next_state0 = state0 + (((index % 3) - 1) * 50)
     next_state1 = state1 + ((((index + 1) % 5) - 2) * 40)
+    if obs_dim != 2:
+        # Extend the same pattern so a wider observation stays deterministic.
+        state = [(((index * (d + 2)) % 11) - 5) * 100 for d in range(obs_dim)]
+        next_state = [s + ((((index + d) % 3) - 1) * 50) for d, s in enumerate(state)]
+        return {
+            "state": state,
+            "action": index % 2,
+            "reward": (((index * 7) % 5) - 2) * (scale // 10),
+            "next_state": next_state,
+            "terminated": index % 29 == 0,
+            "truncated": index % 31 == 0,
+        }
     return {
         "state": [state0, state1],
         "action": index % 2,
