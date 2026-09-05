@@ -32,7 +32,7 @@ EXPECTED = {
     "cartpole-random-v2": {
         "total_transitions": 50006,
         "num_episodes": 2238,
-        "merkle_root": "fcce8855ffa6ef7f11bb9723687b31776c9e060105661b156783452232382611",
+        "merkle_root": "6f586441d6efef700687ce83ed8ff4573e3a064e49803723e1e2f571a2d171c4",
         "raw_trajectory_hash": "1a78f1351fdcb267e599beaa91c5ab0622f7d3a4cdda64d393fc854001d96f86",
         "policy_checkpoint_sha256": None,
         "mean_return": 22.3,
@@ -40,7 +40,7 @@ EXPECTED = {
     "cartpole-medium-v2": {
         "total_transitions": 50045,
         "num_episodes": 187,
-        "merkle_root": "97d6deb492691c5b777ceae323cb05c08d63778df91d5e41aa929a0249e7603a",
+        "merkle_root": "f5002ce505f8a63a57e3d0d64c0061e4ae7eb7495826013dc8b36b593643b311",
         "raw_trajectory_hash": "2930fa55f386626822cb1cc6adc71b8c5a4147c17ff2ca91695594ea97f0ad36",
         "policy_checkpoint_sha256": "01e89b8838c35db6ec228e2b2bdd6c226790fd08bc623308365fe8eb80e5f325",
         "mean_return": 267.6,
@@ -48,7 +48,7 @@ EXPECTED = {
     "cartpole-expert-v2": {
         "total_transitions": 50261,
         "num_episodes": 115,
-        "merkle_root": "88cb5f28215a68b70a729bb7129ab61d4c6919e4add377726c78a9131b191a84",
+        "merkle_root": "02de61a980455ea1e894e5ec77a7948faa622b4ddc4d1a56b710b2ce10b410d2",
         "raw_trajectory_hash": "f6c25677093f8a54372d4722f124b91e23c3c1141481ee5b4652323cb8c1cadf",
         "policy_checkpoint_sha256": "2e3bb4bf4b7bc21fc0690778f7c5f90b5239bab61c3e30409b23583bec7cd3f6",
         "mean_return": 437.1,
@@ -56,7 +56,7 @@ EXPECTED = {
     "lunarlander-random-v1": {
         "total_transitions": 50020,
         "num_episodes": 515,
-        "merkle_root": "fb412e69cca5c9dad6923c50c3ef9b32d1fd35494a50a13579a41bedd5d3396f",
+        "merkle_root": "24eebb925e4f3ed990c17c4b4fd9ca0188eb519a22909cec56de7076f169cd86",
         "raw_trajectory_hash": "28751453e710ff954b2a110bcb515206a3c658db4c957d6ed79b8344b45149e2",
         "policy_checkpoint_sha256": None,
         "mean_return": -186.7,
@@ -64,7 +64,7 @@ EXPECTED = {
     "lunarlander-medium-v1": {
         "total_transitions": 50586,
         "num_episodes": 52,
-        "merkle_root": "3fc9c4042f3a97f7de15dc7040d05712897cbb2e4b80c2a05eeb0969098be1df",
+        "merkle_root": "eb3e4f6ca980c27cce3ae003d7d729a0108fdef6c6ed39294c433fd236e7f208",
         "raw_trajectory_hash": "0667eaeb9877973d8618b67b5d2e4194a4c3024e8419e290e595335be5d8fb9c",
         "policy_checkpoint_sha256": "29780045675ebdc2e2af85fe9e5d52a7106456a4ac3df0cae66b9702e78aed48",
         "mean_return": 9.7,
@@ -72,7 +72,7 @@ EXPECTED = {
     "lunarlander-expert-v1": {
         "total_transitions": 50552,
         "num_episodes": 108,
-        "merkle_root": "9539a4b406a1f9cc09610a4396e791428de69e564c4aefaaf259192d1f78a900",
+        "merkle_root": "328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151",
         "raw_trajectory_hash": "69de86df8d078cacd5b7c804fe0dde2fb0ed352defb329b31de97b84e791c3d5",
         "policy_checkpoint_sha256": "2a692cffb2f019dafbe100db58e1ebe423c57f8ebfebd048666d61a81a765030",
         "mean_return": 203.4,

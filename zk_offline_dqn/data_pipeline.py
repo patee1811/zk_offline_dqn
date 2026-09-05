@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
-from zk_offline_dqn.merkle import build_merkle_levels
+from zk_offline_dqn.merkle import build_merkle_levels, hash_leaf
+from zk_offline_dqn.zk_specs import encode_fp
 
 
 PathLike = Union[str, Path]
@@ -16,6 +17,22 @@ MANIFEST_NAME = "dataset_manifest.json"
 AUDIT_REPORT_NAME = "replay_audit_report.json"
 MERKLE_TREE_NAME = "merkle_tree.json"
 COLLECTION_LOG_GENESIS = "zk_offline_dqn_collection_log_v1"
+
+# Two leaf encodings, recorded per dataset in merkle_tree.json.
+#
+# The training relation and the SP1 guest hash a transition as fixed-point
+# integers, so a dataset committed under canonical JSON commits to a different
+# object than the one the circuit checks membership against -- the prover would
+# then be free to choose the tree it trained on. Datasets the relation can
+# represent are committed under FIXED_POINT_LEAF_RULE so both relations check
+# one tree.
+#
+# The relation's leaf carries a scalar discrete action and a flat state vector,
+# which a continuous-action dataset such as PointMaze cannot express. Those keep
+# CANONICAL_JSON_LEAF_RULE, which is also why they are absent from Table 1.
+FIXED_POINT_LEAF_RULE = "sha256(fixed_point_transition_leaf)"
+CANONICAL_JSON_LEAF_RULE = "sha256(canonical_json(transition))"
+LEAF_HASH_RULES = (FIXED_POINT_LEAF_RULE, CANONICAL_JSON_LEAF_RULE)
 
 
 def canonical_json_bytes(obj: Any) -> bytes:
@@ -75,6 +92,63 @@ def write_jsonl(path: PathLike, rows: List[Dict[str, Any]]) -> None:
 
 def transition_hash(transition: Dict[str, Any]) -> str:
     return sha256_hex_bytes(canonical_json_bytes(transition))
+
+
+def _is_real(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def supports_fixed_point_leaf(transition: Dict[str, Any]) -> bool:
+    """Whether the relation's leaf encoding can represent this transition."""
+    state = transition.get("state")
+    next_state = transition.get("next_state")
+    action = transition.get("action")
+    if not isinstance(state, list) or not isinstance(next_state, list) or not state:
+        return False
+    if len(state) != len(next_state):
+        return False
+    if not all(_is_real(value) for value in state) or not all(_is_real(value) for value in next_state):
+        return False
+    if not isinstance(action, int) or isinstance(action, bool) or action < 0:
+        return False
+    return _is_real(transition.get("reward"))
+
+
+def fixed_point_transition_leaf(transition: Dict[str, Any]) -> List[int]:
+    """The exact integer leaf that training_update and the SP1 guest hash.
+
+    Kept byte-identical to serialize_transition_leaf in relations and to
+    serialize_transition_leaf in the training_fragment guest: state, then
+    action and reward, then next_state, then a single done flag that is set by
+    either termination or truncation.
+    """
+    state = [encode_fp(float(value)) for value in transition["state"]]
+    next_state = [encode_fp(float(value)) for value in transition["next_state"]]
+    done = 1 if bool(transition.get("terminated")) or bool(transition.get("truncated")) else 0
+    return (
+        state
+        + [int(transition["action"]), encode_fp(float(transition["reward"]))]
+        + next_state
+        + [done]
+    )
+
+
+def fixed_point_leaf_hash(transition: Dict[str, Any]) -> str:
+    return hash_leaf(fixed_point_transition_leaf(transition))
+
+
+def dataset_leaf_hash_rule(rows: List[Dict[str, Any]]) -> str:
+    if rows and all(supports_fixed_point_leaf(row) for row in rows):
+        return FIXED_POINT_LEAF_RULE
+    return CANONICAL_JSON_LEAF_RULE
+
+
+def leaf_hashes_for_rule(rows: List[Dict[str, Any]], rule: str) -> List[str]:
+    if rule == FIXED_POINT_LEAF_RULE:
+        return [fixed_point_leaf_hash(row) for row in rows]
+    if rule == CANONICAL_JSON_LEAF_RULE:
+        return [transition_hash(row) for row in rows]
+    raise ValueError(f"unknown leaf_hash_rule: {rule}")
 
 
 def hash_jsonl_transitions(path: PathLike) -> str:
@@ -184,7 +258,8 @@ def build_dataset_merkle_commitment(dataset_dir: PathLike) -> Dict[str, Any]:
         raise FileNotFoundError(report_path)
 
     rows = read_jsonl(raw_path)
-    leaf_hashes = [transition_hash(row) for row in rows]
+    leaf_rule = dataset_leaf_hash_rule(rows)
+    leaf_hashes = leaf_hashes_for_rule(rows, leaf_rule)
     levels = build_merkle_levels(leaf_hashes)
     root = levels[-1][0]
     commitment: Dict[str, Any] = {
@@ -199,7 +274,7 @@ def build_dataset_merkle_commitment(dataset_dir: PathLike) -> Dict[str, Any]:
         "num_leaves": len(leaf_hashes),
         "leaf_hashes": leaf_hashes,
         "levels": levels,
-        "leaf_hash_rule": "sha256(canonical_json(transition))",
+        "leaf_hash_rule": leaf_rule,
     }
     _write_json(dataset_dir / MERKLE_TREE_NAME, commitment)
     manifest["merkle_root"] = root
@@ -259,7 +334,7 @@ def verify_dataset_commitment(dataset_dir: PathLike) -> Tuple[bool, List[str]]:
 
     try:
         rows = read_jsonl(raw_path)
-        leaf_hashes = [transition_hash(row) for row in rows]
+        leaf_hashes = leaf_hashes_for_rule(rows, merkle_tree.get("leaf_hash_rule"))
         levels = build_merkle_levels(leaf_hashes)
         dataset_root = levels[-1][0]
     except Exception as exc:
@@ -278,7 +353,7 @@ def verify_dataset_commitment(dataset_dir: PathLike) -> Tuple[bool, List[str]]:
         errors.append("merkle_root mismatch between dataset_manifest.json and rebuilt tree")
     if merkle_tree.get("num_leaves") != len(leaf_hashes):
         errors.append("num_leaves mismatch between raw transitions and merkle_tree.json")
-    if merkle_tree.get("leaf_hash_rule") != "sha256(canonical_json(transition))":
+    if merkle_tree.get("leaf_hash_rule") not in LEAF_HASH_RULES:
         errors.append("unexpected leaf_hash_rule in merkle_tree.json")
 
     dataset_type = manifest.get("dataset_type")
