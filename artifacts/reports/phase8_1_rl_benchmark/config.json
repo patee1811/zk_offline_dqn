@@ -3,24 +3,21 @@
     "bc",
     "offline_dqn",
     "double_dqn",
-    "cql_lite",
-    "bc_continuous",
-    "iql_lite"
+    "cql_lite"
   ],
   "batch_size": 256,
-  "dataset_root": "/kaggle/working/zk_offline_dqn/artifacts/datasets",
+  "dataset_root": "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts/datasets",
   "datasets": [
-    "cartpole",
-    "mountaincar",
-    "minari-pointmaze-umaze-v2-10000",
-    "minari-pointmaze-umaze-v2-50000",
-    "minari-pointmaze-umaze-v2-100000",
-    "minari-pointmaze-umaze-dense-v2-10000",
-    "minari-pointmaze-umaze-dense-v2-50000",
-    "minari-pointmaze-umaze-dense-v2-100000"
+    "cartpole-random",
+    "cartpole-medium",
+    "cartpole-expert",
+    "lunarlander-random",
+    "lunarlander-medium",
+    "lunarlander-expert"
   ],
   "device": "cpu",
   "eval_episodes": 10,
+  "learning_rate": 0.01,
   "max_transitions": null,
   "observation_flatten_order": [
     "observation",
@@ -28,16 +25,17 @@
     "desired_goal",
     "remaining keys sorted"
   ],
-  "out_dir": "/kaggle/working/zk_offline_dqn/artifacts/reports/final_ndss",
-  "phase2_artifact_root": "/kaggle/working/zk_offline_dqn/artifacts",
+  "optimizers": [
+    "adam",
+    "sgd"
+  ],
+  "out_dir": "C:/Users/NGOCDU~1/AppData/Local/Temp/claude/c--Users-Ngoc-Duy-Duytapcode-zk-offline-dqn/3889b663-d3cd-4873-87c6-d4e33929453b/scratchpad/t1final",
+  "phase2_artifact_root": "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts",
   "phase2_tarballs": [
-    "/kaggle/working/zk_offline_dqn/artifacts/kaggle_phase2_outputs/phase2_dataset_outputs.tar.gz",
-    "/kaggle/working/zk_offline_dqn/artifacts/kaggle_phase2_scale_outputs/phase2_dataset_scale_outputs_full.tar.gz"
+    "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts/kaggle_phase2_outputs/phase2_dataset_outputs.tar.gz",
+    "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts/kaggle_phase2_scale_outputs/phase2_dataset_scale_outputs_full.tar.gz"
   ],
-  "public_families": [
-    "minari-pointmaze-umaze",
-    "minari-pointmaze-umaze-dense"
-  ],
+  "public_families": [],
   "public_sizes": [
     10000,
     50000,
@@ -45,10 +43,12 @@
   ],
   "regenerate_missing_phase2_datasets": true,
   "requested_datasets": [
-    "cartpole",
-    "mountaincar",
-    "minari-pointmaze-umaze",
-    "minari-pointmaze-umaze-dense"
+    "cartpole-random",
+    "cartpole-medium",
+    "cartpole-expert",
+    "lunarlander-random",
+    "lunarlander-medium",
+    "lunarlander-expert"
   ],
   "reuse_phase2_datasets": true,
   "seeds": [
@@ -56,5 +56,6 @@
     1,
     2
   ],
+  "sgd_learning_rate": 0.05,
   "train_steps": 5000
 }
