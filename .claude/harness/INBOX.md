@@ -151,32 +151,32 @@ Format:
 **Bài học:** cứ đọc kỹ hết các phần đi, rồi nghiên cứu so sánh các giải pháp, techstack ở từng mục, công đoạn 1 xem phần đó có thể làm tốt hơn không, tự đưa ra phản biện, rồi tự research trên mạng, xong update 1 plan thật chuẩn, tối ưu để mỗi bước làm không phải dò đường, mạnh nộp được A*/Q1 nhưng vẫn trong khả…
 **Đích đề xuất:** /harness-sync quyết định
 **Độ tin cậy:** thấp (tự động, chưa duyệt)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** bỏ (chỉ thị một lần, không phải luật)
 
 ## 2026-09-05 — người sửa — scope harness
 **Kích hoạt:** người dùng sửa lại trong phiên
 **Bài học:** đấy, phần nào cũng phải kiểm tra kĩ, có thông số đang hoàng, không được đonas bừa, đừng làm mất thời gian của tôi, làm bước 1,2 đi
 **Đích đề xuất:** /harness-sync quyết định
 **Độ tin cậy:** thấp (tự động, chưa duyệt)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** bỏ (đã phủ bởi rules/00 và rules/20)
 
 ## 2026-09-05 — phát hiện mới — scope data
 **Kích hoạt:** `collect_audited_dataset.py` nay nhận `--policy checkpoint` (medium/expert từ `artifacts/source_policies/`), nhưng `rules/90-domain/data-pipeline.md` vẫn ghi "Phase 2 collect chỉ `--policy random`. Policy khác → `ValueError`".
 **Bài học:** rule mô tả sai cổng hiện tại. `policy_hash` giờ commit SHA256 checkpoint + epsilon, nên dòng rule cần nói: policy hợp lệ là `random` hoặc `checkpoint`, và checkpoint phải vào `policy_hash` chứ không chỉ vào `policy_type`.
 **Đích đề xuất:** `rules/90-domain/data-pipeline.md` dòng 2
 **Độ tin cậy:** cao (đọc `collect_audited_dataset.py:65-68,131-145`)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.6.0)
 
 ## 2026-09-05 — phát hiện mới — scope rl
 **Kích hoạt:** DQN online 200.000 bước trên MountainCar-v0 cho mọi checkpoint đúng −200,0 (1000 episode, không lần nào chạm cờ).
 **Bài học:** MountainCar cần reward shaping / n-step / exploration khác thì DQN vanilla mới học được; ngân sách bước không cứu được. Nó không sinh nổi cặp medium/expert phân biệt, nên không dùng làm môi trường nguồn. Trùng với quyết định của plan là bỏ MountainCar.
 **Đích đề xuất:** `rules/90-domain/data-pipeline.md` hoặc bỏ khỏi `ENV_BUDGET`
 **Độ tin cậy:** cao (10 checkpoint, chấm trên return huấn luyện)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.6.0)
 
 ## 2026-09-05 — phát hiện mới — scope data
 **Kích hoạt:** đối chiếu `merkle_root` từng dòng Table 1 với `artifacts/datasets/<id>/dataset_manifest.json`. Hai dòng self-collected **lệch**: cartpole-random-v1 báo n=9204 root=`33c743f3…` còn artifact đã commit là n=986 root=`24a45b12…`; mountaincar-random-v1 báo n=10000 root=`982a14e2…` còn artifact commit là n=2000 root=`a0274f16…`. Bốn dòng Minari (`…-100000`, `…dense-…`) không có dataset commit nào.
 **Bài học:** `ensure_self_collected_dataset` chỉ thu thập lại khi `validate_phase2_dataset` fail, và thu vào `dataset_root` do lần chạy truyền, với `target_transitions` của sweep. Nên số ở cột Transitions và `merkle_root` của Table 1 là của dataset sinh lúc chạy, không phải dataset trong repo. Reviewer lần theo `merkle_root` sẽ không tìm thấy nó ở đâu cả. Chạy lại Table 1 phải trỏ benchmark vào `artifacts/datasets/` hoặc commit đúng dataset đã dùng.
 **Đích đề xuất:** `rules/90-domain/data-pipeline.md`; sửa `run_phase8_1_rl_benchmark.py` / `datasets.py`
 **Độ tin cậy:** cao (so 8 dataset_id, 2 lệch, 2 khớp, 4 thiếu)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.6.0)

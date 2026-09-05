@@ -1,5 +1,20 @@
 # Harness changelog
 
+## 2026-09-06 — 1.6.0
+
+**Kích hoạt:** phiên Phase 1 — huấn luyện chính sách nguồn, thu thập sáu dataset 50k, dựng lại Table 1. Ba bài học, hai trong đó là lỗi provenance đã lọt vào số liệu đã commit.
+
+**Lý do:** cùng một lớp lỗi xuất hiện **hai lần** ở hai chỗ khác nhau (hardcode 10000), và cả hai lần đều sinh ra một bảng trông hợp lệ — không có cảnh báo nào ở output, nên chỉ rule mới chặn được. Mục thứ ba là ràng buộc quyết định con số nào của paper là số chứng minh được.
+
+**Đã sửa:**
+
+- `data-pipeline.md`: dòng `--policy random` đã sai từ khi thêm `--policy checkpoint`; nay ghi cả hai policy, `policy_hash` phải gồm SHA256 checkpoint + epsilon, và MountainCar vắng mặt vì DQN vanilla 200k bước cho đúng −200,0 ở cả 10 checkpoint.
+- `data-pipeline.md`: thêm dòng số dataset trong report phải là dataset đã commit, kèm cả hai chỗ hardcode 10000 (`ensure_self_collected_dataset` tái tạo theo target size; `_dataset_transition_limit` cắt còn 10k trong khi `subset` lấy N dòng **đầu**) và nơi khoá lại chúng.
+- `experiments.md`: thêm dòng đối chứng phải chạy đúng cấu hình của số đã in và quét tham số phải phủ cả hai nhánh, kèm quy tắc chọn bằng chuẩn hoá min-max trong từng ô — trung bình thô và đếm ô thắng đều cho kết quả sai trên chính bộ số này.
+- `relations.md`: thêm ràng buộc `learning_rate` phải sống sót `encode_fp` (bội của 0,001); Adam mặc định 3e-4 mã hoá thành 0, nên số đo dưới Adam không phải số chứng minh được.
+
+**Bỏ:** hai mục do `capture_learning.py` tự bắt — một chỉ thị lập plan dùng một lần, và một câu "đừng đoán bừa" đã được `rules/00` và `rules/20` phủ.
+
 ## 2026-09-02 — 1.5.0
 
 **Kích hoạt:** phiên tổng quát hóa cây gộp (việc 0.2) và lượt prove lại 8 dòng `training_aggregation` sau khi guest ELF trôi. Bốn bài học, ba trong đó tốn máy thật hoặc suýt đưa số sai vào Table 2.
