@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 from zk_offline_dqn.rl_benchmarks.agents import (
     PROVED_SGD_LEARNING_RATE,
     _make_optimizer,
+    provable_learning_rate,
 )
 from zk_offline_dqn.zk_specs import SPECS, decode_fp, encode_fp
 
@@ -55,6 +56,23 @@ class ProvedOptimizerAxisTests(unittest.TestCase):
         optimizer = _make_optimizer(parameters, "adam", learning_rate=3e-4)
         self.assertIsInstance(optimizer, torch.optim.Adam)
         self.assertEqual(optimizer.param_groups[0]["lr"], 3e-4)
+
+    def test_provable_rates_are_the_multiples_of_the_fixed_point_step(self) -> None:
+        for rate in (0.001, 0.005, 0.01, 0.05):
+            self.assertEqual(provable_learning_rate(rate), rate)
+
+    def test_unprovable_rates_are_refused_before_training(self) -> None:
+        # 0.0015 rounds to 2/1000 under encode_fp, so a proof would attest to an
+        # update the run never performed. 3e-4 collapses to no update at all.
+        for rate in (3e-4, 0.0015, 0.0, -0.01):
+            with self.subTest(rate=rate), self.assertRaises(ValueError):
+                provable_learning_rate(rate)
+
+    def test_sgd_optimizer_refuses_an_unprovable_rate(self) -> None:
+        with self.assertRaises(ValueError):
+            _make_optimizer(
+                [torch.zeros(1, requires_grad=True)], "sgd", 1e-3, sgd_learning_rate=3e-4
+            )
 
     def test_unknown_optimizer_is_rejected(self) -> None:
         with self.assertRaises(ValueError):

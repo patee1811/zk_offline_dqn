@@ -9,6 +9,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from ..zk_specs import SPECS, decode_fp, encode_fp
 from .datasets import OfflineDataset, flatten_observation
 
 
@@ -97,11 +98,34 @@ def _finite(loss: torch.Tensor, name: str) -> None:
 PROVED_SGD_LEARNING_RATE = 0.01
 
 
-def _make_optimizer(parameters, optimizer: str, learning_rate: float):
+def provable_learning_rate(rate: float) -> float:
+    """Reject a learning rate the relation could not check.
+
+    one_step_update asserts encode_fp(learning_rate) == learning_rate_fp, so a
+    rate that does not survive the round trip describes an update no proof can
+    be produced for. Failing here beats reporting a number from a run that was
+    never verifiable.
+    """
+    encoded = encode_fp(rate)
+    if encoded <= 0 or decode_fp(encoded) != rate:
+        raise ValueError(
+            f"learning rate {rate} is not representable at FP_SCALE="
+            f"{SPECS.FP_SCALE}; it must be a positive multiple of "
+            f"{1.0 / SPECS.FP_SCALE}"
+        )
+    return rate
+
+
+def _make_optimizer(
+    parameters,
+    optimizer: str,
+    learning_rate: float,
+    sgd_learning_rate: float = PROVED_SGD_LEARNING_RATE,
+):
     if optimizer == "adam":
         return torch.optim.Adam(parameters, lr=learning_rate)
     if optimizer == "sgd":
-        return torch.optim.SGD(parameters, lr=PROVED_SGD_LEARNING_RATE)
+        return torch.optim.SGD(parameters, lr=provable_learning_rate(sgd_learning_rate))
     raise ValueError(f"unsupported optimizer: {optimizer}")
 
 
@@ -114,13 +138,16 @@ def train_behavior_cloning_discrete(
     batch_size: int = 64,
     learning_rate: float = 3e-4,
     optimizer_name: str = "adam",
+    sgd_learning_rate: float = PROVED_SGD_LEARNING_RATE,
 ) -> TorchPolicy:
     if dataset.action_kind != "discrete":
         raise ValueError("discrete BC requires scalar integer actions")
     seed_everything(seed)
     target_device = _device(device)
     policy = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
-    optimizer = _make_optimizer(policy.parameters(), optimizer_name, learning_rate)
+    optimizer = _make_optimizer(
+        policy.parameters(), optimizer_name, learning_rate, sgd_learning_rate
+    )
     policy.train()
     for _ in range(max(1, int(train_steps))):
         batch = _batch(dataset, batch_size, target_device)
@@ -151,6 +178,7 @@ def train_offline_q(
     target_update_interval: int = 100,
     cql_alpha: float = 0.1,
     optimizer_name: str = "adam",
+    sgd_learning_rate: float = PROVED_SGD_LEARNING_RATE,
 ) -> TorchPolicy:
     if dataset.action_kind != "discrete":
         raise ValueError("offline Q baselines require scalar integer actions")
@@ -161,7 +189,9 @@ def train_offline_q(
     online = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
     target = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
     target.load_state_dict(online.state_dict())
-    optimizer = _make_optimizer(online.parameters(), optimizer_name, learning_rate)
+    optimizer = _make_optimizer(
+        online.parameters(), optimizer_name, learning_rate, sgd_learning_rate
+    )
 
     for step in range(max(1, int(train_steps))):
         batch = _batch(dataset, batch_size, target_device)

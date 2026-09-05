@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from zk_offline_dqn.rl_benchmarks.agents import (
+    PROVED_SGD_LEARNING_RATE,
     train_behavior_cloning_continuous,
     train_behavior_cloning_discrete,
     train_iql_lite,
@@ -57,6 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--datasets", nargs="+")
     parser.add_argument("--baselines", nargs="+")
     parser.add_argument("--optimizers", nargs="+", choices=["adam", "sgd"])
+    parser.add_argument("--sgd-learning-rate", type=float, default=PROVED_SGD_LEARNING_RATE)
     parser.add_argument("--seeds", nargs="+", type=int)
     parser.add_argument("--train-steps", type=int)
     parser.add_argument("--eval-episodes", type=int)
@@ -285,9 +287,20 @@ def _train_policy(dataset, baseline: str, seed: int, args: argparse.Namespace, o
         "batch_size": args.batch_size,
     }
     if baseline == "bc":
-        return train_behavior_cloning_discrete(dataset, optimizer_name=optimizer, **kwargs)
+        return train_behavior_cloning_discrete(
+            dataset,
+            optimizer_name=optimizer,
+            sgd_learning_rate=args.sgd_learning_rate,
+            **kwargs,
+        )
     if baseline in {"offline_dqn", "double_dqn", "cql_lite"}:
-        return train_offline_q(dataset, algorithm=baseline, optimizer_name=optimizer, **kwargs)
+        return train_offline_q(
+            dataset,
+            algorithm=baseline,
+            optimizer_name=optimizer,
+            sgd_learning_rate=args.sgd_learning_rate,
+            **kwargs,
+        )
     # The continuous baselines carry no optimizer axis: they are outside the
     # relation this paper proves, and only reachable through --baselines.
     if baseline == "bc_continuous":
@@ -560,6 +573,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
         "datasets": dataset_names,
         "baselines": args.baselines,
         "optimizers": args.optimizers,
+        "sgd_learning_rate": args.sgd_learning_rate,
         "completed_rows": sum(result["status"] == "completed" for result in results),
         "skipped_rows": sum(result["status"] == "skipped" for result in results),
         "incompatible_skipped_rows": sum(
@@ -587,6 +601,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
         "requested_datasets": args.datasets,
         "baselines": args.baselines,
         "optimizers": args.optimizers,
+        "sgd_learning_rate": args.sgd_learning_rate,
         "seeds": args.seeds,
         "train_steps": args.train_steps,
         "eval_episodes": args.eval_episodes,
