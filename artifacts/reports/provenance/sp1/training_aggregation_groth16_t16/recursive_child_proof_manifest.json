@@ -4,7 +4,7 @@
   "child_proof_mode": "groth16_bn254",
   "children": [
     {
-      "child_proof_hash": "e0a5807ea881019c8b22784eea7af061411da43ae0a383c398be05b886234a29",
+      "child_proof_hash": "4dc05ba066b246809012899173273b31e04c54f7f790ac02e68808e95f2b2b80",
       "child_public_inputs_hash": "9627a0cb4ffaa7adb140f9db538a6016b459b58aa5a1470fc1b3a9515c1c60a1",
       "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
       "chunk_id": 0,
@@ -13,7 +13,7 @@
       "step_start": 0
     },
     {
-      "child_proof_hash": "b4e3a95c59bdefa806c6c2ebbcea19f4f60a45769a749b805f610b1a7748d9cc",
+      "child_proof_hash": "e15ac14858809b50e7a95178a5730248dc3374b1c72b4029fd79ba03de65d2d3",
       "child_public_inputs_hash": "4fd106e84741931c08b01bede8fa412620621ea5c7504aface84b24ec658548d",
       "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
       "chunk_id": 1,

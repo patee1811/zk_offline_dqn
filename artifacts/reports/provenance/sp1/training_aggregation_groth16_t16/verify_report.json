@@ -16,7 +16,7 @@
   "proof_generated": true,
   "proof_verified": true,
   "public_output": {
-    "aggregate_root": "1a9a6127c2faae758535357241f1d80450d2733748d2fc46a3adc7f7a12a00ab",
+    "aggregate_root": "b15f0201136430da9cef24319b0c1ea35729ebd67aa1b2333e216d25ec56a203",
     "aggregation_mode": "recursive_sp1",
     "aggregation_topology": null,
     "audit_report_hash": "01a8f3d08426c18f7952673d965a5ab6111c5bc8d6bb21c5d4eda9dc9befd2e4",
@@ -25,7 +25,7 @@
     "child_proof_mode": "groth16_bn254",
     "child_proof_verification_inside_guest": true,
     "chunk_count": 2,
-    "chunk_proof_root": "0d02db8e3779e632e4535e80c8ca395dffef8d8441350f66144ce6b63600ceea",
+    "chunk_proof_root": "519a3d5342bcf5b04daeb26f97007fd9f8853b2ce2e4648e28a8b1fae655f8b7",
     "chunk_public_inputs_root": "5609a7a1790b9d6a50c072dd7dfe386082678c53215d74997bc85f7d283e0ebd",
     "chunk_relation_id": "training_fragment_k8",
     "chunk_size": 8,

@@ -1,11 +1,11 @@
 {
-  "aggregate_root": "1ff9283fce3797252511194eed49e9fc39eb81d053cbcb70dcbbb05f3ee94bf3",
+  "aggregate_root": "ee339e47e53bf2b9afc6382f2f4f278d24b8fa729282da364d47dbc1e4620d95",
   "aggregation_mode": "recursive_sp1",
   "aggregation_topology": "binary_tree",
   "child_proof_mode": "native_sp1",
   "child_proof_verification_inside_guest": true,
   "chunk_count": 2,
-  "chunk_proof_root": "70610421d41f752e07e487f9ecd50261e288a0bc373df68cf216473f385ea78b",
+  "chunk_proof_root": "2d2c230682fa538d4ca9f70e411fd1b756040bc0f9d3776069443740542e9562",
   "chunk_public_inputs_root": "0d103df3e3a879ff9422756f0b8b99bc2de39c7399a0b888110103a81174b8a8",
   "chunk_relation_id": "training_fragment_k8",
   "chunk_size": 8,
@@ -27,5 +27,5 @@
   "relation": "training_aggregation",
   "step_end": 48,
   "step_start": 32,
-  "tree_root_hash": "14669abf7575f8936354c7d4462deb17fba689583b61fc6ac806da439680e4f1"
+  "tree_root_hash": "9e645addc954768467fa0d7c235f39fae2c501fd79b7009c3eef2621672b3611"
 }

@@ -136,7 +136,7 @@
       "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
-      "reference_reason": "chunk_size mismatch"
+      "reference_reason": "aggregate step span mismatch"
     },
     {
       "case": "tamper_chunk_count",
