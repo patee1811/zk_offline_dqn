@@ -83,20 +83,25 @@ def build_parser() -> argparse.ArgumentParser:
 def _mode_defaults(args: argparse.Namespace) -> None:
     paper = bool(args.paper)
     if args.datasets is None:
+        # PointMaze is gone from the default sweep: it is continuous-action, so
+        # the four DQN-family baselines -- the ones this paper actually proves a
+        # relation for -- skipped 24 of its 36 rows, and the 12 that ran used
+        # algorithms outside that relation. The public datasets still back the
+        # merkle_membership scaling rows in Table 2.
         args.datasets = (
-            ["cartpole", "mountaincar", "minari-pointmaze-umaze", "minari-pointmaze-umaze-dense"]
+            [
+                "cartpole-random",
+                "cartpole-medium",
+                "cartpole-expert",
+                "lunarlander-random",
+                "lunarlander-medium",
+                "lunarlander-expert",
+            ]
             if paper
-            else ["cartpole", "mountaincar"]
+            else ["cartpole-random", "cartpole-expert"]
         )
     if args.baselines is None:
-        args.baselines = [
-            "bc",
-            "offline_dqn",
-            "double_dqn",
-            "cql_lite",
-            "bc_continuous",
-            "iql_lite",
-        ]
+        args.baselines = ["bc", "offline_dqn", "double_dqn", "cql_lite"]
     if args.seeds is None:
         args.seeds = [0, 1, 2] if paper else [0]
     if args.train_steps is None:
@@ -206,12 +211,7 @@ def _prepare_phase2_datasets(
             )
             try:
                 if source_name in SELF_COLLECTED_DATASETS and not args.skip_missing_self_collected:
-                    ensure_self_collected_dataset(
-                        source_name,
-                        dataset_root,
-                        target_transitions=10000,
-                        base_seed=12345 if source_name == "cartpole" else 22345,
-                    )
+                    ensure_self_collected_dataset(source_name, dataset_root)
                 elif public_family_for_dataset_id(dataset_id) is not None:
                     regenerate_public_phase2_dataset(dataset_id, dataset_root)
                 else:
