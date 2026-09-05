@@ -271,14 +271,25 @@ python scripts/data/import_public_dataset.py --source-npz artifacts/data_sources
 python scripts/data/import_public_dataset.py --minari-dataset-id D4RL/pointmaze/umaze-v2 --dataset-id minari-pointmaze-umaze-v2-100 --out-dir artifacts/datasets/minari-pointmaze-umaze-v2-100 --max-transitions 100
 ```
 
-Recommended later subsets are 10k/50k/100k transitions for Minari/D4RL
-PointMaze imports such as `D4RL/pointmaze/umaze-v2`,
-`D4RL/pointmaze/umaze-dense-v2`, `D4RL/pointmaze/medium-v2`, and
-`D4RL/pointmaze/open-v2`. For self-collected data, use 10k transitions for
-`cartpole-random-v1` and `mountaincar-random-v1`; future policy support may add
-10k `cartpole-medium-v1`, 10k `cartpole-expert-v1`, 50k
-`cartpole-mixed-v1`, 10k `mountaincar-medium-v1`, and 50k
-`mountaincar-mixed-v1`.
+Public PointMaze imports are committed at 10k/50k/100k transitions. They back
+the `merkle_membership` proof-cost rows in Table 2, which is where the artifact
+demonstrates it consumes a third-party benchmark; they are absent from Table 1
+because PointMaze is continuous-action and the proved relation is not.
+
+Self-collected data is the Table 1 sweep: two environments at three quality
+levels, 50k transitions each, listed in
+`zk_offline_dqn/rl_benchmarks/datasets.py` as `SELF_COLLECTED_DATASETS`. The
+`random` level samples the action space; `medium` and `expert` replay a saved
+DQN checkpoint at epsilon 0.02, so policy skill is the only variable that
+separates them.
+
+```text
+python scripts/data/train_source_policies.py --env-id CartPole-v1 --out-dir artifacts/source_policies/cartpole
+python scripts/data/collect_audited_dataset.py --env-id CartPole-v1 --dataset-id cartpole-expert-v2 --policy checkpoint --checkpoint artifacts/source_policies/cartpole/expert.pt --policy-label expert --epsilon 0.02 --num-episodes 2000 --max-transitions 50000 --base-seed 31003 --max-steps-per-episode 500 --out-dir artifacts/datasets/cartpole-expert-v2
+```
+
+MountainCar is not among them: 200k steps of online DQN scored -200.0 at every
+checkpoint, never reaching the flag, so it yields no medium/expert pair.
 
 ## SP1 Validation
 
