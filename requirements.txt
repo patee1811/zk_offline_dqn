@@ -5,11 +5,22 @@
 # Deep Learning
 torch>=2.0.0
 
-# Reinforcement Learning Environment
-gymnasium>=0.29.0
+# Reinforcement Learning Environment. The box2d extra is what makes
+# LunarLander-v3 constructible, and v3 only exists from gymnasium 1.0 -- on
+# 0.29 the id is LunarLander-v2 and dataset collection would record a different
+# env_version into the manifest.
+gymnasium[box2d]>=1.0.0
 
 # Behavior Policy (for dataset generation)
+# TODO(owner): not imported anywhere. The online DQN in
+# zk_offline_dqn/rl_benchmarks/online_dqn.py fills this role. Remove?
 stable-baselines3>=2.0.0
+
+# Public dataset import. Without these a clean clone cannot rebuild the
+# Minari datasets that the merkle_membership rows in Table 2 are measured on,
+# which is the first wall an artifact reviewer hits.
+minari[hf]>=0.5.0
+h5py>=3.10.0
 
 # Numerical Computing
 numpy>=1.24.0
