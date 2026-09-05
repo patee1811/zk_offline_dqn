@@ -1,0 +1,170 @@
+{
+  "checkpoints": [
+    {
+      "episodes": 90,
+      "greedy_return": 9.3,
+      "step": 2000
+    },
+    {
+      "episodes": 163,
+      "greedy_return": 218.6,
+      "step": 4000
+    },
+    {
+      "episodes": 227,
+      "greedy_return": 206.85,
+      "step": 6000
+    },
+    {
+      "episodes": 281,
+      "greedy_return": 165.9,
+      "step": 8000
+    },
+    {
+      "episodes": 336,
+      "greedy_return": 91.6,
+      "step": 10000
+    },
+    {
+      "episodes": 386,
+      "greedy_return": 100.4,
+      "step": 12000
+    },
+    {
+      "episodes": 447,
+      "greedy_return": 116.65,
+      "step": 14000
+    },
+    {
+      "episodes": 476,
+      "greedy_return": 121.55,
+      "step": 16000
+    },
+    {
+      "episodes": 507,
+      "greedy_return": 93.95,
+      "step": 18000
+    },
+    {
+      "episodes": 525,
+      "greedy_return": 93.4,
+      "step": 20000
+    },
+    {
+      "episodes": 542,
+      "greedy_return": 95.75,
+      "step": 22000
+    },
+    {
+      "episodes": 570,
+      "greedy_return": 92.65,
+      "step": 24000
+    },
+    {
+      "episodes": 592,
+      "greedy_return": 101.7,
+      "step": 26000
+    },
+    {
+      "episodes": 619,
+      "greedy_return": 75.25,
+      "step": 28000
+    },
+    {
+      "episodes": 644,
+      "greedy_return": 96.85,
+      "step": 30000
+    },
+    {
+      "episodes": 671,
+      "greedy_return": 83.6,
+      "step": 32000
+    },
+    {
+      "episodes": 695,
+      "greedy_return": 100.1,
+      "step": 34000
+    },
+    {
+      "episodes": 719,
+      "greedy_return": 97.9,
+      "step": 36000
+    },
+    {
+      "episodes": 744,
+      "greedy_return": 98.5,
+      "step": 38000
+    },
+    {
+      "episodes": 763,
+      "greedy_return": 134.75,
+      "step": 40000
+    },
+    {
+      "episodes": 787,
+      "greedy_return": 58.35,
+      "step": 42000
+    },
+    {
+      "episodes": 806,
+      "greedy_return": 102.6,
+      "step": 44000
+    },
+    {
+      "episodes": 816,
+      "greedy_return": 269.15,
+      "step": 46000
+    },
+    {
+      "episodes": 824,
+      "greedy_return": 105.1,
+      "step": 48000
+    },
+    {
+      "episodes": 832,
+      "greedy_return": 230.55,
+      "step": 50000
+    },
+    {
+      "episodes": 842,
+      "greedy_return": 114.35,
+      "step": 52000
+    },
+    {
+      "episodes": 851,
+      "greedy_return": 135.25,
+      "step": 54000
+    },
+    {
+      "episodes": 859,
+      "greedy_return": 310.3,
+      "step": 56000
+    },
+    {
+      "episodes": 868,
+      "greedy_return": 500.0,
+      "step": 58000
+    },
+    {
+      "episodes": 873,
+      "greedy_return": 413.75,
+      "step": 60000
+    }
+  ],
+  "env_id": "CartPole-v1",
+  "episodes": 873,
+  "eval_episodes": 20,
+  "expert": {
+    "greedy_return": 500.0,
+    "holdout_return": 459.5,
+    "step": 58000
+  },
+  "hidden_dim": 64,
+  "medium": {
+    "greedy_return": 269.15,
+    "holdout_return": 267.4,
+    "step": 46000
+  },
+  "seed": 7,
+  "total_steps": 60000
+}

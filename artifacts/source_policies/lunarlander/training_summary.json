@@ -1,0 +1,170 @@
+{
+  "checkpoints": [
+    {
+      "episodes": 111,
+      "greedy_return": -186.96945840960194,
+      "step": 10000
+    },
+    {
+      "episodes": 221,
+      "greedy_return": -143.20118617877515,
+      "step": 20000
+    },
+    {
+      "episodes": 330,
+      "greedy_return": -176.873796424256,
+      "step": 30000
+    },
+    {
+      "episodes": 428,
+      "greedy_return": -148.78325104609067,
+      "step": 40000
+    },
+    {
+      "episodes": 518,
+      "greedy_return": -97.11817719326545,
+      "step": 50000
+    },
+    {
+      "episodes": 564,
+      "greedy_return": -53.69341346340673,
+      "step": 60000
+    },
+    {
+      "episodes": 585,
+      "greedy_return": -49.11424821399943,
+      "step": 70000
+    },
+    {
+      "episodes": 600,
+      "greedy_return": -40.12436711347656,
+      "step": 80000
+    },
+    {
+      "episodes": 611,
+      "greedy_return": -18.718147057017912,
+      "step": 90000
+    },
+    {
+      "episodes": 621,
+      "greedy_return": -6.883047578128012,
+      "step": 100000
+    },
+    {
+      "episodes": 635,
+      "greedy_return": 193.48898319166787,
+      "step": 110000
+    },
+    {
+      "episodes": 649,
+      "greedy_return": 24.562583934882777,
+      "step": 120000
+    },
+    {
+      "episodes": 660,
+      "greedy_return": -122.68866124843916,
+      "step": 130000
+    },
+    {
+      "episodes": 670,
+      "greedy_return": 1.857584660039589,
+      "step": 140000
+    },
+    {
+      "episodes": 682,
+      "greedy_return": 222.79503687595866,
+      "step": 150000
+    },
+    {
+      "episodes": 696,
+      "greedy_return": 146.3598493892631,
+      "step": 160000
+    },
+    {
+      "episodes": 713,
+      "greedy_return": 45.1228571566483,
+      "step": 170000
+    },
+    {
+      "episodes": 732,
+      "greedy_return": 186.54349182289363,
+      "step": 180000
+    },
+    {
+      "episodes": 757,
+      "greedy_return": 186.77076364988588,
+      "step": 190000
+    },
+    {
+      "episodes": 787,
+      "greedy_return": 54.02881305779355,
+      "step": 200000
+    },
+    {
+      "episodes": 821,
+      "greedy_return": 9.030492511650255,
+      "step": 210000
+    },
+    {
+      "episodes": 840,
+      "greedy_return": -119.51832144440246,
+      "step": 220000
+    },
+    {
+      "episodes": 857,
+      "greedy_return": 214.12018759935208,
+      "step": 230000
+    },
+    {
+      "episodes": 873,
+      "greedy_return": 145.47186253308774,
+      "step": 240000
+    },
+    {
+      "episodes": 889,
+      "greedy_return": 197.57168064109254,
+      "step": 250000
+    },
+    {
+      "episodes": 908,
+      "greedy_return": 55.5002893512887,
+      "step": 260000
+    },
+    {
+      "episodes": 928,
+      "greedy_return": 105.54088188126698,
+      "step": 270000
+    },
+    {
+      "episodes": 949,
+      "greedy_return": 147.8429534571371,
+      "step": 280000
+    },
+    {
+      "episodes": 965,
+      "greedy_return": 149.95114143931883,
+      "step": 290000
+    },
+    {
+      "episodes": 981,
+      "greedy_return": 117.28604266151974,
+      "step": 300000
+    }
+  ],
+  "env_id": "LunarLander-v3",
+  "episodes": 981,
+  "eval_episodes": 10,
+  "expert": {
+    "greedy_return": 222.79503687595866,
+    "holdout_return": 224.39675144264834,
+    "step": 150000
+  },
+  "hidden_dim": 64,
+  "medium": {
+    "greedy_return": 24.562583934882777,
+    "holdout_return": 5.031351613686139,
+    "step": 120000
+  },
+  "seed": 7,
+  "total_steps": 300000
+}
