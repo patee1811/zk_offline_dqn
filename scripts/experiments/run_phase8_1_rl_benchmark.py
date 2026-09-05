@@ -59,6 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--baselines", nargs="+")
     parser.add_argument("--optimizers", nargs="+", choices=["adam", "sgd"])
     parser.add_argument("--sgd-learning-rate", type=float, default=PROVED_SGD_LEARNING_RATE)
+    parser.add_argument("--learning-rate", type=float)
     parser.add_argument("--seeds", nargs="+", type=int)
     parser.add_argument("--train-steps", type=int)
     parser.add_argument("--eval-episodes", type=int)
@@ -108,6 +109,10 @@ def _mode_defaults(args: argparse.Namespace) -> None:
         )
     if args.baselines is None:
         args.baselines = ["bc", "offline_dqn", "double_dqn", "cql_lite"]
+    if args.learning_rate is None:
+        # Both columns get a tuned rate or the comparison is rigged: 3e-4 is a
+        # library default, and sweeping only the sgd side would flatter it.
+        args.learning_rate = 1e-2 if paper else 3e-4
     if args.optimizers is None:
         # The zk relation verifies plain SGD, so an Adam-only table does not
         # report what the proof system actually checks.
@@ -291,6 +296,7 @@ def _train_policy(dataset, baseline: str, seed: int, args: argparse.Namespace, o
         "seed": seed,
         "device": args.device,
         "batch_size": args.batch_size,
+        "learning_rate": args.learning_rate,
     }
     if baseline == "bc":
         return train_behavior_cloning_discrete(
@@ -586,6 +592,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
         "baselines": args.baselines,
         "optimizers": args.optimizers,
         "sgd_learning_rate": args.sgd_learning_rate,
+        "learning_rate": args.learning_rate,
         "completed_rows": sum(result["status"] == "completed" for result in results),
         "skipped_rows": sum(result["status"] == "skipped" for result in results),
         "incompatible_skipped_rows": sum(
@@ -614,6 +621,7 @@ def run_benchmark(args: argparse.Namespace) -> Dict[str, Any]:
         "baselines": args.baselines,
         "optimizers": args.optimizers,
         "sgd_learning_rate": args.sgd_learning_rate,
+        "learning_rate": args.learning_rate,
         "seeds": args.seeds,
         "train_steps": args.train_steps,
         "eval_episodes": args.eval_episodes,
