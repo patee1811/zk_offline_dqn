@@ -247,10 +247,16 @@ def _prepare_phase2_datasets(
 
 
 def _dataset_transition_limit(args: argparse.Namespace, dataset_name: str) -> int | None:
+    """How many transitions to load, or None for the whole committed dataset.
+
+    Paper mode used to cap self-collected datasets at 10000. OfflineDataset.subset
+    keeps the *first* N rows, so an expert row cited the merkle_root of a 50k
+    dataset while training on its first 23 episodes, and reported 10000 in the
+    Transitions column. The datasets are collected at a deliberate size; paper
+    mode now uses all of it, and only an explicit --max-transitions truncates.
+    """
     if args.max_transitions is not None:
         return int(args.max_transitions)
-    if args.paper and dataset_name in SELF_COLLECTED_DATASETS:
-        return 10000
     return None
 
 
@@ -325,6 +331,12 @@ def _dataset_result_fields(dataset) -> Dict[str, Any]:
         "dataset_family": dataset.metadata.get("dataset_family", dataset_family_for_name(dataset.name)),
         "dataset_source_type": dataset.source_type,
         "dataset_num_transitions": dataset.size,
+        # Truncation used to be invisible: the row cited a committed root while
+        # dataset.size reported the loaded prefix. Carrying both makes any gap
+        # between them readable straight off the table.
+        "dataset_committed_transitions": (dataset.metadata.get("manifest") or {}).get(
+            "total_transitions"
+        ),
         "phase2_dataset_provenance": dataset.metadata.get("phase2_dataset_provenance"),
         "manifest_hash": dataset.metadata.get("manifest_hash"),
         "audit_report_hash": dataset.metadata.get("audit_report_hash"),
