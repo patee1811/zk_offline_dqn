@@ -1,49 +1,49 @@
 Dataset,Family,Source,Transitions,Baseline,Optimizer,Seeds,Avg Return,Std Return,Norm. Score,Success Rate,Train Steps,Status
 cartpole-random-v2,cartpole-random,audited_self_collected,50006,bc,adam,3,9.433 +/- 0.287,0.287,,0.000 +/- 0.000,5000,completed
-cartpole-random-v2,cartpole-random,audited_self_collected,50006,bc,sgd,3,32.767 +/- 21.940,21.940,,0.000 +/- 0.000,5000,completed
-cartpole-random-v2,cartpole-random,audited_self_collected,50006,offline_dqn,adam,3,254.267 +/- 176.772,176.772,,0.333 +/- 0.471,5000,completed
-cartpole-random-v2,cartpole-random,audited_self_collected,50006,offline_dqn,sgd,3,291.933 +/- 41.451,41.451,,0.000 +/- 0.000,5000,completed
-cartpole-random-v2,cartpole-random,audited_self_collected,50006,double_dqn,adam,3,86.100 +/- 11.258,11.258,,0.000 +/- 0.000,5000,completed
-cartpole-random-v2,cartpole-random,audited_self_collected,50006,double_dqn,sgd,3,307.800 +/- 53.766,53.766,,0.000 +/- 0.000,5000,completed
-cartpole-random-v2,cartpole-random,audited_self_collected,50006,cql_lite,adam,3,217.967 +/- 185.826,185.826,,0.267 +/- 0.377,5000,completed
-cartpole-random-v2,cartpole-random,audited_self_collected,50006,cql_lite,sgd,3,304.167 +/- 48.320,48.320,,0.100 +/- 0.141,5000,completed
-cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,bc,adam,3,268.433 +/- 8.588,8.588,,0.000 +/- 0.000,5000,completed
-cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,bc,sgd,3,337.767 +/- 82.514,82.514,,0.167 +/- 0.170,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,bc,sgd,3,35.600 +/- 25.262,25.262,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,offline_dqn,adam,3,93.967 +/- 9.686,9.686,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,offline_dqn,sgd,3,297.200 +/- 45.676,45.676,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,double_dqn,adam,3,239.967 +/- 186.601,186.601,,0.333 +/- 0.471,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,double_dqn,sgd,3,311.033 +/- 56.982,56.982,,0.033 +/- 0.047,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,cql_lite,adam,3,104.833 +/- 11.773,11.773,,0.000 +/- 0.000,5000,completed
+cartpole-random-v2,cartpole-random,audited_self_collected,50006,cql_lite,sgd,3,302.667 +/- 47.833,47.833,,0.067 +/- 0.094,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,bc,adam,3,270.033 +/- 8.145,8.145,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,bc,sgd,3,341.800 +/- 80.590,80.590,,0.133 +/- 0.125,5000,completed
 cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,offline_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
-cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,offline_dqn,sgd,3,9.700 +/- 0.726,0.726,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,offline_dqn,sgd,3,9.633 +/- 0.634,0.634,,0.000 +/- 0.000,5000,completed
 cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,double_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
-cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,double_dqn,sgd,3,9.733 +/- 0.772,0.772,,0.000 +/- 0.000,5000,completed
-cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,cql_lite,adam,3,235.667 +/- 18.998,18.998,,0.000 +/- 0.000,5000,completed
-cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,cql_lite,sgd,3,243.767 +/- 96.404,96.404,,0.167 +/- 0.236,5000,completed
-cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,bc,adam,3,438.700 +/- 86.691,86.691,,0.833 +/- 0.236,5000,completed
-cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,bc,sgd,3,491.667 +/- 8.209,8.209,,0.933 +/- 0.047,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,double_dqn,sgd,3,9.800 +/- 0.864,0.864,,0.000 +/- 0.000,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,cql_lite,adam,3,282.967 +/- 55.677,55.677,,0.033 +/- 0.047,5000,completed
+cartpole-medium-v2,cartpole-medium,audited_self_collected,50045,cql_lite,sgd,3,240.100 +/- 91.153,91.153,,0.167 +/- 0.236,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,bc,adam,3,435.000 +/- 91.924,91.924,,0.833 +/- 0.236,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,bc,sgd,3,492.167 +/- 7.814,7.814,,0.933 +/- 0.047,5000,completed
 cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,offline_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
-cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,offline_dqn,sgd,3,16.300 +/- 9.477,9.477,,0.000 +/- 0.000,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,offline_dqn,sgd,3,16.267 +/- 9.430,9.430,,0.000 +/- 0.000,5000,completed
 cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,double_dqn,adam,3,9.300 +/- 0.216,0.216,,0.000 +/- 0.000,5000,completed
 cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,double_dqn,sgd,3,9.567 +/- 0.170,0.170,,0.000 +/- 0.000,5000,completed
-cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,cql_lite,adam,3,445.167 +/- 77.546,77.546,,0.867 +/- 0.189,5000,completed
-cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,cql_lite,sgd,3,192.867 +/- 178.971,178.971,,0.133 +/- 0.189,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,bc,adam,3,-300.331 +/- 231.287,231.287,,,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,bc,sgd,3,-377.995 +/- 175.087,175.087,,,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,offline_dqn,adam,3,-134.523 +/- 4.348,4.348,,,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,offline_dqn,sgd,3,-210.367 +/- 12.873,12.873,,,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,double_dqn,adam,3,-63.234 +/- 103.793,103.793,,,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,double_dqn,sgd,3,-185.829 +/- 21.585,21.585,,,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,cql_lite,adam,3,-204.056 +/- 38.208,38.208,,,5000,completed
-lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,cql_lite,sgd,3,-165.653 +/- 25.808,25.808,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,bc,adam,3,23.859 +/- 32.551,32.551,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,bc,sgd,3,-190.058 +/- 95.696,95.696,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,offline_dqn,adam,3,-337.334 +/- 175.025,175.025,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,offline_dqn,sgd,3,-352.260 +/- 112.461,112.461,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,double_dqn,adam,3,-238.419 +/- 73.088,73.088,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,double_dqn,sgd,3,-364.008 +/- 104.069,104.069,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,cql_lite,adam,3,-70.155 +/- 54.873,54.873,,,5000,completed
-lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,cql_lite,sgd,3,-285.667 +/- 103.087,103.087,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,bc,adam,3,159.758 +/- 30.328,30.328,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,bc,sgd,3,-52.737 +/- 2.875,2.875,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,offline_dqn,adam,3,-162.358 +/- 73.489,73.489,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,offline_dqn,sgd,3,-520.224 +/- 95.103,95.103,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,double_dqn,adam,3,-398.238 +/- 260.151,260.151,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,double_dqn,sgd,3,-533.538 +/- 95.498,95.498,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,cql_lite,adam,3,133.326 +/- 63.649,63.649,,,5000,completed
-lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,cql_lite,sgd,3,-387.359 +/- 180.121,180.121,,,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,cql_lite,adam,3,487.733 +/- 17.348,17.348,,0.967 +/- 0.047,5000,completed
+cartpole-expert-v2,cartpole-expert,audited_self_collected,50261,cql_lite,sgd,3,193.533 +/- 179.876,179.876,,0.133 +/- 0.189,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,bc,adam,3,-300.528 +/- 231.567,231.567,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,bc,sgd,3,-381.303 +/- 181.112,181.112,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,offline_dqn,adam,3,-32.527 +/- 33.208,33.208,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,offline_dqn,sgd,3,-189.360 +/- 22.102,22.102,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,double_dqn,adam,3,-123.561 +/- 8.350,8.350,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,double_dqn,sgd,3,-215.283 +/- 75.215,75.215,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,cql_lite,adam,3,-128.192 +/- 26.488,26.488,,,5000,completed
+lunarlander-random-v1,lunarlander-random,audited_self_collected,50020,cql_lite,sgd,3,-165.696 +/- 23.026,23.026,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,bc,adam,3,9.346 +/- 48.415,48.415,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,bc,sgd,3,-189.659 +/- 89.573,89.573,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,offline_dqn,adam,3,-575.957 +/- 64.528,64.528,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,offline_dqn,sgd,3,-367.583 +/- 118.853,118.853,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,double_dqn,adam,3,-248.246 +/- 64.328,64.328,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,double_dqn,sgd,3,-366.554 +/- 110.441,110.441,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,cql_lite,adam,3,-81.194 +/- 17.649,17.649,,,5000,completed
+lunarlander-medium-v1,lunarlander-medium,audited_self_collected,50586,cql_lite,sgd,3,-283.658 +/- 111.680,111.680,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,bc,adam,3,122.241 +/- 66.439,66.439,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,bc,sgd,3,-48.397 +/- 6.146,6.146,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,offline_dqn,adam,3,-294.313 +/- 86.641,86.641,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,offline_dqn,sgd,3,-517.823 +/- 91.611,91.611,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,double_dqn,adam,3,-448.006 +/- 101.205,101.205,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,double_dqn,sgd,3,-518.656 +/- 97.041,97.041,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,cql_lite,adam,3,121.547 +/- 20.173,20.173,,,5000,completed
+lunarlander-expert-v1,lunarlander-expert,audited_self_collected,50552,cql_lite,sgd,3,-390.672 +/- 194.456,194.456,,,5000,completed

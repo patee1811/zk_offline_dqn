@@ -180,3 +180,17 @@ Format:
 **Đích đề xuất:** `rules/90-domain/data-pipeline.md`; sửa `run_phase8_1_rl_benchmark.py` / `datasets.py`
 **Độ tin cậy:** cao (so 8 dataset_id, 2 lệch, 2 khớp, 4 thiếu)
 **Trạng thái:** đã áp dụng (1.6.0)
+
+## 2026-09-06 — phát hiện mới — scope data
+**Kích hoạt:** `verify_dataset_commitment` trả `False` cho `minari-pointmaze-umaze-v2-10000` và `-50000` với lỗi `manifest_hash mismatch for normalized dataset_manifest.json`. Chạy lại trên code chưa sửa cho thông báo giống hệt — lỗi có sẵn, không do đổi quy tắc lá.
+**Bài học:** manifest bị ghi sau khi `merkle_tree.json` đã chốt `manifest_hash`, nên hai file lệch nhau. Hai dataset này chống lưng cho ba dòng `merkle_membership` của Table 2 mà **không cổng nào chạy `verify_dataset_commitment`** — cổng chỉ kiểm sự tồn tại của root, không kiểm root còn tự nhất quán không. Commit lại là hết, root không đổi.
+**Đích đề xuất:** `rules/90-domain/data-pipeline.md`; cân nhắc cho `check_public_dataset_coverage` gọi `verify_dataset_commitment`
+**Độ tin cậy:** cao (đối chiếu trước/sau khi sửa code, hai dataset)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-06 — phát hiện mới — scope relations
+**Kích hoạt:** dataset cam kết bằng `sha256(canonical_json(transition))` còn quan hệ băm số nguyên fixed-point. Trên cartpole-expert-v2: root `88cb5f28` so với `02de61a9` trên cùng 50.261 transition.
+**Bài học:** hai quan hệ trung tâm cam kết vào hai vật thể khác nhau — `merkle_membership` kiểm cây JSON, `training_fragment` kiểm cây fixed-point — và không gì công bố gốc fixed-point, nên prover tự chọn được cây mình đã huấn luyện. Cách sửa theo Garg và cộng sự (CCS 2023): dataset cam kết **chính là** dataset fixed-point. Lá liên tục (PointMaze) không biểu diễn được nên giữ quy tắc JSON, ghi theo từng dataset ở `leaf_hash_rule`.
+**Đích đề xuất:** `rules/90-domain/relations.md` hoặc `data-pipeline.md`
+**Độ tin cậy:** cao (đối chiếu 3.000 transition, khớp cả bản Rust trong guest)
+**Trạng thái:** chờ xử lý

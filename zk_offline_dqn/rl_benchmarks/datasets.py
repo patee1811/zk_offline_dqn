@@ -8,7 +8,10 @@ from typing import Any, Dict, Iterable, List, Sequence
 
 import numpy as np
 
+from zk_offline_dqn.zk_specs import SPECS
+
 from zk_offline_dqn.data_pipeline import (
+    FIXED_POINT_LEAF_RULE,
     AUDIT_REPORT_NAME,
     MERKLE_TREE_NAME,
     RAW_EPISODES_NAME,
@@ -354,12 +357,33 @@ def load_committed_dataset(
         "dataset_root": merkle_tree.get("dataset_root"),
         "merkle_root": manifest.get("merkle_root") or merkle_tree.get("dataset_root"),
         "phase2_dataset_provenance": "reused_existing_artifact",
+        "leaf_hash_rule": merkle_tree.get("leaf_hash_rule"),
     }
-    return _rows_to_dataset(
+    dataset = _rows_to_dataset(
         name=name,
         env_id=manifest.get("env_id"),
         source_type=_source_type(manifest),
         rows=rows,
+        metadata=metadata,
+    )
+    if merkle_tree.get("leaf_hash_rule") == FIXED_POINT_LEAF_RULE:
+        # The Merkle tree commits the fixed-point values, so those are the
+        # dataset. Training on the float column would report numbers for data
+        # that nothing in the artifact commits to.
+        dataset = _to_fixed_point(dataset)
+    return dataset
+
+
+def _to_fixed_point(dataset: OfflineDataset) -> OfflineDataset:
+    scale = float(SPECS.FP_SCALE)
+    quantise = lambda values: (np.round(values * scale) / scale).astype(np.float32)  # noqa: E731
+    metadata = dict(dataset.metadata)
+    metadata["fixed_point_scale"] = SPECS.FP_SCALE
+    return replace(
+        dataset,
+        observations=quantise(dataset.observations),
+        next_observations=quantise(dataset.next_observations),
+        rewards=quantise(dataset.rewards),
         metadata=metadata,
     )
 
