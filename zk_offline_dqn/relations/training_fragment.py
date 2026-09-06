@@ -361,7 +361,18 @@ def generate_case(
     target_start: Mapping[str, Any] | None = None,
     case_id: str | None = None,
     layer_sizes: Sequence[int] | None = None,
+    dataset: Sequence[Mapping[str, Any]] | None = None,
+    provenance: Mapping[str, Any] | None = None,
+    learning_rate: int = 10,
 ) -> Dict[str, Any]:
+    """Build a fragment vector.
+
+    `dataset` and `provenance` bind the vector to a committed dataset: pass the
+    fixed-point transitions the dataset was committed under and the hashes from
+    its manifest, and `dataset_root` comes out equal to the committed root. The
+    synthetic defaults are what the existing test vectors were generated from
+    and must keep producing them byte for byte.
+    """
     scale = 1000
     public = {
         "relation": "training_fragment",
@@ -381,7 +392,7 @@ def generate_case(
         "batch_size": 1,
         "fixed_point_scale": scale,
         "gamma": 990,
-        "learning_rate": 10,
+        "learning_rate": int(learning_rate),
         "sampler_seed": DEFAULT_SAMPLER_SEED,
         "sampler_type": "lcg_mod_dataset_size",
         "dataset_size": dataset_size,
@@ -396,15 +407,34 @@ def generate_case(
         "update_trace_hash": "",
     }
     obs_dim = int(layer_sizes[0]) if layer_sizes is not None else 2
-    dataset = [
-        _transition_for_index(index, scale, obs_dim) for index in range(dataset_size)
-    ]
+    if dataset is None:
+        dataset = [
+            _transition_for_index(index, scale, obs_dim) for index in range(dataset_size)
+        ]
+    else:
+        dataset = list(dataset)
+        dataset_size = len(dataset)
+        public["dataset_size"] = dataset_size
+    if provenance is not None:
+        for field in (
+            "dataset_id_hash",
+            "dataset_type",
+            "manifest_hash",
+            "audit_report_hash",
+            "collection_log_final_hash",
+            "raw_trajectory_hash",
+        ):
+            public[field] = provenance[field]
     action_dim = int(layer_sizes[-1]) if layer_sizes is not None else 2
     leaves = [
         hash_leaf(serialize_transition_leaf(item, obs_dim=obs_dim, action_dim=action_dim))
         for item in dataset
     ]
-    root, paths = _merkle_paths(leaves)
+    sampled = [
+        lcg_sample_index(DEFAULT_SAMPLER_SEED, step_id, dataset_size)
+        for step_id in range(num_steps)
+    ]
+    root, paths = _merkle_paths(leaves, sampled)
     public["dataset_root"] = root
     online = (
         copy.deepcopy(online_start)
@@ -588,7 +618,15 @@ def _transition_for_index(index: int, scale: int, obs_dim: int = 2) -> Dict[str,
     }
 
 
-def _merkle_paths(leaves: List[str]) -> Tuple[str, List[List[Dict[str, Any]]]]:
+def _merkle_paths(
+    leaves: List[str], indices: Sequence[int] | None = None
+) -> Tuple[str, Dict[int, List[Dict[str, Any]]]]:
+    """Root plus a path per requested leaf, keyed by leaf index.
+
+    `indices` exists because a committed dataset carries 50k leaves and a
+    fragment opens a handful: building every path costs memory proportional to
+    the dataset rather than to the fragment.
+    """
     if not leaves:
         raise AssertionError("Merkle tree requires at least one leaf")
     levels = [leaves[:]]
@@ -600,8 +638,9 @@ def _merkle_paths(leaves: List[str]) -> Tuple[str, List[List[Dict[str, Any]]]]:
             right = level[pos + 1] if pos + 1 < len(level) else left
             next_level.append(hash_internal_node(left, right))
         levels.append(next_level)
-    paths: List[List[Dict[str, Any]]] = []
-    for leaf_index in range(len(leaves)):
+    wanted = range(len(leaves)) if indices is None else sorted(set(int(i) for i in indices))
+    paths: Dict[int, List[Dict[str, Any]]] = {}
+    for leaf_index in wanted:
         current_index = leaf_index
         path = []
         for level_num, level in enumerate(levels[:-1]):
@@ -619,5 +658,5 @@ def _merkle_paths(leaves: List[str]) -> Tuple[str, List[List[Dict[str, Any]]]]:
                 }
             )
             current_index //= 2
-        paths.append(path)
+        paths[leaf_index] = path
     return levels[-1][0], paths
