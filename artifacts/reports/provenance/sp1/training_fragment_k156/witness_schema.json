@@ -1,0 +1,27 @@
+{
+  "notes": [
+    "Every step is recomputed in the guest; checkpoint_after_i must equal checkpoint_before_i+1 through the running hash state."
+  ],
+  "private_witness": {
+    "provenance": "dataset provenance hashes mirrored from public inputs",
+    "steps": [
+      {
+        "global_step": "global step checked against public global_step_start",
+        "intermediates": "checked hints for forward activations, TD values, gradients, deltas, hashes, and target sync",
+        "leaf_hash": "transition leaf hash recomputed by guest",
+        "leaf_index": "must equal deterministic sample index",
+        "merkle_path": "Merkle path authenticating selected transition to dataset_root",
+        "online_model_after": "post-SGD online MLP checked against recomputed update",
+        "online_model_before": "pre-step quantized Linear-ReLU-Linear MLP",
+        "sample_index": "LCG-derived replay index recomputed by guest",
+        "step_id": "sequential step number checked by guest",
+        "target_model_after": "post-step target MLP checked against hard-sync rule",
+        "target_model_before": "pre-step target quantized Linear-ReLU-Linear MLP",
+        "transition": "fixed-point state/action/reward/next_state/terminated/truncated"
+      }
+    ]
+  },
+  "public_inputs": "dataset provenance, start/final checkpoint hashes, sampler config, training config, target-sync config, and trace commitments",
+  "relation": "training_fragment",
+  "schema_version": "sp1_training_fragment_witness_schema_v1"
+}
