@@ -34,6 +34,8 @@ TABLE2_COLUMNS = [
     "Prover Gas",
     "Peak RSS (MB)",
     "Max RSS (MB)",
+    "Prover",
+    "Measurement Host",
     "Backend Version",
     "SP1 Version",
     "Git Commit",
@@ -53,6 +55,7 @@ COMPACT_COLUMNS = [
     "Verify Time (s)",
     "Proof Size (bytes)",
     "Cycle Count",
+    "Prover",
     "Peak RSS (MB)",
 ]
 

@@ -18,7 +18,10 @@
   "mode": "smoke",
   "phase": "8.2",
   "proof_verified_rows": 20,
+  "prove_time_comparability": "Prove Time is not comparable across rows: the column mixes CPU and GPU provers and more than one measurement host. Cycle Count is deterministic for a given (guest ELF, input) and is comparable throughout.",
+  "prover_recorded_rows": 3,
   "row_count": 27,
+  "rows": 30,
   "scope": "ZK proof cost only",
   "unsupported_rows": 4
 }

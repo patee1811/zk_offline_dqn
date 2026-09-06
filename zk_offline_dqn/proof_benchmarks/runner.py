@@ -306,6 +306,8 @@ def _base_row(
     prover_gas: Any = None,
     peak_rss: Any = None,
     max_rss: Any = None,
+    prover: Any = None,
+    measurement_host: Any = None,
     backend_version: Any = None,
     sp1_version: Any = None,
     git_commit: Any = None,
@@ -336,6 +338,11 @@ def _base_row(
         "Prover Gas": prover_gas,
         "Peak RSS (MB)": peak_rss,
         "Max RSS (MB)": max_rss,
+        # Which prover and which box. Prove Time is meaningless across rows
+        # without them: k=8 took 144.6s for 4.84M cycles on CPU where k=16 took
+        # 4.9s for 9.29M on GPU, and the table said nothing.
+        "Prover": prover,
+        "Measurement Host": measurement_host,
         "Backend Version": backend_version,
         "SP1 Version": sp1_version,
         "Git Commit": git_commit,
