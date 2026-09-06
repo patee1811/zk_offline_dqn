@@ -14,6 +14,10 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from zk_offline_dqn.data_pipeline import (  # noqa: E402
+    RAW_EPISODES_NAME,
+    read_jsonl,
+)
 from zk_offline_dqn.backends.sp1.training_aggregation import (  # noqa: E402
     BACKEND_DIR,
     cargo_command,
@@ -378,6 +382,36 @@ def validate_case(
     return status
 
 
+def build_fragment_source(args: argparse.Namespace) -> Dict[str, Any] | None:
+    """Turn --dataset-dir into the keyword arguments generate_case needs.
+
+    Returns None when no dataset was named, which leaves the chain on the
+    synthetic fixture data the committed vectors were generated from.
+    """
+    if not args.dataset_dir:
+        return None
+    if not args.layer_sizes or len(args.layer_sizes) != 3:
+        raise SystemExit("--dataset-dir requires --layer-sizes with one hidden layer")
+
+    import importlib.util
+
+    exporter = ROOT / "scripts/experiments/export_training_fragment_vector.py"
+    spec = importlib.util.spec_from_file_location("_fragment_export", exporter)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    dataset_dir = Path(args.dataset_dir)
+    if not dataset_dir.is_absolute():
+        dataset_dir = ROOT / dataset_dir
+    rows = read_jsonl(dataset_dir / RAW_EPISODES_NAME)
+    return {
+        "dataset": module.fixed_point_transitions(rows),
+        "provenance": module.provenance_from(dataset_dir),
+        "layer_sizes": list(args.layer_sizes),
+        "learning_rate": int(args.learning_rate_fp),
+    }
+
+
 def prepare_recursive_case(
     target: int,
     out_root: Path,
@@ -385,10 +419,13 @@ def prepare_recursive_case(
     child_proof_mode: str,
     run_child_proves: bool,
     chunk_size: int = 8,
+    fragment_source: Dict[str, Any] | None = None,
 ) -> tuple[Path, List[Dict[str, Any]]]:
     if child_proof_mode not in RECURSIVE_CHILD_PROOF_MODES:
         raise SystemExit(f"unsupported --child-proof-mode {child_proof_mode}")
-    child_cases = generate_recursive_child_cases(target, chunk_size=chunk_size)
+    child_cases = generate_recursive_child_cases(
+        target, chunk_size=chunk_size, fragment_source=fragment_source
+    )
     work_dir = out_root / "_recursive_child_work" / f"t{target}"
     case_dir = work_dir / "cases"
     materials: List[Dict[str, Any]] = []
@@ -597,8 +634,11 @@ def prepare_binary_native_case(
     *,
     run_child_proves: bool,
     chunk_size: int = 8,
+    fragment_source: Dict[str, Any] | None = None,
 ) -> tuple[Path, List[Dict[str, Any]], Dict[str, Path]]:
-    child_cases = generate_recursive_child_cases(target, chunk_size=chunk_size)
+    child_cases = generate_recursive_child_cases(
+        target, chunk_size=chunk_size, fragment_source=fragment_source
+    )
     leaves = len(child_cases)
     if leaves < 2 or leaves & (leaves - 1):
         raise SystemExit(
@@ -654,6 +694,13 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--targets", nargs="+", type=int, default=[32, 64, 128])
     parser.add_argument("--chunk-size", type=int, default=8)
+    parser.add_argument(
+        "--dataset-dir",
+        help="Committed dataset to bind every chunk to. Without it the chain "
+        "uses the synthetic fixture data, which proves nothing about a real run.",
+    )
+    parser.add_argument("--layer-sizes", nargs="+", type=int)
+    parser.add_argument("--learning-rate-fp", type=int, default=50)
     parser.add_argument("--aggregation-mode", default="proof_manifest_chain")
     parser.add_argument("--aggregation-topology")
     parser.add_argument("--child-proof-mode", default=CHILD_PROOF_MODE)
@@ -664,6 +711,7 @@ def main() -> int:
     parser.add_argument("--run-prove", action="store_true")
     parser.add_argument("--continue-on-failure", action="store_true")
     args = parser.parse_args()
+    fragment_source = build_fragment_source(args)
     if args.chunk_size <= 0:
         raise SystemExit("--chunk-size must be positive")
     if args.aggregation_mode not in {"proof_manifest_chain", RECURSIVE_AGGREGATION_MODE}:
@@ -692,6 +740,7 @@ def main() -> int:
                 out_root,
                 run_child_proves=args.run_child_proves,
                 chunk_size=args.chunk_size,
+                fragment_source=fragment_source,
             )
         elif args.aggregation_mode == RECURSIVE_AGGREGATION_MODE:
             case_path, child_statuses = prepare_recursive_case(
@@ -700,6 +749,7 @@ def main() -> int:
                 child_proof_mode=args.child_proof_mode,
                 run_child_proves=args.run_child_proves,
                 chunk_size=args.chunk_size,
+                fragment_source=fragment_source,
             )
         else:
             case_path = write_generated_case(target)
