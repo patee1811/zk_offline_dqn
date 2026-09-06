@@ -29,7 +29,7 @@
     "adam",
     "sgd"
   ],
-  "out_dir": "C:/Users/NGOCDU~1/AppData/Local/Temp/claude/c--Users-Ngoc-Duy-Duytapcode-zk-offline-dqn/3889b663-d3cd-4873-87c6-d4e33929453b/scratchpad/t1final",
+  "out_dir": "C:/Users/NGOCDU~1/AppData/Local/Temp/claude/c--Users-Ngoc-Duy-Duytapcode-zk-offline-dqn/3889b663-d3cd-4873-87c6-d4e33929453b/scratchpad/t1fp",
   "phase2_artifact_root": "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts",
   "phase2_tarballs": [
     "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts/kaggle_phase2_outputs/phase2_dataset_outputs.tar.gz",
