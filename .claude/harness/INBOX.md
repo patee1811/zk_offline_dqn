@@ -194,3 +194,17 @@ Format:
 **Đích đề xuất:** `rules/90-domain/relations.md` hoặc `data-pipeline.md`
 **Độ tin cậy:** cao (đối chiếu 3.000 transition, khớp cả bản Rust trong guest)
 **Trạng thái:** chờ xử lý
+
+## 2026-09-06 — thất bại — scope experiments
+**Kích hoạt:** prove một lá `training_fragment` 504.115.089 cycles trên g5.xlarge. `CudaClientError: early eof`; `dmesg` cho `Out of memory: Killed process 2810 (sp1-gpu-server)` với `anon-rss 4,65GB + shmem-rss 8,91GB ≈ 13,5GB` trên máy 15GB, trong khi **VRAM dùng 0 MiB**.
+**Bài học:** dòng "recursion: bộ nhớ phẳng, VRAM 18,4GB không đổi" **chỉ đúng cho proof đệ quy**. Proof `training_fragment` thì bộ nhớ tăng theo cycles và tiêu **RAM máy chủ**, không phải VRAM — nút thắt nằm ở `sp1-gpu-server`, một tiến trình riêng, nên peak RSS của host chỉ báo 1,5GB và không hề lộ nguyên nhân. Chọn máy cho phase 3 phải theo RAM chứ không theo VRAM. Ngoại suy từ điểm OOM này: ~27 byte mỗi cycle.
+**Đích đề xuất:** `rules/90-domain/experiments.md` — tách dòng bộ nhớ recursion thành hai vế theo loại proof
+**Độ tin cậy:** cao (dmesg trực tiếp, VRAM 0 MiB xác nhận không phải GPU)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-06 — thất bại — scope experiments
+**Kích hoạt:** `aws ec2 run-instances` trả `Connection was closed before we received a valid response from endpoint URL` — không biết máy đã tạo hay chưa. Sau đó `sudo shutdown -c` rồi `sudo shutdown -h +45` làm máy tắt **ngay lập tức** thay vì sau 45 phút.
+**Bài học:** lệnh launch chết giữa chừng phải **kiểm `describe-instances` trước khi thử lại**, nếu không sẽ có hai máy GPU cùng chạy mà chỉ theo dõi một. Và đừng đụng vào `shutdown` đã hẹn từ user-data: huỷ rồi đặt lại làm máy tắt ngay, mất phần việc còn dở. Đặt hẹn một lần trong user-data rồi để yên.
+**Độ tin cậy:** cao (quan sát cả hai lỗi trong một phiên)
+**Đích đề xuất:** `rules/90-domain/experiments.md` dòng máy thuê
+**Trạng thái:** chờ xử lý
