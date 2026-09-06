@@ -1,0 +1,32 @@
+{
+  "batch_size": 1,
+  "claim_status": "sp1_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p training-fragment-host -- --execute --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_lunarlander_expert_k1_case_0.json --max-steps 1",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-fragment-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-06 05:57:02\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-fragment-host --execute --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_lunarlander_expert_k1_case_0.json --max-steps 1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+    "stdout_tail": "case_path = /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_lunarlander_expert_k1_case_0.json\nhost_precheck = true\nnum_steps = 1\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = b361008f860236acb89b0671023ee61855efebf72c2a3f644efa35603650696d\nfinal_checkpoint_hash = e5b0e2c6a139a7f6daecc1349e37f2cb2d6b5310597ee1424a4536160a6d79c5\ntarget_sync_events = 0\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 0.350751\ncycle_count = 6469206\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "metrics_saved": true,
+  "num_steps": 1,
+  "proof": {
+    "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_lunarlander_expert_k1_case_0.json --out-dir /home/ubuntu/repo3/artifacts/reports/provenance/sp1/training_fragment_lunarlander_expert_k1 --max-steps 1",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-fragment-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-06 05:57:02\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-fragment-host --prove --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_lunarlander_expert_k1_case_0.json --out-dir /home/ubuntu/repo3/artifacts/reports/provenance/sp1/training_fragment_lunarlander_expert_k1 --max-steps 1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+    "stdout_tail": "case_path = /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_lunarlander_expert_k1_case_0.json\nhost_precheck = true\nnum_steps = 1\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = b361008f860236acb89b0671023ee61855efebf72c2a3f644efa35603650696d\nfinal_checkpoint_hash = e5b0e2c6a139a7f6daecc1349e37f2cb2d6b5310597ee1424a4536160a6d79c5\ntarget_sync_events = 0\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 0.342401\ncycle_count = 6469206\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 5.634334\nverification_time_sec = 0.186118\nproof_size_bytes = 4304900"
+  },
+  "proof_artifact_policy_saved": true,
+  "proof_generated": true,
+  "proof_verified": true,
+  "public_inputs_saved": true,
+  "reference_passed": true,
+  "relation": "training_fragment",
+  "tamper_report_saved": true,
+  "tamper_test_passed": true,
+  "target_sync_events": 0,
+  "verify_report_saved": true,
+  "witness_schema_saved": true
+}

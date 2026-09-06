@@ -1,0 +1,17 @@
+{
+  "backend_version": "0.1.0",
+  "cycle_count": 447706,
+  "git_commit": null,
+  "guest_elf_sha256": "fe1f11e4349b0283c1626a5b1231f9148cf85950249c791c82ef576b68032545",
+  "measurement_host": "g5.xlarge (4 vCPU, 15 GB) -- not the host the other merkle rows were measured on",
+  "proof_generated": true,
+  "proof_size_bytes": 2783958,
+  "proof_verified": true,
+  "prove_time_seconds": 96.302976432,
+  "prover": "cpu",
+  "public_inputs_sha256": "219e902371c45ff6a49630711fa63d0fb1ecfad7e9711fa6e8a66e97481d0beb",
+  "relation": "merkle_membership",
+  "sp1_version": "6.1.0",
+  "test_vector_sha256": "aa1fdd1ac8a44438574a3d6f40d58bcf989b3e66fc0a08064d7a98523f108e1d",
+  "verify_time_seconds": 0.114942555
+}

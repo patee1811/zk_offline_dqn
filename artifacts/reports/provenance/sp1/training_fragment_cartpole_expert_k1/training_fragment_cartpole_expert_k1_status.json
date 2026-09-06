@@ -1,0 +1,32 @@
+{
+  "batch_size": 1,
+  "claim_status": "sp1_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p training-fragment-host -- --execute --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_cartpole_expert_k1_case_0.json --max-steps 1",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-fragment-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-06 05:57:02\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-fragment-host --execute --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_cartpole_expert_k1_case_0.json --max-steps 1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+    "stdout_tail": "case_path = /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_cartpole_expert_k1_case_0.json\nhost_precheck = true\nnum_steps = 1\ndataset_root = 02de61a980455ea1e894e5ec77a7948faa622b4ddc4d1a56b710b2ce10b410d2\nstart_checkpoint_hash = 107e13f56c805d6733245f00c87c2d5ef079f9c0693aa2ac12272f7322422caa\nfinal_checkpoint_hash = 3d73cf2563b0ebf8c619ef9088a94ba7cd20de742ad8e6b341182fe0bc7d724c\ntarget_sync_events = 0\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 0.244020\ncycle_count = 4449300\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "metrics_saved": true,
+  "num_steps": 1,
+  "proof": {
+    "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_cartpole_expert_k1_case_0.json --out-dir /home/ubuntu/repo3/artifacts/reports/provenance/sp1/training_fragment_cartpole_expert_k1 --max-steps 1",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: training-fragment-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-06 05:57:02\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-fragment-host --prove --case /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_cartpole_expert_k1_case_0.json --out-dir /home/ubuntu/repo3/artifacts/reports/provenance/sp1/training_fragment_cartpole_expert_k1 --max-steps 1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+    "stdout_tail": "case_path = /home/ubuntu/repo3/zk_backend/test_vectors/training_fragment_cartpole_expert_k1_case_0.json\nhost_precheck = true\nnum_steps = 1\ndataset_root = 02de61a980455ea1e894e5ec77a7948faa622b4ddc4d1a56b710b2ce10b410d2\nstart_checkpoint_hash = 107e13f56c805d6733245f00c87c2d5ef079f9c0693aa2ac12272f7322422caa\nfinal_checkpoint_hash = 3d73cf2563b0ebf8c619ef9088a94ba7cd20de742ad8e6b341182fe0bc7d724c\ntarget_sync_events = 0\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 0.244208\ncycle_count = 4449300\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 4.272891\nverification_time_sec = 0.120658\nproof_size_bytes = 2833607"
+  },
+  "proof_artifact_policy_saved": true,
+  "proof_generated": true,
+  "proof_verified": true,
+  "public_inputs_saved": true,
+  "reference_passed": true,
+  "relation": "training_fragment",
+  "tamper_report_saved": true,
+  "tamper_test_passed": true,
+  "target_sync_events": 0,
+  "verify_report_saved": true,
+  "witness_schema_saved": true
+}

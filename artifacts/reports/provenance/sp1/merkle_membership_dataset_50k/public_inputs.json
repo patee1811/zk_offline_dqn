@@ -1,0 +1,11 @@
+{
+  "dataset_id": "minari-pointmaze-umaze-v2-50000",
+  "dataset_type": "public_benchmark",
+  "dataset_root": "bf92c35069b94dd80f0abe79eb4a237203ef2c8525ff84f42a80ac21d3c115a2",
+  "manifest_hash": "e63c9c81b3a3033a52f688dca64fde1f3f380bcebe46c1c799ac9c95f4a20e60",
+  "audit_report_hash": "1a402bddbf347b16341b02bc91979cbf141c792bae123bfbbc3a7974d517fc9d",
+  "collection_log_final_hash": null,
+  "raw_trajectory_hash": "b86e91abc4a233f511324aabc92d561eb34c872fc3d3f7344ebbd5157d7084c0",
+  "leaf_hash": "b1e772283ac063e6e1c856fae35845cb2344dcc31ad2d81219b1170792209969",
+  "leaf_index": 25000
+}

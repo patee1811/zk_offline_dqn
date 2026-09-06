@@ -188,6 +188,11 @@ async fn run_with_prover<P: Prover>(
             cycle_count,
             case_path,
             &guest_elf_sha256,
+            if std::env::var("SP1_CUDA").map(|v| v == "1").unwrap_or(false) {
+                "cuda"
+            } else {
+                "cpu"
+            },
         )?;
         println!("proof_generated = true");
         println!("proof_verified = true");
@@ -286,6 +291,7 @@ fn write_provenance(
     cycle_count: Option<u64>,
     case_path: &Path,
     guest_elf_sha256: &str,
+    prover_label: &str,
 ) -> Result<()> {
     write_json(out_dir.join("public_inputs.json"), &input.public_inputs)?;
     write_json(out_dir.join("witness_schema.json"), &witness_schema())?;
@@ -302,6 +308,11 @@ fn write_provenance(
             "proof_size_bytes": proof_size_bytes,
             "cycle_count": cycle_count,
             "backend_version": env!("CARGO_PKG_VERSION"),
+            // Which prover produced this row. Without it a table mixes CPU and
+            // GPU timings silently: k=8 took 144.6s for 4.84M cycles on CPU
+            // while k=16 took 4.9s for 9.29M cycles on GPU, and nothing in the
+            // provenance said so.
+            "prover": prover_label,
             "sp1_version": "6.1.0",
             "git_commit": git_commit(),
             "test_vector_sha256": sha256_file(case_path)?,
