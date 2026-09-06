@@ -512,10 +512,13 @@ def generate_recursive_case(
     child_materials: Sequence[Mapping[str, Any]] | None = None,
     child_proof_mode: str = CHILD_PROOF_MODE,
     chunk_size: int = 8,
+    fragment_source: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     if child_proof_mode not in RECURSIVE_CHILD_PROOF_MODES:
         raise AssertionError("unsupported recursive child proof mode")
-    child_cases = generate_recursive_child_cases(step_end, chunk_size=chunk_size)
+    child_cases = generate_recursive_child_cases(
+        step_end, chunk_size=chunk_size, fragment_source=fragment_source
+    )
     materials = list(child_materials) if child_materials is not None else [
         placeholder_child_material(child_case, chunk_id, proof_mode=child_proof_mode)
         for chunk_id, child_case in enumerate(child_cases)
@@ -624,10 +627,17 @@ def generate_recursive_case(
     return vector
 
 
-def generate_binary_native_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
+def generate_binary_native_case(
+    step_end: int,
+    *,
+    chunk_size: int = 8,
+    fragment_source: Mapping[str, Any] | None = None,
+) -> Dict[str, Any]:
     if step_end not in {16, 32}:
         raise AssertionError("binary native fixtures target T=16 or T=32")
-    child_cases = generate_recursive_child_cases(step_end, chunk_size=chunk_size)
+    child_cases = generate_recursive_child_cases(
+        step_end, chunk_size=chunk_size, fragment_source=fragment_source
+    )
     if step_end == 16:
         return build_binary_native_case(
             child_cases,
@@ -782,7 +792,20 @@ def build_binary_native_case(
     return vector
 
 
-def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> List[Dict[str, Any]]:
+def generate_recursive_child_cases(
+    step_end: int,
+    *,
+    chunk_size: int = 8,
+    fragment_source: Mapping[str, Any] | None = None,
+) -> List[Dict[str, Any]]:
+    """Chained fragment cases covering [0, step_end).
+
+    `fragment_source` binds the chain to a committed dataset: pass the keyword
+    arguments generate_case takes for a real run -- dataset, provenance,
+    layer_sizes, learning_rate -- and every chunk is generated against it. Left
+    out, the chain uses the synthetic dataset the committed fixtures were built
+    from, which those fixtures still have to reproduce byte for byte.
+    """
     if chunk_size <= 0:
         raise AssertionError("chunk_size must be positive")
     if step_end <= 0 or step_end % chunk_size != 0:
@@ -797,6 +820,7 @@ def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> Lis
             online_start=online,
             target_start=target,
             case_id=f"training_fragment_recursive_chunk_{chunk_id}_steps_{step_start}_{step_start + chunk_size}",
+            **dict(fragment_source or {}),
         )
         child_cases.append(child_case)
         last_step = child_case["private_witness"]["steps"][-1]
