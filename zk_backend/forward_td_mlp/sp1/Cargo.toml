@@ -18,3 +18,23 @@ sp1-sdk = "=6.1.0"
 sp1-zkvm = "=6.1.0"
 tokio = { version = "1.44", features = ["macros", "rt-multi-thread"] }
 
+# Integer overflow must abort the guest, not wrap silently.
+#
+# fixed_point_mul is (a * b) / 1000 over i64. When offline DQN diverges the Q
+# values grow exponentially, and 990 * q passes i64::MAX at roughly 9.3e15 --
+# a 4992-step CartPole run at learning_rate_fp=10 crosses it around step 3744.
+# Cargo's release profile leaves overflow-checks off, so the product wrapped to
+# a negative number and the guest happily proved it: a prover generating the
+# witness with the same i64 semantics gets assert_eq! to pass and the proof
+# verifies over arithmetic that means nothing. Our run only failed because the
+# Python generator uses arbitrary-precision integers and so disagreed.
+#
+# This has to sit at the workspace root. The SP1 security guidance says to put
+# it in the guest's own Cargo.toml, which is right for the standalone template
+# but silently ignored here, where the guest is a workspace member:
+#   warning: profiles for the non root package will be ignored
+#
+# sp1_build runs `cargo build --release --target ...` from the guest directory
+# with no profile override, so cargo resolves this root and applies it.
+[profile.release]
+overflow-checks = true
