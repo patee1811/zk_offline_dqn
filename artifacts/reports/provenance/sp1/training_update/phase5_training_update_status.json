@@ -2,28 +2,28 @@
   "batch_size": 1,
   "claim_status": "sp1_proof_backed",
   "execute": {
-    "command": "cargo run --release -p training-update-host -- --execute --case /home/ubuntu/repo7/zk_backend/test_vectors/training_update_case_0.json",
+    "command": "cargo run --release -p training-update-host -- --execute --case /home/ubuntu/repo8/zk_backend/test_vectors/training_update_case_0.json",
     "passed": true,
     "return_code": 0,
-    "stderr_tail": "warning: training-update-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-update-host@0.1.0: training-update-guest built at 2026-09-07 03:36:17\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-update-host --execute --case /home/ubuntu/repo7/zk_backend/test_vectors/training_update_case_0.json`",
-    "stdout_tail": "case_path = /home/ubuntu/repo7/zk_backend/test_vectors/training_update_case_0.json\nhost_precheck = true\ndataset_root = 33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4\ncheckpoint_hash_t = 42843cc406725ef62cbe50012a581714a029aaa592a50906fe1c5cd2f770c238\ncheckpoint_hash_t_plus_1 = af787ece7043b5e8de537df4ba84ea068b541bf655507c9f316215aac0b45c07\nexecution_ok = true\nexecution_time_sec = 0.043264\ncycle_count = 494060\nexit_code = 0"
+    "stderr_tail": "warning: training-update-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-update-host@0.1.0: training-update-guest built at 2026-09-07 15:15:35\n    Finished `release` profile [optimized] target(s) in 0.82s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-update-host --execute --case /home/ubuntu/repo8/zk_backend/test_vectors/training_update_case_0.json`",
+    "stdout_tail": "case_path = /home/ubuntu/repo8/zk_backend/test_vectors/training_update_case_0.json\nhost_precheck = true\ndataset_root = 33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4\ncheckpoint_hash_t = 42843cc406725ef62cbe50012a581714a029aaa592a50906fe1c5cd2f770c238\ncheckpoint_hash_t_plus_1 = af787ece7043b5e8de537df4ba84ea068b541bf655507c9f316215aac0b45c07\nexecution_ok = true\nexecution_time_sec = 0.041201\ncycle_count = 494060\nexit_code = 0"
   },
   "execute_passed": true,
-  "metrics_saved": false,
+  "metrics_saved": true,
   "proof": {
-    "command": "cargo run --release -p training-update-host -- --prove --case /home/ubuntu/repo7/zk_backend/test_vectors/training_update_case_0.json --out-dir artifacts/reports/provenance/sp1/training_update_batch1",
+    "command": "cargo run --release -p training-update-host -- --prove --case /home/ubuntu/repo8/zk_backend/test_vectors/training_update_case_0.json --out-dir /home/ubuntu/repo8/artifacts/reports/provenance/sp1/training_update",
     "passed": true,
     "return_code": 0,
-    "stderr_tail": "warning: training-update-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-update-host@0.1.0: training-update-guest built at 2026-09-07 03:36:17\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-update-host --prove --case /home/ubuntu/repo7/zk_backend/test_vectors/training_update_case_0.json --out-dir artifacts/reports/provenance/sp1/training_update_batch1`",
-    "stdout_tail": "case_path = /home/ubuntu/repo7/zk_backend/test_vectors/training_update_case_0.json\nhost_precheck = true\ndataset_root = 33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4\ncheckpoint_hash_t = 42843cc406725ef62cbe50012a581714a029aaa592a50906fe1c5cd2f770c238\ncheckpoint_hash_t_plus_1 = af787ece7043b5e8de537df4ba84ea068b541bf655507c9f316215aac0b45c07\nexecution_ok = true\nexecution_time_sec = 0.041755\ncycle_count = 494060\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 61.563385\nverification_time_sec = 0.126608\nproof_size_bytes = 2785799"
+    "stderr_tail": "warning: training-update-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-update-host@0.1.0: training-update-guest built at 2026-09-07 15:15:35\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/training-update-host --prove --case /home/ubuntu/repo8/zk_backend/test_vectors/training_update_case_0.json --out-dir /home/ubuntu/repo8/artifacts/reports/provenance/sp1/training_update`",
+    "stdout_tail": "case_path = /home/ubuntu/repo8/zk_backend/test_vectors/training_update_case_0.json\nhost_precheck = true\ndataset_root = 33798ccf2912e918052d86e1436162086762b32cc2c63d79dd640ce07dd124d4\ncheckpoint_hash_t = 42843cc406725ef62cbe50012a581714a029aaa592a50906fe1c5cd2f770c238\ncheckpoint_hash_t_plus_1 = af787ece7043b5e8de537df4ba84ea068b541bf655507c9f316215aac0b45c07\nexecution_ok = true\nexecution_time_sec = 0.041665\ncycle_count = 494060\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 61.491167\nverification_time_sec = 0.124643\nproof_size_bytes = 2785799"
   },
-  "proof_generated": false,
+  "proof_generated": true,
   "proof_verified": true,
-  "public_inputs_saved": false,
+  "public_inputs_saved": true,
   "reference_passed": true,
   "relation": "training_update",
   "tamper_report_saved": true,
   "tamper_test_passed": true,
-  "verify_report_saved": false,
-  "witness_schema_saved": false
+  "verify_report_saved": true,
+  "witness_schema_saved": true
 }

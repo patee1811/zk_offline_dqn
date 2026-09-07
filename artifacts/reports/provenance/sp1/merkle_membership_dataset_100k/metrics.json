@@ -8,17 +8,18 @@
   "git_commit": null,
   "guest_elf_sha256": "1097325cd15afaafb4feccbe337748417fb612620b99faef9edb3f1ca59b4763",
   "manifest_hash": "b9f2a9a5627f0ab573ff9cd3a16a500c4f6110bf01bf2f1f425b32566f821ec0",
-  "max_rss_mb": 10745.34,
+  "max_rss_mb": 10856.727,
   "memory_measurement_status": "measured",
   "merkle_depth": 17,
-  "peak_rss_mb": 10745.34,
+  "peak_rss_mb": 10856.727,
   "proof_generated": true,
   "proof_size_bytes": 2784983,
   "proof_verified": true,
-  "prove_time_seconds": 60.632972255,
+  "prove_time_seconds": 61.128445191,
+  "prover": "cpu",
   "public_inputs_sha256": "bca97b40627f2575f46be62aafd315cfe5ad4a5d47dddeab21ee38a4e88e5e38",
   "relation": "merkle_membership",
   "sp1_version": "6.1.0",
-  "test_vector_sha256": "6bf8436c8e7803e7dc540960d16adabf114cc566561b8b55bebe6e727ddae800",
-  "verify_time_seconds": 0.122992097
+  "test_vector_sha256": "2c955108e060b4cbe4f10e48054f424aad95345585ce5b413a2c4171b6c554bb",
+  "verify_time_seconds": 0.123058213
 }

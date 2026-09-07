@@ -81,6 +81,26 @@ RECURSIVE_CASES = [
         network="tiny", aggregation_t=16, status="failed_environment",
         notes="Groth16 child proofs verified in-guest; 20x the cycles of native child verification; PLONK child proofs are untested",
     ),
+    # A whole run under one proof, rather than a fragment of one: step_start 0
+    # to step_end 1248 over a binary tree of 8 leaves of 156 steps, each leaf
+    # bound to the dataset the matching Table 1 rows train on. 1248 was where
+    # the earlier attempt stopped, not where the prover did -- Q diverged into
+    # i64 overflow at leaf 8 -- and the gradient clip in the relation is what
+    # moved that wall.
+    ProofCase(
+        "binary_tree_native_t1248_cartpole", "recursive_aggregation",
+        "binary_tree_native_t1248_cartpole", "whole_run_cartpole", "recursive_aggregation",
+        "training_aggregation_binary_native_t1248_cartpole",
+        network="[4, 64, 2]", aggregation_t=1248, status="failed_environment",
+        notes="one root proof over the entire 1248-step run; dataset_root equals the committed cartpole-expert-v2 merkle_root",
+    ),
+    ProofCase(
+        "binary_tree_native_t1248_lunarlander", "recursive_aggregation",
+        "binary_tree_native_t1248_lunarlander", "whole_run_lunarlander", "recursive_aggregation",
+        "training_aggregation_binary_native_t1248_lunarlander",
+        network="[8, 64, 4]", aggregation_t=1248, status="failed_environment",
+        notes="one root proof over the entire 1248-step run; dataset_root equals the committed lunarlander-expert-v1 merkle_root",
+    ),
 ]
 
 

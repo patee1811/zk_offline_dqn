@@ -2,20 +2,20 @@
 
 | Relation | Variant | Scale Axis | Status | Prove Time (s) | Verify Time (s) | Proof Size (bytes) | Cycle Count | Prover | Peak RSS (MB) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| td_mvp | canonical | relation | proof_verified | 60.339038547 | 0.124389036 | 2783869 | 434785 |  |  |
-| merkle_membership | canonical | merkle_depth | proof_verified | 50.202496826 | 0.122690861 | 2779510 | 116750 |  |  |
-| forward_td_mlp | canonical_tiny | network | proof_verified | 89.209607327 | 0.125632047 | 2798897 | 1628675 |  |  |
-| one_step_sgd_tiny | canonical_tiny | network | proof_verified | 71.771876005 | 0.125643043 | 2790551 | 928693 |  |  |
-| short_trace | canonical | trace_length | proof_verified | 51.687464148 | 0.124131554 | 2779989 | 122067 |  |  |
-| training_update | batch1_tiny | batch_size | proof_verified | 61.563384568000004 | 0.126607929 | 2785799 | 494060 |  |  |
-| training_fragment_k1 | k1 | trace_length | proof_verified | 1.574758662 | 0.126805997 | 2791983 | 960902 | cuda |  |
-| training_fragment_k4 | k4 | trace_length | proof_verified | 2.313244575 | 0.128539791 | 2813191 | 2776906 | cuda |  |
-| training_fragment_k8 | k8 | trace_length | proof_verified | 3.795511814 | 0.129491568 | 2841055 | 5171660 | cuda |  |
-| training_aggregation_manifest_t32 | proof_manifest_chain | aggregation_t | proof_verified | 1.4320784579999999 | 0.125604204 | 2795671 | 879873 | cuda |  |
-| training_aggregation_manifest_t64 | proof_manifest_chain | aggregation_t | proof_verified | 1.8081874249999998 | 0.126041831 | 2804079 | 1508159 | cuda |  |
-| training_aggregation_manifest_t128 | proof_manifest_chain | aggregation_t | proof_verified | 2.53259536 | 0.126969594 | 2819656 | 2759185 | cuda |  |
-| training_fragment | cartpole_expert | committed_dataset | proof_verified | 3.370516392 | 0.129267135 | 2835655 | 4636813 | cuda |  |
-| training_fragment | lunarlander_expert | committed_dataset | proof_verified | 4.618301761 | 0.197243475 | 4307380 | 6704450 | cuda |  |
+| td_mvp | canonical | relation | proof_verified | 60.49624495 | 0.124127551 | 2783869 | 434785 | cpu |  |
+| merkle_membership | canonical | merkle_depth | proof_verified | 50.222203246 | 0.122936872 | 2779510 | 116750 | cpu |  |
+| forward_td_mlp | canonical_tiny | network | proof_verified | 89.878761437 | 0.126011008 | 2798897 | 1628694 | cpu |  |
+| one_step_sgd_tiny | canonical_tiny | network | proof_verified | 71.968239471 | 0.124821362 | 2790551 | 928712 | cpu |  |
+| short_trace | canonical | trace_length | proof_verified | 51.933611835 | 0.124154753 | 2779989 | 122067 | cpu |  |
+| training_update | batch1_tiny | batch_size | proof_verified | 61.491167129 | 0.124643438 | 2785799 | 494060 | cpu |  |
+| training_fragment_k1 | k1 | trace_length | proof_verified | 1.643311762 | 0.127073246 | 2792511 | 979945 | cuda |  |
+| training_fragment_k4 | k4 | trace_length | proof_verified | 2.324603272 | 0.128052902 | 2813719 | 2799333 | cuda |  |
+| training_fragment_k8 | k8 | trace_length | proof_verified | 3.810088194 | 0.129283375 | 2841071 | 5193244 | cuda |  |
+| training_aggregation_manifest_t32 | proof_manifest_chain | aggregation_t | proof_verified | 1.407443271 | 0.126195207 | 2795671 | 880030 | cuda |  |
+| training_aggregation_manifest_t64 | proof_manifest_chain | aggregation_t | proof_verified | 1.793393018 | 0.125687318 | 2804079 | 1508043 | cuda |  |
+| training_aggregation_manifest_t128 | proof_manifest_chain | aggregation_t | proof_verified | 2.526163018 | 0.126357782 | 2819656 | 2758670 | cuda |  |
+| training_fragment | cartpole_expert | committed_dataset | proof_verified | 3.45632526 | 0.129179424 | 2835671 | 4647221 | cuda |  |
+| training_fragment | lunarlander_expert | committed_dataset | proof_verified | 4.655681776 | 0.197148735 | 4308420 | 6745594 | cuda |  |
 | training_fragment_k16 | k16 | trace_length | execute_only |  |  |  |  |  |  |
 | training_fragment_k32 | k32 | trace_length | execute_only |  |  |  |  |  |  |
 | training_fragment_k128 | k128 | trace_length | execute_only |  |  |  |  |  |  |
@@ -23,14 +23,16 @@
 | training_update | batch8 | batch_size | not_supported_current_backend |  |  |  |  |  |  |
 | training_update | batch16 | batch_size | not_supported_current_backend |  |  |  |  |  |  |
 | training_update | network_small | network | not_supported_current_backend |  |  |  |  |  |  |
-| merkle_membership | dataset_1000 | dataset_size | proof_verified | 57.870841751 | 0.123056228 | 2782933 | 357965 |  | 10327.723 |
-| merkle_membership | dataset_10000 | dataset_size | proof_verified | 59.162392332 | 0.123420754 | 2783958 | 470318 |  | 10599.492 |
-| merkle_membership | dataset_50000 | dataset_size | proof_verified | 60.401495551 | 0.123110109 | 2784470 | 526578 |  | 10745.34 |
-| merkle_membership | dataset_100000 | dataset_size | proof_verified | 60.632972255 | 0.122992097 | 2784983 | 554100 |  | 10745.34 |
-| native_flat_recursive_t16 | true_recursive_native | recursive_aggregation | proof_verified | 197.065386195 | 0.054469867 | 1274074 | 422687963 | cuda |  |
-| native_flat_recursive_t32 | true_recursive_native | recursive_aggregation | proof_verified | 386.983008478 | 0.054370422 | 1274074 | 841967530 | cuda |  |
-| native_flat_recursive_t64 | true_recursive_native | recursive_aggregation | proof_verified | 734.843879128 | 0.054046829 | 1274074 | 1683424755 | cuda |  |
-| binary_tree_native_t16 | binary_native_recursive | recursive_aggregation | proof_verified | 198.110268856 | 0.054276106 | 1274640 | 421880109 | cuda |  |
-| groth16_recursive_t16 | groth16_child_proofs | recursive_aggregation | proof_verified | 1597.873485446 | 68.244203945 | 1468199625 | 6183021300 | cuda |  |
+| merkle_membership | dataset_1000 | dataset_size | proof_verified | 58.169772372 | 0.123456406 | 2782933 | 357965 | cpu | 10356.629 |
+| merkle_membership | dataset_10000 | dataset_size | proof_verified | 59.895160144 | 0.12291586 | 2783958 | 470318 | cpu | 10591.734 |
+| merkle_membership | dataset_50000 | dataset_size | proof_verified | 60.557828854 | 0.123399241 | 2784470 | 526578 | cpu | 10611.707 |
+| merkle_membership | dataset_100000 | dataset_size | proof_verified | 61.128445191 | 0.123058213 | 2784983 | 554100 | cpu | 10856.727 |
+| native_flat_recursive_t16 | true_recursive_native | recursive_aggregation | proof_verified | 193.405205111 | 0.054193836 | 1274074 | 422726492 | cuda |  |
+| native_flat_recursive_t32 | true_recursive_native | recursive_aggregation | proof_verified | 385.898092375 | 0.054149142 | 1274074 | 842015859 | cuda |  |
+| native_flat_recursive_t64 | true_recursive_native | recursive_aggregation | proof_verified | 755.163171017 | 0.05394864 | 1274074 | 1683525837 | cuda |  |
+| binary_tree_native_t16 | binary_native_recursive | recursive_aggregation | proof_verified | 189.844131706 | 0.054469242 | 1274640 | 421911268 | cuda |  |
+| groth16_recursive_t16 | groth16_child_proofs | recursive_aggregation | proof_verified | 1596.857619595 | 68.024389019 | 1468175345 | 6180861737 | cuda |  |
+| binary_tree_native_t1248_cartpole | whole_run_cartpole | recursive_aggregation | proof_verified | 199.668306727 | 0.054002781 | 1274654 | 422415621 | cuda |  |
+| binary_tree_native_t1248_lunarlander | whole_run_lunarlander | recursive_aggregation | proof_verified | 198.139813539 | 0.053853344 | 1274654 | 422396109 | cuda |  |
 
 Table 2 is ZK-proof-cost-only; unsupported and execute-only rows are not proof-backed.

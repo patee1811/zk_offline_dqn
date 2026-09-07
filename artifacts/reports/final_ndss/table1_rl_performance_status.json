@@ -3,10 +3,11 @@
     "bc",
     "offline_dqn",
     "double_dqn",
-    "cql_lite"
+    "cql_lite",
+    "double_dqn_provable"
   ],
   "completed_public_dataset_ids": [],
-  "completed_rows": 48,
+  "completed_rows": 54,
   "datasets": [
     "cartpole-random",
     "cartpole-medium",
@@ -44,7 +45,7 @@
     "unresolved": []
   },
   "public_benchmark_gate_failed": false,
-  "raw_run_count": 144,
+  "raw_run_count": 162,
   "required_public_dataset_ids": [],
   "row_status": [
     {
@@ -96,6 +97,12 @@
       "status": "completed"
     },
     {
+      "baseline": "double_dqn_provable",
+      "dataset": "cartpole-random-v2",
+      "reason": null,
+      "status": "completed"
+    },
+    {
       "baseline": "bc",
       "dataset": "cartpole-medium-v2",
       "reason": null,
@@ -144,6 +151,12 @@
       "status": "completed"
     },
     {
+      "baseline": "double_dqn_provable",
+      "dataset": "cartpole-medium-v2",
+      "reason": null,
+      "status": "completed"
+    },
+    {
       "baseline": "bc",
       "dataset": "cartpole-expert-v2",
       "reason": null,
@@ -192,6 +205,12 @@
       "status": "completed"
     },
     {
+      "baseline": "double_dqn_provable",
+      "dataset": "cartpole-expert-v2",
+      "reason": null,
+      "status": "completed"
+    },
+    {
       "baseline": "bc",
       "dataset": "lunarlander-random-v1",
       "reason": null,
@@ -235,6 +254,12 @@
     },
     {
       "baseline": "cql_lite",
+      "dataset": "lunarlander-random-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "double_dqn_provable",
       "dataset": "lunarlander-random-v1",
       "reason": null,
       "status": "completed"
@@ -283,6 +308,12 @@
     },
     {
       "baseline": "cql_lite",
+      "dataset": "lunarlander-medium-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "double_dqn_provable",
       "dataset": "lunarlander-medium-v1",
       "reason": null,
       "status": "completed"
@@ -331,12 +362,18 @@
     },
     {
       "baseline": "cql_lite",
+      "dataset": "lunarlander-expert-v1",
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "baseline": "double_dqn_provable",
       "dataset": "lunarlander-expert-v1",
       "reason": null,
       "status": "completed"
     }
   ],
   "scope": "RL performance only",
-  "sgd_learning_rate": 0.05,
+  "sgd_learning_rate": 0.01,
   "skipped_rows": 0
 }

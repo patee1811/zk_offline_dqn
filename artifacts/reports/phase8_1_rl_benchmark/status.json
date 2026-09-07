@@ -1,39 +1,25 @@
 {
   "baselines": [
-    "bc",
-    "offline_dqn",
-    "double_dqn",
-    "cql_lite"
+    "double_dqn_provable"
   ],
   "completed_public_dataset_ids": [],
-  "completed_rows": 48,
+  "completed_rows": 1,
   "datasets": [
-    "cartpole-random",
-    "cartpole-medium",
-    "cartpole-expert",
-    "lunarlander-random",
-    "lunarlander-medium",
-    "lunarlander-expert"
+    "cartpole-expert"
   ],
   "fail_if_public_missing": false,
   "failed_rows": 0,
   "incompatible_skipped_rows": 0,
-  "learning_rate": 0.01,
-  "mode": "paper",
+  "learning_rate": 0.0003,
+  "mode": "smoke",
   "optimizers": [
-    "adam",
-    "sgd"
+    "adam"
   ],
   "phase": "8.1",
   "phase2_dataset_handling": {
     "extracted_from": {},
     "provenance": {
-      "cartpole-expert-v2": "reused_existing_artifact",
-      "cartpole-medium-v2": "reused_existing_artifact",
-      "cartpole-random-v2": "reused_existing_artifact",
-      "lunarlander-expert-v1": "reused_existing_artifact",
-      "lunarlander-medium-v1": "reused_existing_artifact",
-      "lunarlander-random-v1": "reused_existing_artifact"
+      "cartpole-expert-v2": "reused_existing_artifact"
     },
     "reasons": {},
     "regenerated": [],
@@ -44,299 +30,17 @@
     "unresolved": []
   },
   "public_benchmark_gate_failed": false,
-  "raw_run_count": 144,
+  "raw_run_count": 3,
   "required_public_dataset_ids": [],
   "row_status": [
     {
-      "baseline": "bc",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "cartpole-random-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "cartpole-medium-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
+      "baseline": "double_dqn_provable",
       "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "cartpole-expert-v2",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "lunarlander-random-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "lunarlander-medium-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "lunarlander-expert-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "bc",
-      "dataset": "lunarlander-expert-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "lunarlander-expert-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "offline_dqn",
-      "dataset": "lunarlander-expert-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "lunarlander-expert-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "double_dqn",
-      "dataset": "lunarlander-expert-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "lunarlander-expert-v1",
-      "reason": null,
-      "status": "completed"
-    },
-    {
-      "baseline": "cql_lite",
-      "dataset": "lunarlander-expert-v1",
       "reason": null,
       "status": "completed"
     }
   ],
   "scope": "RL performance only",
-  "sgd_learning_rate": 0.05,
+  "sgd_learning_rate": 0.01,
   "skipped_rows": 0
 }

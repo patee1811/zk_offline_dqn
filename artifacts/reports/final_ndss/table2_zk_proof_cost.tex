@@ -6,20 +6,20 @@
 \toprule
 Relation & Variant & Scale Axis & Status & Prove Time (s) & Verify Time (s) & Proof Size (bytes) & Cycle Count & Prover & Peak RSS (MB) \\
 \midrule
-td\_mvp & canonical & relation & proof\_verified & 60.339038547 & 0.124389036 & 2783869 & 434785 &  &  \\
-merkle\_membership & canonical & merkle\_depth & proof\_verified & 50.202496826 & 0.122690861 & 2779510 & 116750 &  &  \\
-forward\_td\_mlp & canonical\_tiny & network & proof\_verified & 89.209607327 & 0.125632047 & 2798897 & 1628675 &  &  \\
-one\_step\_sgd\_tiny & canonical\_tiny & network & proof\_verified & 71.771876005 & 0.125643043 & 2790551 & 928693 &  &  \\
-short\_trace & canonical & trace\_length & proof\_verified & 51.687464148 & 0.124131554 & 2779989 & 122067 &  &  \\
-training\_update & batch1\_tiny & batch\_size & proof\_verified & 61.563384568000004 & 0.126607929 & 2785799 & 494060 &  &  \\
-training\_fragment\_k1 & k1 & trace\_length & proof\_verified & 1.574758662 & 0.126805997 & 2791983 & 960902 & cuda &  \\
-training\_fragment\_k4 & k4 & trace\_length & proof\_verified & 2.313244575 & 0.128539791 & 2813191 & 2776906 & cuda &  \\
-training\_fragment\_k8 & k8 & trace\_length & proof\_verified & 3.795511814 & 0.129491568 & 2841055 & 5171660 & cuda &  \\
-training\_aggregation\_manifest\_t32 & proof\_manifest\_chain & aggregation\_t & proof\_verified & 1.4320784579999999 & 0.125604204 & 2795671 & 879873 & cuda &  \\
-training\_aggregation\_manifest\_t64 & proof\_manifest\_chain & aggregation\_t & proof\_verified & 1.8081874249999998 & 0.126041831 & 2804079 & 1508159 & cuda &  \\
-training\_aggregation\_manifest\_t128 & proof\_manifest\_chain & aggregation\_t & proof\_verified & 2.53259536 & 0.126969594 & 2819656 & 2759185 & cuda &  \\
-training\_fragment & cartpole\_expert & committed\_dataset & proof\_verified & 3.370516392 & 0.129267135 & 2835655 & 4636813 & cuda &  \\
-training\_fragment & lunarlander\_expert & committed\_dataset & proof\_verified & 4.618301761 & 0.197243475 & 4307380 & 6704450 & cuda &  \\
+td\_mvp & canonical & relation & proof\_verified & 60.49624495 & 0.124127551 & 2783869 & 434785 & cpu &  \\
+merkle\_membership & canonical & merkle\_depth & proof\_verified & 50.222203246 & 0.122936872 & 2779510 & 116750 & cpu &  \\
+forward\_td\_mlp & canonical\_tiny & network & proof\_verified & 89.878761437 & 0.126011008 & 2798897 & 1628694 & cpu &  \\
+one\_step\_sgd\_tiny & canonical\_tiny & network & proof\_verified & 71.968239471 & 0.124821362 & 2790551 & 928712 & cpu &  \\
+short\_trace & canonical & trace\_length & proof\_verified & 51.933611835 & 0.124154753 & 2779989 & 122067 & cpu &  \\
+training\_update & batch1\_tiny & batch\_size & proof\_verified & 61.491167129 & 0.124643438 & 2785799 & 494060 & cpu &  \\
+training\_fragment\_k1 & k1 & trace\_length & proof\_verified & 1.643311762 & 0.127073246 & 2792511 & 979945 & cuda &  \\
+training\_fragment\_k4 & k4 & trace\_length & proof\_verified & 2.324603272 & 0.128052902 & 2813719 & 2799333 & cuda &  \\
+training\_fragment\_k8 & k8 & trace\_length & proof\_verified & 3.810088194 & 0.129283375 & 2841071 & 5193244 & cuda &  \\
+training\_aggregation\_manifest\_t32 & proof\_manifest\_chain & aggregation\_t & proof\_verified & 1.407443271 & 0.126195207 & 2795671 & 880030 & cuda &  \\
+training\_aggregation\_manifest\_t64 & proof\_manifest\_chain & aggregation\_t & proof\_verified & 1.793393018 & 0.125687318 & 2804079 & 1508043 & cuda &  \\
+training\_aggregation\_manifest\_t128 & proof\_manifest\_chain & aggregation\_t & proof\_verified & 2.526163018 & 0.126357782 & 2819656 & 2758670 & cuda &  \\
+training\_fragment & cartpole\_expert & committed\_dataset & proof\_verified & 3.45632526 & 0.129179424 & 2835671 & 4647221 & cuda &  \\
+training\_fragment & lunarlander\_expert & committed\_dataset & proof\_verified & 4.655681776 & 0.197148735 & 4308420 & 6745594 & cuda &  \\
 training\_fragment\_k16 & k16 & trace\_length & execute\_only &  &  &  &  &  &  \\
 training\_fragment\_k32 & k32 & trace\_length & execute\_only &  &  &  &  &  &  \\
 training\_fragment\_k128 & k128 & trace\_length & execute\_only &  &  &  &  &  &  \\
@@ -27,15 +27,17 @@ training\_update & batch4 & batch\_size & not\_supported\_current\_backend &  & 
 training\_update & batch8 & batch\_size & not\_supported\_current\_backend &  &  &  &  &  &  \\
 training\_update & batch16 & batch\_size & not\_supported\_current\_backend &  &  &  &  &  &  \\
 training\_update & network\_small & network & not\_supported\_current\_backend &  &  &  &  &  &  \\
-merkle\_membership & dataset\_1000 & dataset\_size & proof\_verified & 57.870841751 & 0.123056228 & 2782933 & 357965 &  & 10327.723 \\
-merkle\_membership & dataset\_10000 & dataset\_size & proof\_verified & 59.162392332 & 0.123420754 & 2783958 & 470318 &  & 10599.492 \\
-merkle\_membership & dataset\_50000 & dataset\_size & proof\_verified & 60.401495551 & 0.123110109 & 2784470 & 526578 &  & 10745.34 \\
-merkle\_membership & dataset\_100000 & dataset\_size & proof\_verified & 60.632972255 & 0.122992097 & 2784983 & 554100 &  & 10745.34 \\
-native\_flat\_recursive\_t16 & true\_recursive\_native & recursive\_aggregation & proof\_verified & 197.065386195 & 0.054469867 & 1274074 & 422687963 & cuda &  \\
-native\_flat\_recursive\_t32 & true\_recursive\_native & recursive\_aggregation & proof\_verified & 386.983008478 & 0.054370422 & 1274074 & 841967530 & cuda &  \\
-native\_flat\_recursive\_t64 & true\_recursive\_native & recursive\_aggregation & proof\_verified & 734.843879128 & 0.054046829 & 1274074 & 1683424755 & cuda &  \\
-binary\_tree\_native\_t16 & binary\_native\_recursive & recursive\_aggregation & proof\_verified & 198.110268856 & 0.054276106 & 1274640 & 421880109 & cuda &  \\
-groth16\_recursive\_t16 & groth16\_child\_proofs & recursive\_aggregation & proof\_verified & 1597.873485446 & 68.244203945 & 1468199625 & 6183021300 & cuda &  \\
+merkle\_membership & dataset\_1000 & dataset\_size & proof\_verified & 58.169772372 & 0.123456406 & 2782933 & 357965 & cpu & 10356.629 \\
+merkle\_membership & dataset\_10000 & dataset\_size & proof\_verified & 59.895160144 & 0.12291586 & 2783958 & 470318 & cpu & 10591.734 \\
+merkle\_membership & dataset\_50000 & dataset\_size & proof\_verified & 60.557828854 & 0.123399241 & 2784470 & 526578 & cpu & 10611.707 \\
+merkle\_membership & dataset\_100000 & dataset\_size & proof\_verified & 61.128445191 & 0.123058213 & 2784983 & 554100 & cpu & 10856.727 \\
+native\_flat\_recursive\_t16 & true\_recursive\_native & recursive\_aggregation & proof\_verified & 193.405205111 & 0.054193836 & 1274074 & 422726492 & cuda &  \\
+native\_flat\_recursive\_t32 & true\_recursive\_native & recursive\_aggregation & proof\_verified & 385.898092375 & 0.054149142 & 1274074 & 842015859 & cuda &  \\
+native\_flat\_recursive\_t64 & true\_recursive\_native & recursive\_aggregation & proof\_verified & 755.163171017 & 0.05394864 & 1274074 & 1683525837 & cuda &  \\
+binary\_tree\_native\_t16 & binary\_native\_recursive & recursive\_aggregation & proof\_verified & 189.844131706 & 0.054469242 & 1274640 & 421911268 & cuda &  \\
+groth16\_recursive\_t16 & groth16\_child\_proofs & recursive\_aggregation & proof\_verified & 1596.857619595 & 68.024389019 & 1468175345 & 6180861737 & cuda &  \\
+binary\_tree\_native\_t1248\_cartpole & whole\_run\_cartpole & recursive\_aggregation & proof\_verified & 199.668306727 & 0.054002781 & 1274654 & 422415621 & cuda &  \\
+binary\_tree\_native\_t1248\_lunarlander & whole\_run\_lunarlander & recursive\_aggregation & proof\_verified & 198.139813539 & 0.053853344 & 1274654 & 422396109 & cuda &  \\
 \bottomrule
 \end{tabular}
 \end{table}

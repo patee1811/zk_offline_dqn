@@ -1,18 +1,19 @@
 {
   "backend_version": "0.1.0",
-  "cycle_count": 928693,
+  "cycle_count": 928712,
   "git_commit": null,
-  "guest_elf_sha256": "faf589c24eef54188551895f17c7baa5f62e11258adc5fa8291ae4789dca1b64",
+  "guest_elf_sha256": "5864b3554be0dd52e10d4114747db370a0acc6f75d55c317ada6f0e8c2ef0ed7",
   "notes": [
     "SP1 proof-backed tiny fixed-point SGD update for canonical vector."
   ],
   "proof_generated": true,
   "proof_size_bytes": 2790551,
   "proof_verified": true,
-  "prove_time_seconds": 71.771876005,
+  "prove_time_seconds": 71.968239471,
+  "prover": "cpu",
   "public_inputs_sha256": "f3d69a48bb25dd026e72c04a92f0df0618740d877312caa8539121b443e0165d",
   "relation": "one_step_sgd_tiny",
   "sp1_version": "6.1.0",
   "test_vector_sha256": "c65c2e266b6a1df09b54318034562eaa69be43cbccdeeb3c9eff0131f91db7b2",
-  "verify_time_seconds": 0.125643043
+  "verify_time_seconds": 0.124821362
 }

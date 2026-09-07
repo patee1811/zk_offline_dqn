@@ -1,24 +1,16 @@
 {
   "baselines": [
-    "bc",
-    "offline_dqn",
-    "double_dqn",
-    "cql_lite"
+    "double_dqn_provable"
   ],
-  "batch_size": 256,
+  "batch_size": 64,
   "dataset_root": "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts/datasets",
   "datasets": [
-    "cartpole-random",
-    "cartpole-medium",
-    "cartpole-expert",
-    "lunarlander-random",
-    "lunarlander-medium",
-    "lunarlander-expert"
+    "cartpole-expert"
   ],
   "device": "cpu",
   "eval_episodes": 10,
-  "learning_rate": 0.01,
-  "max_transitions": null,
+  "learning_rate": 0.0003,
+  "max_transitions": 1000,
   "observation_flatten_order": [
     "observation",
     "achieved_goal",
@@ -26,10 +18,9 @@
     "remaining keys sorted"
   ],
   "optimizers": [
-    "adam",
-    "sgd"
+    "adam"
   ],
-  "out_dir": "C:/Users/NGOCDU~1/AppData/Local/Temp/claude/c--Users-Ngoc-Duy-Duytapcode-zk-offline-dqn/3889b663-d3cd-4873-87c6-d4e33929453b/scratchpad/t1fp",
+  "out_dir": "C:/Users/NGOCDU~1/AppData/Local/Temp/claude/c--Users-Ngoc-Duy-Duytapcode-zk-offline-dqn/3889b663-d3cd-4873-87c6-d4e33929453b/scratchpad/t1_budget",
   "phase2_artifact_root": "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts",
   "phase2_tarballs": [
     "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts/kaggle_phase2_outputs/phase2_dataset_outputs.tar.gz",
@@ -37,25 +28,18 @@
   ],
   "public_families": [],
   "public_sizes": [
-    10000,
-    50000,
-    100000
+    10000
   ],
-  "regenerate_missing_phase2_datasets": true,
+  "regenerate_missing_phase2_datasets": false,
   "requested_datasets": [
-    "cartpole-random",
-    "cartpole-medium",
-    "cartpole-expert",
-    "lunarlander-random",
-    "lunarlander-medium",
-    "lunarlander-expert"
+    "cartpole-expert"
   ],
-  "reuse_phase2_datasets": true,
+  "reuse_phase2_datasets": false,
   "seeds": [
     0,
     1,
     2
   ],
-  "sgd_learning_rate": 0.05,
-  "train_steps": 5000
+  "sgd_learning_rate": 0.01,
+  "train_steps": 200000
 }
