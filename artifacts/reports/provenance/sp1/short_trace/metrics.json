@@ -1,18 +1,18 @@
 {
   "backend_version": "0.1.0",
-  "cycle_count": 115363,
+  "cycle_count": 122067,
   "git_commit": null,
-  "guest_elf_sha256": "968d95dfe79aa39103bc9b35fc0c81b5f95777a1a3ab3e9396d6d51447c167e1",
+  "guest_elf_sha256": "f4d91ff7597c49d327cfb90e116860e070ae9f8a620678ec2f7934cf09d1d250",
   "notes": [
     "SP1 proof-backed tiny checkpoint-chain validation; not full DQN training."
   ],
   "proof_generated": true,
-  "proof_size_bytes": 2779261,
+  "proof_size_bytes": 2779989,
   "proof_verified": true,
-  "prove_time_seconds": 46.339151098,
+  "prove_time_seconds": 51.687464148,
   "public_inputs_sha256": "aab726149bfde7b76428143b1d7852bec3e07c8481b508aac57e7f5535434afb",
   "relation": "short_trace",
   "sp1_version": "6.1.0",
   "test_vector_sha256": "543b382c7e85215f685568cffeec2802722275842e5e22413d71c7e801f9dbb9",
-  "verify_time_seconds": 0.115517681
+  "verify_time_seconds": 0.124131554
 }

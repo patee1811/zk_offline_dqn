@@ -1,11 +1,11 @@
 {
-  "aggregate_root": "da7ffa324321b9c4abc177c0ddf75e07c1439cf25d5759c4f6dd9197881e5878",
+  "aggregate_root": "95fbc0faff05555a6eeea509d8fdd85b37baa71cafb73a6484af649958779ba8",
   "aggregation_mode": "proof_manifest_chain",
   "aggregation_topology": null,
   "child_proof_mode": null,
   "child_proof_verification_inside_guest": false,
   "chunk_count": 16,
-  "chunk_proof_root": "d01d072c8af81caa41ebba480854fb1a83e530f7c8977a1673a65bcd52519906",
+  "chunk_proof_root": "27727c15c71e0955c9d67c3f9d317854fe07dbffa8884843d73c9d1ebd81b965",
   "chunk_public_inputs_root": "4b39659122b8b1b344750bdc23e093fb53cd3aed952be8441e17d95b5509070a",
   "chunk_relation_id": "training_fragment_k8",
   "chunk_size": 8,

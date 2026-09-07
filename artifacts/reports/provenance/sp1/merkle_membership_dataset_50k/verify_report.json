@@ -9,7 +9,7 @@
     "dataset_type": "public_benchmark",
     "leaf_hash": "b1e772283ac063e6e1c856fae35845cb2344dcc31ad2d81219b1170792209969",
     "leaf_index": 25000,
-    "manifest_hash": "e63c9c81b3a3033a52f688dca64fde1f3f380bcebe46c1c799ac9c95f4a20e60",
+    "manifest_hash": "fd81358e25721aaca95a1fe0d9c54fe49c2e5d845bdad5f26089fa02e6578a04",
     "raw_trajectory_hash": "b86e91abc4a233f511324aabc92d561eb34c872fc3d3f7344ebbd5157d7084c0",
     "schema_version": "sp1_merkle_membership_public_v1"
   },

@@ -8,9 +8,9 @@
   "child_proof_verification_inside_guest": true,
   "chunk_count": 2,
   "chunk_size": 8,
-  "cycle_count": 309405410,
+  "cycle_count": 422687963,
   "git_commit": null,
-  "guest_elf_sha256": "7975de7348f4dfbd649962d0f7435be6393ba5e63c9c63e1bfc0a62e97fb3f14",
+  "guest_elf_sha256": "d655ec3b27d360a4845a61e08202aa2f895fd9f90de61fa371467d7c904f61e5",
   "leaf_chunk_count": null,
   "notes": [
     "SP1 true recursive aggregation; native_sp1 child training-fragment proofs are verified inside the aggregate guest."
@@ -18,13 +18,14 @@
   "proof_generated": true,
   "proof_size_bytes": 1274074,
   "proof_verified": true,
-  "prove_time_seconds": 155.15525695,
-  "public_inputs_sha256": "92f0e03ee20230997ccaf425346006ee434eccf9d62268cd984ad4f832f5134f",
+  "prove_time_seconds": 197.065386195,
+  "prover": "cuda",
+  "public_inputs_sha256": "cd3a430bddb57638d756a6e521b385347f2075ca709ae348340566db489ab39b",
   "relation": "training_aggregation",
   "sp1_version": "6.1.0",
   "step_end": 16,
   "step_start": 0,
-  "test_vector_sha256": "eb3d0bc00e28fb8f33149964fd7a329354d49d619c891f97e6e4acadfca77579",
+  "test_vector_sha256": "3a291025c7d14bb3339f6de08da6b4ac56e73d203b3d58349965676b1b0c9337",
   "tree_depth": null,
-  "verify_time_seconds": 0.049904298
+  "verify_time_seconds": 0.054469867
 }

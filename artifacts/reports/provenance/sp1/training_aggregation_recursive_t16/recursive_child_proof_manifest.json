@@ -4,24 +4,24 @@
   "child_proof_mode": "native_sp1",
   "children": [
     {
-      "child_proof_hash": "7527b63198ae5d4be9a7194645d621bdf8c61fc74e21bee1c76cce2cd978d9d7",
+      "child_proof_hash": "8358899ddfc69a20c342ea4962b910376c9e73aa8175a520540b5bb3a4d42a8e",
       "child_public_inputs_hash": "9627a0cb4ffaa7adb140f9db538a6016b459b58aa5a1470fc1b3a9515c1c60a1",
-      "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+      "child_vkey_hash": "0x00ef9fa41f8b5c1999fdf818b194b3a12089cf6bf125b3dbd3f0dc361151f62b",
       "chunk_id": 0,
       "proof_bytes_committed": false,
       "step_end": 8,
       "step_start": 0
     },
     {
-      "child_proof_hash": "1532e06a56bc11e5b16b87e9850cc9fb92408622ecdc08552f3f8b0e3d5438b1",
+      "child_proof_hash": "07602be48455e897d28f1f4f9c7c824728e760ebbe3f8e909411ee300ead567d",
       "child_public_inputs_hash": "4fd106e84741931c08b01bede8fa412620621ea5c7504aface84b24ec658548d",
-      "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+      "child_vkey_hash": "0x00ef9fa41f8b5c1999fdf818b194b3a12089cf6bf125b3dbd3f0dc361151f62b",
       "chunk_id": 1,
       "proof_bytes_committed": false,
       "step_end": 16,
       "step_start": 8
     }
   ],
-  "expected_child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+  "expected_child_vkey_hash": "0x00ef9fa41f8b5c1999fdf818b194b3a12089cf6bf125b3dbd3f0dc361151f62b",
   "relation": "training_aggregation"
 }

@@ -1,0 +1,26 @@
+{
+  "claim_status": "sp1_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p merkle-membership-host -- --execute --case /home/ubuntu/repo7/zk_backend/test_vectors/merkle_membership_dataset_10000_case_0.json",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: merkle-membership-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: merkle-membership-host@0.1.0: merkle-membership-guest built at 2026-09-07 03:27:10\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/merkle-membership-host --execute --case /home/ubuntu/repo7/zk_backend/test_vectors/merkle_membership_dataset_10000_case_0.json`",
+    "stdout_tail": "case_path = /home/ubuntu/repo7/zk_backend/test_vectors/merkle_membership_dataset_10000_case_0.json\nhost_precheck = true\ndataset_root = 2a48ec939444bf083f70fa8aa0979a6793a8ba30497dd7769092c07a9dcad738\nleaf_hash = 2a03a2e4254c34c7f8e80734cf9458977a3b7f8a6fdb1c50284a79477a329028\nexecution_ok = true\nexecution_time_sec = 0.034365\ncycle_count = 470318\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "metrics_saved": true,
+  "proof": {
+    "command": "cargo run --release -p merkle-membership-host -- --prove --case /home/ubuntu/repo7/zk_backend/test_vectors/merkle_membership_dataset_10000_case_0.json --out-dir artifacts/reports/provenance/sp1/merkle_membership_dataset_10k",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: merkle-membership-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: merkle-membership-host@0.1.0: merkle-membership-guest built at 2026-09-07 03:27:10\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/merkle-membership-host --prove --case /home/ubuntu/repo7/zk_backend/test_vectors/merkle_membership_dataset_10000_case_0.json --out-dir artifacts/reports/provenance/sp1/merkle_membership_dataset_10k`",
+    "stdout_tail": "case_path = /home/ubuntu/repo7/zk_backend/test_vectors/merkle_membership_dataset_10000_case_0.json\nhost_precheck = true\ndataset_root = 2a48ec939444bf083f70fa8aa0979a6793a8ba30497dd7769092c07a9dcad738\nleaf_hash = 2a03a2e4254c34c7f8e80734cf9458977a3b7f8a6fdb1c50284a79477a329028\nproof_generated = true\nproof_verified = true\nproving_time_sec = 59.207499\nverification_time_sec = 0.123289\nproof_size_bytes = 2783958"
+  },
+  "proof_generated": false,
+  "proof_verified": true,
+  "public_inputs_saved": true,
+  "reference_passed": true,
+  "relation": "merkle_membership",
+  "tamper_test_passed": true,
+  "witness_schema_saved": true
+}
