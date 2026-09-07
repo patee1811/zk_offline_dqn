@@ -157,6 +157,10 @@ fn write_provenance(
         out_dir.join("metrics.json"),
         &json!({
             "relation": "training_update",
+            // Which prover produced this row. This host has no CUDA path,
+            // so the value is fixed; recording it keeps Table 2 from having
+            // to infer a prover it was never told.
+            "prover": "cpu",
             "batch_size": input.public_inputs.batch_size,
             "proof_generated": true,
             "proof_verified": true,
