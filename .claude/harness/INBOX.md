@@ -208,3 +208,17 @@ Format:
 **Độ tin cậy:** cao (quan sát cả hai lỗi trong một phiên)
 **Đích đề xuất:** `rules/90-domain/experiments.md` dòng máy thuê
 **Trạng thái:** chờ xử lý
+
+## 2026-09-07 — phát hiện mới — scope backends
+**Kích hoạt:** guest tràn i64 im lặng vì Cargo release để `overflow-checks = false`. Đặt `[profile.release] overflow-checks = true` ở gốc workspace `zk_backend/<rel>/sp1/Cargo.toml` thì guest abort đúng chỗ: `panicked at shared/src/lib.rs:1044: attempt to multiply with overflow`. Chi phí đo được **+3,9% cycles** trên `training_fragment` (609.970.390 → 633.997.073).
+**Bài học:** hướng dẫn bảo mật SP1 bảo đặt vào `Cargo.toml` của **guest package** — đúng với template standalone nhưng ở repo này guest là **member workspace** nên Cargo bỏ qua kèm cảnh báo `profiles for the non root package will be ignored`, tức là im lặng không có tác dụng. `sp1_build::get_program_build_args` cứng `build --release` không ghi đè profile, và chạy cargo với `current_dir` = thư mục guest nên nó tìm lên gốc workspace. Kiểm bằng cách chạy cargo từ trong `guest/` và xem `-C overflow-checks=on` có tới rustc không.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`; đã có `tests/unit/test_guest_overflow_checks.py` khoá cả hai nửa
+**Độ tin cậy:** cao (thử nghiệm cả hai chiều + panic thật trên guest riscv32im)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-07 — phát hiện mới — scope relations
+**Kích hoạt:** đo giá trị Q qua chuỗi CartPole ở `learning_rate_fp=50`, mỗi chunk 156 bước: 5,50e4 → 9,46e5 → 2,17e7 → 9,03e8 → 2,17e10 → 9,45e11 → 3,96e13 → 9,49e14 → **4,14e16**. Ngưỡng tràn là 9,32e15 (i64::MAX / gamma).
+**Bài học:** offline DQN phân kỳ theo **hàm mũ**, khoảng ×22 mỗi 156 bước, nên độ dài lần chạy chứng minh được bị chặn bởi **ổn định số học** chứ không phải chi phí proof. Đo trên 4992 bước: CartPole vỡ ở `lr_fp=10` (bước 3744), sống ở `lr_fp=5` (7,2% ngưỡng) và `lr_fp=1`; LunarLander sống ở cả ba. Ngoài ra `agents.py` cắt gradient (`clip_grad_norm_ 10.0`) còn quan hệ **không** — Bảng 1 và quan hệ đang chạy hai thuật toán khác nhau.
+**Đích đề xuất:** `rules/90-domain/relations.md`; cân nhắc thêm biên tường minh vào quan hệ
+**Độ tin cậy:** cao (mô phỏng đầy đủ 32 chunk, hai môi trường, ba learning rate)
+**Trạng thái:** chờ xử lý
