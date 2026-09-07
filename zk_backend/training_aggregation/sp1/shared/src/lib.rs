@@ -1072,16 +1072,29 @@ fn base_chunk_values(chunk: &ChunkRecord) -> Vec<String> {
     ]
 }
 
+/// Hash the configuration every chunk in a chain shares.
+///
+/// sampler_seed used to sit here and no longer can: it is derived per chunk
+/// from the dataset root and the chunk's global step, so chunks of one chain
+/// hold different seeds and a hash over the seed would differ chunk to chunk.
+/// Recording the derivation rule instead keeps the chain pinned to how the seed
+/// is fixed, while the fragment relation checks each chunk's own seed against
+/// its own root and step.
+///
+/// That the seed now varies by chunk is the point. With one constant seed and a
+/// step index local to the fragment, every chunk drew the same transitions: a
+/// 1248-step chain was 156 repetitions over 8 rows of the dataset.
 fn child_config_hash(child: &TrainingFragmentOutput) -> String {
     let payload = format!(
-        "{{\"batch_size\":{},\"chunk_relation_id\":\"training_fragment_k{}\",\"dataset_size\":{},\"fixed_point_scale\":{},\"format\":\"training_aggregation_chunk_config_v1\",\"gamma\":{},\"learning_rate\":{},\"sampler_seed\":{},\"sampler_type\":\"{}\",\"target_sync_interval\":{},\"target_sync_mode\":\"{}\"}}",
+        "{{\"batch_size\":{},\"chunk_relation_id\":\"training_fragment_k{}\",\"dataset_size\":{},\"fixed_point_scale\":{},\"format\":\"training_aggregation_chunk_config_v2\",\"gamma\":{},\"gradient_clip_fp\":{},\"learning_rate\":{},\"q_abs_max_fp\":{},\"sampler_seed_rule\":\"derived_from_dataset_root_and_global_step_start\",\"sampler_type\":\"{}\",\"target_sync_interval\":{},\"target_sync_mode\":\"{}\"}}",
         child.batch_size,
         child.num_steps,
         child.dataset_size,
         child.fixed_point_scale,
         child.gamma,
+        child.gradient_clip_fp,
         child.learning_rate,
-        child.sampler_seed,
+        child.q_abs_max_fp,
         child.sampler_type,
         child.target_sync_interval,
         child.target_sync_mode,

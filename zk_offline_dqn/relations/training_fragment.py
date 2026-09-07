@@ -28,12 +28,66 @@ from zk_offline_dqn.relations.training_update import (
 )
 
 
-SCHEMA_VERSION = "sp1_training_fragment_case_v1"
-PUBLIC_SCHEMA_VERSION = "sp1_training_fragment_public_v1"
+SCHEMA_VERSION = "sp1_training_fragment_case_v2"
+PUBLIC_SCHEMA_VERSION = "sp1_training_fragment_public_v2"
 LCG_A = 1_664_525
 LCG_C = 1_013_904_223
 LCG_M = 2**32
-DEFAULT_SAMPLER_SEED = 12_345
+
+# Ceiling on |Q| that the fragment declares and the relation enforces.
+#
+# i64 overflow is what actually bounds a provable run: gamma * q leaves i64
+# above 9.32e15, and offline DQN drives Q up by roughly x22 every 156 steps.
+# Aborting on overflow is sound but says nothing a verifier can read, and the
+# threshold is a property of the host integer width rather than of the
+# relation -- move to i128 and the statement being proved changes silently.
+# Publishing the bound makes the admissible range part of the claim. 2^52 sits
+# at 48% of the overflow threshold and 4.7x above the peak |Q| of the longest
+# run proved so far (9.49e14 at step 1248).
+DEFAULT_Q_ABS_MAX_FP = 2**52
+
+# Per-component gradient clip, mirroring the clip_grad_norm_(10.0) that the
+# Table 1 agents apply. Clipping by value rather than by norm is deliberate:
+# an L2 norm needs a square root, while a component-wise clamp is one
+# comparison per parameter. It is the looser of the two -- a vector can pass
+# this and fail a norm bound of the same size -- so it is reported as its own
+# configuration rather than as the same algorithm.
+DEFAULT_GRADIENT_CLIP_FP = 10_000
+
+# The guest computes in i64; the bound check has to know where that ends.
+I64_MAX = 2**63 - 1
+
+
+def derive_sampler_seed(dataset_root: str, global_step_start: int) -> int:
+    """Bind the sampler to the committed dataset instead of to prover choice.
+
+    A prover who picks the seed can grind it: run the fragment under many
+    seeds and publish only the one whose sampled transitions flatter the
+    model. The proof stays valid, so the ZK layer does not notice; what
+    weakens is the claim, from "trained on the committed dataset" to "trained
+    on a prover-chosen subset of it". Deriving the seed from the dataset root
+    removes that freedom -- grinding now means grinding the dataset
+    commitment, which the collection pipeline audits separately.
+    """
+    digest = sha256_json(
+        {
+            "format": "training_fragment_sampler_seed_v1",
+            "dataset_root": dataset_root,
+            "global_step_start": int(global_step_start),
+        }
+    )
+    return int(digest[:16], 16) % LCG_M
+
+
+def clip_fp(value: int, limit: int) -> int:
+    """Clamp one fixed-point component to +/- limit."""
+    if limit <= 0:
+        raise AssertionError("gradient clip must be positive")
+    if value > limit:
+        return limit
+    if value < -limit:
+        return -limit
+    return value
 
 
 @dataclass(frozen=True)
@@ -93,20 +147,36 @@ def compute_step(
         if done
         else int(transition["reward"]) + fixed_point_mul(int(public["gamma"]), q_target_next, scale)
     )
+    # Range check before the values feed any further multiply. Rejecting here
+    # names the reason; letting them run on reaches the same wall as an
+    # overflow panic several operations later.
+    q_abs_max = int(public["q_abs_max_fp"])
+    for name, value in (
+        ("q_online_action", q_online_action),
+        ("q_target_next", q_target_next),
+        ("td_target", td_target),
+    ):
+        if abs(value) > q_abs_max:
+            raise AssertionError(f"{name} {value} exceeds q_abs_max_fp {q_abs_max}")
     td_error = q_online_action - td_target
     loss = smooth_l1_loss_fp(td_error, scale)
     loss_grad = smooth_l1_grad_fp(td_error, scale)
+    gradient_clip = int(public["gradient_clip_fp"])
     gradients = zero_update_tensors(list(online["layer_sizes"]))
-    gradients["layers"][1]["bias"][action] = loss_grad
+    gradients["layers"][1]["bias"][action] = clip_fp(loss_grad, gradient_clip)
     for hidden_idx, hidden_fp in enumerate(online_forward["h1"]):
-        gradients["layers"][1]["weight"][action][hidden_idx] = fixed_point_mul(loss_grad, hidden_fp, scale)
+        gradients["layers"][1]["weight"][action][hidden_idx] = clip_fp(
+            fixed_point_mul(loss_grad, hidden_fp, scale), gradient_clip
+        )
     output_action_weights = online["layers"][1]["weight"][action]
     for hidden_idx, z_fp in enumerate(online_forward["z1"]):
         grad_hidden = fixed_point_mul(loss_grad, int(output_action_weights[hidden_idx]), scale)
         grad_z = grad_hidden if z_fp > 0 else 0
-        gradients["layers"][0]["bias"][hidden_idx] = grad_z
+        gradients["layers"][0]["bias"][hidden_idx] = clip_fp(grad_z, gradient_clip)
         for input_idx, input_fp in enumerate(transition["state"]):
-            gradients["layers"][0]["weight"][hidden_idx][input_idx] = fixed_point_mul(grad_z, int(input_fp), scale)
+            gradients["layers"][0]["weight"][hidden_idx][input_idx] = clip_fp(
+                fixed_point_mul(grad_z, int(input_fp), scale), gradient_clip
+            )
     post, deltas = apply_sgd_update(online, gradients, int(public["learning_rate"]), scale)
     gradient_hash = gradient_commitment(gradients)
     before_hash = model_commitment(online, scale)
@@ -282,6 +352,18 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
         raise AssertionError("dataset_type mismatch")
     if int(public["num_steps"]) != len(witness["steps"]):
         raise AssertionError("num_steps mismatch")
+    expected_seed = derive_sampler_seed(public["dataset_root"], public.get("global_step_start", 0))
+    if int(public["sampler_seed"]) != expected_seed:
+        raise AssertionError("sampler_seed is not derived from dataset_root")
+    q_abs_max = int(public["q_abs_max_fp"])
+    if q_abs_max <= 0:
+        raise AssertionError("q_abs_max_fp must be positive")
+    # A bound the guest could not honour without overflowing first would let a
+    # case declare a range wider than the arithmetic supports.
+    if q_abs_max > I64_MAX // int(public["gamma"]):
+        raise AssertionError("q_abs_max_fp admits values that overflow gamma * q")
+    if int(public["gradient_clip_fp"]) <= 0:
+        raise AssertionError("gradient_clip_fp must be positive")
     if witness["provenance"] != {
         "dataset_id_hash": public["dataset_id_hash"],
         "dataset_type": public["dataset_type"],
@@ -331,6 +413,8 @@ def public_output(vector: Mapping[str, Any], computed: Mapping[str, Any]) -> Dic
         "learning_rate": p["learning_rate"],
         "sampler_seed": p["sampler_seed"],
         "sampler_type": p["sampler_type"],
+        "q_abs_max_fp": p["q_abs_max_fp"],
+        "gradient_clip_fp": p["gradient_clip_fp"],
         "dataset_size": p["dataset_size"],
         "target_sync_interval": p["target_sync_interval"],
         "target_sync_mode": p["target_sync_mode"],
@@ -364,6 +448,8 @@ def generate_case(
     dataset: Sequence[Mapping[str, Any]] | None = None,
     provenance: Mapping[str, Any] | None = None,
     learning_rate: int = 10,
+    q_abs_max_fp: int = DEFAULT_Q_ABS_MAX_FP,
+    gradient_clip_fp: int = DEFAULT_GRADIENT_CLIP_FP,
 ) -> Dict[str, Any]:
     """Build a fragment vector.
 
@@ -393,8 +479,11 @@ def generate_case(
         "fixed_point_scale": scale,
         "gamma": 990,
         "learning_rate": int(learning_rate),
-        "sampler_seed": DEFAULT_SAMPLER_SEED,
+        # Replaced by derive_sampler_seed once the dataset root is known.
+        "sampler_seed": 0,
         "sampler_type": "lcg_mod_dataset_size",
+        "q_abs_max_fp": int(q_abs_max_fp),
+        "gradient_clip_fp": int(gradient_clip_fp),
         "dataset_size": dataset_size,
         "target_sync_interval": 4,
         "target_sync_mode": "hard",
@@ -430,12 +519,18 @@ def generate_case(
         hash_leaf(serialize_transition_leaf(item, obs_dim=obs_dim, action_dim=action_dim))
         for item in dataset
     ]
+    # Root first, because the seed is derived from it: the tree is built twice
+    # rather than threading its levels out of the helper, which costs a second
+    # pass of hashing and keeps the dependency readable.
+    root, _ = _merkle_paths(leaves, [])
+    public["dataset_root"] = root
+    sampler_seed = derive_sampler_seed(root, global_step_start)
+    public["sampler_seed"] = sampler_seed
     sampled = [
-        lcg_sample_index(DEFAULT_SAMPLER_SEED, step_id, dataset_size)
+        lcg_sample_index(sampler_seed, step_id, dataset_size)
         for step_id in range(num_steps)
     ]
-    root, paths = _merkle_paths(leaves, sampled)
-    public["dataset_root"] = root
+    _, paths = _merkle_paths(leaves, sampled)
     online = (
         copy.deepcopy(online_start)
         if online_start is not None
@@ -450,7 +545,7 @@ def generate_case(
     public["start_target_checkpoint_hash"] = model_commitment(target, scale)
     steps = []
     for step_id in range(num_steps):
-        sample_index = lcg_sample_index(DEFAULT_SAMPLER_SEED, step_id, dataset_size)
+        sample_index = lcg_sample_index(sampler_seed, step_id, dataset_size)
         transition = copy.deepcopy(dataset[sample_index])
         before_hash = model_commitment(online, scale)
         target_before_hash = model_commitment(target, scale)

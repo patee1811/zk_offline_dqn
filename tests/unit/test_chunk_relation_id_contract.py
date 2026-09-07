@@ -48,11 +48,15 @@ class ChunkRelationIdTests(unittest.TestCase):
         lines = [
             line
             for line in SHARED_RS.read_text(encoding="utf-8").splitlines()
-            if "training_aggregation_chunk_config_v1" in line
+            if "training_aggregation_chunk_config_v2" in line
         ]
         self.assertEqual(len(lines), 1, "expected exactly one guest config-hash literal")
         literal = lines[0]
         self.assertIn(r'\"chunk_relation_id\":\"training_fragment_k{}\"', literal)
+        # sampler_seed left this hash when it became a per-chunk derived value:
+        # chunks of one chain now hold different seeds, so hashing the seed
+        # would make a chain's own chunks disagree on their shared config. The
+        # derivation rule takes its place.
         expected_order = [
             "batch_size",
             "chunk_relation_id",
@@ -60,8 +64,10 @@ class ChunkRelationIdTests(unittest.TestCase):
             "fixed_point_scale",
             "format",
             "gamma",
+            "gradient_clip_fp",
             "learning_rate",
-            "sampler_seed",
+            "q_abs_max_fp",
+            "sampler_seed_rule",
             "sampler_type",
             "target_sync_interval",
             "target_sync_mode",
