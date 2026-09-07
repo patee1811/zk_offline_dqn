@@ -16,7 +16,15 @@ TABLE_FILENAMES = {
 # The relation this paper proves is discrete-action Offline-DQN. Baselines are
 # split here rather than in the runner so the report gate can check that a
 # completed Table 1 row is inside that domain.
-DISCRETE_BASELINES = {"bc", "offline_dqn", "double_dqn", "cql_lite"}
+DISCRETE_BASELINES = {
+    "bc",
+    "offline_dqn",
+    "double_dqn",
+    "cql_lite",
+    # Double DQN run under the configuration the SP1 relation checks,
+    # so the table carries the proved procedure as well as the tuned one.
+    "double_dqn_provable",
+}
 CONTINUOUS_BASELINES = {"bc_continuous", "iql_lite"}
 
 TABLE_COLUMNS = [

@@ -17,6 +17,11 @@ from zk_offline_dqn.rl_benchmarks.agents import (
     train_behavior_cloning_continuous,
     train_behavior_cloning_discrete,
     train_iql_lite,
+    PROVED_ALGORITHM,
+    PROVED_BATCH_SIZE,
+    PROVED_GRADIENT_CLIP,
+    PROVED_SGD_LEARNING_RATE,
+    PROVED_TARGET_SYNC_INTERVAL,
     train_offline_q,
 )
 from zk_offline_dqn.rl_benchmarks.datasets import (
@@ -283,8 +288,12 @@ def _optimizers_for(baseline: str, args: argparse.Namespace) -> List[str]:
     """Only the discrete baselines carry the optimizer axis.
 
     The continuous ones take no optimizer_name, so running them twice would
-    report the same Adam numbers under two labels.
+    report the same Adam numbers under two labels. double_dqn_provable is
+    likewise off the axis: its optimizer is pinned by the relation, and Adam's
+    3e-4 does not survive encode_fp at all.
     """
+    if baseline == "double_dqn_provable":
+        return ["sgd"]
     if baseline in DISCRETE_BASELINES:
         return list(args.optimizers)
     return ["adam"]
@@ -304,6 +313,21 @@ def _train_policy(dataset, baseline: str, seed: int, args: argparse.Namespace, o
             optimizer_name=optimizer,
             sgd_learning_rate=args.sgd_learning_rate,
             **kwargs,
+        )
+    if baseline == "double_dqn_provable":
+        # Every setting here is pinned by the relation rather than by the
+        # sweep: batch size, learning rate, clip rule and sync interval all
+        # come from what the guest checks, so the row reports the procedure
+        # the proofs are about.
+        return train_offline_q(
+            dataset,
+            algorithm=PROVED_ALGORITHM,
+            optimizer_name="sgd",
+            sgd_learning_rate=PROVED_SGD_LEARNING_RATE,
+            clip_mode="value",
+            gradient_clip=PROVED_GRADIENT_CLIP,
+            target_update_interval=PROVED_TARGET_SYNC_INTERVAL,
+            **{**kwargs, "batch_size": PROVED_BATCH_SIZE},
         )
     if baseline in {"offline_dqn", "double_dqn", "cql_lite"}:
         return train_offline_q(

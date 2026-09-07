@@ -97,6 +97,20 @@ def _finite(loss: torch.Tensor, name: str) -> None:
 # actually verifies rather than a tuned stand-in for it.
 PROVED_SGD_LEARNING_RATE = 0.01
 
+# The configuration the SP1 relation actually checks, as one source of truth.
+#
+# Table 1 rows are tuned: minibatches of 64, Adam or SGD, gradients clipped by
+# L2 norm. The relation checks none of that -- it takes one transition at a
+# time, plain SGD, and clamps each gradient component, because a norm needs a
+# square root the guest would have to prove. Quoting a tuned number beside a
+# proof of a different procedure invites the reader to join them, so the
+# provable configuration is measured as its own row instead. See
+# zk_offline_dqn/relations/training_fragment.py for the matching constants.
+PROVED_BATCH_SIZE = 1
+PROVED_GRADIENT_CLIP = 10.0
+PROVED_TARGET_SYNC_INTERVAL = 4
+PROVED_ALGORITHM = "double_dqn"
+
 
 def provable_learning_rate(rate: float) -> float:
     """Reject a learning rate the relation could not check.
@@ -179,9 +193,13 @@ def train_offline_q(
     cql_alpha: float = 0.1,
     optimizer_name: str = "adam",
     sgd_learning_rate: float = PROVED_SGD_LEARNING_RATE,
+    clip_mode: str = "norm",
+    gradient_clip: float = 10.0,
 ) -> TorchPolicy:
     if dataset.action_kind != "discrete":
         raise ValueError("offline Q baselines require scalar integer actions")
+    if clip_mode not in {"norm", "value"}:
+        raise ValueError(f"unsupported clip_mode: {clip_mode}")
     if algorithm not in {"offline_dqn", "double_dqn", "cql_lite"}:
         raise ValueError(f"unsupported Q baseline: {algorithm}")
     seed_everything(seed)
@@ -209,7 +227,12 @@ def train_offline_q(
             loss = loss + cql_lite_loss(q_values, batch["actions"], cql_alpha)
         optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(online.parameters(), 10.0)
+        if clip_mode == "norm":
+            torch.nn.utils.clip_grad_norm_(online.parameters(), gradient_clip)
+        else:
+            # Component-wise, matching the relation: a norm bounds the vector,
+            # this bounds each entry, so the same threshold is the looser rule.
+            torch.nn.utils.clip_grad_value_(online.parameters(), gradient_clip)
         optimizer.step()
         if (step + 1) % max(1, target_update_interval) == 0:
             target.load_state_dict(online.state_dict())
