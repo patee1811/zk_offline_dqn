@@ -70,6 +70,7 @@ def _row_from_case(root: Path, case: ProofCase) -> Dict[str, Any]:
         prover_gas=norm.get("prover_gas"),
         peak_rss=norm.get("peak_rss_mb"),
         max_rss=norm.get("max_rss_mb"),
+        prover=norm.get("prover"),
         backend_version=norm.get("backend_version"),
         sp1_version=norm.get("sp1_version"),
         git_commit=norm.get("git_commit") or _git_commit(root),

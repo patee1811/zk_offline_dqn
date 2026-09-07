@@ -87,6 +87,10 @@ def normalize_metrics(metrics: Dict[str, Any] | None) -> Dict[str, Any]:
         "prover_gas": metric_value(data, "prover_gas"),
         "peak_rss_mb": metric_value(data, "peak_rss_mb", "peak_rss_megabytes"),
         "max_rss_mb": metric_value(data, "max_rss_mb", "max_rss_megabytes"),
+        # Which prover produced the row. Hosts that can reach a GPU write it;
+        # the rest leave it absent rather than have the table assert a value
+        # nothing measured.
+        "prover": metric_value(data, "prover"),
         "backend_version": metric_value(data, "backend_version"),
         "sp1_version": metric_value(data, "sp1_version"),
         "git_commit": metric_value(data, "git_commit"),
