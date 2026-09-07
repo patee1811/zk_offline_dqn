@@ -152,7 +152,14 @@ def cargo_command(
         str(resolved_case_path),
     ]
     if out_dir is not None:
-        command.extend(["--out-dir", str(out_dir)])
+        # cargo runs the host from the relation workspace, so a relative
+        # --out-dir lands in zk_backend/<rel>/sp1/artifacts/... The host still
+        # exits 0 and the phase script still reports a proof, while metrics.json
+        # in the provenance tree keeps whatever it held before.
+        resolved_out_dir = Path(out_dir)
+        if not resolved_out_dir.is_absolute():
+            resolved_out_dir = ROOT / resolved_out_dir
+        command.extend(["--out-dir", str(resolved_out_dir)])
     if expected_public_inputs is not None:
         command.extend(["--expected-public-inputs", str(expected_public_inputs)])
     return command
