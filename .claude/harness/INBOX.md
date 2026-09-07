@@ -222,3 +222,17 @@ Format:
 **Đích đề xuất:** `rules/90-domain/relations.md`; cân nhắc thêm biên tường minh vào quan hệ
 **Độ tin cậy:** cao (mô phỏng đầy đủ 32 chunk, hai môi trường, ba learning rate)
 **Trạng thái:** chờ xử lý
+
+## 2026-09-07 — phát hiện mới — scope experiments
+**Kích hoạt:** `training-aggregation-host` chế độ `--child-proof-mode groth16_bn254` chết 4 lần liên tiếp ở bước prove tổng hợp: `Failed to create the CUDA prover impl: ConnectionRefused ... Could not connect to sp1-gpu-server socket`. Mỗi child proof tự dựng rồi bỏ lại `/tmp/sp1-cuda-0.sock`; server sau không bind được đường đã tồn tại, client nối vào socket chết. Watchdog xoá socket mỗi 0,5s vẫn hỏng (486s), nhưng gọi host **một mình** thì qua ngay (2216s, `proof_verified = true`).
+**Bài học:** không phải mỗi file socket cũ — server của child groth16 vẫn đang tắt dở khi host tổng hợp khởi động. Cách chạy: để `run_phase7 ... --run-child-proves` sinh child + `tamper_report.json`, chấp nhận nó hỏng ở prove cuối, rồi gọi host trực tiếp cho **riêng** bước tổng hợp. `write_provenance` không đụng `tamper_report.json` nên fixture vẫn đủ. Chỉ groth16 dính; `native_sp1` chạy trọn qua phase script.
+**Đích đề xuất:** `rules/90-domain/experiments.md` dòng recursion
+**Độ tin cậy:** cao (4 lần hỏng, 2 lần qua, cùng một máy)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-07 — sửa số cũ — scope backends
+**Kích hoạt:** đo `overflow-checks = true` trên đủ 8 quan hệ, không chỉ `training_fragment`.
+**Bài học:** con số **+3,9%** trong mục ngày 06-09 chỉ đúng cho `training_fragment`; chi phí **không đồng đều**: `training_fragment`/`training_update` +3,6%…+7,2%, `merkle_membership` +13,0%…+17,7%, recursion phẳng và cây nhị phân **+36,8%** (verify child proof trong guest nặng số học nhất), groth16 **+0,33%** (cycles do BN254 chi phối, không phải số học fixed-point). Tổng Bảng 2: 8,66G → 9,58G cycles, **+10,7%**. Đừng trích một con số cho cả bảng.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`, cùng chỗ với mục overflow-checks
+**Độ tin cậy:** cao (23 dòng proof_verified, đối chiếu từng dòng với bảng đã commit)
+**Trạng thái:** chờ xử lý
