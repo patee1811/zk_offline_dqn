@@ -236,3 +236,24 @@ Format:
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`, cùng chỗ với mục overflow-checks
 **Độ tin cậy:** cao (23 dòng proof_verified, đối chiếu từng dòng với bảng đã commit)
 **Trạng thái:** chờ xử lý
+
+## 2026-09-07 — lỗi nghiêm trọng — scope relations
+**Kích hoạt:** `generate_case` dùng `sampler_seed` hằng số và `step_id` đếm **trong nội bộ fragment**, nên mọi chunk của một chuỗi rút đúng cùng một tập chỉ số. Đo trực tiếp: chunk 0 (bước 0–7) và chunk 1 (bước 8–15) đều ra `[68, 83, 22, 125, 56, 55, 42, 1]`.
+**Bài học:** chuỗi 1248 bước thực chất là **156 lần lặp trên 8 dòng** của dataset 50k, không phải một lượt quét dữ liệu — claim "train trên dataset đã cam kết" bị rỗng ruột mà không test nào bắt. Nay `sampler_seed = H(dataset_root, global_step_start)`, vừa chặn prover tự chọn seed (Tan et al. 2025) vừa buộc các chunk rút khác nhau. Có test hồi quy `test_chunks_of_one_chain_draw_different_transitions`.
+**Đích đề xuất:** `rules/90-domain/relations.md` dòng aggregation
+**Độ tin cậy:** cao (so sánh trực tiếp code cũ/mới trên cùng đầu vào)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-07 — phát hiện mới — scope backends
+**Kích hoạt:** `forward_td_mlp` và `one_step_sgd_tiny` đổi `guest_elf_sha256` dù chỉ sửa host. Build lại tại chỗ cho **cùng** hash (tất định), nhưng cùng nguồn build ở `~/repo8` ra `b1e7a69d` còn ở `~/repo9` ra `1e2a8a38`.
+**Bài học:** `guest_elf_sha256` định danh **lần build**, không phải mã nguồn — nó phụ thuộc đường dẫn build. Hai guest này là hai guest duy nhất có path dependency ra ngoài workspace (`td-mvp-shared`). Hệ quả: cổng `test_table2_guest_consistency` vẫn đúng mục đích (bắt việc chỉ prove lại một nửa, vì cùng lượt thì cùng đường dẫn), nhưng **không được** dùng hash ELF công bố như mỏ neo tái lập cho reviewer build từ clone sạch. Muốn hash đi được thì cần `RUSTFLAGS=--remap-path-prefix`.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`
+**Độ tin cậy:** cao (build lại 2 lần cùng chỗ + 1 lần khác đường dẫn)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-07 — phát hiện mới — scope rl
+**Kích hoạt:** control D tách ba khác biệt giữa Bảng 1 tinh chỉnh và cấu hình quan hệ, trên cartpole-random, 5000 bước, 1 seed: tuned 78,0 → clip-by-value 75,4 → sync 4 **9,4** → batch 1 **9,4** → cả ba **9,4**.
+**Bài học:** phép thay clipping mà chứng minh bắt buộc phải làm gần như **miễn phí**; thứ chặn việc học là **batch=1** và **chu kỳ đồng bộ target = 4**, mỗi cái độc lập đủ kéo về mức chính sách chưa học (9,4 trên CartPole). Nên lộ trình quan hệ kế tiếp là **batching và sync dài hơn**, không phải Adam — trái với thứ tự mục Limitations đang gợi ý.
+**Đích đề xuất:** `rules/90-domain/relations.md`; `paper/sections/discussion.tex` khi viết lại Limitations
+**Độ tin cậy:** trung bình cao (1 seed, 6 dataset; xu hướng nhất quán, biên độ chưa lấy trung bình nhiều seed)
+**Trạng thái:** chờ xử lý
