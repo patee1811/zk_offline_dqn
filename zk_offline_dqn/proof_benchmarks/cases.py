@@ -36,6 +36,13 @@ CORE_CASES = [
     ProofCase("training_aggregation_manifest_t32", "aggregation", "training_aggregation_manifest_t32", "proof_manifest_chain", "aggregation_t", "training_aggregation_t32", network="tiny", aggregation_t=32, notes="proof-manifest-chain; does not recursively verify child proofs inside SP1"),
     ProofCase("training_aggregation_manifest_t64", "aggregation", "training_aggregation_manifest_t64", "proof_manifest_chain", "aggregation_t", "training_aggregation_t64", network="tiny", aggregation_t=64, notes="proof-manifest-chain; does not recursively verify child proofs inside SP1"),
     ProofCase("training_aggregation_manifest_t128", "aggregation", "training_aggregation_manifest_t128", "proof_manifest_chain", "aggregation_t", "training_aggregation_t128", network="tiny", aggregation_t=128, notes="proof-manifest-chain; does not recursively verify child proofs inside SP1"),
+    # The two rows whose dataset_root is a root Table 1 also carries, so a
+    # training proof and an RL result name the same committed object. They were
+    # appended to the table by hand when first measured, which meant a
+    # regenerated Table 2 silently dropped them; listing them here makes all
+    # thirty rows come out of one run.
+    ProofCase("training_fragment_cartpole_expert_k1", "core", "training_fragment", "cartpole_expert", "committed_dataset", "training_fragment_cartpole_expert_k1", batch_size=1, network="[4, 64, 2]", notes="dataset_root equals the committed cartpole-expert-v2 merkle_root"),
+    ProofCase("training_fragment_lunarlander_expert_k1", "core", "training_fragment", "lunarlander_expert", "committed_dataset", "training_fragment_lunarlander_expert_k1", batch_size=1, network="[8, 64, 4]", notes="dataset_root equals the committed lunarlander-expert-v1 merkle_root"),
 ]
 
 

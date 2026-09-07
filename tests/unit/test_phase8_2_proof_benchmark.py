@@ -205,6 +205,19 @@ class Phase82ProofBenchmarkTests(unittest.TestCase):
             row = [r for r in rows if r["Case ID"] == "training_aggregation_manifest_t32"][0]
             self.assertEqual(row["Prover"], "cuda")
 
+    def test_rows_measured_by_hand_are_not_dropped_on_regeneration(self):
+        # These three were appended to the committed table when first measured,
+        # so regenerating Table 2 silently produced 27 rows where the paper
+        # cites 30. They have to come out of build_rows like every other row.
+        rows = build_rows(dataset_sizes=[1000, 10000, 50000, 100000])
+        case_ids = {row["Case ID"] for row in rows}
+        for case_id in (
+            "merkle_membership_dataset_50000",
+            "training_fragment_cartpole_expert_k1",
+            "training_fragment_lunarlander_expert_k1",
+        ):
+            self.assertIn(case_id, case_ids)
+
     def test_proof_binary_paths_are_not_required_in_compact_report(self):
         row = self._proof_row()
         row["Metrics Source"] = "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/metrics.json"

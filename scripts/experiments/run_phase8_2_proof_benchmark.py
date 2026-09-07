@@ -44,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _defaults(args: argparse.Namespace) -> None:
     if args.dataset_sizes is None:
-        args.dataset_sizes = [1000, 10000, 100000] if args.paper else [1000]
+        args.dataset_sizes = [1000, 10000, 50000, 100000] if args.paper else [1000]
     if args.trace_lengths is None:
         args.trace_lengths = [1, 4, 8, 16, 32, 128] if args.paper else [1]
     if args.batch_sizes is None:
@@ -54,7 +54,7 @@ def _defaults(args: argparse.Namespace) -> None:
     if args.aggregation_targets is None:
         args.aggregation_targets = [32, 64, 128] if args.paper else [32]
     if args.merkle_dataset_sizes is None:
-        args.merkle_dataset_sizes = [1000, 10000, 100000] if args.paper else [1000]
+        args.merkle_dataset_sizes = [1000, 10000, 50000, 100000] if args.paper else [1000]
     if args.paper:
         args.run_sp1_execute = True if not args.run_sp1_execute else args.run_sp1_execute
         args.run_sp1_prove = True if not args.run_sp1_prove else args.run_sp1_prove
