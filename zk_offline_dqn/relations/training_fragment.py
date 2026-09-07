@@ -141,23 +141,21 @@ def compute_step(
     q_online_action = online_forward["q"][action]
     next_action = argmax_first(online_next["q"])
     q_target_next = target_forward["q"][next_action]
+    # Range check before gamma * q_target_next, not after: the multiply is where
+    # i64 gives out in the guest, so a check placed downstream is reached only
+    # by an overflow panic that names nothing.
+    q_abs_max = int(public["q_abs_max_fp"])
+    for name, value in (("q_online_action", q_online_action), ("q_target_next", q_target_next)):
+        if abs(value) > q_abs_max:
+            raise AssertionError(f"{name} {value} exceeds q_abs_max_fp {q_abs_max}")
     done = bool(transition["terminated"]) or bool(transition["truncated"])
     td_target = (
         int(transition["reward"])
         if done
         else int(transition["reward"]) + fixed_point_mul(int(public["gamma"]), q_target_next, scale)
     )
-    # Range check before the values feed any further multiply. Rejecting here
-    # names the reason; letting them run on reaches the same wall as an
-    # overflow panic several operations later.
-    q_abs_max = int(public["q_abs_max_fp"])
-    for name, value in (
-        ("q_online_action", q_online_action),
-        ("q_target_next", q_target_next),
-        ("td_target", td_target),
-    ):
-        if abs(value) > q_abs_max:
-            raise AssertionError(f"{name} {value} exceeds q_abs_max_fp {q_abs_max}")
+    if abs(td_target) > q_abs_max:
+        raise AssertionError(f"td_target {td_target} exceeds q_abs_max_fp {q_abs_max}")
     td_error = q_online_action - td_target
     loss = smooth_l1_loss_fp(td_error, scale)
     loss_grad = smooth_l1_grad_fp(td_error, scale)

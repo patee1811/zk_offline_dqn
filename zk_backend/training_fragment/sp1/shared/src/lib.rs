@@ -395,6 +395,17 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
         let q_online_action = online_forward.q[action];
         let next_action = argmax_first(&online_next.q);
         let q_target_next = target_forward.q[next_action];
+        // Range check before gamma * q_target_next, not after: the multiply is
+        // where i64 gives out, so a check placed downstream is reached only by
+        // an overflow panic that names nothing.
+        assert!(
+            q_online_action.abs() <= public.q_abs_max_fp,
+            "q_online_action exceeds q_abs_max_fp"
+        );
+        assert!(
+            q_target_next.abs() <= public.q_abs_max_fp,
+            "q_target_next exceeds q_abs_max_fp"
+        );
         let done = step.transition.terminated || step.transition.truncated;
         let td_target = if done {
             step.transition.reward
@@ -402,20 +413,10 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
             step.transition.reward
                 + fixed_point_mul(public.gamma, q_target_next, public.fixed_point_scale)
         };
-        // Range check before the values feed any further multiply. Rejecting
-        // here names the reason; letting them run on reaches the same wall as
-        // an overflow panic several operations later.
-        for (name, value) in [
-            ("q_online_action", q_online_action),
-            ("q_target_next", q_target_next),
-            ("td_target", td_target),
-        ] {
-            assert!(
-                value.abs() <= public.q_abs_max_fp,
-                "{} exceeds q_abs_max_fp",
-                name
-            );
-        }
+        assert!(
+            td_target.abs() <= public.q_abs_max_fp,
+            "td_target exceeds q_abs_max_fp"
+        );
         let td_error = q_online_action - td_target;
         let loss = smooth_l1_loss_fp(td_error, public.fixed_point_scale);
         assert_eq!(
