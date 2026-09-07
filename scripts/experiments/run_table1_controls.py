@@ -25,6 +25,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from zk_offline_dqn.rl_benchmarks.agents import (
+    PROVED_BATCH_SIZE,
+    PROVED_GRADIENT_CLIP,
+    PROVED_SGD_LEARNING_RATE,
+    PROVED_TARGET_SYNC_INTERVAL,
     provable_learning_rate,
     train_behavior_cloning_discrete,
     train_offline_q,
@@ -189,10 +193,79 @@ def summarise(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
+
+def control_d(args: argparse.Namespace) -> List[Dict[str, Any]]:
+    """Which part of the relation's configuration costs the performance?
+
+    double_dqn_provable scores at the floor while the tuned row learns, and
+    three things differ: the minibatch, the target sync interval, and the clip
+    rule. Reporting only the gap invites the reader to blame the clip, which is
+    the substitution the proof forced. Changing one at a time says otherwise --
+    on cartpole-random the clip rule costs a few percent while either the batch
+    or the sync interval alone drops the score to the floor, so batching and a
+    longer sync are what a next relation would have to reach, not Adam.
+    """
+    rows: List[Dict[str, Any]] = []
+    out_path = Path(args.out_dir) / "control_d_provable_ablation.json"
+    tuned = {
+        "batch_size": 256,
+        "target_update_interval": 100,
+        "clip_mode": "norm",
+        "gradient_clip": PROVED_GRADIENT_CLIP,
+    }
+    variants = [
+        ("tuned", tuned),
+        ("clip_by_value", {**tuned, "clip_mode": "value"}),
+        ("sync_interval_of_the_relation", {**tuned, "target_update_interval": PROVED_TARGET_SYNC_INTERVAL}),
+        ("batch_size_of_the_relation", {**tuned, "batch_size": PROVED_BATCH_SIZE}),
+        ("the_relation", {
+            "batch_size": PROVED_BATCH_SIZE,
+            "target_update_interval": PROVED_TARGET_SYNC_INTERVAL,
+            "clip_mode": "value",
+            "gradient_clip": PROVED_GRADIENT_CLIP,
+        }),
+    ]
+    for dataset_id in dataset_ids():
+        dataset = load_committed_dataset(ROOT / "artifacts/datasets" / dataset_id)
+        for name, settings in variants:
+            started = time.time()
+            returns = []
+            for seed in args.seeds:
+                policy = train_offline_q(
+                    dataset,
+                    algorithm="double_dqn",
+                    train_steps=args.train_steps,
+                    seed=seed,
+                    learning_rate=args.learning_rate,
+                    sgd_learning_rate=PROVED_SGD_LEARNING_RATE,
+                    optimizer_name="sgd",
+                    **settings,
+                )
+                summary = evaluate_policy(
+                    policy, dataset, seeds=[seed], eval_episodes=args.eval_episodes
+                )
+                returns.append(summary.metrics["average_return_mean"])
+            scored = [value for value in returns if value is not None]
+            rows.append(
+                {
+                    "dataset": dataset_id,
+                    "variant": name,
+                    "settings": settings,
+                    "avg_return": sum(scored) / len(scored) if scored else None,
+                    "returns": returns,
+                    "seconds": round(time.time() - started, 1),
+                }
+            )
+            print(f"control d {dataset_id} {name}: {rows[-1]['avg_return']}")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(rows, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return rows
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--controls", nargs="+", default=["a", "b", "c"],
-                        choices=["a", "b", "c"])
+    parser.add_argument("--controls", nargs="+", default=["a", "b", "c", "d"],
+                        choices=["a", "b", "c", "d"])
     parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     parser.add_argument("--train-steps", type=int, default=5000)
     parser.add_argument("--step-grid", type=int, nargs="+", default=STEP_GRID)
@@ -213,6 +286,8 @@ def main() -> int:
         summaries["sgd"] = summarise(control_rates(args, "sgd"))
     if "c" in args.controls:
         summaries["adam"] = summarise(control_rates(args, "adam"))
+    if "d" in args.controls:
+        control_d(args)
     if summaries:
         path = Path(args.out_dir) / "rate_selection.json"
         path.write_text(json.dumps(summaries, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -113,7 +113,16 @@ def _mode_defaults(args: argparse.Namespace) -> None:
             else ["cartpole-random", "cartpole-expert"]
         )
     if args.baselines is None:
-        args.baselines = ["bc", "offline_dqn", "double_dqn", "cql_lite"]
+        # double_dqn_provable is the relation's own configuration, carried in
+        # the table so the proved procedure has a measured number beside the
+        # tuned ones rather than being inferred from them.
+        args.baselines = [
+            "bc",
+            "offline_dqn",
+            "double_dqn",
+            "cql_lite",
+            "double_dqn_provable",
+        ]
     if args.learning_rate is None:
         # Both columns get a tuned rate or the comparison is rigged: 3e-4 is a
         # library default, and sweeping only the sgd side would flatter it.
