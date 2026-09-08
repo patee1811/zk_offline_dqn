@@ -35,19 +35,43 @@ Several important limitations are inherent to the current scope:
   adaptive learning rates and momentum terms remains future work.
 
   \item \textbf{No large-scale proofs.} The benchmarks use CartPole and
-  MountainCar (classic control) and small PointMaze environments.
+  LunarLander, with PointMaze backing the public dataset-scaling rows.
   Atari-scale or MuJoCo-scale proofs would require more efficient
-  neural-network circuits.
+  neural-network circuits: a MinAtar-sized network needs $16$--$33$ billion
+  cycles per leaf against the $1.68$ billion we have proved.
 
   \item \textbf{Recursive aggregation needs a GPU.} The aggregate guest
-  verifies child proofs cryptographically for $T \in \{16, 32, 64\}$, but only
-  under a CUDA prover: peak device memory is $18.4$~GB, and the CPU prover did
-  not complete within $61$~GB of host memory. $T = 128$ is untested, and the
-  $T \in \{32, 64, 128\}$ rows in Table~2 remain proof-manifest chains.
+  verifies child proofs cryptographically for $T \in \{16, 32, 64\}$ and for the
+  two whole-run binary trees, but only under a CUDA prover: peak device memory
+  is $18.4$~GB, and the CPU prover did not complete within $61$~GB of host
+  memory. The $T \in \{32, 64, 128\}$ rows remain proof-manifest chains by
+  choice, so the table reports both aggregation modes side by side.
 
   \item \textbf{No honest collection for public data.} Minari/D4RL imports
   are source-integrity commitments. The system does not prove that the
   original data was collected honestly.
+
+  \item \textbf{The prover declares the value bound.} The sampler seed is
+  derived from the committed dataset root and the chunk's global step, so a
+  prover cannot grind it for a favourable subset. The bound
+  \texttt{q\_abs\_max\_fp} is a public input the relation checks for
+  self-consistency, but the prover chooses its value: a verifier reads the
+  declared range off the statement rather than being given a canonical one.
+
+  \item \textbf{Guest binaries are not reproducible across build paths.}
+  Provenance records \texttt{guest\_elf\_sha256} for every proved row, which
+  detects a table assembled from a partly re-proved tree. It is not a portable
+  identity: the same source built under two different directories yields two
+  hashes, because guests reached through an out-of-workspace path dependency
+  embed that path. Reviewers rebuilding from a clean clone should compare cycle
+  counts, which are deterministic in the (ELF, input) pair.
+
+  \item \textbf{Tamper rejection does not cover relation semantics.} Each of
+  the 236 cases perturbs a committed field and checks that verification fails.
+  A relation that consistently computes the wrong thing passes all of them: an
+  earlier sampler drew the same eight transitions in every chunk of a chain, so
+  a 1248-step run was 156 repetitions over eight rows, and the benchmark stayed
+  green throughout.
 \end{itemize}
 
 \subsection{Why Scoped Claims Remain Valuable}
@@ -70,21 +94,31 @@ implementation, test, and benchmark evidence.
 \subsection{Scalability Considerations}
 
 The SP1 proof cost data (\Cref{tab:proof-cost}) reveals that proving is
-prototype-scale: the most expensive relation (training fragment $k\!=\!8$)
-takes approximately 7.3 minutes, while verification is consistently fast
-($<$\,0.21\,s). Several scaling directions are available:
+prototype-scale. Under a CUDA prover the most expensive relation is Groth16
+child-proof aggregation at $1597$\,s; the training fragments that dominate a
+run cost seconds ($3.8$\,s at $k\!=\!8$), and a proof covering an entire
+1248-step run costs $200$\,s. Verification stays flat at $0.054$--$0.20$\,s
+regardless, except for Groth16, whose in-circuit SNARK check takes $68$\,s.
+Several scaling directions are available:
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{GPU acceleration.} SP1 GPU proving may reduce proving costs
-  enough to make most relation proofs practical for routine artifact checks.
-  \item \textbf{Future work: true recursive aggregation.} Verifying child proofs inside the
-  aggregate guest would eliminate the need for external child-proof
-  verification and enable arbitrarily long training traces.
+  \item \textbf{GPU acceleration, measured.} Moving the fragment and
+  aggregation hosts to a CUDA prover cut a $k\!=\!8$ fragment from $145$\,s to
+  $3.8$\,s. The remaining CPU rows are relations whose hosts have no CUDA path
+  at all, which is why the cost table reports the prover per row.
+  \item \textbf{Longer runs under one proof.} The aggregate guest already
+  verifies child proofs in-circuit, so trace length is bounded by budget rather
+  than by construction: the 1248-step trees cost roughly one GPU hour each, and
+  the same shape extends to 4992 steps for about four.
   \item \textbf{Precompile optimization.} SP1 precompiles for SHA-256 and
   matrix operations could reduce cycle counts for forward/backward MLP
   computations.
-  \item \textbf{Batched proving.} Amortizing proof generation across multiple
-  training steps through segment-level parallelism could improve throughput.
+  \item \textbf{Minibatches.} The relation fixes \texttt{batch\_size} to 1,
+  and this is the scaling direction that matters most for what the proof says
+  rather than for how fast it runs: an ablation isolating each difference
+  between the tuned and the provable configuration finds the minibatch and the
+  target-sync interval, not the optimizer or the clipping rule, are what cost
+  the provable configuration its return.
 \end{itemize}
 
 \subsection{Comparison with Existing ZK Training Systems}
@@ -120,7 +154,7 @@ Target-network proof & --- & --- & --- & --- & --- & \checkmark \\
 Dataset commitment & --- & --- & --- & --- & --- & \checkmark \\
 Checkpoint chaining & --- & --- & \checkmark & --- & --- & \checkmark \\
 Multi-step composition & --- & \checkmark & \checkmark & --- & --- & \checkmark \\
-Recursive aggregation & --- & --- & \checkmark & --- & --- & $\sim$ \\
+Recursive aggregation & --- & --- & \checkmark & --- & --- & \checkmark \\
 Tamper-rejection benchmark & --- & --- & --- & --- & --- & \checkmark \\
 Artifact reproducibility & $\sim$ & --- & --- & --- & --- & \checkmark \\
 \bottomrule
@@ -128,8 +162,10 @@ Artifact reproducibility & $\sim$ & --- & --- & --- & --- & \checkmark \\
 \vspace{2pt}
 \begin{minipage}{0.96\textwidth}
 \footnotesize
-For our system, $\sim$ means proof-backed training fragments or
-proof-manifest aggregation only; it does not denote a full end-to-end DQN
-training proof or recursive child-proof verification.
+For our system, $\sim$ under training verification means proof-backed
+training fragments and whole-run aggregation over a committed dataset; it does
+not denote a proof of model selection, optimizer state, or initialization.
+Recursive aggregation is marked supported because the aggregate guest verifies
+each child proof in-circuit, under a CUDA prover.
 \end{minipage}
 \end{table*}
