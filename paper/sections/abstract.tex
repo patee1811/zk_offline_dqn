@@ -20,11 +20,12 @@ replay membership, dataset commitment, Bellman target correctness, update
 correctness, checkpoint-chain soundness, training-fragment soundness, and
 aggregation soundness, plus the zero-knowledge privacy boundary; each theorem
 is mapped to implemented relations, SP1 backend code, tests, and benchmark
-evidence. Experimental evaluation on CartPole, MountainCar,
-and PointMaze D4RL benchmark datasets demonstrates that all reported
-proof-verified configurations achieve verification in under~0.21\,s with proof
-sizes below~2.84\,MB, while a tamper-rejection benchmark covering~236
-adversarial test cases yields zero unexpectedly accepted tampering attempts
+evidence. Experimental evaluation on CartPole and LunarLander, with
+PointMaze from D4RL backing the public dataset-scaling rows, demonstrates that
+every proof-verified configuration verifies in under~0.20\,s -- including a
+single proof covering an entire 1{,}248-step training run -- with proof sizes
+below~4.31\,MB, while a tamper-rejection benchmark covering~236 adversarial
+test cases yields zero unexpectedly accepted tampering attempts
 across~19 tamper categories. The contribution is a deliberately scoped
 security/systems artifact: it does not claim complete DQN training soundness
 or Adam optimizer proofs, and its recursive aggregation requires a CUDA prover

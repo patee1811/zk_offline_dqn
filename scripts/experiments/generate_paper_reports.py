@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+from zk_offline_dqn.experiments.paper_tables import write_all as write_paper_tables
 from zk_offline_dqn.experiments.report_tables import DEFAULT_OUT_DIR, generate_reports
 
 
@@ -26,6 +27,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     outputs = generate_reports(Path(args.out_dir))
+    # The paper \input's these, so they have to be rewritten in the same pass
+    # that rewrites the tables they are rendered from.
+    outputs["paper_tables"] = [
+        path.relative_to(ROOT).as_posix() for path in write_paper_tables()
+    ]
     print("paper_report_generation = passed")
     print(json.dumps(outputs, indent=2, sort_keys=True))
     return 0
