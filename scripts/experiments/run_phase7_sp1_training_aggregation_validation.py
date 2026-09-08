@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from zk_offline_dqn.rl_benchmarks.agents import (  # noqa: E402
+    PROVED_TARGET_SYNC_INTERVAL,
+)
 from zk_offline_dqn.data_pipeline import (  # noqa: E402
     RAW_EPISODES_NAME,
     read_jsonl,
@@ -409,6 +412,11 @@ def build_fragment_source(args: argparse.Namespace) -> Dict[str, Any] | None:
         "provenance": module.provenance_from(dataset_dir),
         "layer_sizes": list(args.layer_sizes),
         "learning_rate": int(args.learning_rate_fp),
+        # Threaded rather than left at the relation default, because it lands
+        # inside config_hash: a chain whose leaves sync every 4 steps is a
+        # different configuration from the one Table 1 reports, and binding the
+        # wrong one is how the learning rate went wrong.
+        "target_sync_interval": int(args.target_sync_interval),
     }
 
 
@@ -701,6 +709,8 @@ def main() -> int:
     )
     parser.add_argument("--layer-sizes", nargs="+", type=int)
     parser.add_argument("--learning-rate-fp", type=int, default=50)
+    parser.add_argument("--target-sync-interval", type=int,
+                        default=PROVED_TARGET_SYNC_INTERVAL)
     parser.add_argument("--aggregation-mode", default="proof_manifest_chain")
     parser.add_argument("--aggregation-topology")
     parser.add_argument("--child-proof-mode", default=CHILD_PROOF_MODE)
