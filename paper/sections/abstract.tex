@@ -1,9 +1,13 @@
 \begin{abstract}
-Offline reinforcement learning (RL) trains policies from fixed replay datasets,
-creating a verification challenge beyond supervised proof-of-training: a
-malicious prover can tamper with replay membership, reward semantics, Bellman
-targets, terminal flags, action selection, gradients, checkpoint links, and
-target-network synchronization while presenting a plausible final model. We
+Surveys of zero-knowledge proof-of-training organise the field by model
+class---deep, convolutional, recurrent, tree, language---and list no
+reinforcement-learning system. Value-based RL is not simply a larger
+computation: it carries three verification obligations supervised constructions
+never meet. Its labels are produced by the model being trained, so a proof must
+cover how each label was derived; target-network synchronisation is a discrete
+event a prover can move while keeping the run internally consistent; and replay
+sampling has no canonical order, so a prover who picks the draw picks the data
+the claim is about. We
 present a layered artifact system that provides zero-knowledge proof-backed
 verification of selected Offline Deep Q-Network (DQN) training fragments over
 provenance-bound committed replay data. The system combines audited dataset
@@ -26,7 +30,12 @@ every proof-verified configuration verifies in under~0.20\,s -- including a
 single proof covering an entire 1{,}248-step training run -- with proof sizes
 below~4.31\,MB, while a tamper-rejection benchmark covering~236 adversarial
 test cases yields zero unexpectedly accepted tampering attempts
-across~19 tamper categories. The contribution is a deliberately scoped
+across~19 tamper categories. We also report what the provable configuration
+costs in policy quality rather than leaving it to the reader: on
+	exttt{lunarlander-random} it reaches $-152.7$ against $-215.3$ for the tuned
+minibatch baseline, and an ablation isolates the target-sync interval, not the
+minibatch or the clipping rule the proof forces, as what governs whether it
+learns. The contribution is a deliberately scoped
 security/systems artifact: it does not claim complete DQN training soundness
 or Adam optimizer proofs, and its recursive aggregation requires a CUDA prover
 and is demonstrated up to $T = 64$.

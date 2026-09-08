@@ -44,45 +44,90 @@ semantics, proof generation, and proof aggregation. Each layer is independently
 testable, and every claim is traceable to a concrete implementation artifact,
 test, and benchmark row.
 
+Our starting point is that RL does not merely add another model class to
+this literature. A recent survey of zero-knowledge verifiable machine
+learning~\cite{zkmlsurvey2026} organises proof-of-training work by
+architecture---deep networks, convolutional networks, recurrent networks,
+decision trees, language models---and lists no reinforcement-learning system
+at all. The gap persists not because value-based RL is a larger computation,
+but because it carries three verification obligations that supervised
+proof-of-training constructions never encounter:
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{The labels are produced by the model being trained.} In
+  supervised training the labels are fixed data, and committing to the dataset
+  commits to them. A TD target is computed from the target network during
+  training, so a proof must establish not only that the update used the label
+  but that the label itself was derived correctly from a committed checkpoint.
+  \item \textbf{Target-network synchronisation is a discrete event.} The
+  target is refreshed every $N$ steps. A prover free to move those events
+  changes what every subsequent label means, and the resulting run remains
+  internally consistent.
+  \item \textbf{Replay sampling has no canonical order.} Minibatch indices are
+  drawn rather than enumerated, so a prover who selects the draw selects the
+  data the claim is about.
+\end{enumerate}
+
+\noindent The third obligation is not hypothetical. During development our own
+chain sampled with a fixed seed and a step index local to each fragment, so
+every chunk of a $1248$-step run drew the same eight transitions from a
+$50{,}000$-row dataset. Every hash agreed, every proof verified, and all $236$
+tamper cases stayed green, because no field had been altered---the relation
+simply described a different computation than intended. Binding the sampler to
+the dataset commitment removes both this defect and the prover's freedom to
+grind the seed~\cite{zkpotvicinity2025}.
+
 The contributions of this work are as follows:
 \begin{enumerate}[leftmargin=1.8em]
-  \item \textbf{Provenance-bound dataset pipeline.} We design a pipeline that
-  distinguishes self-collected replay/reward audits from public benchmark
-  source-integrity imports, binding dataset manifests, audit reports, raw
-  trajectory hashes, and collection-log hashes into a SHA-256 Merkle
-  commitment (\Cref{sec:system-overview}).
+  \item \textbf{RL-specific verification relations.} We formalise and implement
+  relations for the three obligations above---model-generated labels,
+  synchronisation timing, and sampling integrity---together with replay
+  membership and checkpoint chaining, and we bind the sampler to the committed
+  dataset root so that minibatch selection follows from the commitment rather
+  than from a prover input (\Cref{sec:relations}).
 
-  \item \textbf{SP1 proof-backed relations and configurations.} We implement
-  ZK relations and generate verified SP1 proofs covering replay membership
-  (including dataset-size scaling to 100k leaves), Bellman/TD arithmetic,
-  Forward-TD MLP evidence, one-step SGD updates, checkpoint chains, training
-  fragments for $k \in \{1, 4, 8\}$ steps, and proof-manifest chunk-chain
-  aggregation for $T \in \{32, 64, 128\}$ steps
-  (\Cref{sec:relations,sec:proof-backend,sec:training-fragment}).
+  \item \textbf{Proof-backed coverage with recursive aggregation.} We generate
+  verified SP1 proofs for replay membership (to $100$k leaves), Bellman/TD
+  arithmetic, forward evaluation, one-step SGD, checkpoint chains, training
+  fragments, proof-manifest chunk chains for $T \in \{32,64,128\}$, and
+  aggregation that verifies each child proof \emph{inside} the guest for
+  $T \in \{16,32,64\}$ under a CUDA prover
+  (\Cref{sec:proof-backend,sec:training-fragment}).
 
-  \item \textbf{Eight formal security theorems.} We state and sketch proofs for
-  eight theorems covering replay membership soundness, dataset commitment
-  soundness, Bellman target correctness, forward/backpropagation/update
-  correctness, checkpoint-chain soundness, training-fragment soundness, and
-  aggregation soundness, plus the zero-knowledge privacy boundary. Each theorem
-  is mapped to relation code, SP1 backend, tests, and benchmark evidence
-  (\Cref{sec:relations}).
+  \item \textbf{A whole training run under a single proof.} For both
+  environments we prove a complete $1248$-step run as one root proof over a
+  binary tree of eight $156$-step leaves, each leaf bound to the committed
+  dataset the reported policy was trained on, with $\mathrm{step\_start}=0$,
+  $\mathrm{step\_end}=1248$, and verification in $0.054$\,s
+  (\Cref{sec:experiments}).
 
-  \item \textbf{Comprehensive empirical evaluation.} We report three benchmark
-  tables: (i)~RL performance on self-collected and public benchmark datasets,
-  (ii)~ZK proof cost for all proof-backed relations, and (iii)~tamper rejection
-  across 19 adversarial categories with 236 test cases and zero unexpectedly
-  accepted rows. A reviewer artifact package with \texttt{make~reproduce-small}
-  exercises the complete pipeline (\Cref{sec:experiments}).
+  \item \textbf{The provable configuration measured, not assumed.} The relation
+  checks plain SGD on single transitions with component-wise gradient clipping,
+  which is not what a tuned implementation runs. Rather than leave the gap to
+  the reader we report it as its own row: on \texttt{lunarlander-random} the
+  provable configuration reaches $-152.7$ against $-215.3$ for the tuned
+  minibatch baseline, and an ablation isolates the target-sync interval---not
+  the minibatch, and not the clipping rule the proof forces---as what governs
+  whether it learns (\Cref{sec:experiments}).
+
+  \item \textbf{Formal statements and an adversarial benchmark.} We state and
+  sketch proofs for eight theorems spanning membership, dataset commitment,
+  Bellman targets, update correctness, chain and aggregation soundness, and the
+  zero-knowledge boundary, each mapped to relation code, SP1 backend, tests and
+  benchmark rows; and we report tamper rejection across $19$ adversarial
+  categories and $236$ cases with no unexpectedly accepted row
+  (\Cref{sec:relations,sec:experiments}).
 \end{enumerate}
 
 \noindent\textbf{Scope boundaries.} This paper does not claim a complete proof
 that an arbitrary DQN was trained from initialization to final model. It does
-not claim Adam optimizer proofs, batch-size 4/8/16 training-update proofs,
-proof-backed $k \in \{16, 32, 128\}$ fragments, true recursive child-proof
-verification inside SP1, Atari/MuJoCo-scale proofs, or honest collection
-for public Minari/D4RL imports. These boundaries are explicitly stated in
-\Cref{sec:discussion} and the formal theorem statements.
+not claim Adam optimizer proofs, batch sizes above one, proof-backed
+$k \in \{16,32,128\}$ fragments, or Atari/MuJoCo-scale proofs, and public
+Minari/D4RL imports are source-integrity commitments rather than evidence of
+honest collection. Proof length is bounded by cost rather than by arithmetic: a
+CartPole run long enough to learn well would need roughly $68$ GPU-hours at the
+leaf size used here. These boundaries are stated in \Cref{sec:discussion} and
+in the formal theorem statements.
 
 \smallskip
 \noindent\textbf{Organization.} \Cref{sec:background} reviews background on
