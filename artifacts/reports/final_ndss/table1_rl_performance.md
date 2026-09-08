@@ -10,7 +10,7 @@
 | cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | double_dqn | sgd | 3 | 311.033 +/- 56.982 | 56.982 |  | 0.033 +/- 0.047 | 5000 | completed |
 | cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | cql_lite | adam | 3 | 104.833 +/- 11.773 | 11.773 |  | 0.000 +/- 0.000 | 5000 | completed |
 | cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | cql_lite | sgd | 3 | 302.667 +/- 47.833 | 47.833 |  | 0.067 +/- 0.094 | 5000 | completed |
-| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | double_dqn_provable | sgd | 3 | 9.433 +/- 0.287 | 0.287 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | double_dqn_provable | sgd | 3 | 17.000 +/- 5.728 | 5.728 |  | 0.000 +/- 0.000 | 5000 | completed |
 | cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | bc | adam | 3 | 270.033 +/- 8.145 | 8.145 |  | 0.000 +/- 0.000 | 5000 | completed |
 | cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | bc | sgd | 3 | 341.800 +/- 80.590 | 80.590 |  | 0.133 +/- 0.125 | 5000 | completed |
 | cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | offline_dqn | adam | 3 | 9.300 +/- 0.216 | 0.216 |  | 0.000 +/- 0.000 | 5000 | completed |
@@ -19,7 +19,7 @@
 | cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | double_dqn | sgd | 3 | 9.800 +/- 0.864 | 0.864 |  | 0.000 +/- 0.000 | 5000 | completed |
 | cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | cql_lite | adam | 3 | 282.967 +/- 55.677 | 55.677 |  | 0.033 +/- 0.047 | 5000 | completed |
 | cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | cql_lite | sgd | 3 | 240.100 +/- 91.153 | 91.153 |  | 0.167 +/- 0.236 | 5000 | completed |
-| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | double_dqn_provable | sgd | 3 | 9.433 +/- 0.287 | 0.287 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | double_dqn_provable | sgd | 3 | 10.967 +/- 1.605 | 1.605 |  | 0.000 +/- 0.000 | 5000 | completed |
 | cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | bc | adam | 3 | 435.000 +/- 91.924 | 91.924 |  | 0.833 +/- 0.236 | 5000 | completed |
 | cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | bc | sgd | 3 | 492.167 +/- 7.814 | 7.814 |  | 0.933 +/- 0.047 | 5000 | completed |
 | cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | offline_dqn | adam | 3 | 9.300 +/- 0.216 | 0.216 |  | 0.000 +/- 0.000 | 5000 | completed |
@@ -28,7 +28,7 @@
 | cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | double_dqn | sgd | 3 | 9.567 +/- 0.170 | 0.170 |  | 0.000 +/- 0.000 | 5000 | completed |
 | cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | cql_lite | adam | 3 | 487.733 +/- 17.348 | 17.348 |  | 0.967 +/- 0.047 | 5000 | completed |
 | cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | cql_lite | sgd | 3 | 193.533 +/- 179.876 | 179.876 |  | 0.133 +/- 0.189 | 5000 | completed |
-| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | double_dqn_provable | sgd | 3 | 9.433 +/- 0.287 | 0.287 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | double_dqn_provable | sgd | 3 | 9.733 +/- 0.403 | 0.403 |  | 0.000 +/- 0.000 | 5000 | completed |
 | lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | bc | adam | 3 | -300.528 +/- 231.567 | 231.567 |  |  | 5000 | completed |
 | lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | bc | sgd | 3 | -381.303 +/- 181.112 | 181.112 |  |  | 5000 | completed |
 | lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | offline_dqn | adam | 3 | -32.527 +/- 33.208 | 33.208 |  |  | 5000 | completed |
@@ -37,7 +37,7 @@
 | lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | double_dqn | sgd | 3 | -215.283 +/- 75.215 | 75.215 |  |  | 5000 | completed |
 | lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | cql_lite | adam | 3 | -128.192 +/- 26.488 | 26.488 |  |  | 5000 | completed |
 | lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | cql_lite | sgd | 3 | -165.696 +/- 23.026 | 23.026 |  |  | 5000 | completed |
-| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | double_dqn_provable | sgd | 3 | -775.845 +/- 305.082 | 305.082 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | double_dqn_provable | sgd | 3 | -152.674 +/- 72.107 | 72.107 |  |  | 5000 | completed |
 | lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | bc | adam | 3 | 9.346 +/- 48.415 | 48.415 |  |  | 5000 | completed |
 | lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | bc | sgd | 3 | -189.659 +/- 89.573 | 89.573 |  |  | 5000 | completed |
 | lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | offline_dqn | adam | 3 | -575.957 +/- 64.528 | 64.528 |  |  | 5000 | completed |
@@ -46,7 +46,7 @@
 | lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | double_dqn | sgd | 3 | -366.554 +/- 110.441 | 110.441 |  |  | 5000 | completed |
 | lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | cql_lite | adam | 3 | -81.194 +/- 17.649 | 17.649 |  |  | 5000 | completed |
 | lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | cql_lite | sgd | 3 | -283.658 +/- 111.680 | 111.680 |  |  | 5000 | completed |
-| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | double_dqn_provable | sgd | 3 | -921.291 +/- 228.722 | 228.722 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | double_dqn_provable | sgd | 3 | -829.683 +/- 30.169 | 30.169 |  |  | 5000 | completed |
 | lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | bc | adam | 3 | 122.241 +/- 66.439 | 66.439 |  |  | 5000 | completed |
 | lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | bc | sgd | 3 | -48.397 +/- 6.146 | 6.146 |  |  | 5000 | completed |
 | lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | offline_dqn | adam | 3 | -294.313 +/- 86.641 | 86.641 |  |  | 5000 | completed |
@@ -55,6 +55,6 @@
 | lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | double_dqn | sgd | 3 | -518.656 +/- 97.041 | 97.041 |  |  | 5000 | completed |
 | lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | cql_lite | adam | 3 | 121.547 +/- 20.173 | 20.173 |  |  | 5000 | completed |
 | lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | cql_lite | sgd | 3 | -390.672 +/- 194.456 | 194.456 |  |  | 5000 | completed |
-| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | double_dqn_provable | sgd | 3 | -921.291 +/- 228.722 | 228.722 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | double_dqn_provable | sgd | 3 | -717.924 +/- 60.675 | 60.675 |  |  | 5000 | completed |
 
 Table 1 is RL-performance-only; SP1 proof-cost and tamper results are reported separately.

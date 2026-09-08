@@ -448,6 +448,7 @@ def generate_case(
     learning_rate: int = 10,
     q_abs_max_fp: int = DEFAULT_Q_ABS_MAX_FP,
     gradient_clip_fp: int = DEFAULT_GRADIENT_CLIP_FP,
+    target_sync_interval: int = 4,
 ) -> Dict[str, Any]:
     """Build a fragment vector.
 
@@ -483,7 +484,7 @@ def generate_case(
         "q_abs_max_fp": int(q_abs_max_fp),
         "gradient_clip_fp": int(gradient_clip_fp),
         "dataset_size": dataset_size,
-        "target_sync_interval": 4,
+        "target_sync_interval": int(target_sync_interval),
         "target_sync_mode": "hard",
         "global_step_start": global_step_start,
         "trace_hash": "",

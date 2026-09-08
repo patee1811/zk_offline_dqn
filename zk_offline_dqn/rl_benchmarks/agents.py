@@ -108,7 +108,16 @@ PROVED_SGD_LEARNING_RATE = 0.01
 # zk_offline_dqn/relations/training_fragment.py for the matching constants.
 PROVED_BATCH_SIZE = 1
 PROVED_GRADIENT_CLIP = 10.0
-PROVED_TARGET_SYNC_INTERVAL = 4
+# Control E swept this at batch 1 and found it, not the minibatch, is what
+# decides whether the provable configuration learns: at 4 every dataset sits at
+# the untrained floor, at 2000 all six improve and lunarlander-random goes from
+# -775.8 to -152.7, past the tuned batch-256 row. It is a free public input of
+# the relation, so the change costs no proving.
+#
+# The committed test vectors stay at 4 on purpose. They exist to exercise the
+# relation, and a k=8 fragment at 2000 contains no sync event at all, which
+# would leave tamper_target_sync_event with nothing to perturb.
+PROVED_TARGET_SYNC_INTERVAL = 2000
 PROVED_ALGORITHM = "double_dqn"
 
 
