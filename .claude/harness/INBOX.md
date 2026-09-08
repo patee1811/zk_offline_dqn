@@ -10,7 +10,7 @@ Format:
 **Bài học:** …
 **Đích đề xuất:** …
 **Độ tin cậy:** cao|trung|thấp
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 ```
 
 ## 2026-08-26 — thất bại — scope harness
@@ -186,74 +186,74 @@ Format:
 **Bài học:** manifest bị ghi sau khi `merkle_tree.json` đã chốt `manifest_hash`, nên hai file lệch nhau. Hai dataset này chống lưng cho ba dòng `merkle_membership` của Table 2 mà **không cổng nào chạy `verify_dataset_commitment`** — cổng chỉ kiểm sự tồn tại của root, không kiểm root còn tự nhất quán không. Commit lại là hết, root không đổi.
 **Đích đề xuất:** `rules/90-domain/data-pipeline.md`; cân nhắc cho `check_public_dataset_coverage` gọi `verify_dataset_commitment`
 **Độ tin cậy:** cao (đối chiếu trước/sau khi sửa code, hai dataset)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-06 — phát hiện mới — scope relations
 **Kích hoạt:** dataset cam kết bằng `sha256(canonical_json(transition))` còn quan hệ băm số nguyên fixed-point. Trên cartpole-expert-v2: root `88cb5f28` so với `02de61a9` trên cùng 50.261 transition.
 **Bài học:** hai quan hệ trung tâm cam kết vào hai vật thể khác nhau — `merkle_membership` kiểm cây JSON, `training_fragment` kiểm cây fixed-point — và không gì công bố gốc fixed-point, nên prover tự chọn được cây mình đã huấn luyện. Cách sửa theo Garg và cộng sự (CCS 2023): dataset cam kết **chính là** dataset fixed-point. Lá liên tục (PointMaze) không biểu diễn được nên giữ quy tắc JSON, ghi theo từng dataset ở `leaf_hash_rule`.
 **Đích đề xuất:** `rules/90-domain/relations.md` hoặc `data-pipeline.md`
 **Độ tin cậy:** cao (đối chiếu 3.000 transition, khớp cả bản Rust trong guest)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-06 — thất bại — scope experiments
 **Kích hoạt:** prove một lá `training_fragment` 504.115.089 cycles trên g5.xlarge. `CudaClientError: early eof`; `dmesg` cho `Out of memory: Killed process 2810 (sp1-gpu-server)` với `anon-rss 4,65GB + shmem-rss 8,91GB ≈ 13,5GB` trên máy 15GB, trong khi **VRAM dùng 0 MiB**.
 **Bài học:** dòng "recursion: bộ nhớ phẳng, VRAM 18,4GB không đổi" **chỉ đúng cho proof đệ quy**. Proof `training_fragment` thì bộ nhớ tăng theo cycles và tiêu **RAM máy chủ**, không phải VRAM — nút thắt nằm ở `sp1-gpu-server`, một tiến trình riêng, nên peak RSS của host chỉ báo 1,5GB và không hề lộ nguyên nhân. Chọn máy cho phase 3 phải theo RAM chứ không theo VRAM. Ngoại suy từ điểm OOM này: ~27 byte mỗi cycle.
 **Đích đề xuất:** `rules/90-domain/experiments.md` — tách dòng bộ nhớ recursion thành hai vế theo loại proof
 **Độ tin cậy:** cao (dmesg trực tiếp, VRAM 0 MiB xác nhận không phải GPU)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-06 — thất bại — scope experiments
 **Kích hoạt:** `aws ec2 run-instances` trả `Connection was closed before we received a valid response from endpoint URL` — không biết máy đã tạo hay chưa. Sau đó `sudo shutdown -c` rồi `sudo shutdown -h +45` làm máy tắt **ngay lập tức** thay vì sau 45 phút.
 **Bài học:** lệnh launch chết giữa chừng phải **kiểm `describe-instances` trước khi thử lại**, nếu không sẽ có hai máy GPU cùng chạy mà chỉ theo dõi một. Và đừng đụng vào `shutdown` đã hẹn từ user-data: huỷ rồi đặt lại làm máy tắt ngay, mất phần việc còn dở. Đặt hẹn một lần trong user-data rồi để yên.
 **Độ tin cậy:** cao (quan sát cả hai lỗi trong một phiên)
 **Đích đề xuất:** `rules/90-domain/experiments.md` dòng máy thuê
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-07 — phát hiện mới — scope backends
 **Kích hoạt:** guest tràn i64 im lặng vì Cargo release để `overflow-checks = false`. Đặt `[profile.release] overflow-checks = true` ở gốc workspace `zk_backend/<rel>/sp1/Cargo.toml` thì guest abort đúng chỗ: `panicked at shared/src/lib.rs:1044: attempt to multiply with overflow`. Chi phí đo được **+3,9% cycles** trên `training_fragment` (609.970.390 → 633.997.073).
 **Bài học:** hướng dẫn bảo mật SP1 bảo đặt vào `Cargo.toml` của **guest package** — đúng với template standalone nhưng ở repo này guest là **member workspace** nên Cargo bỏ qua kèm cảnh báo `profiles for the non root package will be ignored`, tức là im lặng không có tác dụng. `sp1_build::get_program_build_args` cứng `build --release` không ghi đè profile, và chạy cargo với `current_dir` = thư mục guest nên nó tìm lên gốc workspace. Kiểm bằng cách chạy cargo từ trong `guest/` và xem `-C overflow-checks=on` có tới rustc không.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`; đã có `tests/unit/test_guest_overflow_checks.py` khoá cả hai nửa
 **Độ tin cậy:** cao (thử nghiệm cả hai chiều + panic thật trên guest riscv32im)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-07 — phát hiện mới — scope relations
 **Kích hoạt:** đo giá trị Q qua chuỗi CartPole ở `learning_rate_fp=50`, mỗi chunk 156 bước: 5,50e4 → 9,46e5 → 2,17e7 → 9,03e8 → 2,17e10 → 9,45e11 → 3,96e13 → 9,49e14 → **4,14e16**. Ngưỡng tràn là 9,32e15 (i64::MAX / gamma).
 **Bài học:** offline DQN phân kỳ theo **hàm mũ**, khoảng ×22 mỗi 156 bước, nên độ dài lần chạy chứng minh được bị chặn bởi **ổn định số học** chứ không phải chi phí proof. Đo trên 4992 bước: CartPole vỡ ở `lr_fp=10` (bước 3744), sống ở `lr_fp=5` (7,2% ngưỡng) và `lr_fp=1`; LunarLander sống ở cả ba. Ngoài ra `agents.py` cắt gradient (`clip_grad_norm_ 10.0`) còn quan hệ **không** — Bảng 1 và quan hệ đang chạy hai thuật toán khác nhau.
 **Đích đề xuất:** `rules/90-domain/relations.md`; cân nhắc thêm biên tường minh vào quan hệ
 **Độ tin cậy:** cao (mô phỏng đầy đủ 32 chunk, hai môi trường, ba learning rate)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-07 — phát hiện mới — scope experiments
 **Kích hoạt:** `training-aggregation-host` chế độ `--child-proof-mode groth16_bn254` chết 4 lần liên tiếp ở bước prove tổng hợp: `Failed to create the CUDA prover impl: ConnectionRefused ... Could not connect to sp1-gpu-server socket`. Mỗi child proof tự dựng rồi bỏ lại `/tmp/sp1-cuda-0.sock`; server sau không bind được đường đã tồn tại, client nối vào socket chết. Watchdog xoá socket mỗi 0,5s vẫn hỏng (486s), nhưng gọi host **một mình** thì qua ngay (2216s, `proof_verified = true`).
 **Bài học:** không phải mỗi file socket cũ — server của child groth16 vẫn đang tắt dở khi host tổng hợp khởi động. Cách chạy: để `run_phase7 ... --run-child-proves` sinh child + `tamper_report.json`, chấp nhận nó hỏng ở prove cuối, rồi gọi host trực tiếp cho **riêng** bước tổng hợp. `write_provenance` không đụng `tamper_report.json` nên fixture vẫn đủ. Chỉ groth16 dính; `native_sp1` chạy trọn qua phase script.
 **Đích đề xuất:** `rules/90-domain/experiments.md` dòng recursion
 **Độ tin cậy:** cao (4 lần hỏng, 2 lần qua, cùng một máy)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-07 — sửa số cũ — scope backends
 **Kích hoạt:** đo `overflow-checks = true` trên đủ 8 quan hệ, không chỉ `training_fragment`.
 **Bài học:** con số **+3,9%** trong mục ngày 06-09 chỉ đúng cho `training_fragment`; chi phí **không đồng đều**: `training_fragment`/`training_update` +3,6%…+7,2%, `merkle_membership` +13,0%…+17,7%, recursion phẳng và cây nhị phân **+36,8%** (verify child proof trong guest nặng số học nhất), groth16 **+0,33%** (cycles do BN254 chi phối, không phải số học fixed-point). Tổng Bảng 2: 8,66G → 9,58G cycles, **+10,7%**. Đừng trích một con số cho cả bảng.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`, cùng chỗ với mục overflow-checks
 **Độ tin cậy:** cao (23 dòng proof_verified, đối chiếu từng dòng với bảng đã commit)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-07 — lỗi nghiêm trọng — scope relations
 **Kích hoạt:** `generate_case` dùng `sampler_seed` hằng số và `step_id` đếm **trong nội bộ fragment**, nên mọi chunk của một chuỗi rút đúng cùng một tập chỉ số. Đo trực tiếp: chunk 0 (bước 0–7) và chunk 1 (bước 8–15) đều ra `[68, 83, 22, 125, 56, 55, 42, 1]`.
 **Bài học:** chuỗi 1248 bước thực chất là **156 lần lặp trên 8 dòng** của dataset 50k, không phải một lượt quét dữ liệu — claim "train trên dataset đã cam kết" bị rỗng ruột mà không test nào bắt. Nay `sampler_seed = H(dataset_root, global_step_start)`, vừa chặn prover tự chọn seed (Tan et al. 2025) vừa buộc các chunk rút khác nhau. Có test hồi quy `test_chunks_of_one_chain_draw_different_transitions`.
 **Đích đề xuất:** `rules/90-domain/relations.md` dòng aggregation
 **Độ tin cậy:** cao (so sánh trực tiếp code cũ/mới trên cùng đầu vào)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-07 — phát hiện mới — scope backends
 **Kích hoạt:** `forward_td_mlp` và `one_step_sgd_tiny` đổi `guest_elf_sha256` dù chỉ sửa host. Build lại tại chỗ cho **cùng** hash (tất định), nhưng cùng nguồn build ở `~/repo8` ra `b1e7a69d` còn ở `~/repo9` ra `1e2a8a38`.
 **Bài học:** `guest_elf_sha256` định danh **lần build**, không phải mã nguồn — nó phụ thuộc đường dẫn build. Hai guest này là hai guest duy nhất có path dependency ra ngoài workspace (`td-mvp-shared`). Hệ quả: cổng `test_table2_guest_consistency` vẫn đúng mục đích (bắt việc chỉ prove lại một nửa, vì cùng lượt thì cùng đường dẫn), nhưng **không được** dùng hash ELF công bố như mỏ neo tái lập cho reviewer build từ clone sạch. Muốn hash đi được thì cần `RUSTFLAGS=--remap-path-prefix`.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`
 **Độ tin cậy:** cao (build lại 2 lần cùng chỗ + 1 lần khác đường dẫn)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)
 
 ## 2026-09-07 — phát hiện mới — scope rl
 **Kích hoạt:** control D tách ba khác biệt giữa Bảng 1 tinh chỉnh và cấu hình quan hệ, trên cartpole-random, 5000 bước, 1 seed: tuned 78,0 → clip-by-value 75,4 → sync 4 **9,4** → batch 1 **9,4** → cả ba **9,4**.
 **Bài học:** phép thay clipping mà chứng minh bắt buộc phải làm gần như **miễn phí**; thứ chặn việc học là **batch=1** và **chu kỳ đồng bộ target = 4**, mỗi cái độc lập đủ kéo về mức chính sách chưa học (9,4 trên CartPole). Nên lộ trình quan hệ kế tiếp là **batching và sync dài hơn**, không phải Adam — trái với thứ tự mục Limitations đang gợi ý.
 **Đích đề xuất:** `rules/90-domain/relations.md`; `paper/sections/discussion.tex` khi viết lại Limitations
 **Độ tin cậy:** trung bình cao (1 seed, 6 dataset; xu hướng nhất quán, biên độ chưa lấy trung bình nhiều seed)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng (1.7.0)

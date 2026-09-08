@@ -17,3 +17,4 @@ Lý do: commitment bắt đầu sau thu thập; viết “honest collection” l
 - Public import (`import_public_dataset.py`) chỉ source-integrity, không chứng minh thu thập trung thực.
 - Merkle root gắn manifest, audit report, raw trajectory, collection-log hashes. Tamper một hash phải fail (`tests/negative/test_dataset_provenance_tamper.py`).
 - `make reproduce-data-audit` dùng CartPole 1 episode / 5 steps — đủ cho reviewer smoke, không phải dataset paper.
+- `check_public_dataset_coverage` chỉ kiểm root **tồn tại**, không kiểm root còn tự nhất quán. Hai dataset PointMaze chống lưng ba dòng Bảng 2 từng fail `verify_dataset_commitment` với `manifest_hash mismatch` mà không cổng nào thấy — manifest bị ghi sau khi `merkle_tree.json` chốt hash.

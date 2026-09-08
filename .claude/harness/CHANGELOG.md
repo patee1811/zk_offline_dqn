@@ -1,5 +1,23 @@
 # Harness changelog
 
+## 2026-09-08 — 1.7.0
+
+**Kích hoạt:** một phiên "làm hết 6 mục" nở thành 3 lượt GPU, một lần chạy lại Bảng 1, và 12 mục inbox tồn đọng từ 06-09 tới 07-09.
+
+**Lý do:** mỗi mục được giao lại lộ ra một lỗi mới, và lỗi nào cũng được sửa ngay tại chỗ thay vì ghi lại rồi hỏi. Phạm vi trôi, ngân sách trôi theo, và một trong các "bản sửa" tự nó là lỗi mới.
+
+**Đã sửa:**
+
+- `rules/00`: mục **Không trôi khỏi phạm vi**. Phát hiện giữa chừng thì ghi INBOX, chỉ sửa khi nó làm sai thứ vừa tạo ra trong chính lượt đó hoặc khi miễn phí. Mỗi lượt một phiên GPU; phiên thứ hai phải hỏi. Trước khi sửa một con số đã công bố, đọc file cấu hình đã sinh ra nó chứ không đọc hằng số trong code — đọc `PROVED_SGD_LEARNING_RATE = 0.01` rồi kết luận ngược với `sgd_learning_rate = 0.05` trong `table1_rl_performance_status.json` đã làm hỏng kết quả hoà 12–12 và tốn thêm một lượt prove.
+- `90-domain/sp1-backend.md`: `overflow-checks` đặt ở gốc workspace (guest là member nên profile ở guest bị bỏ qua im lặng), chi phí không đồng đều +0,33%…+36,8%; `guest_elf_sha256` định danh lần build chứ không phải mã nguồn, phụ thuộc đường dẫn; sửa lại dòng `SP1_CUDA` cho đúng hai host có feature và sáu host ghi `prover: cpu`.
+- `90-domain/relations.md`: dataset cam kết chính là dataset fixed-point; `sampler_seed` dẫn xuất từ `dataset_root` và `global_step_start`; `q_abs_max_fp` / `gradient_clip_fp` và kết quả ablation — clip gần như miễn phí, batch=1 và sync=4 mới chặn việc học.
+- `90-domain/experiments.md`: tách dòng bộ nhớ theo loại proof (fragment tiêu RAM host ~27 byte/cycle, recursion phẳng); groth16 chạy hai bước vì socket; `describe-instances` trước khi thử lại `run-instances`, và không đụng `shutdown` đã hẹn.
+- `90-domain/data-pipeline.md`: cổng coverage chỉ kiểm root tồn tại, không kiểm root tự nhất quán.
+
+**Gộp:** hai mục `overflow-checks` (06-09 và 07-09) thành một dòng, vì mục sau sửa số của mục trước — +3,9% chỉ đúng cho `training_fragment`.
+
+**Còn ngỏ:** `--remap-path-prefix` để hash ELF đi được giữa các máy; cho `check_public_dataset_coverage` gọi `verify_dataset_commitment`.
+
 ## 2026-09-06 — 1.6.0
 
 **Kích hoạt:** phiên Phase 1 — huấn luyện chính sách nguồn, thu thập sáu dataset 50k, dựng lại Table 1. Ba bài học, hai trong đó là lỗi provenance đã lọt vào số liệu đã commit.
