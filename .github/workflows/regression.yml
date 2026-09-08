@@ -2,11 +2,12 @@ name: Regression
 
 on:
   pull_request:
-    branches:
-      - master
   push:
     branches:
       - master
+      - "feat/**"
+      - "fix/**"
+      - "chore/**"
     tags:
       - "v*"
 
@@ -54,6 +55,16 @@ jobs:
           test -f artifacts/fixtures/short_trace/short_trace_seeded_work/step_0_post_19_5_14_4.pt
           test -f artifacts/fixtures/short_trace/short_trace_seeded_work/step_1_post_9_13_15_18.pt
           test -f artifacts/fixtures/short_trace/short_trace_seeded_work/step_1_post_synced_9_13_15_18.pt
+
+      - name: Run the unit suite
+        run: |
+          python -m unittest discover tests
+
+      - name: Run the claim and source gates
+        run: |
+          python scripts/experiments/check_paper_claims.py
+          python scripts/experiments/check_report_sources.py
+          python scripts/experiments/check_theorem_artifact_map.py
 
       - name: Run full regression summary
         run: |
