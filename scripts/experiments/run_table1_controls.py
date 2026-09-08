@@ -25,6 +25,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from zk_offline_dqn.rl_benchmarks.agents import (
+    PROVED_ALGORITHM,
     PROVED_BATCH_SIZE,
     PROVED_GRADIENT_CLIP,
     PROVED_SGD_LEARNING_RATE,
@@ -46,6 +47,11 @@ SGD_RATES = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5]
 # Adam is unprovable at any rate; these bracket its library default of 3e-4.
 ADAM_RATES = [3e-4, 1e-3, 3e-3, 1e-2]
 STEP_GRID = [5000, 20000, 50000]
+# Control E sweeps batch 1 only, so a step is one transition: matching the
+# sample count of a batch-256 row needs two more orders of magnitude.
+E_STEP_GRID = [5000, 50000]
+E_SYNC_GRID = [4, 100, 500, 2000, 10000]
+E_RATE_GRID = [0.01, 0.05, 0.1]
 
 
 def dataset_ids() -> List[str]:
@@ -262,16 +268,85 @@ def control_d(args: argparse.Namespace) -> List[Dict[str, Any]]:
     return rows
 
 
+
+def control_e(args: argparse.Namespace) -> List[Dict[str, Any]]:
+    """Does any batch-size-1 configuration learn at all?
+
+    Control D showed the relation's settings score at the floor and that two of
+    them do it independently: the sync interval and the minibatch. Only one of
+    those is cheap to move. target_sync_interval is already a free public input,
+    so a chain can declare any value; batch_size is asserted equal to 1 in both
+    the Python relation and the guest, and lifting it multiplies cycles per
+    step. So the question worth answering before paying for either is whether
+    batch 1 can learn under some sync interval, rate and step budget -- if it
+    can, the provable configuration becomes a result rather than a caveat.
+
+    Sweeps at batch 1 only. The tuned row is carried alongside as the ceiling
+    the sweep is trying to reach, not as a competitor.
+    """
+    rows: List[Dict[str, Any]] = []
+    out_path = Path(args.out_dir) / "control_e_provable_search.json"
+    for dataset_id in args.e_datasets:
+        dataset = load_committed_dataset(ROOT / "artifacts/datasets" / dataset_id)
+        for steps in args.e_steps:
+            for sync in args.e_sync:
+                for rate in args.e_rates:
+                    started = time.time()
+                    returns = []
+                    for seed in args.seeds:
+                        policy = train_offline_q(
+                            dataset,
+                            algorithm=PROVED_ALGORITHM,
+                            train_steps=steps,
+                            seed=seed,
+                            learning_rate=args.learning_rate,
+                            optimizer_name="sgd",
+                            sgd_learning_rate=provable_learning_rate(rate),
+                            batch_size=PROVED_BATCH_SIZE,
+                            target_update_interval=sync,
+                            clip_mode="value",
+                            gradient_clip=PROVED_GRADIENT_CLIP,
+                        )
+                        summary = evaluate_policy(
+                            policy, dataset, seeds=[seed], eval_episodes=args.eval_episodes
+                        )
+                        returns.append(float(summary.metrics["average_return_mean"]))
+                    mean = sum(returns) / len(returns) if returns else None
+                    rows.append(
+                        {
+                            "dataset": dataset_id,
+                            "train_steps": steps,
+                            "target_sync_interval": sync,
+                            "sgd_learning_rate": rate,
+                            "batch_size": PROVED_BATCH_SIZE,
+                            "avg_return": mean,
+                            "returns": returns,
+                            "seconds": round(time.time() - started, 1),
+                        }
+                    )
+                    print(
+                        f"control e {dataset_id} steps={steps} sync={sync} lr={rate}: {mean}",
+                        flush=True,
+                    )
+                    _emit(rows, out_path, "control_e")
+    return rows
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--controls", nargs="+", default=["a", "b", "c", "d"],
-                        choices=["a", "b", "c", "d"])
+    parser.add_argument("--controls", nargs="+", default=["a", "b", "c", "d", "e"],
+                        choices=["a", "b", "c", "d", "e"])
     parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     parser.add_argument("--train-steps", type=int, default=5000)
     parser.add_argument("--step-grid", type=int, nargs="+", default=STEP_GRID)
     parser.add_argument("--eval-episodes", type=int, default=10)
     parser.add_argument("--learning-rate", type=float, default=1e-2)
     parser.add_argument("--sgd-learning-rate", type=float, default=0.05)
+    parser.add_argument("--e-steps", type=int, nargs="+", default=E_STEP_GRID)
+    parser.add_argument("--e-sync", type=int, nargs="+", default=E_SYNC_GRID)
+    parser.add_argument("--e-rates", type=float, nargs="+", default=E_RATE_GRID)
+    parser.add_argument("--e-datasets", nargs="+",
+                        default=["cartpole-random-v2", "lunarlander-random-v1"])
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
     args = parser.parse_args()
 
@@ -288,6 +363,8 @@ def main() -> int:
         summaries["adam"] = summarise(control_rates(args, "adam"))
     if "d" in args.controls:
         control_d(args)
+    if "e" in args.controls:
+        control_e(args)
     if summaries:
         path = Path(args.out_dir) / "rate_selection.json"
         path.write_text(json.dumps(summaries, indent=2, sort_keys=True) + "\n", encoding="utf-8")
