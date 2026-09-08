@@ -1,7 +1,7 @@
 {
   "backend_version": "0.1.0",
   "batch_size": 1,
-  "cycle_count": 4647221,
+  "cycle_count": 4646677,
   "git_commit": null,
   "guest_elf_sha256": "ff2c14b1c32aefe853d3d1954aa405843010cebe23721d97454f0d442f09778c",
   "notes": [
@@ -11,12 +11,12 @@
   "proof_generated": true,
   "proof_size_bytes": 2835671,
   "proof_verified": true,
-  "prove_time_seconds": 3.45632526,
+  "prove_time_seconds": 3.715657669,
   "prover": "cuda",
-  "public_inputs_sha256": "e182cd9fe743aeaa1db508168417b45a80ef22a6ba17b65698f48cf6950e62e5",
+  "public_inputs_sha256": "9f35b4c25357ea106931d058f045bec6abc622f28f79f297970c1c71e6248dd5",
   "relation": "training_fragment",
   "sp1_version": "6.1.0",
   "target_sync_events": 0,
-  "test_vector_sha256": "588f6a1f0c3363dc49b8945040fe72bd0f13f910d4a2a45647b84ec23c004cfd",
-  "verify_time_seconds": 0.129179424
+  "test_vector_sha256": "8e884b3b6a0fc03e7067144be6b82f59c6f2b573bab1d84baf75da94036c0806",
+  "verify_time_seconds": 0.129012056
 }

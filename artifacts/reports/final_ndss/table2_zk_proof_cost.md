@@ -14,8 +14,8 @@
 | training_aggregation_manifest_t32 | proof_manifest_chain | aggregation_t | proof_verified | 1.407443271 | 0.126195207 | 2795671 | 880030 | cuda |  |
 | training_aggregation_manifest_t64 | proof_manifest_chain | aggregation_t | proof_verified | 1.793393018 | 0.125687318 | 2804079 | 1508043 | cuda |  |
 | training_aggregation_manifest_t128 | proof_manifest_chain | aggregation_t | proof_verified | 2.526163018 | 0.126357782 | 2819656 | 2758670 | cuda |  |
-| training_fragment | cartpole_expert | committed_dataset | proof_verified | 3.45632526 | 0.129179424 | 2835671 | 4647221 | cuda |  |
-| training_fragment | lunarlander_expert | committed_dataset | proof_verified | 4.655681776 | 0.197148735 | 4308420 | 6745594 | cuda |  |
+| training_fragment | cartpole_expert | committed_dataset | proof_verified | 3.715657669 | 0.129012056 | 2835671 | 4646677 | cuda |  |
+| training_fragment | lunarlander_expert | committed_dataset | proof_verified | 4.565303569 | 0.197234327 | 4308420 | 6746304 | cuda |  |
 | training_fragment_k16 | k16 | trace_length | execute_only |  |  |  |  |  |  |
 | training_fragment_k32 | k32 | trace_length | execute_only |  |  |  |  |  |  |
 | training_fragment_k128 | k128 | trace_length | execute_only |  |  |  |  |  |  |

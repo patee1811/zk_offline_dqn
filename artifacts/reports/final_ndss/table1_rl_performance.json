@@ -34,8 +34,8 @@
     },
     {
       "audit_report_hash": "19c96b63493f8541f5658260f38eca211a005414b2019ea80c3a6e4b13b41420",
-      "average_return_mean": 33.63333333333333,
-      "average_return_std": 26.952963143636403,
+      "average_return_mean": 35.6,
+      "average_return_std": 25.26235671244207,
       "baseline": "bc",
       "dataset": "cartpole-random-v2",
       "dataset_committed_transitions": 50006,
@@ -98,8 +98,8 @@
     },
     {
       "audit_report_hash": "19c96b63493f8541f5658260f38eca211a005414b2019ea80c3a6e4b13b41420",
-      "average_return_mean": 37.26666666666666,
-      "average_return_std": 23.742835176579526,
+      "average_return_mean": 297.2,
+      "average_return_std": 45.67588714701301,
       "baseline": "offline_dqn",
       "dataset": "cartpole-random-v2",
       "dataset_committed_transitions": 50006,
@@ -162,8 +162,8 @@
     },
     {
       "audit_report_hash": "19c96b63493f8541f5658260f38eca211a005414b2019ea80c3a6e4b13b41420",
-      "average_return_mean": 37.1,
-      "average_return_std": 23.96052308833567,
+      "average_return_mean": 311.03333333333336,
+      "average_return_std": 56.982414441260346,
       "baseline": "double_dqn",
       "dataset": "cartpole-random-v2",
       "dataset_committed_transitions": 50006,
@@ -188,8 +188,8 @@
       ],
       "status": "completed",
       "success_definition": "episode_return >= 475",
-      "success_rate_mean": 0.0,
-      "success_rate_std": 0.0,
+      "success_rate_mean": 0.03333333333333333,
+      "success_rate_std": 0.047140452079103175,
       "train_steps": 5000
     },
     {
@@ -226,8 +226,8 @@
     },
     {
       "audit_report_hash": "19c96b63493f8541f5658260f38eca211a005414b2019ea80c3a6e4b13b41420",
-      "average_return_mean": 43.26666666666667,
-      "average_return_std": 31.66515785879209,
+      "average_return_mean": 302.6666666666667,
+      "average_return_std": 47.833484320319194,
       "baseline": "cql_lite",
       "dataset": "cartpole-random-v2",
       "dataset_committed_transitions": 50006,
@@ -252,8 +252,8 @@
       ],
       "status": "completed",
       "success_definition": "episode_return >= 475",
-      "success_rate_mean": 0.0,
-      "success_rate_std": 0.0,
+      "success_rate_mean": 0.06666666666666667,
+      "success_rate_std": 0.09428090415820635,
       "train_steps": 5000
     },
     {
@@ -322,8 +322,8 @@
     },
     {
       "audit_report_hash": "4561ee0d0418aae23353cbeecb439eb3d40c89e7c6142a0c4bc1a66b5e3b5ba4",
-      "average_return_mean": 220.1,
-      "average_return_std": 37.492399229710536,
+      "average_return_mean": 341.79999999999995,
+      "average_return_std": 80.59036336105369,
       "baseline": "bc",
       "dataset": "cartpole-medium-v2",
       "dataset_committed_transitions": 50045,
@@ -348,8 +348,8 @@
       ],
       "status": "completed",
       "success_definition": "episode_return >= 475",
-      "success_rate_mean": 0.0,
-      "success_rate_std": 0.0,
+      "success_rate_mean": 0.13333333333333333,
+      "success_rate_std": 0.1247219128924647,
       "train_steps": 5000
     },
     {
@@ -386,8 +386,8 @@
     },
     {
       "audit_report_hash": "4561ee0d0418aae23353cbeecb439eb3d40c89e7c6142a0c4bc1a66b5e3b5ba4",
-      "average_return_mean": 9.433333333333335,
-      "average_return_std": 0.28674417556808796,
+      "average_return_mean": 9.633333333333333,
+      "average_return_std": 0.6342099196813482,
       "baseline": "offline_dqn",
       "dataset": "cartpole-medium-v2",
       "dataset_committed_transitions": 50045,
@@ -450,8 +450,8 @@
     },
     {
       "audit_report_hash": "4561ee0d0418aae23353cbeecb439eb3d40c89e7c6142a0c4bc1a66b5e3b5ba4",
-      "average_return_mean": 9.433333333333335,
-      "average_return_std": 0.28674417556808796,
+      "average_return_mean": 9.799999999999999,
+      "average_return_std": 0.8640987597877147,
       "baseline": "double_dqn",
       "dataset": "cartpole-medium-v2",
       "dataset_committed_transitions": 50045,
@@ -514,8 +514,8 @@
     },
     {
       "audit_report_hash": "4561ee0d0418aae23353cbeecb439eb3d40c89e7c6142a0c4bc1a66b5e3b5ba4",
-      "average_return_mean": 169.6,
-      "average_return_std": 160.9474655490625,
+      "average_return_mean": 240.1,
+      "average_return_std": 91.15272897725005,
       "baseline": "cql_lite",
       "dataset": "cartpole-medium-v2",
       "dataset_committed_transitions": 50045,
@@ -540,8 +540,8 @@
       ],
       "status": "completed",
       "success_definition": "episode_return >= 475",
-      "success_rate_mean": 0.0,
-      "success_rate_std": 0.0,
+      "success_rate_mean": 0.16666666666666666,
+      "success_rate_std": 0.23570226039551584,
       "train_steps": 5000
     },
     {
@@ -610,8 +610,8 @@
     },
     {
       "audit_report_hash": "06f123bd4484aac7181bbd3ace1f59526b9b1a809d914873a61a76703bd5087c",
-      "average_return_mean": 391.9666666666667,
-      "average_return_std": 92.02725441713207,
+      "average_return_mean": 492.1666666666667,
+      "average_return_std": 7.813805446487361,
       "baseline": "bc",
       "dataset": "cartpole-expert-v2",
       "dataset_committed_transitions": 50261,
@@ -636,8 +636,8 @@
       ],
       "status": "completed",
       "success_definition": "episode_return >= 475",
-      "success_rate_mean": 0.43333333333333335,
-      "success_rate_std": 0.41899350299921784,
+      "success_rate_mean": 0.9333333333333332,
+      "success_rate_std": 0.04714045207910316,
       "train_steps": 5000
     },
     {
@@ -674,8 +674,8 @@
     },
     {
       "audit_report_hash": "06f123bd4484aac7181bbd3ace1f59526b9b1a809d914873a61a76703bd5087c",
-      "average_return_mean": 9.566666666666668,
-      "average_return_std": 0.1699673171197597,
+      "average_return_mean": 16.26666666666667,
+      "average_return_std": 9.429504523332897,
       "baseline": "offline_dqn",
       "dataset": "cartpole-expert-v2",
       "dataset_committed_transitions": 50261,
@@ -802,8 +802,8 @@
     },
     {
       "audit_report_hash": "06f123bd4484aac7181bbd3ace1f59526b9b1a809d914873a61a76703bd5087c",
-      "average_return_mean": 15.4,
-      "average_return_std": 8.414669730100325,
+      "average_return_mean": 193.53333333333333,
+      "average_return_std": 179.87553721640109,
       "baseline": "cql_lite",
       "dataset": "cartpole-expert-v2",
       "dataset_committed_transitions": 50261,
@@ -828,8 +828,8 @@
       ],
       "status": "completed",
       "success_definition": "episode_return >= 475",
-      "success_rate_mean": 0.0,
-      "success_rate_std": 0.0,
+      "success_rate_mean": 0.13333333333333333,
+      "success_rate_std": 0.1885618083164127,
       "train_steps": 5000
     },
     {
@@ -898,8 +898,8 @@
     },
     {
       "audit_report_hash": "6a41c06bdfceb3203b4306af0ab5c1f19f7d7f134830a5da09b1fc19e9b495ed",
-      "average_return_mean": -547.0507374191988,
-      "average_return_std": 156.08955647902926,
+      "average_return_mean": -381.30250575348106,
+      "average_return_std": 181.11200760835374,
       "baseline": "bc",
       "dataset": "lunarlander-random-v1",
       "dataset_committed_transitions": 50020,
@@ -962,8 +962,8 @@
     },
     {
       "audit_report_hash": "6a41c06bdfceb3203b4306af0ab5c1f19f7d7f134830a5da09b1fc19e9b495ed",
-      "average_return_mean": -47.543441546892645,
-      "average_return_std": 18.390657945606538,
+      "average_return_mean": -189.36025292993932,
+      "average_return_std": 22.101926955101924,
       "baseline": "offline_dqn",
       "dataset": "lunarlander-random-v1",
       "dataset_committed_transitions": 50020,
@@ -1026,8 +1026,8 @@
     },
     {
       "audit_report_hash": "6a41c06bdfceb3203b4306af0ab5c1f19f7d7f134830a5da09b1fc19e9b495ed",
-      "average_return_mean": -47.79303882701629,
-      "average_return_std": 20.498442321962862,
+      "average_return_mean": -215.28342967756296,
+      "average_return_std": 75.21508312336393,
       "baseline": "double_dqn",
       "dataset": "lunarlander-random-v1",
       "dataset_committed_transitions": 50020,
@@ -1090,8 +1090,8 @@
     },
     {
       "audit_report_hash": "6a41c06bdfceb3203b4306af0ab5c1f19f7d7f134830a5da09b1fc19e9b495ed",
-      "average_return_mean": -62.262226968053575,
-      "average_return_std": 19.737418441679075,
+      "average_return_mean": -165.69615699387464,
+      "average_return_std": 23.0259353997437,
       "baseline": "cql_lite",
       "dataset": "lunarlander-random-v1",
       "dataset_committed_transitions": 50020,
@@ -1186,8 +1186,8 @@
     },
     {
       "audit_report_hash": "c0f52214f4020a2a0d1c29b5aeb1d6dff759c677babaa192fe8c0640e3a40278",
-      "average_return_mean": -654.0800727186497,
-      "average_return_std": 14.964680506408422,
+      "average_return_mean": -189.6587221572615,
+      "average_return_std": 89.57347607444457,
       "baseline": "bc",
       "dataset": "lunarlander-medium-v1",
       "dataset_committed_transitions": 50586,
@@ -1250,8 +1250,8 @@
     },
     {
       "audit_report_hash": "c0f52214f4020a2a0d1c29b5aeb1d6dff759c677babaa192fe8c0640e3a40278",
-      "average_return_mean": -827.9285108858858,
-      "average_return_std": 132.94197200966707,
+      "average_return_mean": -367.5826885514796,
+      "average_return_std": 118.85315696049658,
       "baseline": "offline_dqn",
       "dataset": "lunarlander-medium-v1",
       "dataset_committed_transitions": 50586,
@@ -1314,8 +1314,8 @@
     },
     {
       "audit_report_hash": "c0f52214f4020a2a0d1c29b5aeb1d6dff759c677babaa192fe8c0640e3a40278",
-      "average_return_mean": -803.3670719259604,
-      "average_return_std": 100.65367204633537,
+      "average_return_mean": -366.5539811209796,
+      "average_return_std": 110.44085907185287,
       "baseline": "double_dqn",
       "dataset": "lunarlander-medium-v1",
       "dataset_committed_transitions": 50586,
@@ -1378,8 +1378,8 @@
     },
     {
       "audit_report_hash": "c0f52214f4020a2a0d1c29b5aeb1d6dff759c677babaa192fe8c0640e3a40278",
-      "average_return_mean": -784.0076665076916,
-      "average_return_std": 99.17312689400619,
+      "average_return_mean": -283.6577506254599,
+      "average_return_std": 111.6799102434034,
       "baseline": "cql_lite",
       "dataset": "lunarlander-medium-v1",
       "dataset_committed_transitions": 50586,
@@ -1474,8 +1474,8 @@
     },
     {
       "audit_report_hash": "ea93139d6c073aabaebe0ab245d3d58eb458818bdcd68dfc031005f8334f80b8",
-      "average_return_mean": -435.0112748714377,
-      "average_return_std": 61.3717123093101,
+      "average_return_mean": -48.39684228959721,
+      "average_return_std": 6.146266018638006,
       "baseline": "bc",
       "dataset": "lunarlander-expert-v1",
       "dataset_committed_transitions": 50552,
@@ -1538,8 +1538,8 @@
     },
     {
       "audit_report_hash": "ea93139d6c073aabaebe0ab245d3d58eb458818bdcd68dfc031005f8334f80b8",
-      "average_return_mean": -731.0851721319699,
-      "average_return_std": 241.3776288068114,
+      "average_return_mean": -517.8233520081957,
+      "average_return_std": 91.61113865755581,
       "baseline": "offline_dqn",
       "dataset": "lunarlander-expert-v1",
       "dataset_committed_transitions": 50552,
@@ -1602,8 +1602,8 @@
     },
     {
       "audit_report_hash": "ea93139d6c073aabaebe0ab245d3d58eb458818bdcd68dfc031005f8334f80b8",
-      "average_return_mean": -732.3845643322057,
-      "average_return_std": 249.09589129993384,
+      "average_return_mean": -518.6558206001222,
+      "average_return_std": 97.04129332271233,
       "baseline": "double_dqn",
       "dataset": "lunarlander-expert-v1",
       "dataset_committed_transitions": 50552,
@@ -1666,8 +1666,8 @@
     },
     {
       "audit_report_hash": "ea93139d6c073aabaebe0ab245d3d58eb458818bdcd68dfc031005f8334f80b8",
-      "average_return_mean": -500.37866594348475,
-      "average_return_std": 55.609022021077415,
+      "average_return_mean": -390.671817505355,
+      "average_return_std": 194.45562846818243,
       "baseline": "cql_lite",
       "dataset": "lunarlander-expert-v1",
       "dataset_committed_transitions": 50552,
