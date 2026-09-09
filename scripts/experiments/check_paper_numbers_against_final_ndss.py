@@ -55,7 +55,9 @@ def main() -> int:
         for path in [
             ROOT / "paper/sections/abstract.tex",
             ROOT / "paper/sections/results.tex",
-            ROOT / "paper/sections/limitations.tex",
+            # The limitations text lives in the discussion; sections/limitations.tex
+            # was never included by main.tex, so scanning it checked nothing.
+            ROOT / "paper/sections/discussion.tex",
         ]
         if path.exists()
     ).lower()
