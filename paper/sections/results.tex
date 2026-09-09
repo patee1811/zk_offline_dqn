@@ -109,7 +109,7 @@ aggregate.}
 \label{fig:proof-cost}
 \end{figure}
 
-\textbf{Analysis.} Four patterns emerge, and one exception.
+\textbf{Analysis.} Five observations, the last of them an exception to the first two.
 
 \begin{itemize}[leftmargin=1.5em]
   \item \textbf{Verification is fast and flat.} Twenty-four of the twenty-five
@@ -126,14 +126,14 @@ aggregate.}
 
   \item \textbf{The Groth16 variant is the exception on both axes.} Verifying
   Groth16 child proofs inside the guest costs $6.18$ billion cycles, a
-  $1.4$\,GB proof, and $68.0$\,s to verify -- three orders of magnitude above
-  every other row on size and verify time. We report it because it is the one
+  $1.47$\,GB proof, and $68.0$\,s to verify -- roughly $340\times$ the size and
+  $340\times$ the verify time of the next row. We report it because it is the one
   configuration where in-guest verification of a SNARK, rather than of a native
   SP1 proof, was measured; it is not a configuration we would recommend.
 
   \item \textbf{Recursion cost is per child, not per step.} Flat recursive
   aggregation costs $422.7$M, $842.0$M and $1683.5$M cycles at $T = 16, 32, 64$,
-  which is $211$M, $211$M and $211$M cycles per child proof verified. The cost
+  which is $211.4$M, $210.5$M and $210.4$M cycles per child proof verified. The cost
   does not depend on how many training steps each child covers, so a chain of
   longer leaves is cheaper for the same trace length. This is why the whole-run
   proofs below use $156$-step leaves rather than $8$-step leaves.
@@ -314,5 +314,7 @@ The reviewer fast path is:
 This regenerates a tiny audited CartPole dataset commitment, validates compact
 SP1 provenance and paper report sources, regenerates paper-facing summaries,
 checks theorem/artifact mappings, and writes the artifact manifest. Heavy SP1
-proof reruns require \texttt{RUN\_HEAVY\_SP1=1} and a Linux/WSL2/Kaggle
-environment with the SP1 toolchain installed.
+proof reruns require \texttt{RUN\_HEAVY\_SP1=1} and a Linux host with the SP1
+toolchain; the recursive rows additionally require a CUDA device with at least
+$20$\,GB, since the CPU prover does not complete them within $61$\,GB of host
+memory.

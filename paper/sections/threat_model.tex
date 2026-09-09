@@ -66,6 +66,17 @@ adversary may attempt any combination of the following attacks:
   leaf hash, sibling hash, or root.
   \item \textbf{Sampling tampering}: change a deterministic minibatch index or
   duplicate an index within a batch.
+  \item \textbf{Sampler grinding}: rather than alter an index, choose the seed
+  the indices are derived from. The adversary runs the fragment under many
+  seeds and publishes only the one whose sampled transitions suit it. Every
+  index is then consistent with the seed and every proof verifies, so this is
+  invisible to A3; what it degrades is the meaning of the claim, from training
+  on the committed dataset to training on a subset the prover chose from
+  it~\cite{zkpotvicinity2025}.
+  \item \textbf{Arithmetic overflow}: drive the fixed-point $Q$ values past the
+  \texttt{i64} range so that the discount multiplication wraps. A prover
+  computing its witness under the same wrapping semantics obtains a guest that
+  accepts, and the proof then attests to arithmetic that means nothing.
   \item \textbf{Computation tampering}: alter Q values, TD targets, losses,
   SmoothL1 derivatives, gradients, SGD deltas, or weight updates.
   \item \textbf{Trace tampering}: skip or reorder checkpoint steps; break
@@ -79,6 +90,13 @@ adversary may attempt any combination of the following attacks:
 
 The verifier accepts only if the implemented relation and public-input binding
 checks pass for the specific relation being verified.
+
+A4 and A5 differ in kind from the rest. The others alter a value the relation
+recomputes, so a correct relation rejects them and a tamper suite can exercise
+them by mutating a field. These two are exercised by supplying inputs that are
+internally consistent, which is why they were closed by constraining the
+statement -- deriving the seed, publishing a bound -- rather than by adding a
+check on a witness.
 
 \subsection{Reward and Dataset Correctness Boundary}
 

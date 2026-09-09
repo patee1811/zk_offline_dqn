@@ -1,41 +1,44 @@
 \begin{abstract}
-Surveys of zero-knowledge proof-of-training organise the field by model
-class---deep, convolutional, recurrent, tree, language---and list no
-reinforcement-learning system. Value-based RL is not simply a larger
+A recent survey of zero-knowledge verifiable machine learning scopes itself to
+supervised learning, and the training systems it covers are for regression,
+support vector machines, $K$-means, decision trees and deep networks; no
+reinforcement-learning system appears. Value-based RL is not simply a larger
 computation: it carries three verification obligations supervised constructions
 never meet. Its labels are produced by the model being trained, so a proof must
 cover how each label was derived; target-network synchronisation is a discrete
 event a prover can move while keeping the run internally consistent; and replay
 sampling has no canonical order, so a prover who picks the draw picks the data
-the claim is about. We
-present a layered artifact system that provides zero-knowledge proof-backed
-verification of selected Offline Deep Q-Network (DQN) training fragments over
-provenance-bound committed replay data. The system combines audited dataset
-commitments via SHA-256 Merkle trees, fixed-point relation witnesses for
-temporal-difference (TD) arithmetic and neural-network forward/backward
-computations, SP1 zkVM proof generation and verification for a scoped set of
-relation families and scaling configurations, multi-step training-fragment
-proofs for $k \in \{1, 4, 8\}$ steps, proof-manifest chunk-chain
-aggregation for training traces up to $T \in \{32, 64, 128\}$ steps, and
-recursive aggregation for $T \in \{16, 32, 64\}$ in which the aggregate guest
-verifies each child proof cryptographically. We
-formalize eight security theorems covering
-replay membership, dataset commitment, Bellman target correctness, update
-correctness, checkpoint-chain soundness, training-fragment soundness, and
-aggregation soundness, plus the zero-knowledge privacy boundary; each theorem
-is mapped to implemented relations, SP1 backend code, tests, and benchmark
-evidence. Experimental evaluation on CartPole and LunarLander, with
-PointMaze from D4RL backing the public dataset-scaling rows, demonstrates that
-every proof-verified configuration verifies in under~0.20\,s -- including a
-single proof covering an entire 1{,}248-step training run -- with proof sizes
-below~4.31\,MB, while a tamper-rejection benchmark covering~236 adversarial
-test cases yields zero unexpectedly accepted tampering attempts
-across~19 tamper categories. We also report what the provable configuration
-costs in policy quality rather than leaving it to the reader: on
-	exttt{lunarlander-random} it reaches $-152.7$ against $-215.3$ for the tuned
-minibatch baseline, and an ablation isolates the target-sync interval, not the
-minibatch or the clipping rule the proof forces, as what governs whether it
-learns. The contribution is a deliberately scoped
+the claim is about. We present a
+layered artifact system that gives zero-knowledge proof-backed verification of
+offline Deep Q-Network (DQN) training over provenance-bound committed replay
+data. Datasets are committed with SHA-256 Merkle trees after a replay audit.
+Relations are stated in fixed-point integer arithmetic and implemented twice,
+as a Python oracle and as an SP1 zkVM guest, so that a disagreement between
+them is caught before a prover runs. The fragment relation derives its sampler
+seed from the dataset commitment rather than accepting one, publishes a bound
+on the values it will admit, and clips gradients component-wise.
+
+Aggregation comes in two modes. A chunk chain binds child proof manifests for
+$T \in \{32, 64, 128\}$; recursive aggregation verifies each child proof
+cryptographically inside the guest, which we measure for $T \in \{16, 32, 64\}$
+flat and for binary trees up to $T = 4{,}992$. The largest of these is a single
+root proof covering an entire $4{,}992$-step run, bound to the dataset that
+produced a policy we report.
+
+We state and sketch proofs for ten security statements, each mapped to relation
+code, backend, tests and benchmark rows. On CartPole and LunarLander, with
+PointMaze from D4RL backing the dataset-scaling rows, twenty-four of the
+twenty-five proved configurations verify in $0.054$--$0.197$\,s with proofs of
+$1.27$--$4.31$\,MB; the exception verifies Groth16 child proofs in-guest and
+costs $68$\,s and $1.47$\,GB. A tamper benchmark of $236$ adversarial cases
+across $19$ categories yields no unexpectedly accepted row. We also report what
+the provable configuration costs in policy quality rather than leaving it to
+the reader: on \texttt{lunarlander-random} it reaches $-152.7$ against $-215.3$
+for the tuned minibatch baseline, and an ablation isolates the target-sync
+interval -- not the minibatch, and not the clipping rule the proof forces -- as
+what governs whether it learns.
+
+The contribution is a deliberately scoped
 security/systems artifact: it does not claim complete DQN training soundness
 or Adam optimizer proofs, and its recursive aggregation requires a CUDA prover
 and is demonstrated up to $T = 64$.

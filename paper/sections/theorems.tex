@@ -1,6 +1,9 @@
 The formal statements below are scoped to the implemented relations and to the
 backend provenance listed in the artifact map. They are not statements about a
-complete DQN training run.
+complete DQN training run in the sense of covering initialization, model
+selection, or optimizer state; they do cover a complete run of the relation the
+system implements, at the trace lengths reported in
+\Cref{tab:whole-run}.
 
 \paragraph{Objects and notation.}
 A replay transition is
@@ -111,20 +114,65 @@ to a final deployed model.
 
 \begin{theorem}[Training-fragment soundness]
 \label{thm:training-fragment}
-For accepted $k$-step training-fragment proofs with
-$k\in\{1,4,8\}$, the final checkpoint is obtained by the implemented
-deterministic sequence of minibatch sampling, replay membership, Bellman target
-computation, backpropagation, fixed-point SGD updates, checkpoint chaining, and
-target-network hard synchronization.
+For accepted $k$-step training-fragment proofs, the final checkpoint is
+obtained by the implemented deterministic sequence of minibatch sampling,
+replay membership, Bellman target computation, gradient clipping,
+fixed-point SGD updates, checkpoint chaining, and target-network hard
+synchronization. Proof-backed instances are $k\in\{1,4,8\}$ on the canonical
+vectors, $k=1$ on each committed expert dataset, and $k=156$ as the leaf of the
+whole-run trees.
 \end{theorem}
 \begin{proof}[Proof sketch]
-The fragment relation checks deterministic sample indices from the sampler
-seed and global step, verifies replay membership for every opened transition,
-recomputes per-step TD/update arithmetic, links online and target checkpoint
-hashes, and applies target-network synchronization at the configured interval.
-Tampering with a minibatch index, global step, checkpoint, or target-sync event
-breaks the recomputed trace.  Longer fragments $k\in\{16,32,128\}$ have
-reference/execute evidence only and are not SP1 proof-backed in this artifact.
+The fragment relation derives the sample indices rather than reading them,
+verifies replay membership for every opened transition, recomputes per-step
+TD and update arithmetic, clamps each gradient component to the declared
+bound, links online and target checkpoint hashes, and applies target-network
+synchronization at the configured interval.  Tampering with a minibatch index,
+global step, checkpoint, or target-sync event breaks the recomputed trace.
+Fragments at $k\in\{16,32,128\}$ have execute-mode evidence only and are not
+proof-backed here.
+\end{proof}
+
+\begin{theorem}[Sampler binding]
+\label{thm:sampler-binding}
+For an accepted fragment, the minibatch indices are a function of the committed
+dataset root and the fragment's global step offset. The prover has no free
+choice of which transitions the fragment trains on.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The relation recomputes
+$\sigma = \mhash(\mroot \,\|\, \mathrm{global\_step\_start})$ and rejects any
+case whose published \texttt{sampler\_seed} differs, then derives each index
+from $\sigma$ and the step position.  A prover who wants different indices must
+present a different $\mroot$, which is a different dataset commitment and so a
+different statement.  This closes a freedom that a valid proof does not
+otherwise constrain: with a seed supplied as an input, a prover could search
+seeds and publish only the fragment whose sampled transitions suited it, and
+the proof would verify.  The residual freedom is grinding $\mroot$ itself, which
+requires re-running the audited collection and commitment pipeline.  The
+statement covers index selection only; it does not make the sampled subset
+representative of the dataset.
+\end{proof}
+
+\begin{theorem}[Bounded fixed-point arithmetic]
+\label{thm:value-bound}
+For an accepted fragment, every $Q$ value, target value, and TD target lies
+within the bound \texttt{q\_abs\_max\_fp} published in the statement, and that
+bound is small enough that the discount multiplication cannot overflow the
+\texttt{i64} encoding.
+\end{theorem}
+\begin{proof}[Proof sketch]
+The guest asserts $|Q| \le B$ on both operands before forming
+$\gamma \cdot Q / \fpscale$, asserts $|y| \le B$ on the result, and rejects any
+case declaring $B > \texttt{i64::MAX} / \gamma$.  The order matters: a check
+placed after the product is reached only once the product has already
+overflowed.  Without these checks the multiplication wraps silently, and a
+prover computing its witness under the same \texttt{i64} semantics obtains a
+guest that accepts, so the proof attests to wrapped arithmetic.  Our own runs
+detected this only because the Python oracle uses arbitrary-precision integers
+and therefore disagreed.  The bound is a declared property of the statement
+rather than a property of the host integer width, so it survives a change of
+encoding.
 \end{proof}
 
 \begin{theorem}[Chunk-chain and recursive aggregation soundness]
@@ -134,9 +182,9 @@ $T\in\{32,64,128\}$, the aggregate public statement binds an ordered sequence
 of externally verified $k=8$ child proof manifests with consistent
 dataset/config hashes, chunk boundaries, aggregate roots, and online/target
 checkpoint links.  For accepted recursive instances with $T\in\{16,32,64\}$ under a
-flat topology, and $T=16$ under a binary-tree topology, the aggregate
-additionally establishes that each child proof verifies under the expected
-child verifying key.
+flat topology, and $T \in \{16, 1{,}248, 4{,}992\}$ under a binary-tree
+topology, the aggregate additionally establishes that each child proof verifies
+under the expected child verifying key.
 \end{theorem}
 \begin{proof}[Proof sketch]
 The aggregation relation recomputes child manifest hashes, public-input hashes,

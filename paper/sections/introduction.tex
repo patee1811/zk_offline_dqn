@@ -44,14 +44,17 @@ semantics, proof generation, and proof aggregation. Each layer is independently
 testable, and every claim is traceable to a concrete implementation artifact,
 test, and benchmark row.
 
-Our starting point is that RL does not merely add another model class to
-this literature. A recent survey of zero-knowledge verifiable machine
-learning~\cite{zkmlsurvey2026} organises proof-of-training work by
-architecture---deep networks, convolutional networks, recurrent networks,
-decision trees, language models---and lists no reinforcement-learning system
-at all. The gap persists not because value-based RL is a larger computation,
-but because it carries three verification obligations that supervised
-proof-of-training constructions never encounter:
+Our starting point is that RL does not merely add another model class to this
+literature. A recent survey of zero-knowledge verifiable machine
+learning~\cite{zkmlsurvey2026} states its own scope plainly: it focuses on
+supervised learning, ``as it is the most common form of ML and serves as the
+foundation for the most of existing zero-knowledge-based verifiable machine
+learning research.'' The training systems it covers are for linear and logistic
+regression, support vector machines, $K$-means, decision trees and deep
+networks. The omission is not an oversight in the survey; it reflects the
+literature. And the gap persists not because value-based RL is a larger
+computation, but because it carries three verification obligations that
+supervised proof-of-training constructions never encounter:
 
 \begin{enumerate}[leftmargin=1.8em]
   \item \textbf{The labels are produced by the model being trained.} In
@@ -111,10 +114,11 @@ The contributions of this work are as follows:
   whether it learns (\Cref{sec:experiments}).
 
   \item \textbf{Formal statements and an adversarial benchmark.} We state and
-  sketch proofs for eight theorems spanning membership, dataset commitment,
-  Bellman targets, update correctness, chain and aggregation soundness, and the
-  zero-knowledge boundary, each mapped to relation code, SP1 backend, tests and
-  benchmark rows; and we report tamper rejection across $19$ adversarial
+  sketch proofs for ten statements spanning membership, dataset commitment,
+  sampler binding, bounded fixed-point arithmetic, Bellman targets, update
+  correctness, chain and aggregation soundness, and the zero-knowledge boundary,
+  each mapped to relation code, SP1 backend, tests and benchmark rows; and we
+  report tamper rejection across $19$ adversarial
   categories and $236$ cases with no unexpectedly accepted row
   (\Cref{sec:relations,sec:experiments}).
 \end{enumerate}

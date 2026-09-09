@@ -13,20 +13,32 @@ The key technical contributions are:
   replay/reward audits from public benchmark source-integrity imports,
   binding all provenance hashes into a SHA-256 Merkle commitment.
 
-  \item SP1 proof-backed relation families and configurations covering replay
-  membership (with dataset-size scaling to 100k leaves), Bellman/TD
-  arithmetic, forward MLP evidence, one-step SGD updates, checkpoint chains,
-  multi-step training fragments ($k \in \{1, 4, 8\}$), proof-manifest
-  chunk-chain aggregation ($T \in \{32, 64, 128\}$), and recursive
-  aggregation with in-guest child-proof verification ($T \in \{16, 32, 64\}$).
+  \item Three constraints the fragment relation declares and enforces beyond
+  recomputing the update: a sampler seed derived from the dataset commitment
+  rather than supplied by the prover, a published bound on the fixed-point
+  values checked before the multiplication that overflows, and component-wise
+  gradient clipping.
 
-  \item Eight formal security theorems, each mapped to implemented relation
-  code, SP1 backend, tests, and benchmark evidence, providing full traceability
-  from claims to artifacts.
+  \item SP1 proof-backed relations covering replay membership (with
+  dataset-size scaling to 100k leaves), Bellman/TD arithmetic, forward MLP
+  evidence, one-step SGD updates, checkpoint chains, multi-step fragments,
+  chunk-chain aggregation over child manifests ($T \in \{32, 64, 128\}$), and
+  recursive aggregation that verifies each child proof inside the guest
+  ($T \in \{16, 32, 64\}$ flat, and binary trees up to $T = 4{,}992$).
 
-  \item A comprehensive experimental evaluation demonstrating fast verification
-  ($<$\,0.21\,s), compact proofs ($<$\,2.84\,MB), and tamper rejection across
-  236 adversarial test cases with zero unexpectedly accepted rows.
+  \item Single root proofs covering a complete training run: $1{,}248$ steps on
+  both environments and $4{,}992$ steps on \texttt{lunarlander-random}, the
+  last covering the run that produced a policy reported in
+  \Cref{tab:rl-performance}.
+
+  \item Ten formal security statements, each mapped to implemented relation
+  code, SP1 backend, tests, and benchmark evidence.
+
+  \item An evaluation that measures what the provable configuration costs in
+  policy quality rather than asserting it is small, and that reports verify
+  times of $0.054$--$0.197$\,s and proof sizes of $1.27$--$4.31$\,MB across
+  twenty-four of the twenty-five proved rows, naming the Groth16 variant as the
+  exception on both axes.
 \end{enumerate}
 
 The contribution is a deliberately scoped security/systems artifact.
@@ -46,28 +58,33 @@ is flat in $T$, so longer traces are plausible but untested beyond $T = 64$.
 And the CPU prover does not complete these configurations within $61$~GB, so
 reproducing them presently requires a CUDA device with at least $20$~GB.
 
-\textbf{Adam optimizer proofs.} Extending the update relation to cover Adam's
-per-parameter adaptive learning rates, first and second moment estimates, and
-bias correction would make the system applicable to practical DQN training
-configurations.
+\textbf{Adam optimizer proofs.} Covering Adam would need its per-parameter
+adaptive rates, first and second moment estimates, and bias correction inside
+the relation. There is a prior obstacle that is easy to miss: at
+$\fpscale = 1000$ the library default rate of $3\times 10^{-4}$ encodes to
+zero, so Adam is not representable at its own default before any of the moment
+arithmetic is considered. A finer fixed-point scale would be a prerequisite,
+and would raise the overflow bound in turn.
 
-\textbf{Batch-size scaling.} The current training update proves batch-size-1
-updates. Supporting batch sizes 4, 8, and 16 would require
-vectorized fixed-point gradient accumulation and would better reflect real
-training setups.
+\textbf{Batch-size scaling.} The relation proves batch-size-1 updates, and
+supporting larger batches would need vectorized fixed-point gradient
+accumulation at a cycle cost that grows with the batch. We had expected this to
+be the change that closes the gap to a tuned implementation. The sweep in
+\Cref{subsec:provable-config} says otherwise: at a long enough target-sync
+interval, batch size 1 reaches $-152.7$ on \texttt{lunarlander-random} against
+$-215.3$ for the tuned minibatch row. Batching is worth having, but it is not
+what was holding the provable configuration back.
 
 \textbf{Larger network architectures.} Moving beyond the canonical tiny
 Linear--ReLU--Linear MLP to deeper networks with convolutional layers or
 batch normalization would extend applicability to Atari-scale DQN.
 
-\textbf{GPU-accelerated proving.} Integrating GPU-accelerated SP1 proving may
-reduce proving latency enough to support routine verification in production RL
-artifact pipelines.
-
 \textbf{On-chain verification.} Compressing SP1 STARK proofs to
-Groth16~\cite{groth2016zksnark} SNARKs would enable on-chain verification on
-Ethereum or other smart-contract platforms, supporting decentralized RL model
-certification.
+Groth16~\cite{groth2016zksnark} SNARKs would enable on-chain verification.
+We measured the adjacent configuration -- verifying Groth16 child proofs
+\emph{inside} the aggregate guest -- and it is expensive on both axes
+(\Cref{tab:proof-cost}). Wrapping the final root proof for an on-chain verifier
+is a different and more promising operation, which we have not measured.
 
 \textbf{Honest data collection proofs.} Extending the provenance pipeline to
 provide cryptographic evidence of honest data collection (e.g., through
