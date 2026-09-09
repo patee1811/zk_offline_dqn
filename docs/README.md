@@ -6,6 +6,10 @@ is not edited by cleanup phases unless explicitly approved.
 
 ## Start Here
 
+- `giai_thich_toan_canh.md` - toan canh du an bang tieng Viet: moi thuat
+  ngu, moi cong cu, ly do chon, va ket qua hien tai. Doc file nay truoc
+  neu ban chua quen zero-knowledge proof hoac offline RL.
+
 - `architecture.md` - current code and workflow architecture.
 - `reproducibility.md` - regression, SP1 validation, and report regeneration.
 - `sp1_python_alignment.md` - Python/SP1 field and command alignment.
