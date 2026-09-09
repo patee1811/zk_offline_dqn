@@ -278,3 +278,17 @@ Format:
 **Đích đề xuất:** `rules/00-nguyen-tac-coi-loi.md`
 **Độ tin cậy:** cao (bốn lần tái hiện, một lần lọt vào PDF)
 **Trạng thái:** đã áp dụng (1.8.0)
+
+## 2026-09-10 — phát hiện mới — scope experiments
+**Kích hoạt:** viết lại `docs/giai_thich_toan_canh.md`, đối chiếu mọi con số với Bảng 2 hiện tại. Dòng rule ghi "cycles recursion ≈ 154M mỗi lượt verify con"; Bảng 2 cho `native_flat_recursive` t16/t32/t64 = 422.726.492 / 842.015.859 / 1.683.525.837 với 2/4/8 proof con, tức **211,4 / 210,5 / 210,4 triệu**.
+**Bài học:** 154M là số đo **trước** khi bật `overflow-checks`. Recursion chịu chi phí kiểm tràn nặng nhất (+36,8% đã ghi ở dòng khác của cùng file rules), và 154 × 1,368 ≈ 211 — khớp. Cùng lớp lỗi: `23.571 cycles/tầng` của `merkle_membership` nay là **≈ 28.000** (hồi quy trên 4 dòng Bảng 2: 28.088 / 28.130 / 27.522 mỗi tầng), khớp với +17,7% đã ghi. Mọi con số cycles ghi trong rules trước 07-09 cần soát lại theo cùng cách.
+**Đích đề xuất:** `rules/90-domain/experiments.md` dòng recursion; và soát dòng Merkle nếu có.
+**Độ tin cậy:** cao (tính từ chính bảng đã commit, khớp hệ số +36,8% / +17,7% đã đo độc lập)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-10 — phát hiện mới — scope paper
+**Kích hoạt:** `CLAUDE.md` bất biến số 6 ghi "**Theorem 7** nay gồm hai chế độ: proof-manifest chain … và recursive_sp1". Đọc `paper/sections/theorems.tex`: thứ tự xuất hiện là 1 replay-membership, 2 dataset-commitment, 3 bellman-target, 4 update-correctness, 5 checkpoint-chain, 6 training-fragment, **7 sampler-binding**, **8 value-bound**, **9 manifest-aggregation**, 10 privacy-boundary.
+**Bài học:** chèn hai định lý mới (sampler binding, bounded fixed-point) ở vị trí 7–8 đã đẩy định lý aggregation từ **7 sang 9**. Bất biến trong `CLAUDE.md` còn trỏ số cũ, nên một agent đọc rule rồi đi sửa "Theorem 7" sẽ sửa nhầm định lý. Nên trỏ bằng **label** (`thm:manifest-aggregation`) thay vì số — số định lý trôi mỗi lần chèn.
+**Đích đề xuất:** `CLAUDE.md` bất biến 6; cân nhắc quy ước chung "trỏ định lý bằng label, không bằng số".
+**Độ tin cậy:** cao (đọc trực tiếp thứ tự `\begin{theorem}` trong `theorems.tex`)
+**Trạng thái:** chờ xử lý
