@@ -1,0 +1,31 @@
+{
+  "aggregate_root": "c32e4256635c36310d6557fb836af667156b271e0f80658bb2eed1bc399d4f9c",
+  "aggregation_mode": "recursive_sp1",
+  "aggregation_topology": "binary_tree",
+  "child_proof_mode": "native_sp1",
+  "child_proof_verification_inside_guest": true,
+  "chunk_count": 2,
+  "chunk_proof_root": "a310ec89310f5610d0f935cc04f498d50c2d25dc2896dea4b12ffbf44c037bb8",
+  "chunk_public_inputs_root": "fe42ee8db48971773589dd893d9d00fa7b4c6a2b29b75e41465e5e71edb028f1",
+  "chunk_relation_id": "training_fragment_k156",
+  "chunk_size": 156,
+  "chunk_verify_report_root": "6546f2902ba42e965f1b269764246b5d45b3ffdcde910d1f3a3ce1204b32e55c",
+  "chunk_vkey_root": "2fcabf33ec2c261bd2293bdfe4459e11a9a8b4bfd00d9c6543bcfbf92ca66234",
+  "claim_scope": "true recursive binary-tree native SP1 aggregation",
+  "expected_child_vkey_digest_words": [
+    2064114515,
+    1150209117,
+    1822106718,
+    1890192751,
+    1922876642,
+    364364308,
+    1421417852,
+    113328320
+  ],
+  "expected_child_vkey_hash": "0x00f60fc6a7123b317764d922f70aa0d6fe53989c456df0852a5c8ebe06c140c0",
+  "proof_hash_note": "chunk child_proof_hash values bind recursive child proof material verified inside the aggregate guest.",
+  "relation": "training_aggregation",
+  "step_end": 1872,
+  "step_start": 1560,
+  "tree_root_hash": "1e74661545d40906ca6f1562330c2c5ff6eefe5c537c83d96630917b8600d721"
+}
