@@ -21,11 +21,43 @@ by relation type:
   \item \texttt{short\_trace/sp1/}: Short checkpoint-chain validation.
   \item \texttt{training\_update/sp1/}: Full one-step training update
   (membership + forward + backprop + SGD + checkpoint).
-  \item \texttt{training\_fragment/sp1/}: Multi-step fragments for
-  $k \in \{1, 4, 8\}$.
-  \item \texttt{training\_aggregation/sp1/}: Proof-manifest chunk-chain
-  aggregation for $T \in \{32, 64, 128\}$.
+  \item \texttt{training\_fragment/sp1/}: Multi-step fragments, proof-backed
+  for $k \in \{1, 4, 8\}$ on canonical vectors, for $k = 1$ on each committed
+  expert dataset, and for $k = 156$ as the leaf of the whole-run trees.
+  \item \texttt{training\_aggregation/sp1/}: Chunk-chain aggregation over
+  child manifests for $T \in \{32, 64, 128\}$, and recursive aggregation that
+  verifies each child proof inside the guest for $T \in \{16, 32, 64\}$ flat,
+  $T = 16$ and $T = 1{,}248$ as binary trees, and $T = 16$ with Groth16 child
+  proofs.
 \end{itemize}
+
+\subsection{Three Constraints the Relation Declares}
+
+Beyond recomputing the update, the fragment relation publishes and enforces
+three constraints that are not part of the arithmetic itself.
+
+\textbf{The sampler is bound to the dataset.} \texttt{sampler\_seed} is not a
+free public input. It is derived as
+$\mhash(\mroot \,\|\, \mathrm{global\_step\_start})$, so a prover cannot
+choose which transitions a fragment trains on, and consecutive chunks of one
+chain necessarily draw different rows. \Cref{subsec:sampling-defect} describes
+the defect that motivated this.
+
+\textbf{Values are range-checked against a declared bound.} Each case publishes
+\texttt{q\_abs\_max\_fp}, and the guest asserts that $Q$ values stay inside it
+\emph{before} the multiplication by $\gamma$, which is where \texttt{i64}
+overflows. A case may not declare a bound the arithmetic cannot honour: the
+guest rejects any \texttt{q\_abs\_max\_fp} exceeding
+$\texttt{i64::MAX} / \gamma$. Cargo's release profile leaves overflow checks
+off, so before this the product wrapped silently and the guest proved the
+wrapped value; the profile now enables them at each workspace root, at a cost
+of $0.33\%$ to $36.8\%$ of cycles depending on the relation.
+
+\textbf{Gradients are clipped by value.} Each component is clamped to
+\texttt{gradient\_clip\_fp} before the update. Clipping by value rather than by
+$L_2$ norm is a concession to the proof system -- a norm needs a square root
+the guest would have to prove -- and we report the cost of that concession in
+\Cref{subsec:provable-config} rather than assuming it is negligible.
 
 \noindent Each workspace shares a common pattern: the \emph{shared} crate
 defines typed public inputs, private witnesses, fixed-point arithmetic helpers,
