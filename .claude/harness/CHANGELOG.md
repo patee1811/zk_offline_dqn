@@ -1,5 +1,22 @@
 # Harness changelog
 
+## 2026-09-10 — 1.8.0
+
+**Kích hoạt:** phiên viết lại paper theo artifact. Ba mục tồn đọng: hai về hash guest ELF, một là thất bại lặp chưa từng được ghi dù đã gây bốn lỗi trong cùng một phiên.
+
+**Lý do:** cả ba đều là bẫy **im lặng** — không có lỗi build, không có test đỏ, kết quả trông vẫn hợp lệ. Đó đúng là loại chỉ rule mới chặn được.
+
+**Đã sửa:**
+
+- `90-domain/sp1-backend.md`: mục "Còn ngỏ" của 1.7.0 về `--remap-path-prefix` nay có câu trả lời **một nửa** — cờ đó xoá được đường dẫn khỏi nội dung ELF (`strings`: `/zk_offline_dqn` 1 lần, `/home/ubuntu/alpha` 0 lần) nhưng hai ELF **vẫn khác hash**, nên không đủ để hash đi được giữa các máy. Nguyên nhân vẫn là giả thuyết chưa kiểm; `BuildArgs { docker: true }` chưa thử. Cùng dòng, thêm bẫy cache: `sp1_build` chỉ dựng lại khi nguồn **guest** đổi, nên sửa `build.rs` của host rồi so ELF ngay là đọc lại binary của lượt trước — phải xoá `guest/elf/` trong cây nguồn.
+- `rules/00`: cấm heredoc cho nội dung có backslash. Công cụ Bash ăn một tầng, và hậu quả không lộ ra ở chỗ gây lỗi: `\\` cuối dòng bảng LaTeX thành `\` báo `Misplaced \noalign` ở dòng khác, còn `\texttt` thành TAB + `exttt` thì **compile sạch** và chỉ lộ khi đọc PDF.
+
+**Gộp:** hai mục ELF (cache trap và remap) vào cùng một dòng `guest_elf_sha256`, vì mục sau sửa mệnh đề cuối của dòng cũ. Bỏ vế "grep phải quét cả thư mục con" — đã phủ bởi `rules/00` "Đọc trước khi viết"; giữ con trỏ cụ thể `command/utils.rs:77`.
+
+**Không lên thang hook:** một PreToolUse chặn heredoc-có-backslash sẽ báo giả với `echo "\n"` thường gặp, nên dừng ở rung rule.
+
+**Còn ngỏ:** thử `BuildArgs { docker: true }` để quyết A/B/C cho dòng t4992 của Bảng 2; cho `check_public_dataset_coverage` gọi `verify_dataset_commitment`.
+
 ## 2026-09-08 — 1.7.0
 
 **Kích hoạt:** một phiên "làm hết 6 mục" nở thành 3 lượt GPU, một lần chạy lại Bảng 1, và 12 mục inbox tồn đọng từ 06-09 tới 07-09.

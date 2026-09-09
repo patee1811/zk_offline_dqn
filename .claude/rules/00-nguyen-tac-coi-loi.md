@@ -13,6 +13,7 @@ Lý do: agent mới hay mang “best practice” ngoài vào rồi phá lớp re
 - Không khái quát hóa phòng xa. Relation mới chỉ khi có vector + provenance, không “để sau dùng”.
 - Ưu tiên xóa hơn thêm. Ưu tiên nhàm chán hơn thông minh.
 - Không để cây kiểm tra hỏng. Thay đổi Python: unittest liên quan xanh. Đụng paper: `check_paper_claims.py` xanh. Repo không có lint/typecheck sẵn có.
+- Không dùng heredoc cho nội dung có backslash (LaTeX, Rust, regex). Công cụ Bash ăn mất một tầng: `\\` cuối dòng bảng thành `\` (LaTeX báo `Misplaced \noalign` ở dòng *khác*), `\ref` thành CR, `\texttt` thành TAB + `exttt` — **compile sạch, PDF in ra chữ `exttt{...}`**. Ghi script ra file bằng Write rồi `python <file>`; trong regex dùng `re.escape(chr(92))`. Lỗi loại này không làm build đỏ, nên `tests/unit/test_paper_numbers_match_artifacts.py` chặn ký tự TAB trong mọi mục paper đang dùng.
 - Yêu cầu mơ hồ thì hỏi. Không đoán rồi đi tiếp — đặc biệt với claim paper, schema, field public/private.
 - Nói rõ mức chắc chắn. “Đã chạy `python -m unittest …`, exit 0” hoặc “chưa đo `make reproduce-small`”.
 
