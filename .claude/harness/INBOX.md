@@ -257,3 +257,17 @@ Format:
 **Đích đề xuất:** `rules/90-domain/relations.md`; `paper/sections/discussion.tex` khi viết lại Limitations
 **Độ tin cậy:** trung bình cao (1 seed, 6 dataset; xu hướng nhất quán, biên độ chưa lấy trung bình nhiều seed)
 **Trạng thái:** đã áp dụng (1.7.0)
+
+## 2026-09-09 — thất bại — scope backends
+**Kích hoạt:** `sp1_build` chỉ dựng lại guest khi **nguồn guest** đổi. Sửa `build.rs` của host không tính, nên phép so ELF hai đường dẫn đọc lại ELF cache của lượt trước và cho kết luận sai (`training_aggregation` ra đúng hash cũ của lần chạy trước đó). Cùng lượt, một `grep` trên `sp1-build/src/*.rs` bỏ sót `src/command/` và suýt kết luận `rustflags` là trường chết — thực ra nó được dùng ở `command/utils.rs:77`.
+**Bài học:** muốn so ELF thì phải **xoá `guest/elf/` trong cây nguồn** trước, không chỉ xoá `CARGO_TARGET_DIR`. Và grep vào một crate phải quét cả thư mục con, không chỉ tầng `src/*.rs`.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`, cùng chỗ với mục `guest_elf_sha256`
+**Độ tin cậy:** cao (hash trùng khít lượt trước là bằng chứng trực tiếp)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-09 — phát hiện mới — scope backends
+**Kích hoạt:** `--remap-path-prefix` truyền qua `BuildArgs.rustflags` **có** tác dụng: `strings` trên ELF cho `/zk_offline_dqn` 1 lần và `/home/ubuntu/alpha` 0 lần, ngược hẳn trước khi sửa. Nhưng hai ELF **vẫn khác hash**, trong khi mọi chuỗi đường dẫn còn lại giống hệt nhau.
+**Bài học:** xoá đường dẫn khỏi nội dung ELF là **chưa đủ** để hash đi được giữa các máy. Giả thuyết chưa kiểm: chính cờ remap khác nhau giữa hai lượt build và cargo băm cờ vào metadata. Đường được `sp1_build` quảng cáo cho việc này là `BuildArgs { docker: true }` — *"Run compilation using a Docker container for reproducible builds"* — chưa thử.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md`
+**Độ tin cậy:** cao cho phần đo; **giả thuyết nguyên nhân chưa kiểm chứng**
+**Trạng thái:** chờ xử lý
