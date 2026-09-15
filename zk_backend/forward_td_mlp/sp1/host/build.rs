@@ -28,6 +28,15 @@ fn main() {
         .ancestors()
         .nth(4)
         .expect("host crate sits four levels below the repository root");
+    // Docker mounts one directory, and three relations reach outside their own
+    // workspace for a shared crate: forward_td_mlp and one_step_sgd_tiny depend
+    // on td_mvp's, and training_aggregation's shared crate depends on
+    // training_fragment's. Mounting the workspace root alone makes cargo fail to
+    // read those manifests. zk_backend is the nearest ancestor that covers them.
+    let backend_root = manifest
+        .ancestors()
+        .nth(3)
+        .expect("host crate sits three levels below zk_backend");
 
     sp1_build::build_program_with_args(
         "../guest",
@@ -43,6 +52,7 @@ fn main() {
             // the change is a line in the diff. Matches the `=6.1.0`
             // pin on sp1-build, sp1-sdk and sp1-zkvm.
             tag: "v6.1.0".to_string(),
+            workspace_directory: Some(backend_root.display().to_string()),
             ..Default::default()
         },
     );
