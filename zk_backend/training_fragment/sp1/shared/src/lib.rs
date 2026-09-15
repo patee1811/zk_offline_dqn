@@ -315,10 +315,38 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
         assert_valid_tiny_model(&step.online_model_after, public.fixed_point_scale);
         assert_valid_tiny_model(&step.target_model_after, public.fixed_point_scale);
 
-        let checkpoint_hash_before =
-            model_commitment(&step.online_model_before, public.fixed_point_scale);
-        let target_checkpoint_hash_before =
-            model_commitment(&step.target_model_before, public.fixed_point_scale);
+        // Hashing a model costs about 617k cycles at [4,64,2] -- 1311 cycles per
+        // parameter, dominated by rendering each i64 as decimal before SHA-256.
+        // Four of these per step was 76% of the whole step. Three of the four
+        // recompute a hash the chain already established, so they are replaced
+        // with the structural comparison that makes carrying the hash sound:
+        // equal models have equal commitments, and assert_model_eq is a few
+        // hundred integer compares rather than a serialization.
+        //
+        // The first step has nothing prior to compare against, so it still
+        // hashes and binds to the public start hashes.
+        let (checkpoint_hash_before, target_checkpoint_hash_before) = if idx == 0 {
+            (
+                model_commitment(&step.online_model_before, public.fixed_point_scale),
+                model_commitment(&step.target_model_before, public.fixed_point_scale),
+            )
+        } else {
+            let prev = &witness.steps[idx - 1];
+            assert_model_eq(
+                &step.online_model_before,
+                &prev.online_model_after,
+                "online_model_before",
+            );
+            assert_model_eq(
+                &step.target_model_before,
+                &prev.target_model_after,
+                "target_model_before",
+            );
+            (
+                expected_checkpoint_hash.clone(),
+                expected_target_hash.clone(),
+            )
+        };
         assert_eq!(
             checkpoint_hash_before, step.checkpoint_hash_before,
             "checkpoint_hash_before mismatch"
@@ -479,22 +507,25 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
             step.intermediates.target_sync_applied, sync_applied,
             "target_sync_applied mismatch"
         );
-        if sync_applied {
+        // The target model after the step is already asserted structurally equal
+        // to one of two models whose commitment this step has computed, so its
+        // own commitment follows without hashing it again.
+        let target_checkpoint_hash_after = if sync_applied {
             assert_model_eq(
                 &step.target_model_after,
                 &step.online_model_after,
                 "target_model_after",
             );
             target_sync_events += 1;
+            checkpoint_hash_after.clone()
         } else {
             assert_model_eq(
                 &step.target_model_after,
                 &step.target_model_before,
                 "target_model_after",
             );
-        }
-        let target_checkpoint_hash_after =
-            model_commitment(&step.target_model_after, public.fixed_point_scale);
+            target_checkpoint_hash_before.clone()
+        };
         assert_eq!(
             target_checkpoint_hash_after, step.target_checkpoint_hash_after,
             "target_checkpoint_hash_after mismatch"

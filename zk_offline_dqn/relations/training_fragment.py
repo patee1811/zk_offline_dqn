@@ -130,7 +130,11 @@ def fragment_trace_hash(
 
 
 def compute_step(
-    public: Mapping[str, Any], step: Mapping[str, Any], online: Mapping[str, Any], target: Mapping[str, Any]
+    public: Mapping[str, Any],
+    step: Mapping[str, Any],
+    online: Mapping[str, Any],
+    target: Mapping[str, Any],
+    before_hash: str,
 ) -> Dict[str, Any]:
     scale = int(public["fixed_point_scale"])
     transition = step["transition"]
@@ -177,7 +181,8 @@ def compute_step(
             )
     post, deltas = apply_sgd_update(online, gradients, int(public["learning_rate"]), scale)
     gradient_hash = gradient_commitment(gradients)
-    before_hash = model_commitment(online, scale)
+    # before_hash is handed in: the caller already holds it, either from the
+    # chain or from the one hash the first step pays for.
     post_hash = model_commitment(post, scale)
     update_hash = update_commitment(before_hash, post_hash, gradient_hash, int(public["learning_rate"]))
     return {
@@ -224,8 +229,22 @@ def recompute_fragment(vector: Mapping[str, Any]) -> Dict[str, Any]:
         target_before = step["target_model_before"]
         online_after = step["online_model_after"]
         target_after = step["target_model_after"]
-        online_before_hash = model_commitment(online_before, scale)
-        target_before_hash = model_commitment(target_before, scale)
+        # Mirrors the guest: only the first step hashes the incoming models. After
+        # that the chain already carries their commitment, and what has to be
+        # checked is that these really are the models the previous step ended on
+        # -- a structural comparison, not a second hash of the same bytes. A
+        # model commitment costs about 617k guest cycles at [4, 64, 2].
+        if index == 0:
+            online_before_hash = model_commitment(online_before, scale)
+            target_before_hash = model_commitment(target_before, scale)
+        else:
+            previous = witness["steps"][index - 1]
+            if online_before != previous["online_model_after"]:
+                raise AssertionError("online_model_before mismatch")
+            if target_before != previous["target_model_after"]:
+                raise AssertionError("target_model_before mismatch")
+            online_before_hash = expected_online_hash
+            target_before_hash = expected_target_hash
         if online_before_hash != step["checkpoint_hash_before"]:
             raise AssertionError("checkpoint_hash_before mismatch")
         if target_before_hash != step["target_checkpoint_hash_before"]:
@@ -245,7 +264,7 @@ def recompute_fragment(vector: Mapping[str, Any]) -> Dict[str, Any]:
         assert_path_metadata(step["merkle_path"], int(step["leaf_index"]))
         if recompute_root_from_path(leaf_hash, step["merkle_path"]) != public["dataset_root"]:
             raise AssertionError("dataset_root mismatch")
-        computed = compute_step(public, step, online_before, target_before)
+        computed = compute_step(public, step, online_before, target_before, online_before_hash)
         expected_intermediates = {
             "q_online_action": computed["q_online_action"],
             "q_target_next": computed["q_target_next"],
@@ -268,14 +287,19 @@ def recompute_fragment(vector: Mapping[str, Any]) -> Dict[str, Any]:
             raise AssertionError("intermediates mismatch")
         if online_after != computed["post_model"]:
             raise AssertionError("online_model_after mismatch")
-        online_after_hash = model_commitment(online_after, scale)
+        # compute_step already committed to the post model; online_after is
+        # asserted equal to it just above, so recomputing would hash the same
+        # bytes a second time.
+        online_after_hash = computed["checkpoint_hash_after"]
         if online_after_hash != step["checkpoint_hash_after"]:
             raise AssertionError("checkpoint_hash_after mismatch")
         sync_applied = _target_sync_applies(public, index)
         expected_target_after = online_after if sync_applied else target_before
         if target_after != expected_target_after:
             raise AssertionError("target_model_after mismatch")
-        target_after_hash = model_commitment(target_after, scale)
+        # Equal models have equal commitments, and the comparison above already
+        # pinned this one to a model whose hash this step holds.
+        target_after_hash = online_after_hash if sync_applied else target_before_hash
         if target_after_hash != step["target_checkpoint_hash_after"]:
             raise AssertionError("target_checkpoint_hash_after mismatch")
         if sync_applied:
@@ -549,7 +573,7 @@ def generate_case(
         before_hash = model_commitment(online, scale)
         target_before_hash = model_commitment(target, scale)
         step_shell = {"transition": transition}
-        computed = compute_step(public, step_shell, online, target)
+        computed = compute_step(public, step_shell, online, target, before_hash)
         online_after = computed["post_model"]
         sync_applied = _target_sync_applies(public, step_id)
         target_after = copy.deepcopy(online_after if sync_applied else target)

@@ -133,15 +133,34 @@ because the chunk proof root depends on the child proof files of that run.
 
 ### Pinning the toolchain
 
-The Cargo manifests pin the SP1 crates to `=6.1.0`, but a bare `sp1up`
-installs the latest `succinct` toolchain regardless. Pin both halves:
+Every `host/build.rs` now builds the guest inside the SP1 Docker image and names
+the tag explicitly:
+
+```rust
+docker: true,
+tag: "v6.1.0".to_string(),
+```
+
+The image carries the compiler, so the tag is what pins it, and it matches the
+`=6.1.0` pin on `sp1-build`, `sp1-sdk` and `sp1-zkvm`. `sp1-build` defaults the
+tag to its own crate version; spelling it out means a dependency bump cannot
+change the guest without showing up in the diff.
+
+A local `sp1up` toolchain is still needed for the host, and `rust-toolchain.toml`
+cannot help here -- it pins the channel name `succinct`, not the version `sp1up`
+installed. For host builds:
 
 ```text
 sp1up --version v6.1.0
 ```
 
+Docker mode costs about seven minutes on the first build while the image is
+pulled, and about sixteen seconds afterwards. It runs as root, so
+`target/elf-compilation` ends up root-owned; a later non-Docker build in the same
+tree fails with `Permission denied` until that directory is removed.
+
 CI does not install the SP1 toolchain at all -- heavy proving is outside the
-Python regression -- so this pin matters only when rerunning proofs by hand.
+Python regression -- so this matters only when rerunning proofs by hand.
 
 ### Detecting the mismatch
 
