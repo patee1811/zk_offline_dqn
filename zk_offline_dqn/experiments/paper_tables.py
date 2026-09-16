@@ -192,24 +192,24 @@ def render_table2(rows: Iterable[Dict[str, Any]]) -> str:
         r"\centering",
         r"\footnotesize",
         r"\caption{SP1 proof cost for every proof-verified relation",
-        r"configuration, measured in one pass on a single g5.2xlarge. Times in",
-        r"seconds, proof size in KB, cycles in thousands. The prover column is a",
-        r"property of the host: only the fragment and aggregation hosts have a",
-        r"CUDA path.}",
+        r"configuration. Times in seconds, proof size in KB, cycles in",
+        r"thousands. Every row was produced on a g5.2xlarge (NVIDIA A10G) under",
+        r"the CUDA prover, and each row's provenance record names the prover that",
+        r"produced it.}",
         r"\label{tab:proof-cost}",
         r"\renewcommand{\arraystretch}{1.1}",
         r"\setlength{\tabcolsep}{3pt}",
-        r"\begin{tabular}{@{}lrrrrl@{}}",
+        r"\begin{tabular}{@{}lrrrr@{}}",
         r"\toprule",
         r"\textbf{Relation} & \textbf{Prove} & \textbf{Verify} &"
-        r" \textbf{Size} & \textbf{Cycles} & \textbf{Prover} \\",
+        r" \textbf{Size} & \textbf{Cycles} \\",
         r"\midrule",
     ]
     for row in rows:
         lines.append(
             f"{row['label']} & {tex_number(row['prove'], 1)} & "
             f"{tex_number(row['verify'], 3)} & {tex_thousands(row['size_kb'])} & "
-            f"{tex_thousands(row['kcycles'])} & {row['prover']} " + r"\\"
+            f"{tex_thousands(row['kcycles'])} " + r"\\"
         )
     lines.extend([r"\bottomrule", r"\end{tabular}", r"\end{table}", ""])
     return "\n".join(lines)

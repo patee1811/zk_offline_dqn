@@ -50,11 +50,13 @@ the entire pipeline without heavy proof regeneration.
 
 Several directions can extend the current system:
 
-\textbf{Future work: recursion beyond $T = 64$ and off the GPU.} Recursive
-child-proof verification inside the aggregate SP1 guest is implemented and
-measured for $T \in \{16, 32, 64\}$, which removes the need for external
-child-proof verification at those sizes. Two limits remain. Peak device memory
-is flat in $T$, so longer traces are plausible but untested beyond $T = 64$.
+\textbf{Future work: recursion off the GPU.} Recursive child-proof verification
+inside the aggregate SP1 guest is implemented and measured for
+$T \in \{16, 32, 64\}$ as flat chains and for binary trees to $T = 4{,}992$,
+which removes the need for external child-proof verification at those sizes.
+Two limits remain. Peak device memory is flat in $T$, so trace length is bounded
+by budget rather than by memory; what is untested is a flat chain beyond
+$T = 64$ and any recursion at $T = 128$.
 And the CPU prover does not complete these configurations within $61$~GB, so
 reproducing them presently requires a CUDA device with at least $20$~GB.
 

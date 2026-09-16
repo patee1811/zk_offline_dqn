@@ -383,3 +383,10 @@ Format:
 **Đích đề xuất:** `rules/90-domain/experiments.md`; cân nhắc một cổng script so hash ELF
 **Độ tin cậy:** cao (metrics cũ mang ELF `cd3057f7…`, ELF docker là `6cf19651…`)
 **Trạng thái:** đã áp dụng 1.9.0
+
+## 2026-09-17 — người sửa — scope harness
+**Kích hoạt:** người dùng sửa lại trong phiên
+**Bài học:** ý tôi là bài của tôi có mạnh đến Q1 không ý
+**Đích đề xuất:** /harness-sync quyết định
+**Độ tin cậy:** thấp (tự động, chưa duyệt)
+**Trạng thái:** chờ xử lý

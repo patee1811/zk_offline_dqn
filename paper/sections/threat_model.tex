@@ -128,7 +128,8 @@ not honest-collection proofs.
   \item Full DQN training proof from initialization to final checkpoint.
   \item Adam optimizer or advanced optimizer-state proofs.
   \item All-replay-batches proof or model-selection proof.
-  \item True recursive child-proof verification inside the aggregate SP1 guest.
+  \item Recursive aggregation on a CPU prover, or at $T = 128$; and PLONK
+  child proofs, which are untested.
   \item Honest public dataset collection proof.
   \item Policy optimality or convergence guarantees.
 \end{itemize}
@@ -177,13 +178,13 @@ Break checkpoint chain or target sync &
 Per-step checkpoint + target checkpoint links &
 Thms.~\ref{thm:checkpoint-chain}, \ref{thm:training-fragment} &
 checkpoint hash, target sync &
-No full training-run proof \\
+Chains are local; initialisation is an input \\
 \midrule
 Reorder chunks / swap proof manifests &
 Manifest hashes + aggregate roots + checkpoint links &
 Thm.~\ref{thm:manifest-aggregation} &
 aggregation, proof public input &
-Proof-manifest chain only \\
+$T = 128$ recursion untested \\
 \midrule
 Verify under different public inputs &
 Public-input binding and proof public values &

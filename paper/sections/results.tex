@@ -57,8 +57,8 @@ rows (incompatible algorithm--environment combinations are omitted for space).
 On cartpole-random, Double DQN under provable SGD reaches $311.0$ from a
 random-policy dataset, so the committed data supports meaningful offline
 learning. The optimizer split runs by environment rather than by optimizer:
-SGD takes 10 of 12 CartPole cells and Adam 11 of 12 LunarLander cells, 11--13
-overall. Plain offline DQN collapses to the minimum episode length on the
+SGD takes 10 of 12 CartPole cells and Adam 11 of 12 LunarLander cells, so the
+overall split is 13--11 to Adam. Plain offline DQN collapses to the minimum episode length on the
 medium and expert CartPole data, which is a property of the data rather than of
 the implementation -- an expert policy rarely terminates, so only $0.046\%$ of
 its transitions carry a terminal flag against $4.475\%$ for random data, and
@@ -166,15 +166,17 @@ leaf bound to the committed dataset the reported policy was trained on.
 
 \begin{table}[!t]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{Root proofs covering a complete training run. Each carries
 $\mathrm{step\_start} = 0$ and the stated $\mathrm{step\_end}$ in its public
-inputs, so one proof covers the run rather than a fragment of it.}
+inputs, so one proof covers the run rather than a fragment of it. Prove and
+verify times in seconds.}
 \label{tab:whole-run}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
 \textbf{Dataset} & \textbf{Steps} & \textbf{Cycles} &
-\textbf{Prove (s)} & \textbf{Verify (s)} \\
+\textbf{Prove} & \textbf{Verify} \\
 \midrule
 cartpole-expert & 1{,}248 & 422{,}411{,}631 & 191.8 & 0.054 \\
 lunarlander-expert & 1{,}248 & 422{,}387{,}142 & 192.7 & 0.054 \\
@@ -185,10 +187,14 @@ lunarlander-random & 4{,}992 & 422{,}401{,}017 & 193.1 & 0.054 \\
 
 Cycle counts are nearly identical across the three because the root node
 verifies two child proofs in every case; the tree depth below it, and hence the
-trace length, does not enter the root's own cost. The $4{,}992$-step row is the
-configuration Table~\ref{tab:rl-performance} reports at $-152.7$ on
-\texttt{lunarlander-random}, so the proof covers the run that produced a number
-in the table rather than a run alongside it.
+trace length, does not enter the root's own cost. The $4{,}992$-step row runs
+the configuration Table~\ref{tab:rl-performance} reports at $-152.7$ on
+\texttt{lunarlander-random}, so the proof covers the training the reported
+policy came from rather than a run alongside it. The correspondence is close
+but not exact, and the gap is worth stating: the reported row trains for
+$5{,}000$ steps, the tree covers $4{,}992$ of them, and the evaluated
+checkpoint is the one eight steps later. A leaf count is a power of two times
+the leaf size, so $4{,}992$ is the largest multiple of $156$ below $5{,}000$.
 
 Two limits bound the trace length, and neither is the proof system. First,
 arithmetic: offline DQN diverges, and at a target-sync interval of $4$ the
@@ -204,6 +210,7 @@ it to a $512$-leaf tree at about $52$. We did not run it.
 
 \subsection{What the Provable Configuration Costs}
 \label{subsec:provable-config}
+\sloppy
 
 A reader who scans the \texttt{double\_dqn\_provable} column will notice that
 five of its six cells are bad policies: $17.0$, $11.0$ and $9.7$ on CartPole,
