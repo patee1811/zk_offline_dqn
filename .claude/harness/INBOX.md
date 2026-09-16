@@ -369,3 +369,17 @@ Format:
 **Đích đề xuất:** `rules/30-kiem-thu.md` — đổi quan hệ thì cổng cuối phải chạy trên lá thật của cây, không chỉ vector canonical
 **Độ tin cậy:** cao (8/8 khớp byte)
 **Trạng thái:** chờ xử lý
+
+## 2026-09-16 — sửa mục cũ — scope backends
+**Kích hoạt:** G4 — thêm nhánh CUDA cho sáu host còn lại.
+**Bài học:** `rules/90-domain/sp1-backend.md` dòng 18 nay **sai**: *"sáu host kia không có nhánh CUDA nào và ghi thẳng `"prover": "cpu"` vào metrics"*. Cả tám host giờ đọc `SP1_CUDA` và ghi nhãn prover thật. Phần còn lại của dòng đó vẫn đúng và vẫn quan trọng: biến môi trường **im lặng theo cả hai chiều**, `nvidia-smi` mới là thứ nói thật. Hai điều kỹ thuật cần ghi kèm: (a) `Prover` có associated type nên không boxing được — phải tách `run_with_prover<P: Prover>`; (b) `setup()` và `prove()` trả `P::Error` **không** phải `StdError`, nên `anyhow::Context` không áp dụng được, phải `map_err`.
+**Đích đề xuất:** `rules/90-domain/sp1-backend.md` dòng 18
+**Độ tin cậy:** cao (build sạch 6/6, ELF trùng hash, đã prove thật trên cả hai prover)
+**Trạng thái:** chờ xử lý
+
+## 2026-09-16 — thất bại — scope experiments
+**Kích hoạt:** G4 lộ ra rằng dòng `td_mvp` của Bảng 2 **chưa hề được prove lại** trong Phiên 2, dù tôi đã báo cáo "cả 26 dòng ra từ một thế hệ guest".
+**Bài học:** `benchmark_sp1_td_mvp.py` ghi `summary.json`, `benchmark_matrix.csv`, `summary.md` — **không ghi `metrics.json`**. File đó chỉ do chính host ghi khi được gọi với `--out-dir`. Tôi đã cho rằng "chạy script phase là provenance được làm mới" mà không kiểm. Cách bắt lỗi rẻ: so `guest_elf_sha256` trong `metrics.json` với hash ELF vừa build — khớp thì mới thật sự là prove lại. Nên đưa phép so này thành bước mặc định sau mỗi lượt prove, thay vì tin vào `rc=0`.
+**Đích đề xuất:** `rules/90-domain/experiments.md`; cân nhắc một cổng script so hash ELF
+**Độ tin cậy:** cao (metrics cũ mang ELF `cd3057f7…`, ELF docker là `6cf19651…`)
+**Trạng thái:** chờ xử lý
