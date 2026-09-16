@@ -112,8 +112,8 @@ aggregate.}
 \textbf{Analysis.} Five observations, the last of them an exception to the first two.
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Verification is fast and flat.} Twenty-four of the twenty-five
-  proof-verified rows verify in 0.054--0.197\,s, and the figure does not track
+  \item \textbf{Verification is fast and flat.} Twenty-five of the twenty-six
+  proof-verified rows verify in 0.054--0.130\,s, and the figure does not track
   the work proved: a recursive proof over $1.68$ billion cycles verifies in
   $0.054$\,s, faster than a Merkle membership proof over $117$ thousand cycles
   at $0.123$\,s. Verification cost is set by the proof system, not by the
@@ -162,9 +162,9 @@ inputs, so one proof covers the run rather than a fragment of it.}
 \textbf{Dataset} & \textbf{Steps} & \textbf{Cycles} &
 \textbf{Prove (s)} & \textbf{Verify (s)} \\
 \midrule
-cartpole-expert & 1{,}248 & 422{,}415{,}621 & 199.7 & 0.054 \\
-lunarlander-expert & 1{,}248 & 422{,}396{,}109 & 198.1 & 0.054 \\
-lunarlander-random & 4{,}992 & 422{,}386{,}830 & 188.8 & 0.054 \\
+cartpole-expert & 1{,}248 & 422{,}411{,}631 & 191.8 & 0.054 \\
+lunarlander-expert & 1{,}248 & 422{,}387{,}142 & 192.7 & 0.054 \\
+lunarlander-random & 4{,}992 & 422{,}401{,}017 & 193.1 & 0.054 \\
 \bottomrule
 \end{tabular}
 \end{table}

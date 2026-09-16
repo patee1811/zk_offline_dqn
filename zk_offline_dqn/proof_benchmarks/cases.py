@@ -101,6 +101,19 @@ RECURSIVE_CASES = [
         network="[8, 64, 4]", aggregation_t=1248, status="failed_environment",
         notes="one root proof over the entire 1248-step run; dataset_root equals the committed lunarlander-expert-v1 merkle_root",
     ),
+    # The longest run under one proof, and the only one whose configuration is
+    # the one Table 1 reports: 32 leaves of 156 steps at a target-sync interval
+    # of 2000, where the two rows above sync every 4. It was proved before the
+    # others and cited by hand from the paper, which is exactly how a row goes
+    # stale when the relation changes underneath it.
+    ProofCase(
+        "binary_tree_native_t4992_lunarlander_random", "recursive_aggregation",
+        "binary_tree_native_t4992_lunarlander_random", "whole_run_lunarlander_random",
+        "recursive_aggregation",
+        "training_aggregation_binary_native_t4992_lunarlander_random",
+        network="[8, 64, 4]", aggregation_t=4992, status="failed_environment",
+        notes="one root proof over the entire 4992-step run; dataset_root equals the committed lunarlander-random-v1 merkle_root",
+    ),
 ]
 
 

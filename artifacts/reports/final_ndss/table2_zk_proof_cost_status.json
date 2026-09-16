@@ -19,8 +19,8 @@
   "failed_resource_rows": 0,
   "mode": "smoke",
   "phase": "8.2",
-  "proof_verified_rows": 25,
-  "row_count": 32,
+  "proof_verified_rows": 26,
+  "row_count": 33,
   "scope": "ZK proof cost only",
   "unsupported_rows": 4
 }

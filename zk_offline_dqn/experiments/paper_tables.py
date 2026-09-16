@@ -70,6 +70,7 @@ RELATION_LABELS = [
     ("groth16_recursive_t16", r"Groth16 child $T\!=\!16$"),
     ("binary_tree_native_t1248_cartpole", r"Whole run, CartPole"),
     ("binary_tree_native_t1248_lunarlander", r"Whole run, LunarLander"),
+    ("binary_tree_native_t4992_lunarlander_random", r"Whole run, LunarLander-random"),
 ]
 
 

@@ -95,9 +95,9 @@ implementation, test, and benchmark evidence.
 
 The SP1 proof cost data (\Cref{tab:proof-cost}) reveals that proving is
 prototype-scale. Under a CUDA prover the most expensive relation is Groth16
-child-proof aggregation at $1597$\,s; the training fragments that dominate a
-run cost seconds ($3.8$\,s at $k\!=\!8$), and a proof covering an entire
-1248-step run costs $200$\,s. Verification stays flat at $0.054$--$0.20$\,s
+child-proof aggregation at $1590$\,s; the training fragments that dominate a
+run cost seconds ($3.3$\,s at $k\!=\!8$), and a proof covering an entire
+1248-step run costs $192$\,s. Verification stays flat at $0.054$--$0.13$\,s
 regardless, except for Groth16, whose in-circuit SNARK check takes $68$\,s.
 Several scaling directions are available:
 

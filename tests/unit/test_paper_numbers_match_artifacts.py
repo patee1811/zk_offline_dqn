@@ -69,14 +69,14 @@ class PaperNumbersTests(unittest.TestCase):
         raise AssertionError(f"no Table 1 row for {dataset} {baseline} {optimizer}")
 
     def test_row_counts_the_paper_states(self) -> None:
-        self.assertEqual(len(self.rows), 25)
+        self.assertEqual(len(self.rows), 26)
         self.assertEqual(len(self.rl), 54)
         self.assertEqual(len(self.tamper), 236)
         rejected = sum(1 for r in self.tamper if r["Status"] == "rejected_as_expected")
         self.assertEqual(rejected, 233)
 
     def test_the_verify_and_size_ranges_exclude_only_groth16(self) -> None:
-        # The claim is a range over 24 rows plus a named exception, so both the
+        # The claim is a range over 25 rows plus a named exception, so both the
         # range and the exception have to hold.
         verifies = {r["Case ID"]: float(r["Verify Time (s)"]) for r in self.rows}
         sizes = {r["Case ID"]: int(r["Proof Size (bytes)"]) for r in self.rows}
@@ -85,9 +85,9 @@ class PaperNumbersTests(unittest.TestCase):
         others_v = [v for case, v in verifies.items() if case != outlier]
         others_s = [s for case, s in sizes.items() if case != outlier]
         self.assertEqual(round(min(others_v), 3), 0.054)
-        self.assertEqual(round(max(others_v), 3), 0.197)
+        self.assertEqual(round(max(others_v), 3), 0.130)
         self.assertEqual(round(min(others_s) / 1e6, 2), 1.27)
-        self.assertEqual(round(max(others_s) / 1e6, 2), 4.31)
+        self.assertEqual(round(max(others_s) / 1e6, 2), 2.85)
 
         self.assertEqual(round(verifies[outlier], 1), 68.0)
         self.assertEqual(round(sizes[outlier] / 1e9, 2), 1.47)
@@ -104,9 +104,9 @@ class PaperNumbersTests(unittest.TestCase):
 
     def test_whole_run_proofs_cover_the_stated_ranges(self) -> None:
         for name, end, cycles, prove in (
-            ("training_aggregation_binary_native_t1248_cartpole", 1248, 422415621, 199.7),
-            ("training_aggregation_binary_native_t1248_lunarlander", 1248, 422396109, 198.1),
-            ("training_aggregation_binary_native_t4992_lunarlander_random", 4992, 422386830, 188.8),
+            ("training_aggregation_binary_native_t1248_cartpole", 1248, 422411631, 191.8),
+            ("training_aggregation_binary_native_t1248_lunarlander", 1248, 422387142, 192.7),
+            ("training_aggregation_binary_native_t4992_lunarlander_random", 4992, 422401017, 193.1),
         ):
             with self.subTest(run=name):
                 m = metrics(name)

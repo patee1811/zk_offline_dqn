@@ -33,10 +33,10 @@
   "refresh_proof_metrics": true,
   "regenerate_missing_merkle_datasets": false,
   "reuse_existing_provenance": true,
-  "reuse_phase2_datasets": true,
+  "reuse_phase2_datasets": false,
   "run_sp1_execute": false,
   "run_sp1_prove": false,
-  "smoke": false,
+  "smoke": true,
   "trace_lengths": [
     1,
     4,
