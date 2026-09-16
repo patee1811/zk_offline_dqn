@@ -144,9 +144,9 @@ Số đo trong dự án minh hoạ thẳng điều đó **[đo]**:
 
 | | Prove | Verify | Tỉ lệ |
 | --- | ---: | ---: | ---: |
-| Proof đắt nhất (Groth16 child, T=16) | 1.596,9 s | 68,0 s | 23× |
-| Proof recursion nặng nhất (T=64) | 755,2 s | **0,054 s** | **14.000×** |
-| Proof rẻ nhất (Merkle canonical) | 50,2 s | 0,123 s | 408× |
+| Proof đắt nhất (Groth16 child, T=16) | 1.590,2 s | 68,0 s | 23× |
+| Proof recursion nặng nhất (T=64) | 770,6 s | **0,054 s** | **14.000×** |
+| Proof rẻ nhất (Merkle canonical) | 0,86 s | 0,125 s | 7× |
 
 Dòng giữa là điều đáng nhớ: 1,68 **tỉ** cycles tính toán, kiểm xong trong **54
 mili giây**.
@@ -1010,8 +1010,8 @@ Vẫn là một **giả định tin cậy**, và nó là thứ mà một cơ qua
   | | STARK (`native_flat_recursive_t16`) | Groth16 child |
   | --- | ---: | ---: |
   | Cycles | 422.706.047 | **6.189.380.355** (×14,6) |
-  | Prove | 193,4 s | **1.596,9 s** (×8,3) |
-  | Verify | 0,054 s | **68,0 s** (×1.256) |
+  | Prove | 189,7 s | **1.590,2 s** (×8,4) |
+  | Verify | 0,054 s | **68,0 s** (×1.259) |
   | Proof size | 1.274.074 B | 1.468.175.345 B |
 
   Đây là **chi phí kiểm một proof Groth16 ở bên trong guest**, không phải chi phí
@@ -1722,7 +1722,7 @@ Không còn giả định ngoài nào. Đây mới là recursion đúng nghĩa.
 | | manifest chain | recursive |
 | --- | ---: | ---: |
 | Cycles | 879.949 (T=32) | 842.030.244 |
-| Prove | 1,4 s | 385,9 s |
+| Prove | 1,4 s | 392,1 s |
 | Proof con được kiểm bằng mật mã trong guest? | **không** | **có** |
 
 **Vì sao giữ cả hai** thay vì chỉ dùng cái mạnh: chúng đo hai thứ khác nhau. Chế

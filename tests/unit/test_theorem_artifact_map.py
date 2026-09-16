@@ -1,4 +1,5 @@
-﻿import tempfile
+﻿import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -10,10 +11,17 @@ class TheoremArtifactMapTests(unittest.TestCase):
     def test_theorem_map_file_exists(self):
         self.assertTrue((ROOT / "docs/theorem_artifact_map.md").exists())
 
-    def test_all_8_theorem_entries_exist(self):
+    def test_every_theorem_label_has_a_map_entry(self):
+        # Keyed by label rather than by number: inserting a statement renumbers
+        # every theorem after it, and this map has already pointed at the wrong
+        # numbers because of that.
         text = (ROOT / "docs/theorem_artifact_map.md").read_text(encoding="utf-8")
-        for idx in range(1, 9):
-            self.assertIn(f"Theorem {idx}", text)
+        tex = (ROOT / "paper/sections/theorems.tex").read_text(encoding="utf-8")
+        labels = re.findall(r"\\label\{(thm:[a-z-]+)\}", tex)
+        self.assertEqual(len(labels), 10, labels)
+        for label in labels:
+            with self.subTest(label=label):
+                self.assertIn(f"`{label}`", text)
 
     def test_theorem_7_is_proof_manifest_not_true_recursion(self):
         text = "\n".join(

@@ -555,7 +555,11 @@ def check_theorem_artifact_map_sources(root: Path | None = None) -> Dict[str, An
         }
     text = "\n".join(path.read_text(encoding="utf-8", errors="replace") for path in paths.values())
     lowered = text.lower()
-    missing_theorems = [f"Theorem {idx}" for idx in range(1, 9) if f"theorem {idx}" not in lowered]
+    # Keyed by label, not by number: check_theorem_artifact_map.py owns the
+    # list, and numbers drift whenever a statement is inserted.
+    from scripts.experiments.check_theorem_artifact_map import REQUIRED_THEOREMS
+
+    missing_theorems = [label for label in REQUIRED_THEOREMS if label not in lowered]
     required_terms = [
         "relation/component",
         "sp1 backend / verifier",
