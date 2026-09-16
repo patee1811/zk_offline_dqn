@@ -1,0 +1,27 @@
+{
+  "aggregation_mode": "recursive_sp1",
+  "child_proof_count": 2,
+  "child_proof_mode": "native_sp1",
+  "children": [
+    {
+      "child_proof_hash": "e7689c050e16bad999ad29181aa6393492e501e89bf6025ddcd48c0925a49bc0",
+      "child_public_inputs_hash": "05cbba98f8ea03ad37f9380a911f0991455662a8d7ae702edcbecd25a21b052c",
+      "child_vkey_hash": "0x00af86d864b647e2a492cf5d6c37245e7416c09a5deb65b4b7a27b6cfc010e93",
+      "chunk_id": 0,
+      "proof_bytes_committed": false,
+      "step_end": 780,
+      "step_start": 624
+    },
+    {
+      "child_proof_hash": "0556c955f8ba862a746cc7ce155cd6791b20d19326b0012c2d0444d577e0a883",
+      "child_public_inputs_hash": "92ed6aa532673f7105aa025466f8687634166b25f64e0a98823cf00040483935",
+      "child_vkey_hash": "0x00af86d864b647e2a492cf5d6c37245e7416c09a5deb65b4b7a27b6cfc010e93",
+      "chunk_id": 1,
+      "proof_bytes_committed": false,
+      "step_end": 936,
+      "step_start": 780
+    }
+  ],
+  "expected_child_vkey_hash": "0x00af86d864b647e2a492cf5d6c37245e7416c09a5deb65b4b7a27b6cfc010e93",
+  "relation": "training_aggregation"
+}

@@ -29,14 +29,15 @@ runs the configuration the SP1 relation checks: batch size 1, plain SGD at
 $0.01$, component-wise gradient clipping, and a target-sync interval of
 $2{,}000$.
 
-\textbf{SP1 proving environment.} All proof rows in
-\Cref{tab:proof-cost} were generated in a single pass on one AWS g5.2xlarge
-instance (NVIDIA A10G, 8 vCPU, 32\,GB) with SP1 6.1.0, so prove times within
-the table are comparable. Twelve rows ran on the CUDA prover and thirteen on
-the CPU prover; the choice is not ours to make per row, since only the
-\texttt{training\_fragment} and \texttt{training\_aggregation} hosts have a
-CUDA path. Every row records which prover produced it. Recursive aggregation
-runs on GPU only: the CPU prover did not complete within 61\,GB of host memory.
+\textbf{SP1 proving environment.} Every proof row in
+\Cref{tab:proof-cost} was generated on an AWS g5.2xlarge instance (NVIDIA
+A10G, 8 vCPU, 32\,GB) with SP1 6.1.0, under the CUDA prover, and each row
+records the prover that produced it. An earlier version of the table mixed
+provers, because six of the eight hosts had no CUDA path in them at all; the
+hosts now select the prover from the environment, so the prove-time column
+compares like with like. Recursive aggregation runs on GPU only in a stronger
+sense: the CPU prover did not complete those rows within 61\,GB of host
+memory.
 
 \textbf{Reported numbers.} Tables~\ref{tab:rl-performance}
 and~\ref{tab:proof-cost} are generated from the committed CSV files under
@@ -103,9 +104,10 @@ aggregation scaling behavior.
 \end{tikzpicture}
 \caption{Cycle counts for proof-verified relations, log scale. Cycles rather
 than wall-clock time: cycles are deterministic given a guest ELF and an input,
-whereas prove time depends on the prover, and this table mixes CPU and GPU rows.
-Recursive rows (R16--R64) are two orders of magnitude above the fragments they
-aggregate.}
+whereas prove time depends on the machine. Moving ten rows from the CPU to the
+CUDA prover left every cycle count in this figure unchanged and cut their prove
+times by $51$--$62\times$. Recursive rows (R16--R64) are two orders of
+magnitude above the fragments they aggregate.}
 \label{fig:proof-cost}
 \end{figure}
 

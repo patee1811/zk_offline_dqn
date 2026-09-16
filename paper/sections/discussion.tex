@@ -102,10 +102,11 @@ regardless, except for Groth16, whose in-circuit SNARK check takes $68$\,s.
 Several scaling directions are available:
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{GPU acceleration, measured.} Moving the fragment and
-  aggregation hosts to a CUDA prover cut a $k\!=\!8$ fragment from $145$\,s to
-  $3.8$\,s. The remaining CPU rows are relations whose hosts have no CUDA path
-  at all, which is why the cost table reports the prover per row.
+  \item \textbf{GPU acceleration, measured.} Giving the remaining six hosts a
+  CUDA path and re-proving their ten rows cut prove times by $51$--$62\times$
+  ($90.4$\,s to $1.78$\,s for Fwd-TD MLP, $50.2$\,s to $0.86$\,s for Merkle
+  membership) at cycle counts identical to the digit. The speedup is in the
+  prover, not in the relation, which is why the table is read in cycles.
   \item \textbf{Longer runs under one proof.} The aggregate guest already
   verifies child proofs in-circuit, so trace length is bounded by budget rather
   than by construction: the 1248-step trees cost roughly one GPU hour each, and

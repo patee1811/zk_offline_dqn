@@ -1,16 +1,16 @@
 {
   "backend_version": "0.1.0",
   "cycle_count": 116750,
-  "git_commit": "83e5f305703f0ac5c85b213e73fc7dc3fce95985",
+  "git_commit": "68cfd323236a0a8f334d79f9d84ac510957c6e45",
   "guest_elf_sha256": "1d74268f978b27cc82cf7dcc5658e387cb285bcfb95df9838348a177e84fe1d0",
   "proof_generated": true,
   "proof_size_bytes": 2779510,
   "proof_verified": true,
-  "prove_time_seconds": 50.203970284,
-  "prover": "cpu",
+  "prove_time_seconds": 0.86279849,
+  "prover": "cuda",
   "public_inputs_sha256": "0a43b22dcfca73f64fc401123ce5ce00ea0b978134e7f79306d8bd827f6aa1ed",
   "relation": "merkle_membership",
   "sp1_version": "6.1.0",
   "test_vector_sha256": "016c16a4786f7f35d508f8f1f0ed7b3351111dc64b9ba4fcbe4ed2313f031576",
-  "verify_time_seconds": 0.122552381
+  "verify_time_seconds": 0.124657196
 }

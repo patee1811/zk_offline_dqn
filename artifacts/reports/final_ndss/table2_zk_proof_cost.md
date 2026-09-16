@@ -2,12 +2,12 @@
 
 | Relation | Variant | Scale Axis | Status | Prove Time (s) | Verify Time (s) | Proof Size (bytes) | Cycle Count | Prover | Peak RSS (MB) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| td_mvp | canonical | relation | proof_verified | 60.49624495 | 0.124127551 | 2783869 | 434785 | cpu |  |
-| merkle_membership | canonical | merkle_depth | proof_verified | 50.203970284 | 0.122552381 | 2779510 | 116750 | cpu |  |
-| forward_td_mlp | canonical_tiny | network | proof_verified | 90.389507192 | 0.125129811 | 2798897 | 1628852 | cpu |  |
-| one_step_sgd_tiny | canonical_tiny | network | proof_verified | 71.527741481 | 0.124751534 | 2790551 | 928948 | cpu |  |
-| short_trace | canonical | trace_length | proof_verified | 51.787273056 | 0.123439925 | 2779989 | 122067 | cpu |  |
-| training_update | batch1_tiny | batch_size | proof_verified | 61.319989572 | 0.124674041 | 2785799 | 494177 | cpu |  |
+| td_mvp | canonical | relation | proof_verified | 1.04340432 | 0.125764321 | 2783869 | 434785 | cuda |  |
+| merkle_membership | canonical | merkle_depth | proof_verified | 0.86279849 | 0.124657196 | 2779510 | 116750 | cuda |  |
+| forward_td_mlp | canonical_tiny | network | proof_verified | 1.778908419 | 0.129028191 | 2798897 | 1628852 | cuda |  |
+| one_step_sgd_tiny | canonical_tiny | network | proof_verified | 1.349984525 | 0.127010936 | 2790551 | 928948 | cuda |  |
+| short_trace | canonical | trace_length | proof_verified | 0.881319949 | 0.125628844 | 2779989 | 122067 | cuda |  |
+| training_update | batch1_tiny | batch_size | proof_verified | 0.997119924 | 0.125730845 | 2785799 | 494177 | cuda |  |
 | training_fragment_k1 | k1 | trace_length | proof_verified | 1.619504343 | 0.127261229 | 2791999 | 935015 | cuda |  |
 | training_fragment_k4 | k4 | trace_length | proof_verified | 2.094624044 | 0.127717316 | 2808599 | 2367608 | cuda |  |
 | training_fragment_k8 | k8 | trace_length | proof_verified | 3.293015934 | 0.128721639 | 2830831 | 4258262 | cuda |  |
@@ -23,10 +23,10 @@
 | training_update | batch8 | batch_size | not_supported_current_backend |  |  |  |  |  |  |
 | training_update | batch16 | batch_size | not_supported_current_backend |  |  |  |  |  |  |
 | training_update | network_small | network | not_supported_current_backend |  |  |  |  |  |  |
-| merkle_membership | dataset_1000 | dataset_size | proof_verified | 57.741494579 | 0.123351378 | 2782933 | 357965 | cpu | 10308.496 |
-| merkle_membership | dataset_10000 | dataset_size | proof_verified | 59.349334546 | 0.123584692 | 2783958 | 470318 | cpu | 10680.688 |
-| merkle_membership | dataset_50000 | dataset_size | proof_verified | 60.343401029 | 0.123304088 | 2784470 | 526578 | cpu | 10680.688 |
-| merkle_membership | dataset_100000 | dataset_size | proof_verified | 60.826582997 | 0.123102936 | 2784983 | 554100 | cpu | 10729.043 |
+| merkle_membership | dataset_1000 | dataset_size | proof_verified | 0.925883929 | 0.12542975 | 2782933 | 357965 | cuda | 125.172 |
+| merkle_membership | dataset_10000 | dataset_size | proof_verified | 0.99340296 | 0.126355242 | 2783958 | 470318 | cuda | 125.172 |
+| merkle_membership | dataset_50000 | dataset_size | proof_verified | 0.983866823 | 0.125704957 | 2784470 | 526578 | cuda | 125.176 |
+| merkle_membership | dataset_100000 | dataset_size | proof_verified | 0.985963135 | 0.125770086 | 2784983 | 554100 | cuda | 125.176 |
 | native_flat_recursive_t16 | true_recursive_native | recursive_aggregation | proof_verified | 189.716878495 | 0.053988435 | 1274074 | 422706047 | cuda |  |
 | native_flat_recursive_t32 | true_recursive_native | recursive_aggregation | proof_verified | 392.116108613 | 0.059485475 | 1274074 | 842030244 | cuda |  |
 | native_flat_recursive_t64 | true_recursive_native | recursive_aggregation | proof_verified | 770.648105341 | 0.053907619 | 1274074 | 1683536040 | cuda |  |
