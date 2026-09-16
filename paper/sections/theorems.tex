@@ -175,6 +175,21 @@ rather than a property of the host integer width, so it survives a change of
 encoding.
 \end{proof}
 
+\noindent\emph{Remark.} Constructions that arithmetise training over a prime
+field choose the field wide enough for the range they expect and are done;
+Kaizen~\cite{kaizen2024} does exactly this. The statement above is not a
+replacement for that choice and does not improve on it. What it adds is
+specific to value learning: the range a value-based run will occupy is not
+known in advance, because offline $Q$-learning diverges on some datasets and
+the divergence is exponential rather than gradual. A width chosen for ``the
+expected range'' is therefore an assumption about the training run, not about
+the encoding, and it is the assumption most likely to be silently violated by
+the very runs a regulator would want to inspect. \Cref{thm:value-bound} moves
+that assumption out of the parameter choice and into the public statement, so
+the verifier reads the admitted range instead of trusting that one was picked
+correctly --- and an accepted proof carries the evidence that the run stayed
+inside it.
+
 \begin{theorem}[Chunk-chain and recursive aggregation soundness]
 \label{thm:manifest-aggregation}
 For accepted proof-manifest-chain aggregation instances with

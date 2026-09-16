@@ -3,12 +3,15 @@ A recent survey of zero-knowledge verifiable machine learning scopes itself to
 supervised learning, and the training systems it covers are for regression,
 support vector machines, $K$-means, decision trees and deep networks; no
 reinforcement-learning system appears. Value-based RL is not simply a larger
-computation: it carries three verification obligations supervised constructions
-never meet. Its labels are produced by the model being trained, so a proof must
-cover how each label was derived; target-network synchronisation is a discrete
-event a prover can move while keeping the run internally consistent; and replay
-sampling has no canonical order, so a prover who picks the draw picks the data
-the claim is about. We present a
+computation: it carries three verification obligations, two of which supervised
+constructions never meet and one of which it meets in a weaker form. Its labels
+are produced by the model being trained, so a proof must cover how each label
+was derived; target-network synchronisation is a discrete event a prover can
+move while keeping the run internally consistent; and where a supervised proof
+of training can fix the order of a training epoch with a publicly derived
+permutation that spends every record exactly once, replay sampling draws with
+replacement and touches a vanishing fraction of the buffer, so a prover who
+picks the draw picks the data the claim is about. We present a
 layered artifact system that gives zero-knowledge proof-backed verification of
 offline Deep Q-Network (DQN) training over provenance-bound committed replay
 data. Datasets are committed with SHA-256 Merkle trees after a replay audit.

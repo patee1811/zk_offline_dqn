@@ -38,14 +38,15 @@ Several important limitations are inherent to the current scope:
   LunarLander, with PointMaze backing the public dataset-scaling rows.
   Atari-scale or MuJoCo-scale proofs would require more efficient
   neural-network circuits: a MinAtar-sized network needs $16$--$33$ billion
-  cycles per leaf against the $1.68$ billion we have proved.
+  cycles per leaf, against the $6.19$ billion of the largest row we have
+  proved.
 
   \item \textbf{Recursive aggregation needs a GPU.} The aggregate guest
-  verifies child proofs cryptographically for $T \in \{16, 32, 64\}$ and for the
-  two whole-run binary trees, but only under a CUDA prover: peak device memory
-  is $18.4$~GB, and the CPU prover did not complete within $61$~GB of host
-  memory. The $T \in \{32, 64, 128\}$ rows remain proof-manifest chains by
-  choice, so the table reports both aggregation modes side by side.
+  verifies child proofs cryptographically for $T \in \{16, 32, 64\}$ and for all
+  three whole-run binary trees, but only under a CUDA prover: peak device memory
+  is $18.4$~GB and flat in $T$, while the CPU prover did not complete within
+  $61$~GB of host memory. The $T \in \{32, 64, 128\}$ rows remain proof-manifest
+  chains by choice, so the table reports both aggregation modes side by side.
 
   \item \textbf{No honest collection for public data.} Minari/D4RL imports
   are source-integrity commitments. The system does not prove that the
@@ -58,13 +59,17 @@ Several important limitations are inherent to the current scope:
   self-consistency, but the prover chooses its value: a verifier reads the
   declared range off the statement rather than being given a canonical one.
 
-  \item \textbf{Guest binaries are not reproducible across build paths.}
-  Provenance records \texttt{guest\_elf\_sha256} for every proved row, which
-  detects a table assembled from a partly re-proved tree. It is not a portable
-  identity: the same source built under two different directories yields two
-  hashes, because guests reached through an out-of-workspace path dependency
-  embed that path. Reviewers rebuilding from a clean clone should compare cycle
-  counts, which are deterministic in the (ELF, input) pair.
+  \item \textbf{Guest binaries are reproducible, but only inside the pinned
+  image.} Provenance records \texttt{guest\_elf\_sha256} for every proved row.
+  Building the guests in the SP1 release image at a pinned tag makes that hash
+  portable: five of the eight workspaces built to the same digest on an Ubuntu
+  WSL host and on the EC2 instance, byte for byte. The qualification is that the
+  identity belongs to the image rather than to the source --- a different SP1
+  release compiles the same Rust to a different guest, and the tag is what the
+  repository pins. Outside the image the hash reverts to identifying the build:
+  before we pinned it, the same source under two directories produced two
+  hashes. Cycle counts remain the stronger invariant, deterministic in the
+  (ELF, input) pair.
 
   \item \textbf{Tamper rejection does not cover relation semantics.} Each of
   the 236 cases perturbs a committed field and checks that verification fails.
@@ -152,7 +157,8 @@ RL-specific relations & --- & --- & --- & --- & --- & \checkmark \\
 Replay membership proof & --- & --- & --- & --- & --- & \checkmark \\
 Bellman/TD target proof & --- & --- & --- & --- & --- & \checkmark \\
 Target-network proof & --- & --- & --- & --- & --- & \checkmark \\
-Dataset commitment & --- & --- & --- & --- & --- & \checkmark \\
+Dataset commitment & --- & --- & \checkmark & $\sim$ & --- & \checkmark \\
+Sampling/order integrity & --- & --- & \checkmark & --- & --- & \checkmark \\
 Checkpoint chaining & --- & --- & \checkmark & --- & --- & \checkmark \\
 Multi-step composition & --- & \checkmark & \checkmark & --- & --- & \checkmark \\
 Recursive aggregation & --- & --- & \checkmark & --- & --- & \checkmark \\
@@ -167,6 +173,91 @@ For our system, $\sim$ under training verification means proof-backed
 training fragments and whole-run aggregation over a committed dataset; it does
 not denote a proof of model selection, optimizer state, or initialization.
 Recursive aggregation is marked supported because the aggregate guest verifies
-each child proof in-circuit, under a CUDA prover.
+each child proof in-circuit, under a CUDA prover. Kaizen is marked supported
+for dataset commitment and for sampling integrity: it commits the training set
+and derives each epoch's ordering publicly. The row we claim there is not the
+existence of the mechanism but its fit to a sampler that draws with
+replacement, which \Cref{subsec:kaizen-applied} works through.
 \end{minipage}
 \end{table*}
+
+\subsection{What a Supervised Proof of Training Covers Here}
+\label{subsec:kaizen-applied}
+
+The claim that a supervised proof-of-training construction does not discharge
+these obligations should be argued rather than asserted, so we take the closest
+system --- Kaizen~\cite{kaizen2024}, a zkPoT for deep networks with recursive
+composition --- and apply its training step to our relation line by line.
+
+Its per-iteration statement covers the forward pass, the backward pass and the
+parameter update for a batch drawn from a committed dataset, with the residual
+at the output layer formed from the \emph{labels carried by that batch}. Three
+things follow, and none of them is a deficiency of Kaizen in its own setting.
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{No line produces a label.} The residual reads a label that the
+  commitment already fixes. A TD target does not exist until the target network
+  evaluates the next state, so an offline-DQN statement must contain a second
+  forward pass whose inputs are a checkpoint, not data, and must bind that
+  checkpoint to the chain. There is nothing in a supervised iteration to
+  specialise for this; the computation is simply absent.
+  \item \textbf{No line advances a second model.} Target-network
+  synchronisation is a step-indexed event that rewrites the network the labels
+  come from. A construction with one model has no place to put it, and a
+  verifier reading a correct-looking supervised transcript cannot tell whether
+  the sync schedule it assumed was the one the prover ran.
+  \item \textbf{The permutation solves order, not selection.} A public
+  permutation makes every record appear exactly once per epoch, so grinding the
+  seed permutes a set the verifier already knows. Sampling with replacement
+  from a buffer that a run never exhausts leaves the \emph{subset} to the
+  prover, and it is the subset, not the order, that decides what the reported
+  return is a statement about.
+\end{itemize}
+
+\noindent Composition transfers; semantics do not. Kaizen's recursive structure
+is exactly the shape our aggregation needs, and we use the same idea. What does
+not transfer is the content of the statement being composed, which is why the
+obligations in \Cref{sec:relations} are stated over checkpoints, sync events
+and a commitment-derived sampler rather than over batches and labels.
+
+\subsection{Where the Prover's Time Actually Goes}
+\label{subsec:cost-shape}
+
+One cost result in this paper is worth stating as a property of the problem
+rather than of our implementation, because a second, independent system reaches
+it from the opposite direction. Recomputing the shares in Kaizen's own prover
+breakdown gives the following, where ``commitment'' is the cost of committing
+to model state rather than of proving any arithmetic on it:
+
+\begin{center}\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Prover time component} & \textbf{VGG-11 (10.1M)} & \textbf{LeNet (61.7k)} \\
+\midrule
+Commitment generation & $51.3\%$ & $55.1\%$ \\
+Proof of aggregation & $16.1\%$ & $10.3\%$ \\
+Proof of the verifier circuit & $12.0\%$ & $27.3\%$ \\
+Proof of gradient descent itself & $20.7\%$ & $7.3\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent Committing to the model dominates, and it dominates \emph{more} as
+the network gets smaller: on the $61.7$k-parameter network the learning step
+the system exists to prove accounts for $7.3\%$ of the prover's time. Our own
+relation showed the same shape from a different construction. Hashing model
+state four times per training step cost $76\%$ of the cycles in a $[4,64,2]$
+leaf; replacing three of those hashes with a structural equality against the
+previous step's output --- equal models have equal commitments, and a few
+hundred integer comparisons are cheaper than a SHA-256 over a rendered model
+--- made a real $k=156$ leaf $1.79\times$ cheaper and the whole $15$-node tree
+$1.45\times$, at byte-identical public outputs.
+
+Two very different stacks, a proof system built for the task and a
+general-purpose zkVM, therefore agree that at the model sizes anyone can
+currently prove, the
+binding to model state, not the arithmetic of learning, is the thing to
+optimise. We read this as a statement about the current cost regime of
+proof-of-training rather than about either system, and it is the reason we
+report cycles per relation rather than seconds per epoch.
