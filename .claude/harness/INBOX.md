@@ -284,102 +284,102 @@ Format:
 **Bài học:** 154M là số đo **trước** khi bật `overflow-checks`. Recursion chịu chi phí kiểm tràn nặng nhất (+36,8% đã ghi ở dòng khác của cùng file rules), và 154 × 1,368 ≈ 211 — khớp. Cùng lớp lỗi: `23.571 cycles/tầng` của `merkle_membership` nay là **≈ 28.000** (hồi quy trên 4 dòng Bảng 2: 28.088 / 28.130 / 27.522 mỗi tầng), khớp với +17,7% đã ghi. Mọi con số cycles ghi trong rules trước 07-09 cần soát lại theo cùng cách.
 **Đích đề xuất:** `rules/90-domain/experiments.md` dòng recursion; và soát dòng Merkle nếu có.
 **Độ tin cậy:** cao (tính từ chính bảng đã commit, khớp hệ số +36,8% / +17,7% đã đo độc lập)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-10 — phát hiện mới — scope paper
 **Kích hoạt:** `CLAUDE.md` bất biến số 6 ghi "**Theorem 7** nay gồm hai chế độ: proof-manifest chain … và recursive_sp1". Đọc `paper/sections/theorems.tex`: thứ tự xuất hiện là 1 replay-membership, 2 dataset-commitment, 3 bellman-target, 4 update-correctness, 5 checkpoint-chain, 6 training-fragment, **7 sampler-binding**, **8 value-bound**, **9 manifest-aggregation**, 10 privacy-boundary.
 **Bài học:** chèn hai định lý mới (sampler binding, bounded fixed-point) ở vị trí 7–8 đã đẩy định lý aggregation từ **7 sang 9**. Bất biến trong `CLAUDE.md` còn trỏ số cũ, nên một agent đọc rule rồi đi sửa "Theorem 7" sẽ sửa nhầm định lý. Nên trỏ bằng **label** (`thm:manifest-aggregation`) thay vì số — số định lý trôi mỗi lần chèn.
 **Đích đề xuất:** `CLAUDE.md` bất biến 6; cân nhắc quy ước chung "trỏ định lý bằng label, không bằng số".
 **Độ tin cậy:** cao (đọc trực tiếp thứ tự `\begin{theorem}` trong `theorems.tex`)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-12 — phát hiện mới — scope relations
 **Kích hoạt:** đọc lại lớp 2 để giải thích luồng. `CLAUDE.md` bất biến 1 ghi "nhân cố định `(a * b) // fp_scale` — không `round`". Code thật là `div_trunc_zero` (`relations/training_update.py:21`): `sign * (abs(num) // den)`, tức **cắt về phía 0**. Hai quy tắc chỉ trùng nhau khi tích không âm. Ví dụ thật từ `training_fragment_cartpole_expert_k1`: `gamma=990`, `q_target_next=-40` → tích `-39600`. Python `//` cho `-40`, code cho `-39`, và `td_target` đã commit là `961 = 1000 + (-39)`.
 **Bài học:** một agent đọc bất biến rồi viết `(a*b) // scale` sẽ lệch 1 đơn vị fixed-point ở **mọi** phép nhân có tích âm — Q âm là chuyện thường trong DQN. Rust `i64` chia cũng cắt về 0, nên bản Rust đang đúng; chỉ câu chữ trong `CLAUDE.md` sai. Nên ghi là "cắt về 0 (`div_trunc_zero`), **không** phải `//` của Python, và không `round`".
 **Đích đề xuất:** `CLAUDE.md` bất biến 1; cân nhắc nhắc lại ở `rules/90-domain/relations.md`.
 **Độ tin cậy:** cao (đọc `div_trunc_zero` + đối chiếu `td_target` trong vector đã commit)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-12 — người sửa — scope harness
 **Kích hoạt:** người dùng sửa lại trong phiên
 **Bài học:** ý tôi là bạn tự research ý tưởng luôn ý
 **Đích đề xuất:** /harness-sync quyết định
 **Độ tin cậy:** thấp (tự động, chưa duyệt)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-15 — sửa số cũ — scope backends
 **Kích hoạt:** chạy G1 thật trong WSL (Ubuntu 26.04, toolchain SP1 `d454975`, target **riscv64im**). Build guest `training_fragment` ở hai đường dẫn dài 26 và 37 ký tự, `build.rs` hiện tại (chỉ remap): **hash giống hệt nhau** — `3fc8ee1240c8cf96…`, 340.168 byte ở cả hai.
 **Bài học:** giả thuyết ghi ngày 09-09 — *"chính cờ remap khác nhau giữa hai lượt build và cargo băm cờ vào metadata"* — **sai**. Cờ remap chứa repo root nên khác nhau giữa hai lượt, mà hash không đổi. Sâu hơn: đường dẫn repo **không hề lọt vào ELF** trên toolchain này (`strings` đếm 0 chuỗi chứa đường dẫn repo), nên comment trong `build.rs` — *"Exactly one absolute path reaches the binary"* — đúng với toolchain cũ nhưng **không còn đúng**. Rò rỉ còn lại là **9 đường dẫn cargo registry** dạng `/home/<user>/.cargo/registry/src/…`: giống nhau trên cùng máy, **khác trên máy khác** — đó mới là rào cản tái lập.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md` dòng `guest_elf_sha256`; và sửa comment trong cả 8 `build.rs`.
 **Độ tin cậy:** cao (hai lượt build, đối chứng có/không docker, đếm `strings`)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-15 — phát hiện mới — scope backends
 **Kích hoạt:** `BuildArgs { docker: true }` (`sp1-build-6.1.0/src/lib.rs:41`, mô tả *"Run compilation using a Docker container for reproducible builds"*) build ở hai đường dẫn khác nhau.
 **Bài học:** **docker mode giải quyết được tái lập giữa các máy.** Hash giống nhau ở cả hai đường dẫn (`5ef933421e130c04…`, 340.144 byte) và **`/home/<user>` biến mất hoàn toàn** (9 → 0), thay bằng `/root/.sp1/toolchains/…` là đường dẫn cố định trong container. Chi phí: lần đầu **+6m45s** kéo image, lần sau **16 giây**. Hai cảnh báo vận hành: (a) docker build chạy **bằng root**, để lại `target/elf-compilation` thuộc root nên build thường sau đó chết với `Permission denied` — phải xoá bằng `docker run --rm -v … alpine rm -rf` nếu không có sudo; (b) ELF docker nằm ở `target/elf-compilation/**docker**/riscv64im-…`, khác chỗ bản thường.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`
 **Độ tin cậy:** cao (đo trực tiếp, có đối chứng)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-15 — phát hiện mới — scope backends
 **Kích hoạt:** soát path dependency của cả tám guest để tìm nguyên nhân dòng t4992 lệch hash.
 **Bài học:** chỉ **`forward_td_mlp`** và **`one_step_sgd_tiny`** có path dependency ra ngoài workspace (`../../../td_mvp/sp1/shared`). **`training_aggregation` — quan hệ thực sự bị lệch ở dòng t4992 — chỉ có `../shared`**, tức không thuộc nhóm mà ghi chú cũ gán lỗi. Cộng với việc t4992 chạy ở phiên/máy khác và repo **không pin toolchain `succinct`**, nghi vấn hợp lý nhất cho t4992 là **khác phiên bản toolchain**, không phải khác đường dẫn. Bằng chứng gián tiếp: toolchain hiện tại target **riscv64im**, trong khi bản dựng Bảng 2 nhiều khả năng là **riscv32im**. Hệ quả: **pin toolchain** (`rust-toolchain.toml` hoặc `sp1up --version`) là cách sửa **miễn phí** và có thể đúng nguyên nhân hơn docker; hai cách bổ sung nhau chứ không thay thế.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`; cân nhắc thêm pin toolchain vào repo
 **Độ tin cậy:** cao cho phần soát path dependency; **nghi vấn toolchain chưa kiểm trực tiếp** (không có bản ghi toolchain của lượt chạy t4992 — `sp1_version` là chuỗi hardcode)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-15 — phát hiện mới — scope backends
 **Kích hoạt:** M1c — đo `--execute` ba biến thể của `verify_training_fragment` trên cùng một cây, cùng toolchain. Số lần `model_commitment` mỗi bước: 4 → 3 → 1.
 **Bài học:** **một lần `model_commitment` trên mô hình 450 tham số tốn ~617.000 cycles**; trên mô hình 12 tham số tốn ~42.500. Khớp mô hình `26.800 cố định + 1.311 cycles mỗi tham số` — tức **1.311 cycles để băm một tham số**, do render số nguyên thành chuỗi thập phân rồi SHA-256. Với lá thật của cây whole-run (`[4,64,2]`, k=156, 504.115.089 cycles = 3.231.507 mỗi bước), bốn lần gọi chiếm **76% chi phí mỗi bước**. Bỏ 3 trong 4 lần: lá rẻ **2,33×**, cả cây **1,68×** → cùng ngân sách chứng minh được ~8.400 bước thay vì 4.992. Cả sáu lượt đo cho `final_checkpoint_hash` **giống hệt nhau** → bảo toàn ngữ nghĩa xác nhận bằng thực nghiệm. Cảnh báo khi cài đặt thật: biến thể đo đọc giá trị từ witness nên `assert` thành tầm thường và **làm yếu quan hệ**; bản thật phải **mang giá trị đã tính từ bước trước sang**.
 **Đích đề xuất:** `rules/90-domain/relations.md` hoặc `sp1-backend.md`; và là cơ sở cho việc sửa `shared/src/lib.rs`
 **Độ tin cậy:** cao (hai cách tính giá mỗi lần gọi khớp nhau trong 0,6%; hai cỡ mạng; output bất biến)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-15 — thất bại — scope harness
 **Kích hoạt:** hai lần trong cùng một phiên tôi đưa ra con số không có phép đo chống lưng, và **cả hai đều sai theo hướng làm hỏng quyết định**.
 **Bài học:** (a) Tôi cảnh báo hai lần rằng *"toolchain khác nên cycles sẽ không so được với Bảng 2"*. Đo thật: 4.646.**392** so với 4.646.**677** đã commit — lệch **0,006%**. Cảnh báo quá đà suýt làm vứt bỏ giá trị của cả phép đo. (b) Tôi ước *"lá rẻ đi 2,5–3,5×, cả cây 2–2,5×"* bằng cách suy từ **byte băm**. Đo thật: lá **2,33×**, cả cây **1,68×** — vì phần số học và Merkle path không đổi nên làm loãng tỉ lệ tổng. **Không suy tỉ lệ chi phí tổng từ khối lượng của một thành phần con**; phải đo tổng. Cùng lớp với lỗi "khái quát từ một điểm đo" đã ghi ở 1.7.0.
 **Đích đề xuất:** `rules/00-nguyen-tac-coi-loi.md` — mục "Nói rõ mức chắc chắn", thêm vế: ước lượng phải nói rõ nó suy từ đâu, và tỉ lệ tổng chỉ được suy từ phép đo tổng.
 **Độ tin cậy:** cao (hai lần trong một phiên, có số đo đối chiếu)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-16 — sửa mục cũ — scope backends
 **Kích hoạt:** build thật cả 8 workspace dưới docker mode; 3 cái hỏng.
 **Bài học:** mục 2026-09-15 viết *"`training_aggregation` chỉ có `../shared`, tức không thuộc nhóm có path dependency ra ngoài workspace"* — **sai**. Phép soát đó chỉ nhìn `guest/Cargo.toml`; phụ thuộc thoát ra nằm sâu hơn một tầng, ở `shared/Cargo.toml` (`training-aggregation-shared` → `training-fragment-shared`). Docker mount đúng **một** thư mục, nên cả ba (`forward_td_mlp`, `one_step_sgd_tiny`, `training_aggregation`) build hỏng với rc=101 cho đến khi mount ở tổ tiên chung: `workspace_directory: Some(zk_backend)`. Bài học chung: soát phụ thuộc phải đi **đệ quy qua mọi crate trong workspace**, không chỉ crate guest.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md`
 **Độ tin cậy:** cao (3/8 hỏng trước, 8/8 xanh sau khi sửa)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-16 — phát hiện mới — scope experiments
 **Kích hoạt:** đi tìm tham số đã sinh ra hai dòng `binary_tree_native_t1248` của Bảng 2; thư mục làm việc chỉ còn **một** bản.
 **Bài học:** `run_phase7...validation.py` đặt tên thư mục làm việc và file case **chỉ theo target**: `_binary_native_work/t{T}` và `_binary_native_cases/..._t{T}_case_0.json`. Hai cây cartpole và lunarlander cùng T=1248 nên cây chạy sau **ghi đè** cây chạy trước, và thư mục làm việc là **nơi duy nhất còn ghi learning_rate / target_sync_interval / layer_sizes của lá**. Hệ quả thật: tham số cây cartpole đã mất khỏi repo. Cách chạy đúng: mỗi môi trường một `--out-root` riêng, rồi đổi tên thư mục provenance về `..._t{T}_{env}`. Cách khôi phục khi đã mất: tính lại `config_hash_from_fragment_public` trên không gian tham số nhỏ rồi so với `config_hash` trong `public_inputs.json` đã công bố — dò ra đúng bộ `(dataset_size, learning_rate, target_sync_interval, gradient_clip_fp)`, không phải đoán.
 **Đích đề xuất:** `rules/90-domain/experiments.md`; cân nhắc sửa script để tên thư mục mang cả dataset
 **Độ tin cậy:** cao (khôi phục xong cả ba cây, khớp hash tuyệt đối)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-16 — phát hiện mới — scope experiments
 **Kích hoạt:** chuẩn bị máy GPU cho phiên 2.
 **Bài học:** ba thứ chặn một lượt thuê máy mà không lộ ra cho tới phút chót: (a) `artifacts/datasets/` bị gitignore, nên bản clone trên máy **không có** `raw_episodes.jsonl` — phải chuyển riêng; gói 3 dataset bỏ `collection_log.jsonl` (không cần cho `provenance_from`) còn **26,7 MB** nén, lên máy trong 11 giây; (b) khoá riêng của key pair `zk-sp1-v2` **không còn trên máy** (bản `zk-sp1.pem` trong Downloads là của key cũ đã xoá — vân tay SHA1 của DER không khớp), phải tạo key mới; (c) `g5.2xlarge` **hết chỗ ở us-east-1a và 1b** trong cùng một phút — `run-instances` phải thử vòng qua các subnet theo AZ thay vì cắm cứng một cái.
 **Đích đề xuất:** `rules/90-domain/experiments.md` mục quy trình thuê máy
 **Độ tin cậy:** cao (cả ba đều gặp thật trong phiên này)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-16 — phát hiện mới — scope relations
 **Kích hoạt:** cổng tương đương cuối trước khi thuê máy: sinh lại 8 lá thật của cây t1248 lunarlander bằng code M2 và so với `leaf_cases` đã lưu.
 **Bài học:** M2 (bỏ băm lại mô hình mà chuỗi đã cam kết) **khớp tuyệt đối từng byte** trên lá thật — 156 bước, lưới `[8,64,4]`, dữ liệu lunarlander-expert-v1 thật, cả `public_inputs` lẫn `private_witness`; lá 7 cho `final_checkpoint_hash = 72b68b7c…` đúng bằng `output_checkpoint_hash` của root đã công bố. Cổng này rẻ (22 giây Python) và mạnh hơn hẳn các cổng chạy trên fixture tổng hợp: nó đóng lại khả năng "đúng trên đồ chơi, sai trên dữ liệu thật" **trước khi** tiêu tiền GPU.
 **Đích đề xuất:** `rules/30-kiem-thu.md` — đổi quan hệ thì cổng cuối phải chạy trên lá thật của cây, không chỉ vector canonical
 **Độ tin cậy:** cao (8/8 khớp byte)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-16 — sửa mục cũ — scope backends
 **Kích hoạt:** G4 — thêm nhánh CUDA cho sáu host còn lại.
 **Bài học:** `rules/90-domain/sp1-backend.md` dòng 18 nay **sai**: *"sáu host kia không có nhánh CUDA nào và ghi thẳng `"prover": "cpu"` vào metrics"*. Cả tám host giờ đọc `SP1_CUDA` và ghi nhãn prover thật. Phần còn lại của dòng đó vẫn đúng và vẫn quan trọng: biến môi trường **im lặng theo cả hai chiều**, `nvidia-smi` mới là thứ nói thật. Hai điều kỹ thuật cần ghi kèm: (a) `Prover` có associated type nên không boxing được — phải tách `run_with_prover<P: Prover>`; (b) `setup()` và `prove()` trả `P::Error` **không** phải `StdError`, nên `anyhow::Context` không áp dụng được, phải `map_err`.
 **Đích đề xuất:** `rules/90-domain/sp1-backend.md` dòng 18
 **Độ tin cậy:** cao (build sạch 6/6, ELF trùng hash, đã prove thật trên cả hai prover)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0
 
 ## 2026-09-16 — thất bại — scope experiments
 **Kích hoạt:** G4 lộ ra rằng dòng `td_mvp` của Bảng 2 **chưa hề được prove lại** trong Phiên 2, dù tôi đã báo cáo "cả 26 dòng ra từ một thế hệ guest".
 **Bài học:** `benchmark_sp1_td_mvp.py` ghi `summary.json`, `benchmark_matrix.csv`, `summary.md` — **không ghi `metrics.json`**. File đó chỉ do chính host ghi khi được gọi với `--out-dir`. Tôi đã cho rằng "chạy script phase là provenance được làm mới" mà không kiểm. Cách bắt lỗi rẻ: so `guest_elf_sha256` trong `metrics.json` với hash ELF vừa build — khớp thì mới thật sự là prove lại. Nên đưa phép so này thành bước mặc định sau mỗi lượt prove, thay vì tin vào `rc=0`.
 **Đích đề xuất:** `rules/90-domain/experiments.md`; cân nhắc một cổng script so hash ELF
 **Độ tin cậy:** cao (metrics cũ mang ELF `cd3057f7…`, ELF docker là `6cf19651…`)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** đã áp dụng 1.9.0

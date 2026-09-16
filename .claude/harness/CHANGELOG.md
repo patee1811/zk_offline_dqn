@@ -1,5 +1,29 @@
 # Harness changelog
 
+## 2026-09-16 — 1.9.0
+
+**Kích hoạt:** ba phiên máy liên tiếp (prove lại toàn bộ Bảng 2, cây 4992, nhánh CUDA cho sáu host) đẩy 15 mục vào inbox, trong đó **bốn mục bác bỏ một dòng rule đang có** chứ không bổ sung gì.
+
+**Lý do:** rule sai nguy hiểm hơn rule thiếu. Dòng `guest_elf_sha256` đang dạy một giả thuyết đã được đo là sai, và dòng prover đang mô tả một giới hạn vừa bị gỡ; cả hai đều đọc trôi chảy nên không ai nghi.
+
+**Đã sửa:**
+
+- `90-domain/sp1-backend.md` — viết lại **trọn** dòng `guest_elf_sha256`: docker mode + `tag` giải quyết được tái lập giữa các máy (5 workspace ra cùng sha256 trên hai máy khác hệ điều hành), kèm ba bẫy vận hành (mount một thư mục → soát phụ thuộc đệ quy; build bằng root; ELF nằm ở nhánh `docker/`). Hai giả thuyết cũ ghi rõ là **đã bị bác bỏ** để không ai dựng lại. Dòng prover: cả tám host nay đọc `SP1_CUDA`, kèm hai ràng buộc kiểu mà dạng generic bắt buộc (`Prover` có associated type; `P::Error` không phải `StdError`). Dòng coverage cập nhật theo bảng hiện tại.
+- `90-domain/experiments.md` — 154M → **211M** mỗi proof con (hiệu ứng `overflow-checks`); thêm ba dòng vận hành: `rc=0` **không** chứng minh provenance đã làm mới (so `guest_elf_sha256` với ELF vừa build), thư mục làm việc của cây đặt tên chỉ theo target nên ghi đè mất tham số lá (mỗi môi trường một `--out-root`; khôi phục bằng `config_hash`), và ba thứ chặn một lượt thuê máy (dataset gitignore, khoá EC2 mất, hết chỗ theo AZ) cộng `zk-idle.service`.
+- `90-domain/relations.md` — giá một lần `model_commitment` (26.800 + 1.311 cycles mỗi tham số) và cách cắt **đúng**: thay hash bằng so sánh cấu trúc với bước trước, không phải bỏ hash rồi mang giá trị sang.
+- `rules/00` — ước lượng phải nói suy từ đâu, kèm ba lối suy đã sai thật (tỉ lệ tổng từ thành phần con; nhịp cây nhỏ suy ra cây lớn; cảnh báo cũng là ước lượng).
+- `rules/30-kiem-thu.md` — cổng tương đương cuối phải chạy trên **lá thật của cây**, 22 giây Python, trước khi tiêu tiền GPU.
+- `CLAUDE.md` — bất biến 1: phép nhân là `div_trunc_zero` (cắt về 0), không phải `//` của Python; bất biến 6: trỏ định lý bằng **label**, và `thm:manifest-aggregation` nay gồm cây tới T=4992.
+- `90-domain/paper-claims.md` — bỏ "Theorem 7 = proof-manifest chain", thay bằng phát biểu theo label và phân biệt hai chế độ.
+
+**Gộp:** năm mục về ELF/docker/toolchain vào **một** dòng `guest_elf_sha256` thay vì thêm bốn dòng mới — chúng là cùng một câu chuyện và mục sau bác bỏ mục trước. Hai mục về ước lượng sai gộp vào một vế của `rules/00`.
+
+**Bỏ:** mục 2026-09-12 do `capture_learning.py` tự bắt ("ý tôi là bạn tự research ý tưởng luôn ý") — chỉ thị một lần cho một phiên, không phải quy ước.
+
+**Không lên thang hook:** cổng so `guest_elf_sha256` với ELF vừa build đáng làm nhưng phải biết đường dẫn ELF của từng relation và chỉ có nghĩa ngay sau một lượt prove, nên nó là bước trong script phiên máy chứ không phải PreToolUse.
+
+**Còn ngỏ:** cho `build_deck.py` đọc thẳng `table2_zk_proof_cost.csv` thay vì chép tay (nay đã có `tests/unit/test_docs_numbers_match_artifacts.py` chặn số chết, nhưng chưa bỏ được trùng lặp).
+
 ## 2026-09-10 — 1.8.0
 
 **Kích hoạt:** phiên viết lại paper theo artifact. Ba mục tồn đọng: hai về hash guest ELF, một là thất bại lặp chưa từng được ghi dù đã gây bốn lỗi trong cùng một phiên.

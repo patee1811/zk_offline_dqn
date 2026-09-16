@@ -16,6 +16,7 @@ Lý do: agent mới hay mang “best practice” ngoài vào rồi phá lớp re
 - Không dùng heredoc cho nội dung có backslash (LaTeX, Rust, regex). Công cụ Bash ăn mất một tầng: `\\` cuối dòng bảng thành `\` (LaTeX báo `Misplaced \noalign` ở dòng *khác*), `\ref` thành CR, `\texttt` thành TAB + `exttt` — **compile sạch, PDF in ra chữ `exttt{...}`**. Ghi script ra file bằng Write rồi `python <file>`; trong regex dùng `re.escape(chr(92))`. Lỗi loại này không làm build đỏ, nên `tests/unit/test_paper_numbers_match_artifacts.py` chặn ký tự TAB trong mọi mục paper đang dùng.
 - Yêu cầu mơ hồ thì hỏi. Không đoán rồi đi tiếp — đặc biệt với claim paper, schema, field public/private.
 - Nói rõ mức chắc chắn. “Đã chạy `python -m unittest …`, exit 0” hoặc “chưa đo `make reproduce-small`”.
+- Ước lượng phải nói **suy từ đâu**, và ba lối suy đã sai thật: (a) tỉ lệ chi phí tổng **không** suy được từ khối lượng một thành phần con — “lá rẻ 2,33×” suy từ byte băm, đo thật là 1,79×; (b) nhịp của một phép chạy nhỏ **không** suy ra nhịp của phép chạy lớn — cây 15 nút cho 50 phút, cây 63 nút không phải 1,5 giờ mà 3h56; (c) cảnh báo cũng là ước lượng — “cycles ở WSL không so được với Bảng 2” lệch **0,006%**, suýt làm vứt cả phép đo. Ngân sách lệch quá 50% thì dừng và hỏi, đừng chạy tiếp cho xong.
 
 ## Không trôi khỏi phạm vi
 
