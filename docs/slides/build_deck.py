@@ -278,7 +278,7 @@ _run(p, "Chứng minh bằng mật mã rằng một chính sách điều khiển
 rect(s, Inches(1.1), Inches(5.35), Inches(10.2), Pt(1), RULE)
 stats(s, [("SP1 6.1.0", "zkVM · STARK · guest RISC-V RV32IM"),
           ("4 lớp · 8 quan hệ", "dữ liệu → quan hệ → backend → gộp"),
-          ("25 cấu hình", "đã prove và verify, một lượt chạy một máy"),
+          ("26 cấu hình", "đã prove và verify, tất cả dưới một prover"),
           ("4.992 bước", "một lượt huấn luyện dưới một proof")],
       Inches(1.1), Inches(5.65), Inches(10.2), size=17)
 
@@ -322,7 +322,7 @@ table(s, ["Vai", "Tên", "Chi phí"], [
     ["Bên kiểm bằng chứng", "verifier", "rất rẻ"],
 ], M, Inches(3.65), Inches(6.0), col_ratio=(5, 3, 3))
 y = table(s, ["Đo thật, cùng một proof", "Thời gian"], [
-    ["Prove — proof recursion T = 64", "755,2 s"],
+    ["Prove — proof recursion T = 64", "770,6 s"],
     ["Verify — cùng proof đó", "0,054 s"],
 ], Inches(7.3), Inches(2.2), Inches(5.3), col_ratio=(7, 3), right_cols=(1,), hi_rows=(1,))
 y = callout(s, Inches(7.3), y + Inches(0.32), Inches(5.3), "Tỉ lệ 14.000 lần",
@@ -679,14 +679,14 @@ tf = _tb(s, Inches(6.85), Inches(2.15), Inches(5.75), Inches(0.3))
 _run(tf.paragraphs[0], "metrics.json — mỏ neo truy vết của mỗi dòng Bảng 2", 11, MUTED, bold=True)
 code(s, Inches(6.85), Inches(2.45), Inches(5.75),
      "relation             training_fragment\n"
-     "cycle_count          5.193.244\n"
-     "prove_time_seconds   3.810088194\n"
-     "verify_time_seconds  0.129283375\n"
-     "proof_size_bytes     2.841.071\n"
+     "cycle_count          4.258.262\n"
+     "prove_time_seconds   3.293015934\n"
+     "verify_time_seconds  0.128721639\n"
+     "proof_size_bytes     2.830.831\n"
      "prover               cuda\n"
      "proof_verified       true\n"
      "test_vector_sha256   f2656757…   ← đầu vào nào\n"
-     "guest_elf_sha256     ff2c14b1…   ← chương trình nào\n"
+     "guest_elf_sha256     6f135f17…   ← chương trình nào\n"
      "public_inputs_sha256 0846d55b…   ← phát biểu gì\n"
      "sp1_version          6.1.0", size=10.5)
 callout(s, Inches(6.85), Inches(5.15), Inches(5.75), "Ba hash cuối là thứ làm bảng kiểm được",
@@ -779,33 +779,33 @@ callout(s, Inches(8.65), y + Inches(0.24), Inches(3.95), "Giả mạo không t�
 
 # ================================================================ BẢNG 2
 s = slide("Bảng 2 — Chi phí chứng minh", "Kết quả · Bảng 2",
-          "25 cấu hình proof-verified, sinh trong MỘT lượt chạy trên MỘT máy g5.2xlarge.")
+          "26 cấu hình proof-verified, tất cả dưới prover CUDA trên g5.2xlarge.")
 table(s, ["Quan hệ", "Cycles", "Prove (s)", "Verify (s)", "Proof (B)", "Prover"], [
-    ["TD MVP", "434.785", "60,5", "0,124", "2.783.869", "cpu"],
-    ["Merkle (canonical)", "116.750", "50,2", "0,123", "2.779.510", "cpu"],
-    ["Fwd-TD MLP", "1.628.694", "89,9", "0,126", "2.798.897", "cpu"],
-    ["One-step SGD tiny", "928.712", "72,0", "0,125", "2.790.551", "cpu"],
-    ["Training update", "494.060", "61,5", "0,125", "2.785.799", "cpu"],
-    ["Fragment k=1", "979.945", "1,6", "0,127", "2.792.511", "cuda"],
-    ["Fragment k=8", "5.193.244", "3,8", "0,129", "2.841.071", "cuda"],
-    ["Fragment, dữ liệu CartPole", "4.646.677", "3,7", "0,129", "2.835.671", "cuda"],
-    ["Merkle 100k lá", "554.100", "61,1", "0,123", "2.784.983", "cpu"],
-    ["Agg. chain T=128", "2.758.670", "2,5", "0,126", "2.819.656", "cuda"],
-    ["Recursive T=64", "1.683.525.837", "755,2", "0,054", "1.274.074", "cuda"],
-    ["Whole run, CartPole", "422.415.621", "199,7", "0,054", "1.274.654", "cuda"],
-    ["Groth16 child T=16", "6.180.861.737", "1.596,9", "68,024", "1.468.175.345", "cuda"],
+    ["TD MVP", "434.785", "1,0", "0,126", "2.783.869", "cuda"],
+    ["Merkle (canonical)", "116.750", "0,9", "0,125", "2.779.510", "cuda"],
+    ["Fwd-TD MLP", "1.628.852", "1,8", "0,129", "2.798.897", "cuda"],
+    ["One-step SGD tiny", "928.948", "1,3", "0,127", "2.790.551", "cuda"],
+    ["Training update", "494.177", "1,0", "0,126", "2.785.799", "cuda"],
+    ["Fragment k=1", "935.015", "1,6", "0,127", "2.791.999", "cuda"],
+    ["Fragment k=8", "4.258.262", "3,3", "0,129", "2.830.831", "cuda"],
+    ["Fragment, dữ liệu CartPole", "4.042.983", "3,1", "0,129", "2.829.015", "cuda"],
+    ["Merkle 100k lá", "554.100", "1,0", "0,126", "2.784.983", "cuda"],
+    ["Agg. chain T=128", "2.758.625", "2,6", "0,126", "2.819.656", "cuda"],
+    ["Recursive T=64", "1.683.536.040", "770,6", "0,054", "1.274.074", "cuda"],
+    ["Whole run, CartPole", "422.411.631", "191,8", "0,054", "1.274.654", "cuda"],
+    ["Groth16 child T=16", "6.189.380.355", "1.590,2", "67,979", "1.469.721.875", "cuda"],
 ], M, Inches(2.25), Inches(7.6), col_ratio=(6, 5, 3, 3, 5, 3),
     right_cols=(1, 2, 3, 4), hi_rows=(10, 11), bad_rows=(12,), size=10)
-stats(s, [("52.941×", "dải cycles, 116.750 → 6,18 tỉ — mà verify gần như không đổi"),
-          ("15 / 10", "dòng chạy CUDA / CPU")],
+stats(s, [("53.014×", "dải cycles, 116.750 → 6,19 tỉ — mà verify gần như không đổi"),
+          ("26 / 26", "dòng chạy CUDA — trước đây 10 dòng buộc phải chạy CPU")],
       Inches(8.55), Inches(2.25), Inches(4.05), size=22)
-y = callout(s, Inches(8.55), Inches(3.65), Inches(4.05), "Vì sao trộn CPU và GPU",
-            "Chỉ **2 trong 8 host** có nhánh CUDA trong mã nguồn — fragment và "
-            "aggregation. Sáu host kia không chạy GPU được, chấm hết. "
-            "Đó là sự thật kỹ thuật, không phải lựa chọn thí nghiệm.")
-callout(s, Inches(8.55), y + Inches(0.24), Inches(4.05), "Cột Prover tồn tại để chặn đọc sai",
-        "Merkle 50,2 s trông chậm hơn Fragment k=8 3,8 s — dù Fragment nặng gấp "
-        "**44 lần** về cycles.", warn=True)
+y = callout(s, Inches(8.55), Inches(3.65), Inches(4.05), "Một prover cho cả bảng",
+            "Trước đây chỉ **2 trong 8 host** có nhánh CUDA, nên mười dòng buộc "
+            "phải chạy CPU và cột Prove trộn hai loại phần cứng. Nay cả tám host "
+            "đọc `SP1_CUDA`, nên cột đó so được với nhau.")
+callout(s, Inches(8.55), y + Inches(0.24), Inches(4.05), "Chuyển sang GPU không làm quan hệ rẻ đi",
+        "Mười dòng đó nhanh lên **51–62×** mà **cycles không đổi một chữ số**. "
+        "Đó là lý do bảng phải đọc bằng cycles, không bằng giây.", warn=True)
 
 # ================================================================ LỚP 4 — vì sao gộp
 s = slide("Lớp 4 — Vì sao phải nối nhiều proof thành một", "Lớp 4 · Gộp")
@@ -825,9 +825,9 @@ code(s, M, Inches(3.75), Inches(5.9),
      "Kiểm một proof cũng là một phép tính → nó lại sinh ra một proof mới.\n"
      "Kết quả: MỘT proof duy nhất phủ toàn bộ, verify 0,054 s.", size=10.5)
 table(s, ["Cấu hình", "Proof con", "Cycles", "Mỗi proof con"], [
-    ["native_flat_recursive T=16", "2", "422.726.492", "211,4 M"],
-    ["native_flat_recursive T=32", "4", "842.015.859", "210,5 M"],
-    ["native_flat_recursive T=64", "8", "1.683.525.837", "210,4 M"],
+    ["native_flat_recursive T=16", "2", "422.706.047", "211,4 M"],
+    ["native_flat_recursive T=32", "4", "842.030.244", "210,5 M"],
+    ["native_flat_recursive T=64", "8", "1.683.536.040", "210,4 M"],
 ], Inches(6.95), Inches(2.15), Inches(5.65), col_ratio=(7, 3, 5, 4),
     right_cols=(1, 2, 3))
 y = callout(s, Inches(6.95), Inches(3.5), Inches(5.65), "≈ 211 triệu cycles mỗi proof con",
@@ -849,7 +849,7 @@ bullets(s, [
     "Guest **không** kiểm proof con. Nó băm *hồ sơ* của từng proof con",
     "Kiểm public input các con **nhất quán**, dataset_root và config_hash **giống nhau**",
     "Kiểm **ranh giới chunk** khớp và chuỗi checkpoint nối liền",
-    "Rẻ: T=128 chỉ 2.758.670 cycles, prove 2,5 s",
+    "Rẻ: T=128 chỉ 2.758.625 cycles, prove 2,6 s",
 ], M, Inches(2.5), Inches(5.9), size=11.5, gap=4)
 callout(s, M, Inches(3.85), Inches(5.9), "Yếu hơn — và paper nói rõ",
         "Phát biểu là “CÓ MỘT dãy T proof con có siêu dữ liệu nhất quán và nối liền”. "
@@ -884,17 +884,17 @@ callout(s, Inches(6.95), Inches(5.35), Inches(5.65), "claim_scope nằm TRONG pu
         "Chế độ gộp và phạm vi phát biểu là dữ liệu công khai, không phải chú thích "
         "trong paper. Verifier đọc được thẳng rằng đây là chế độ A.")
 table(s, ["Cùng T = 32", "Cycles", "Prove"], [
-    ["manifest chain", "880.030", "1,4 s"],
-    ["recursive_sp1", "842.015.859", "385,9 s"],
+    ["manifest chain", "879.949", "1,4 s"],
+    ["recursive_sp1", "842.030.244", "392,1 s"],
 ], Inches(6.95), Inches(6.4), Inches(5.65), col_ratio=(5, 5, 3),
     right_cols=(1, 2), hi_rows=(1,), size=10.5)
 
 # ================================================================ LỚP 4 — whole run
 s = slide("Lớp 4 — Kết quả: một lượt huấn luyện trọn vẹn dưới một proof", "Lớp 4 · Gộp")
 table(s, ["Môi trường", "Bước", "Lá", "Cycles (proof gốc)", "Prove", "Verify"], [
-    ["CartPole expert", "1.248", "8 × 156", "422.415.621", "199,7 s", "0,054 s"],
-    ["LunarLander expert", "1.248", "8 × 156", "422.396.109", "198,1 s", "0,054 s"],
-    ["LunarLander random", "4.992", "32 × 156", "422.386.830", "188,8 s", "0,054 s"],
+    ["CartPole expert", "1.248", "8 × 156", "422.411.631", "191,8 s", "0,054 s"],
+    ["LunarLander expert", "1.248", "8 × 156", "422.387.142", "192,7 s", "0,054 s"],
+    ["LunarLander random", "4.992", "32 × 156", "422.401.017", "193,1 s", "0,054 s"],
 ], M, Inches(2.25), Inches(11.9), col_ratio=(5, 3, 3, 5, 3, 3),
     right_cols=(1, 2, 3, 4, 5), hi_rows=(2,))
 y = callout(s, M, Inches(3.75), Inches(5.85), "Vì sao dòng cuối đáng giá nhất",

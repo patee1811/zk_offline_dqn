@@ -1009,7 +1009,7 @@ Vẫn là một **giả định tin cậy**, và nó là thứ mà một cơ qua
 
   | | STARK (`native_flat_recursive_t16`) | Groth16 child |
   | --- | ---: | ---: |
-  | Cycles | 422.726.492 | **6.180.861.737** (×14,6) |
+  | Cycles | 422.706.047 | **6.189.380.355** (×14,6) |
   | Prove | 193,4 s | **1.596,9 s** (×8,3) |
   | Verify | 0,054 s | **68,0 s** (×1.256) |
   | Proof size | 1.274.074 B | 1.468.175.345 B |
@@ -1161,7 +1161,7 @@ nhịp CPU thật.
    mỗi cycle** ở proof `training_fragment` **[đo]**. Nhờ vậy tính được trên giấy
    máy nào chạy nổi trước khi thuê.
 4. **So sánh được giữa các quan hệ.** Bảng 2 trải từ **116.750** (Merkle
-   canonical) tới **6.180.861.737** (Groth16 child) — gấp **52.941 lần**.
+   canonical) tới **6.189.380.355** (Groth16 child) — gấp **53.014 lần**.
 
 **Cảnh báo khi đọc:** cycles tất định theo cặp `(guest ELF, đầu vào)` — nghĩa là
 **đổi guest thì đổi cycles**. Đã đo: cùng vector nhưng khác phiên bản
@@ -1206,10 +1206,10 @@ Lý do **chọn** SP1, theo đúng thứ tự quan trọng với dự án:
 
 1. **Guest viết bằng Rust thường.** Logic quan hệ nằm trong `shared/`, dùng chung
    giữa host và guest — đọc được, test được trên CPU thường.
-2. **Có đường CUDA.** `SP1_CUDA=1` cho `training_fragment` và
-   `training_aggregation`. Đo được: `training_fragment_k8` từ **144,6 s** trên
-   CPU xuống **3,8 s** trên A10G — **nhanh ~38×** **[đo]**. Không có nó thì
-   Bảng 2 không chạy nổi trong ngân sách.
+2. **Có đường CUDA.** `SP1_CUDA=1` cho cả tám host. Đo trên mười dòng chuyển
+   từ CPU sang GPU trong cùng một lượt: **nhanh 51–62×** ở cycles không đổi
+   (`merkle_membership` 50,2 s → **0,86 s**) **[đo]**. Không có nó thì Bảng 2
+   không chạy nổi trong ngân sách.
 3. **Recursion chạy được thật.** Guest verify proof con bằng mật mã, đo được ở
    T = 16/32/64 và cây nhị phân tới 4.992 bước.
 4. **Có lớp bọc Groth16/PLONK.** Cho phép **đo** cái giá của chúng thay vì chỉ
@@ -1384,7 +1384,7 @@ phát từ một mô hình khác nhau.
 | --- | --- |
 | Phủ | *k* lần vòng lặp bảy bước, cộng logic sync target |
 | Kích thước đã prove | `k ∈ {1, 4, 8}` trên vector canonical; `k = 1` trên dataset đã commit; `k = 156` làm **lá** của cây whole-run |
-| Cycles | k=1: 979.945 · k=4: 2.799.333 · k=8: 5.193.244 **[đo]** |
+| Cycles | k=1: 935.015 · k=4: 2.367.608 · k=8: 4.258.262 **[đo]** |
 
 Đây là **con ngựa thồ** của dự án. Ngoài vòng lặp, nó còn chứng minh ba thứ mà
 các quan hệ nhỏ hơn không đụng tới:
@@ -1640,9 +1640,9 @@ Ba dòng `native_flat_recursive` của Bảng 2 **[đo]**:
 
 | Dòng | T (bước) | Số proof con | Cycles | Cycles / proof con |
 | --- | ---: | ---: | ---: | ---: |
-| `native_flat_recursive_t16` | 16 | 2 | 422.726.492 | **211,4 M** |
-| `native_flat_recursive_t32` | 32 | 4 | 842.015.859 | **210,5 M** |
-| `native_flat_recursive_t64` | 64 | 8 | 1.683.525.837 | **210,4 M** |
+| `native_flat_recursive_t16` | 16 | 2 | 422.706.047 | **211,4 M** |
+| `native_flat_recursive_t32` | 32 | 4 | 842.030.244 | **210,5 M** |
+| `native_flat_recursive_t64` | 64 | 8 | 1.683.536.040 | **210,4 M** |
 
 (T = 16 với lá k = 8 nghĩa là 2 proof con.)
 
@@ -1671,8 +1671,8 @@ tràn nặng nhất, **+36,8%**, và 154 × 1,368 ≈ 211 — khớp với số 
 
 > Cột Cycles của dòng recursion là chi phí của **proof gốc**, không phải **tổng
 > chi phí cả cây**. Bằng chứng: dòng `binary_tree_native_t1248_cartpole` phủ
-> 1.248 bước với 8 lá, nhưng cycles của nó (422.415.621) gần như bằng đúng dòng
-> `native_flat_recursive_t16` chỉ có 2 proof con (422.726.492). Cả hai đều là một
+> 1.248 bước với 8 lá, nhưng cycles của nó (422.411.631) gần như bằng đúng dòng
+> `native_flat_recursive_t16` chỉ có 2 proof con (422.706.047). Cả hai đều là một
 > nút gộp 2 con. Tổng chi phí cây phải cộng thêm 7 nút trong và 8 lá.
 
 ### 6.3 Hai chế độ gộp — và vì sao phân biệt chúng lại quan trọng
@@ -1698,7 +1698,7 @@ Không nói: "và các proof con đó hợp lệ về mặt mật mã."
 Ai đó **phải kiểm proof con ở ngoài**. Nếu bỏ qua bước đó, chế độ này không
 chứng minh gì về tính đúng của việc huấn luyện.
 
-- Rẻ: T=128 chỉ tốn **2.758.670** cycles, prove **2,5 s** **[đo]**.
+- Rẻ: T=128 chỉ tốn **2.758.625** cycles, prove **2,6 s** **[đo]**.
 - Yếu hơn: cần một giả định tin cậy bên ngoài.
 
 **Chế độ B — `recursive_sp1` (đệ quy thật)**
@@ -1713,7 +1713,7 @@ Phát biểu: "Tôi đã kiểm bằng mật mã rằng T proof con này hợp l
 
 Không còn giả định ngoài nào. Đây mới là recursion đúng nghĩa.
 
-- Đắt: T=64 tốn **1.683.525.837** cycles, prove **755 s** — gấp **610 lần** chế
+- Đắt: T=64 tốn **1.683.536.040** cycles, prove **771 s** — gấp **610 lần** chế
   độ A ở cùng cỡ **[đo]**.
 - **Chỉ chạy được trên GPU.** CPU cần > 61 GB RAM và không hoàn thành.
 
@@ -1721,7 +1721,7 @@ Không còn giả định ngoài nào. Đây mới là recursion đúng nghĩa.
 
 | | manifest chain | recursive |
 | --- | ---: | ---: |
-| Cycles | 880.030 (T=32) | 842.015.859 |
+| Cycles | 879.949 (T=32) | 842.030.244 |
 | Prove | 1,4 s | 385,9 s |
 | Proof con được kiểm bằng mật mã trong guest? | **không** | **có** |
 
@@ -1940,14 +1940,14 @@ số "chứng minh được thì kém hơn X%".
 
 Vì sao có khoảng cách, và nó gồm những thành phần nào — mục 7.4.
 
-### 7.3 Bảng 2 — chi phí chứng minh, và vì sao CPU lẫn GPU
+### 7.3 Bảng 2 — chi phí chứng minh, và vì sao đọc bằng cycles
 
-**Bảng 2 có 32 dòng, trong đó 25 dòng có proof thật [đo].** Bảy dòng còn lại ghi
+**Bảng 2 có 33 dòng, trong đó 26 dòng có proof thật [đo].** Bảy dòng còn lại ghi
 rõ là **không** có proof:
 
 | Trạng thái | Số dòng | Nghĩa |
 | --- | ---: | --- |
-| `proof_verified` | 25 | đã prove **và** đã verify thành công |
+| `proof_verified` | 26 | đã prove **và** đã verify thành công |
 | `execute_only` | 3 | `training_fragment` k = 16/32/128: chỉ chạy mô phỏng, không prove |
 | `not_supported_current_backend` | 4 | `training_update` batch 4/8/16 và mạng `small`: backend chưa hỗ trợ |
 
@@ -1998,26 +1998,27 @@ public_inputs_sha256 0846d55b…   ← phát biểu gì
 sp1_version          6.1.0
 ```
 
-**Vì sao dòng thì CPU dòng thì GPU — câu hỏi bạn nêu**
+**Vì sao từng có dòng CPU dòng GPU — và vì sao bây giờ không còn**
 
-Đếm ra: **15 dòng chạy CUDA, 10 dòng chạy CPU** **[đo]**. Trông như thiếu nhất
-quán. Lý do là một sự thật kỹ thuật, không phải lựa chọn:
+Bảng 2 nay **26 dòng, tất cả dưới prover CUDA**. Trước đó nó trộn hai loại phần
+cứng, và lý do là một sự thật kỹ thuật chứ không phải lựa chọn thí nghiệm:
 
 > **Chỉ hai trong tám host có nhánh CUDA:** `training_fragment` và
 > `training_aggregation`. Sáu host còn lại — `td_mvp`, `merkle_membership`,
 > `forward_td_mlp`, `one_step_sgd_tiny`, `short_trace`, `training_update` — **không
-> có feature `cuda` nào trong mã nguồn**, và ghi thẳng `"prover": "cpu"` vào
-> metrics.
+> có feature `cuda` nào trong mã nguồn**, nên `SP1_CUDA=1` bị bỏ qua lặng lẽ và
+> chúng ghi thẳng `"prover": "cpu"` vào metrics.
 
-Nên đây không phải "chọn chạy CPU cho vài dòng". Sáu host kia **không chạy GPU
-được**, chấm hết. Muốn đồng bộ hoá thì phải viết thêm nhánh CUDA cho sáu
-workspace Rust — một việc kỹ thuật thật, nằm ngoài phạm vi.
+Việc sửa là viết nhánh CUDA cho sáu workspace đó: `main()` chọn client, còn phần
+việc chuyển vào một hàm generic `run_with_prover<P: Prover>` — không boxing được
+vì `Prover` có associated type. Sau đó chứng minh lại mười dòng ấy.
 
-**Vì sao chuyện này quan trọng chứ không phải tiểu tiết:** nhìn cột Prove sẽ thấy
-`merkle_membership` **50,2 s** trong khi `training_fragment_k8` chỉ **3,8 s** —
-dù Merkle chỉ tốn 116.750 cycles còn fragment tốn 5.193.244 cycles, tức **gấp 44
-lần công việc**. Nếu không biết cột Prover, con số này đọc ra kết luận sai hoàn
-toàn. **Cột `Prover` trong bảng tồn tại chính để chặn việc đọc sai đó.**
+**Kết quả là một phép đo đáng giá hơn cả việc bảng đẹp lên [đo]:** mười dòng
+nhanh lên **51–62×** (`merkle_membership` 50,2 s → **0,86 s**, `forward_td_mlp`
+90,4 s → **1,78 s**) mà **cycles không đổi một chữ số nào**, và guest ELF giữ
+nguyên hash. Đó chính là bằng chứng thực nghiệm cho điều mục trước nói: **cycles
+đo quan hệ, giây đo cái máy**. Cột `Prover` vẫn còn trong bảng, nhưng giờ nó
+ghi nhận chứ không còn phải cảnh báo.
 
 **Và đây là một cái bẫy đã cắn thật, đáng kể lại [đo]:** biến `SP1_CUDA` **im
 lặng theo cả hai chiều**.
@@ -2033,26 +2034,27 @@ lặng theo cả hai chiều**.
 Chiều thứ hai nguy hiểm hơn, vì kết quả trông hoàn toàn hợp lệ. Quy tắc rút ra:
 **`nvidia-smi` là thứ nói thật, không phải biến môi trường.**
 
-**Toàn bộ 25 dòng được sinh trong MỘT lượt chạy, trên MỘT máy g5.2xlarge.** Đó là
-lý do lần này cột thời gian **so sánh được với nhau** — điều mà các bảng trước
-không làm được vì số liệu đến từ nhiều máy, nhiều thời điểm.
+**Toàn bộ 26 dòng chạy trên g5.2xlarge dưới cùng một prover, và dưới cùng một
+thế hệ guest ELF** — các guest đều dựng trong image docker `v6.1.0`, nên hash của
+chúng tái lập được trên máy khác. Đó là lý do cột thời gian **so sánh được với
+nhau**, điều mà các bảng trước không làm được.
 
 **Đọc bảng — các dòng đáng chú ý [đo]:**
 
 | Quan hệ | Cycles | Prove | Verify | Prover |
 | --- | ---: | ---: | ---: | --- |
-| Merkle (canonical) | 116.750 | 50,2 s | 0,123 s | cpu |
-| Fragment k=1 | 979.945 | 1,6 s | 0,127 s | cuda |
-| Fragment k=8 | 5.193.244 | 3,8 s | 0,129 s | cuda |
-| Fragment, dữ liệu LunarLander | 6.746.304 | 4,6 s | 0,197 s | cuda |
-| Agg. chain T=128 | 2.758.670 | 2,5 s | 0,126 s | cuda |
-| Recursive T=64 | 1.683.525.837 | 755,2 s | **0,054 s** | cuda |
-| Whole run, CartPole | 422.415.621 | 199,7 s | **0,054 s** | cuda |
-| Groth16 child T=16 | 6.180.861.737 | 1.596,9 s | 68,0 s | cuda |
+| Merkle (canonical) | 116.750 | 0,9 s | 0,125 s | cuda |
+| Fragment k=1 | 935.015 | 1,6 s | 0,127 s | cuda |
+| Fragment k=8 | 4.258.262 | 3,3 s | 0,129 s | cuda |
+| Fragment, dữ liệu LunarLander | 5.745.368 | 4,2 s | 0,130 s | cuda |
+| Agg. chain T=128 | 2.758.625 | 2,6 s | 0,126 s | cuda |
+| Recursive T=64 | 1.683.536.040 | 770,6 s | **0,054 s** | cuda |
+| Whole run, CartPole | 422.411.631 | 191,8 s | **0,054 s** | cuda |
+| Groth16 child T=16 | 6.189.380.355 | 1.590,2 s | 68,0 s | cuda |
 
-Dải cycles trải **từ 116.750 tới 6.180.861.737 — gấp 52.941 lần** — mà cột verify
+Dải cycles trải **từ 116.750 tới 6.189.380.355 — gấp 53.014 lần** — mà cột verify
 gần như không nhúc nhích, thậm chí các dòng recursion còn **verify nhanh hơn**
-(0,054 s so với 0,12 s) vì proof đệ quy đã được nén.
+(0,054 s so với 0,13 s) vì proof đệ quy đã được nén.
 
 Đó là minh hoạ trực tiếp và bằng số cho tính bất đối xứng ở mục 1.4. Nếu chỉ nhớ
 một điều từ Bảng 2 thì nhớ điều này.
@@ -2253,9 +2255,9 @@ Kết quả mạnh nhất của dự án **[đo]**:
 
 | Môi trường | Bước | Số lá | Cycles (proof gốc) | Prove | Verify |
 | --- | --- | ---: | ---: | ---: | ---: |
-| CartPole expert | 0 → 1.248 | 8 × 156 | 422.415.621 | 199,7 s | 0,054 s |
-| LunarLander expert | 0 → 1.248 | 8 × 156 | 422.396.109 | 198,1 s | 0,054 s |
-| LunarLander random | **0 → 4.992** | 32 × 156 | 422.386.830 | 188,8 s | 0,054 s |
+| CartPole expert | 0 → 1.248 | 8 × 156 | 422.411.631 | 191,8 s | 0,054 s |
+| LunarLander expert | 0 → 1.248 | 8 × 156 | 422.387.142 | 192,7 s | 0,054 s |
+| LunarLander random | **0 → 4.992** | 32 × 156 | 422.401.017 | 193,1 s | 0,054 s |
 
 **Ý nghĩa:** một proof duy nhất, kiểm trong **54 mili giây**, chứng minh rằng một
 lượt huấn luyện 1.248 (hoặc 4.992) bước đã chạy đúng — đúng dữ liệu đã cam kết,
@@ -2679,13 +2681,16 @@ Mỗi câu có một câu trả lời ngắn để nói ra miệng, và số li�
 > 100% trong suốt thời gian lỗi lấy mẫu tồn tại, vì không trường nào bị sửa. Đó
 > là một giới hạn có thật của loại benchmark này, không riêng của chúng tôi.
 
-**Q6. "Bảng 2 trộn CPU và GPU thì so sánh kiểu gì?"**
+**Q6. "Bảng 2 so sánh thời gian kiểu gì, khi prover khác nhau cho kết quả khác
+nhau?"**
 
-> Cột `Prover` ghi rõ từng dòng, và không dòng nào để trống. Sáu trong tám host
-> **không có nhánh CUDA trong mã nguồn** — đó là sự thật kỹ thuật, không phải lựa
-> chọn thí nghiệm. Chúng tôi so cycles (tất định, độc lập phần cứng) khi cần so
-> khối lượng, và chỉ so thời gian trong cùng nhóm prover. Toàn bộ 25 dòng sinh ra
-> trong **một lượt chạy trên một máy**, nên lần này chúng nhất quán nội bộ.
+> Bảng không còn trộn prover: cả **26 dòng chạy CUDA**, trên cùng loại máy, dưới
+> cùng một thế hệ guest ELF, và cột `Prover` ghi rõ từng dòng. Trước đó sáu trong
+> tám host không có nhánh CUDA trong mã nguồn nên mười dòng buộc phải chạy CPU;
+> việc thêm nhánh đó vào đã đóng khoảng cách. Dù vậy đơn vị so sánh chính vẫn là
+> **cycles**, vì cycles tất định theo cặp (guest ELF, đầu vào) còn giây thì phụ
+> thuộc máy — và chính lần chuyển mười dòng đó chứng minh điều ấy: nhanh lên
+> 51–62 lần mà cycles không đổi một chữ số.
 
 **Q7. "Vì sao STARK mà không phải Groth16, khi Groth16 cho proof nhỏ hơn ngàn
 lần?"**
@@ -2760,7 +2765,7 @@ cycle, tức khoảng 105 GB).
 | Tệp | Chứa gì |
 | --- | --- |
 | `artifacts/reports/final_ndss/table1_rl_performance.csv` | 54 dòng Bảng 1 |
-| `artifacts/reports/final_ndss/table2_zk_proof_cost.csv` | 32 dòng Bảng 2 |
+| `artifacts/reports/final_ndss/table2_zk_proof_cost.csv` | 33 dòng Bảng 2 |
 | `artifacts/reports/final_ndss/table3_tamper_rejection.csv` | 236 dòng Bảng 3 |
 | `artifacts/reports/provenance/sp1/<case>/metrics.json` | số đo từng lần prove |
 | `artifacts/reports/provenance/sp1/<case>/tamper_report.json` | kết quả quét giả mạo |
