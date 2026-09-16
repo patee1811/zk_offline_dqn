@@ -14,7 +14,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
 sp1-build = "=6.1.0"
-sp1-sdk = "=6.1.0"
+sp1-sdk = { version = "=6.1.0", features = ["cuda"] }
 sp1-zkvm = "=6.1.0"
 tempfile = "3.10"
 tokio = { version = "1.44", features = ["macros", "rt-multi-thread"] }

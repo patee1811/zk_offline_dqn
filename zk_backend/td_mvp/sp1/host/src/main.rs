@@ -35,7 +35,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let input_path = resolve_input_path(args.input)?;
+    let input_path = resolve_input_path(args.input.clone())?;
     let mut input = load_input(&input_path)?;
     apply_case(&mut input, &args.case)?;
 
@@ -70,7 +70,34 @@ async fn main() -> Result<()> {
         println!("host_precheck = skipped_for_tamper_case");
     }
 
-    let client = ProverClient::builder().cpu().build().await;
+    // CPU stays the default so every committed provenance number keeps the
+    // prover it was measured on. SP1_CUDA=1 opts into the GPU prover, and the
+    // row records which one produced it.
+    let use_cuda = std::env::var("SP1_CUDA").map(|v| v == "1").unwrap_or(false);
+    if use_cuda {
+        println!("prover = cuda");
+        let client = ProverClient::builder().cuda().build().await;
+        run_with_prover(client, &args, &input, &expected, &input_path, "cuda").await
+    } else {
+        println!("prover = cpu");
+        let client = ProverClient::builder().cpu().build().await;
+        run_with_prover(client, &args, &input, &expected, &input_path, "cpu").await
+    }
+}
+
+/// Execute and optionally prove with whichever prover was selected.
+///
+/// CPU and CUDA build different concrete types and `Prover` has associated
+/// types, so this cannot be a boxed trait object -- the selection has to be a
+/// generic call from each branch.
+async fn run_with_prover<P: Prover>(
+    client: P,
+    args: &Args,
+    input: &TdMvpInput,
+    expected: &Option<PublicOutput>,
+    input_path: &Path,
+    prover_label: &str,
+) -> Result<()> {
     let elf = include_elf!("td-mvp-guest");
     let guest_elf_sha256 = hex_sha256(&elf);
     let mut cycle_count: Option<u64> = None;
@@ -78,7 +105,7 @@ async fn main() -> Result<()> {
     // `--out-dir` also forces execution: cycle_count comes from the report, and a
     // provenance row without it cannot be compared against the other relations.
     if args.execute || !args.prove || args.out_dir.is_some() {
-        let stdin = build_stdin(&input);
+        let stdin = build_stdin(input);
         let start = Instant::now();
         let (_public_values, report) = client
             .execute(elf.clone(), stdin)
@@ -98,13 +125,16 @@ async fn main() -> Result<()> {
     }
 
     if args.prove {
-        let stdin = build_stdin(&input);
-        let pk = client.setup(elf).await.context("SP1 setup failed")?;
+        let stdin = build_stdin(input);
+        let pk = client
+            .setup(elf)
+            .await
+            .map_err(|e| anyhow!("SP1 setup failed: {e}"))?;
         let prove_start = Instant::now();
         let proof = client
             .prove(&pk, stdin)
             .await
-            .context("SP1 proof generation failed")?;
+            .map_err(|e| anyhow!("SP1 proof generation failed: {e}"))?;
         let proving_time_sec = prove_start.elapsed().as_secs_f64();
 
         let verify_start = Instant::now();
@@ -113,7 +143,7 @@ async fn main() -> Result<()> {
             .context("SP1 proof verification failed")?;
         let verification_time_sec = verify_start.elapsed().as_secs_f64();
 
-        let proof_size_bytes = match (&args.out_dir, &expected) {
+        let proof_size_bytes = match (&args.out_dir, expected) {
             (Some(out_dir), Some(expected)) => {
                 fs::create_dir_all(out_dir)
                     .with_context(|| format!("failed to create {}", out_dir.display()))?;
@@ -124,14 +154,15 @@ async fn main() -> Result<()> {
                 let size = fs::metadata(&proof_path)?.len();
                 write_provenance(
                     out_dir,
-                    &input,
+                    input,
                     expected,
                     proving_time_sec,
                     verification_time_sec,
                     size,
                     cycle_count,
-                    &input_path,
+                    input_path,
                     &guest_elf_sha256,
+                    prover_label,
                 )?;
                 println!("provenance_dir = {}", out_dir.display());
                 size
@@ -429,6 +460,7 @@ fn write_provenance(
     cycle_count: Option<u64>,
     case_path: &Path,
     guest_elf_sha256: &str,
+    prover_label: &str,
 ) -> Result<()> {
     write_json(out_dir.join("public_inputs.json"), &input.public)?;
     write_json(out_dir.join("witness_schema.json"), &witness_schema())?;
@@ -436,10 +468,9 @@ fn write_provenance(
         out_dir.join("metrics.json"),
         &json!({
             "relation": "td_mvp",
-            // Which prover produced this row. This host has no CUDA path,
-            // so the value is fixed; recording it keeps Table 2 from having
-            // to infer a prover it was never told.
-            "prover": "cpu",
+            // Which prover produced this row. Without it a table mixes CPU
+            // and GPU numbers with nothing on the row saying which is which.
+            "prover": prover_label,
             "proof_generated": true,
             "proof_verified": true,
             "prove_time_seconds": proving_time_sec,
