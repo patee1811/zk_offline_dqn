@@ -183,5 +183,6 @@ The aggregation relation checks the following for $T \in \{32, 64, 128\}$:
 child proofs by their manifest hashes; the child proofs are verified outside
 the aggregate relation. Recursive aggregation instead runs the SP1 verifier on
 each child inside the aggregate guest, so acceptance establishes child validity
-rather than assuming it. Recursive mode is established for $T\in\{16,32,64\}$ and
+rather than assuming it. Recursive mode is established for $T\in\{16,32,64\}$ flat
+and for binary trees at $T\in\{16,1{,}248,4{,}992\}$, and
 requires a CUDA prover; the $T\in\{32,64,128\}$ results remain manifest chains.

@@ -226,13 +226,14 @@ and a commitment-derived sampler rather than over batches and labels.
 One cost result in this paper is worth stating as a property of the problem
 rather than of our implementation, because a second, independent system reaches
 it from the opposite direction. Recomputing the shares in Kaizen's own prover
-breakdown gives the following, where ``commitment'' is the cost of committing
+breakdown gives the following, for a $10.1$M-parameter VGG-11 and a
+$61.7$k-parameter LeNet, where ``commitment'' is the cost of committing
 to model state rather than of proving any arithmetic on it:
 
-\begin{center}\small
+\begin{center}\footnotesize
 \begin{tabular}{@{}lrr@{}}
 \toprule
-\textbf{Prover time component} & \textbf{VGG-11 (10.1M)} & \textbf{LeNet (61.7k)} \\
+\textbf{Prover time component} & \textbf{VGG-11} & \textbf{LeNet} \\
 \midrule
 Commitment generation & $51.3\%$ & $55.1\%$ \\
 Proof of aggregation & $16.1\%$ & $10.3\%$ \\

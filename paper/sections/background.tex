@@ -76,7 +76,7 @@ in the computation size~\cite{groth2016zksnark, bensasson2014scalable}.
 
 A Merkle tree~\cite{merkle1987} is a binary hash tree in which each leaf
 contains the hash of a data element and each internal node contains the hash
-of its two children. The value $\mroot$ serves as a compact commitment to all
+of its two children. The root $\mroot$ serves as a compact commitment to all
 leaves. To prove membership of leaf $\ell_i$, the prover provides a sibling
 path $(h_1, h_2, \ldots, h_d)$ with direction bits, and the verifier
 recomputes the root from the leaf through $d$ hash steps. Membership

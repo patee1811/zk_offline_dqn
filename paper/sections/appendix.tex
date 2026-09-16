@@ -27,18 +27,24 @@ inventories) is committed under:
 {\scriptsize
 \begin{verbatim}
 artifacts/reports/provenance/sp1/
-  td_mvp/
-  merkle_membership/
-  forward_td_mlp/
-  one_step_sgd_tiny/
-  short_trace/
-  training_update/
-  training_fragment_k{1,4,8}/
+  td_mvp/              merkle_membership/
+  forward_td_mlp/      one_step_sgd_tiny/
+  short_trace/         training_update/
+  merkle_membership_dataset_{1k,10k,50k,100k}/
+  training_fragment_k{1,4,8,156}/
+  training_fragment_<env>_expert_k1/
   training_aggregation_t{32,64,128}/
+  training_aggregation_recursive_t{16,32,64}/
+  training_aggregation_groth16_t16/
+  training_aggregation_binary_native_t16/
+  training_aggregation_binary_native_t1248_<env>/
+  training_aggregation_binary_native_t4992_<env>/
 \end{verbatim}
 }
-\noindent Proof binaries and receipts are not committed. Reviewers can verify
-provenance hashes without re-running the prover.
+\noindent Here \texttt{<env>} is the committed dataset the run trains on
+(\texttt{cartpole}, \texttt{lunarlander}, or \texttt{lunarlander\_random}).
+Proof binaries and receipts are not committed. Reviewers can verify provenance
+hashes without re-running the prover.
 
 \subsection{Reproduction Commands}
 \label{app:reproducibility}

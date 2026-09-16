@@ -79,7 +79,7 @@ Here, $V_i$ denotes the predicate that hashes $\tau_i$, follows the sibling
 path $\pi_i$ at index $\mathit{idx}_i$, and compares the result with $\mroot$.
 The path $\pi_i = (h_1, \ldots, h_d, b_1, \ldots, b_d)$ contains sibling hashes
 and direction bits.
-Dataset-size scaling cases for $N \in \{1\text{k}, 10\text{k}, 100\text{k}\}$
+Dataset-size scaling cases for $N \in \{1\text{k}, 10\text{k}, 50\text{k}, 100\text{k}\}$
 leaves are SP1 proof-verified.
 
 \subsection{Bellman Target and TD Arithmetic}
@@ -156,7 +156,7 @@ verified $k=8$ training fragment. The relation checks:
   \item Aggregate roots cover the declared step ranges.
 \end{itemize}
 In manifest mode the aggregate SP1 guest does not execute a verifier for
-child proof bytes. In recursive mode it does, at roughly $1.5\times10^{8}$
+child proof bytes. In recursive mode it does, at roughly $2.11\times10^{8}$
 cycles per child.
 
 \subsection{Backend Coverage Summary}
@@ -167,14 +167,15 @@ relation across the Python semantic oracle and SP1 proof backend.
 \begin{table}[!t]
 \centering
 \small
-\caption{Backend coverage: Python oracle vs.\ SP1 proof for each relation.}
+\caption{Backend coverage: Python oracle vs.\ SP1 proof for each relation. Recursive aggregation covers $T\in\{16,32,64\}$ as flat chains and binary trees to $T = 4{,}992$, under a CUDA prover.}
 \label{tab:backend-coverage}
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lcc}
 \toprule
 \textbf{Relation} & \textbf{Python} & \textbf{SP1 proof} \\
 \midrule
 Merkle membership (canonical) & \checkmark & \checkmark \\
-Merkle membership (1k/10k/100k) & \checkmark & \checkmark \\
+Merkle membership (1k/10k/50k/100k) & \checkmark & \checkmark \\
 TD MVP canonical vector & \checkmark & \checkmark \\
 Distinct minibatch TD (1/2/4/8) & \checkmark & \checkmark \\
 Forward-TD MLP (tiny) & \checkmark & \checkmark \\
@@ -184,7 +185,7 @@ Training update (batch-1) & \checkmark & \checkmark \\
 Training fragment $k\!\in\!\{1,4,8\}$ & \checkmark & \checkmark \\
 Training fragment $k\!\in\!\{16,32,128\}$ & \checkmark & execute only \\
 Aggregation $T\!\in\!\{32,64,128\}$ & \checkmark & \checkmark \\
-Recursive aggregation & --- & --- \\
+Recursive aggregation & \checkmark & \checkmark \\
 \bottomrule
 \end{tabular}
 \end{table}
