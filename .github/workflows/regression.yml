@@ -60,15 +60,22 @@ jobs:
         run: |
           python -m unittest discover tests
 
-      - name: Run the claim and source gates
+      - name: Run the claim gates
         run: |
           python scripts/experiments/check_paper_claims.py
-          python scripts/experiments/check_report_sources.py
           python scripts/experiments/check_theorem_artifact_map.py
 
       - name: Run full regression summary
         run: |
           python scripts/experiments/run_full_regression.py
+
+      # Has to follow the regression: it checks that every documented command
+      # produced the output it claims, and the regression is what produces
+      # them. Running it first failed on a clean checkout, where those outputs
+      # are gitignored and therefore absent.
+      - name: Check that documented commands produced their outputs
+        run: |
+          python scripts/experiments/check_report_sources.py
 
       - name: Upload regression reports
         if: always()
