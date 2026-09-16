@@ -60,6 +60,7 @@ def write_generated_recursive_case(
     *,
     child_materials: List[Dict[str, Any]] | None = None,
     child_proof_mode: str | None = None,
+    chunk_size: int = 8,
 ) -> Path:
     out_path = Path(path) if path is not None else recursive_case_path_for_target(target)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,6 +68,7 @@ def write_generated_recursive_case(
         json.dumps(
             generate_recursive_case(
                 target,
+                chunk_size=chunk_size,
                 child_materials=child_materials,
                 **({"child_proof_mode": child_proof_mode} if child_proof_mode else {}),
             ),
@@ -120,7 +122,14 @@ def cargo_command(
         aggregation_mode,
     ]
     if out_dir is not None:
-        command.extend(["--out-dir", str(out_dir)])
+        # cargo runs the host from the relation workspace, so a relative
+        # --out-dir lands in zk_backend/<rel>/sp1/artifacts/... The host still
+        # exits 0 and the phase script still reports a proof, while metrics.json
+        # in the provenance tree keeps whatever it held before.
+        resolved_out_dir = Path(out_dir)
+        if not resolved_out_dir.is_absolute():
+            resolved_out_dir = ROOT / resolved_out_dir
+        command.extend(["--out-dir", str(resolved_out_dir)])
     if child_proof_mode is not None:
         command.extend(["--child-proof-mode", child_proof_mode])
     if topology is not None:

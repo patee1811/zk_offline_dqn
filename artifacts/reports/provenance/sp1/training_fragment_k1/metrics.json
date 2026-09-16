@@ -1,21 +1,22 @@
 {
   "backend_version": "0.1.0",
   "batch_size": 1,
-  "cycle_count": 896441,
-  "git_commit": null,
-  "guest_elf_sha256": "35cb280f058e82a0c7edbd00c23fe792860c98cb2637136352901abd387da481",
+  "cycle_count": 935015,
+  "git_commit": "83e5f305703f0ac5c85b213e73fc7dc3fce95985",
+  "guest_elf_sha256": "6f135f177c716615fd0c7460f69b4eb1f21bdc9aa5f1e07dd7383e07baa6e424",
   "notes": [
     "SP1 proof-backed multi-step training fragment for a canonical tiny MLP vector; not full DQN training, Adam, all replay batches, or recursive aggregation."
   ],
   "num_steps": 1,
   "proof_generated": true,
-  "proof_size_bytes": 2791471,
+  "proof_size_bytes": 2791999,
   "proof_verified": true,
-  "prove_time_seconds": 31.485706142,
-  "public_inputs_sha256": "210cf77efe313fcf4d10629d1ee46a336815ca4593a5232f1f016966bcba8025",
+  "prove_time_seconds": 1.619504343,
+  "prover": "cuda",
+  "public_inputs_sha256": "a319d54c71cdd4ff6e65fbed783b62444f58d3dc1b289674fd11199444aa5fe2",
   "relation": "training_fragment",
   "sp1_version": "6.1.0",
   "target_sync_events": 0,
-  "test_vector_sha256": "511ff96c1d44c8d5fd1579d54573d7dc059eec71593434982000fad198548766",
-  "verify_time_seconds": 0.087077918
+  "test_vector_sha256": "65ce2474e978ee62ad18795620bdeaaf9ba782fbce273f80d62e60f70bde8bf1",
+  "verify_time_seconds": 0.127261229
 }

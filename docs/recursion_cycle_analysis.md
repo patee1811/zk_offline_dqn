@@ -1,6 +1,8 @@
 # Why Native Recursion Runs Out of Memory
 
-Root cause of the `failed_oom` rows in Table 2, traced to a cycle count.
+Root cause of the `failed_oom` rows Table 2 reported **at the time**, traced to
+a cycle count. Those rows are proof-verified today; see the postscript at the
+end for what changed and what this document got wrong.
 
 ## The measurement that settles it
 
@@ -89,19 +91,45 @@ within 0.001%, which confirms the number is stable across machines.
 So the 153M per child is not SHA-256. It is the recursion verifier itself,
 and nothing in the program's own dependencies reaches it.
 
-## What is left
+## What was left, at the time
 
 Two directions, neither of them a bigger machine:
 
 1. Ask Succinct whether `verify_sp1_proof` is expected to cost ~153 M cycles
    per child in 6.1.0, and whether a precompiled path exists that a program
    can opt into. The sha2 patch is now ruled out, so the question is specific.
-2. Accept the cost and keep Theorem 7 scoped to proof-manifest chain
-   aggregation.
-
-Until the first lands, the second stands — not from lack of effort, but
-because native recursion was attempted at 30 GB and 61 GB, measured at 127x
-the largest relation this artifact has proved, and the one available
-optimization was tested and had no effect.
+2. Accept the cost and keep `thm:manifest-aggregation` scoped to proof-manifest
+   chain aggregation.
 
 Raw profiles: `artifacts/reports/memory_profile/ec2_64gb/`.
+
+## Postscript: a third direction, and it worked
+
+Neither of the two above is what resolved this. A CUDA prover did.
+
+The diagnosis in this document is correct and its conclusion was wrong, in a
+way worth recording. Every measurement here says the cost is proportional to
+the cycle count and that the host cannot hold the execution state; each is
+true. The inference that did not follow is that no machine could, because the
+CPU prover's memory scales with the trace while the CUDA prover's does not.
+On an A10G, peak device memory sits at 18.4 GB and is **flat in T** across a
+twentyfold range of cycle counts - the same rows that consumed 60 GB of host
+memory and were killed.
+
+What the artifact reports now:
+
+| Mode | Status |
+| --- | --- |
+| flat recursive, T = 16, 32, 64 | proof-verified, CUDA |
+| binary tree, T = 16 | proof-verified, CUDA |
+| binary tree, T = 1248 (two environments) and T = 4992 | proof-verified, CUDA |
+| any recursion on the CPU prover | still does not complete within 61 GB |
+
+The per-child figure in this document also moved, for an unrelated reason:
+enabling `overflow-checks` on the guest raised recursion by 36.8%, so the
+~153 M measured here is ~211 M in the current table. The structural claim - a
+fixed cost per child verified, independent of how many training steps that
+child covers - survived the change and is what makes long traces affordable.
+
+The lesson is narrower than "we were wrong". A resource measurement bounds the
+machine it was taken on. This one was read as though it bounded the problem.

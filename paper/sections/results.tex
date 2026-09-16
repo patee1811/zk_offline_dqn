@@ -10,25 +10,39 @@ modifications.
 \subsection{Experimental Setup}
 
 \textbf{Environments.} We use three environment families:
-CartPole-v1 and MountainCar-v0~\cite{brockman2016gym} as self-collected
+CartPole-v1 and LunarLander-v3~\cite{brockman2016gym} as self-collected
 classic-control benchmarks, and PointMaze from D4RL/Minari~\cite{fu2020d4rl,
 minari2023} as a public benchmark source.
 
-\textbf{Datasets.} Self-collected datasets include CartPole-random
-(9{,}204 transitions, random policy, replay/reward audited) and
-MountainCar-random (10{,}000 transitions, random policy, audited). Public
-benchmark datasets include PointMaze-umaze and PointMaze-umaze-dense variants
-at 10k, 50k, and 100k transition scales from Minari. Public imports are
-source-integrity commitments only.
+\textbf{Datasets.} Six self-collected datasets span two environments at
+three data-quality levels each: CartPole and LunarLander, at random, medium and
+expert, roughly 50{,}000 transitions apiece and all replay/reward audited. The
+medium and expert policies differ only in the skill of the collecting policy;
+both collect at $\epsilon=0.02$. Public benchmark datasets are PointMaze-umaze
+from Minari at 1k, 10k, 50k and 100k transitions, used for the Merkle-depth
+scaling rows; public imports are source-integrity commitments only.
 
-\textbf{Baselines.} For RL performance, we evaluate Behavioral Cloning (BC),
-Offline DQN, Double DQN, CQL-lite (discrete), BC-continuous, and IQL-lite
-(continuous), each over 3 random seeds with 5{,}000 training steps.
+\textbf{Baselines.} For RL performance we evaluate Behavioral Cloning, Offline
+DQN, Double DQN and CQL-lite, each over 3 random seeds with 5{,}000 training
+steps, under both Adam and SGD. A fifth row, \texttt{double\_dqn\_provable},
+runs the configuration the SP1 relation checks: batch size 1, plain SGD at
+$0.01$, component-wise gradient clipping, and a target-sync interval of
+$2{,}000$.
 
-\textbf{SP1 proving environment.} SP1 proofs were generated on Kaggle using
-\texttt{cargo-prove sp1} (commit \texttt{d454975}, 2026-04-11). All benchmark
-numbers are drawn from committed reports under \texttt{final\_ndss} and are not
-manually rewritten.
+\textbf{SP1 proving environment.} Every proof row in
+\Cref{tab:proof-cost} was generated on an AWS g5.2xlarge instance (NVIDIA
+A10G, 8 vCPU, 32\,GB) with SP1 6.1.0, under the CUDA prover, and each row
+records the prover that produced it. An earlier version of the table mixed
+provers, because six of the eight hosts had no CUDA path in them at all; the
+hosts now select the prover from the environment, so the prove-time column
+compares like with like. Recursion is GPU-only for a harder reason than
+convenience: the CPU prover did not complete those rows within 61\,GB of host
+memory at all.
+
+\textbf{Reported numbers.} Tables~\ref{tab:rl-performance}
+and~\ref{tab:proof-cost} are generated from the committed CSV files under
+\texttt{final\_ndss} and included verbatim; a test fails if the generated
+tables drift from the artifacts they are built from.
 
 \textbf{Regression suite.} The full Python regression runs 15 checks with 0
 failures (\texttt{artifacts/regression\_summary.json}).
@@ -38,48 +52,17 @@ failures (\texttt{artifacts/regression\_summary.json}).
 \Cref{tab:rl-performance} summarizes RL performance for completed experiment
 rows (incompatible algorithm--environment combinations are omitted for space).
 
-\begin{table}[!t]
-\centering
-\small
-\caption{RL performance on committed offline datasets. Self-collected datasets
-carry replay/reward audit evidence; public rows are source-integrity only.
-Results over 3 seeds.}
-\label{tab:rl-performance}
-\renewcommand{\arraystretch}{1.1}
-\begin{tabular}{llrr}
-\toprule
-\textbf{Dataset} & \textbf{Algorithm} &
-\textbf{Avg Return} & \textbf{Std} \\
-\midrule
-\multicolumn{4}{l}{\emph{Self-collected (audited)}} \\
-\midrule
-cartpole-random & BC & 11.0 & 0.9 \\
-cartpole-random & Offline DQN & 161.9 & 49.9 \\
-cartpole-random & Double DQN & 192.9 & 69.3 \\
-cartpole-random & CQL-lite & \textbf{199.0} & 34.8 \\
-\midrule
-mountaincar-random & BC & $-$200.0 & 0.0 \\
-mountaincar-random & Offline DQN & $-$200.0 & 0.0 \\
-mountaincar-random & Double DQN & $-$200.0 & 0.0 \\
-mountaincar-random & CQL-lite & $-$200.0 & 0.0 \\
-\midrule
-\multicolumn{4}{l}{\emph{Public benchmark (Minari PointMaze-umaze, 10k)}} \\
-\midrule
-umaze-10k & BC-continuous & 174.0 & 27.2 \\
-umaze-10k & IQL-lite & 163.4 & 15.1 \\
-umaze-dense-10k & BC-continuous & \textbf{186.9} & 8.1 \\
-umaze-dense-10k & IQL-lite & 173.8 & 9.1 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\input{generated/table1_rl_performance}
 
-For CartPole, CQL-lite achieves the highest average return ($199.0 \pm 34.8$)
-from a random-policy dataset, demonstrating that the committed dataset
-supports meaningful offline learning. For MountainCar, all algorithms plateau
-at $-200.0$, which is expected: a random policy generates minimal useful signal
-for this environment, and the dataset serves primarily as a second-environment
-verification artifact. Public PointMaze rows show successful continuous-control
-baselines with success rates up to 83.3\%.
+On cartpole-random, Double DQN under provable SGD reaches $311.0$ from a
+random-policy dataset, so the committed data supports meaningful offline
+learning. The optimizer split runs by environment rather than by optimizer:
+SGD takes 10 of 12 CartPole cells and Adam 11 of 12 LunarLander cells, 11--13
+overall. Plain offline DQN collapses to the minimum episode length on the
+medium and expert CartPole data, which is a property of the data rather than of
+the implementation -- an expert policy rarely terminates, so only $0.046\%$ of
+its transitions carry a terminal flag against $4.475\%$ for random data, and
+the TD fixed point degenerates. CQL-lite recovers where plain DQN does not.
 
 \subsection{ZK Proof Cost (Table~\ref{tab:proof-cost})}
 
@@ -89,106 +72,212 @@ relations and accepted proof rows from the final benchmark matrix.
 \Cref{fig:proof-cost} visualizes representative core, fragment, and
 aggregation scaling behavior.
 
-\begin{table}[!t]
-\centering
-\footnotesize
-\caption{SP1 proof cost for all proof-verified relation configurations.
-Prove and verify times in seconds; proof sizes in KB; cycle counts in
-thousands (k).}
-\label{tab:proof-cost}
-\renewcommand{\arraystretch}{1.1}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-\textbf{Relation} &
-\textbf{Prove} & \textbf{Verify} &
-\textbf{Size} & \textbf{Cycles} \\
-\midrule
-TD MVP & 167.7 & 0.190 & 2{,}719 & 385 \\
-Distinct TD ($b\!=\!1$) & 98.0 & 0.127 & 2{,}719 & 385 \\
-Distinct TD ($b\!=\!2$) & 120.7 & 0.127 & 2{,}723 & 731 \\
-Distinct TD ($b\!=\!4$) & 141.3 & 0.125 & 2{,}731 & 1{,}436 \\
-Distinct TD ($b\!=\!8$) & 202.9 & 0.127 & 2{,}747 & 2{,}846 \\
-Merkle (canonical) & 121.7 & 0.149 & 2{,}714 & 103 \\
-Merkle (1k leaves) & 156.1 & 0.191 & 2{,}717 & 306 \\
-Merkle (10k leaves) & 179.6 & 0.195 & 2{,}718 & 400 \\
-Merkle (100k leaves) & 168.7 & 0.195 & 2{,}719 & 471 \\
-Fwd-TD MLP (CartPole) & 148.4 & 0.127 & 2{,}732 & 1{,}544 \\
-Fwd-TD MLP (MountainCar) & 107.9 & 0.127 & 2{,}722 & 684 \\
-One-step SGD tiny & 115.5 & 0.125 & 2{,}724 & 862 \\
-Short trace & 82.3 & 0.123 & 2{,}714 & 115 \\
-Training update & 104.8 & 0.125 & 2{,}720 & 469 \\
-Fragment $k\!=\!1$ & 163.1 & 0.155 & 2{,}726 & 896 \\
-Fragment $k\!=\!4$ & 254.1 & 0.154 & 2{,}746 & 2{,}597 \\
-Fragment $k\!=\!8$ & 440.6 & 0.209 & 2{,}771 & 4{,}840 \\
-Agg.\ $T\!=\!32$ & 159.5 & 0.155 & 2{,}724 & 786 \\
-Agg.\ $T\!=\!64$ & 198.5 & 0.164 & 2{,}732 & 1{,}350 \\
-Agg.\ $T\!=\!128$ & 253.2 & 0.154 & 2{,}746 & 2{,}466 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\input{generated/table2_proof_cost}
 
 % ---- Figure 6: Proof Cost Visualization ----
 \begin{figure}[!t]
 \centering
 \begin{tikzpicture}
-\begin{axis}[
+\begin{semilogyaxis}[
     ybar,
     width=\columnwidth,
     height=5cm,
-    ylabel={Prove time (s)},
+    ylabel={Cycles},
     ylabel style={font=\small},
-    symbolic x coords={TD,Mrkl,FwTD,SGD,ShTr,TrUp,k1,k4,k8,T32,T64,T128},
+    symbolic x coords={Mrkl,ShTr,TD,TrUp,k1,SGD,FwTD,k4,k8,T32,T64,T128,R16,R32,R64},
     xtick=data,
     x tick label style={rotate=45, anchor=east, font=\tiny},
-    ymin=0, ymax=500,
-    bar width=6pt,
-    nodes near coords={\tiny\pgfmathprintnumber[precision=0]{\pgfplotspointmeta}},
-    nodes near coords style={above, font=\tiny},
+    ymin=5e4, ymax=1e10,
+    bar width=5pt,
     every axis plot/.append style={fill=blue!30, draw=blue!60},
     grid=major,
     grid style={dashed, gray!30},
     axis line style={gray!50}
 ]
 \addplot coordinates {
-    (TD,167.7) (Mrkl,121.7) (FwTD,142.7) (SGD,122.7)
-    (ShTr,82.3) (TrUp,104.8) (k1,163.1) (k4,254.1) (k8,440.6)
-    (T32,159.5) (T64,198.5) (T128,253.2)
+    (Mrkl,116750) (ShTr,122067) (TD,434785) (TrUp,494177)
+    (k1,935015) (SGD,928948) (FwTD,1628852) (k4,2367608) (k8,4258262)
+    (T32,879949) (T64,1507947) (T128,2758625)
+    (R16,422706047) (R32,842030244) (R64,1683536040)
 };
-\end{axis}
+\end{semilogyaxis}
 \end{tikzpicture}
-\caption{SP1 prove time for representative proof-verified relations. Training fragment
-prove time scales approximately linearly with $k$. Verification time remains
-under 0.21\,s for all reported proof-verified configurations.}
+\caption{Cycle counts for proof-verified relations, log scale. Cycles rather
+than wall-clock time: cycles are deterministic given a guest ELF and an input,
+whereas prove time depends on the machine. Moving ten rows from the CPU to the
+CUDA prover left every cycle count in this figure unchanged and cut their prove
+times by $51$--$62\times$. Recursive rows (R16--R64) are two orders of
+magnitude above the fragments they aggregate.}
 \label{fig:proof-cost}
 \end{figure}
 
-\textbf{Analysis.} Several patterns emerge from the proof-cost data:
+\textbf{Analysis.} Six observations, the third an exception to the first two.
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Verification is fast.} All relations verify in under 0.21\,s,
-  making client-side verification practical even on modest hardware.
+  \item \textbf{Verification is fast and flat.} Twenty-five of the twenty-six
+  proof-verified rows verify in 0.054--0.130\,s, and the figure does not track
+  the work proved: a recursive proof over $1.68$ billion cycles verifies in
+  $0.054$\,s, faster than a Merkle membership proof over $117$ thousand cycles
+  at $0.125$\,s. Verification cost is set by the proof system, not by the
+  computation.
 
-  \item \textbf{Proof sizes are compact.} All reported proof-verified rows are
-  below 2.84\,MB (about 2{,}714--2{,}771\,KiB), reflecting the STARK-based
-  proof structure of SP1 where proof size grows slowly with computation size.
+  \item \textbf{Proof sizes are compact, with one exception.} The same
+  twenty-five rows range from $1.27$\,MB to $2.85$\,MB. Recursive proofs are
+  the \emph{smallest} at $1.27$\,MB despite covering the most work, which is
+  the compression that makes recursion worth its prover cost.
 
-  \item \textbf{Fragment prove time scales linearly.} Prove time increases
-  roughly proportionally with fragment length: $k\!=\!1$ takes 163\,s,
-  $k\!=\!4$ takes 254\,s, and $k\!=\!8$ takes 441\,s, consistent with the
-  per-step computation overhead.
+  \item \textbf{The Groth16 variant is the exception on both axes.} Verifying
+  Groth16 child proofs inside the guest costs $6.19$ billion cycles, a
+  $1.47$\,GB proof, and $68.0$\,s to verify -- roughly $520\times$ the size and
+  $520\times$ the verify time of the next row. We report it because it is the one
+  configuration where in-guest verification of a SNARK, rather than of a native
+  SP1 proof, was measured; it is not a configuration we would recommend.
 
-  \item \textbf{Aggregation scales sublinearly in chunks.} The aggregation
-  prove time grows from 160\,s ($T\!=\!32$) to 253\,s ($T\!=\!128$), a 1.6x
-  increase for a 4x increase in steps, because the aggregation guest performs
-  only hashing and consistency checks rather than re-executing training
-  arithmetic.
+  \item \textbf{Recursion cost is per child, not per step.} Flat recursive
+  aggregation costs $422.7$M, $842.0$M and $1683.5$M cycles at $T = 16, 32, 64$,
+  which is $211.4$M, $210.5$M and $210.4$M cycles per child proof verified. The cost
+  does not depend on how many training steps each child covers, so a chain of
+  longer leaves is cheaper for the same trace length. This is why the whole-run
+  proofs below use $156$-step leaves rather than $8$-step leaves.
 
-  \item \textbf{Merkle scaling is modest.} Dataset-size scaling from canonical
-  to 100k leaves increases cycles from 103k to 471k, with prove time varying
-  between 122--180\,s, dominated by SP1 prover overhead rather than the Merkle
-  path computation itself.
+  \item \textbf{Merkle cost grows with depth, not size.} Dataset scaling from
+  $1$k to $100$k leaves moves cycles from $358$k to $554$k -- a $100\times$
+  increase in dataset size for a $1.5\times$ increase in cycles, consistent
+  with a per-level cost over a tree of depth $\lceil \log_2 n \rceil$.
+
+  \item \textbf{At this scale the prove column is mostly not measuring the
+  relation.} Fitting prove time against cycles over the ten rows that were
+  proved on both provers gives $47.8 + 25.9\,c$ seconds on the CPU prover and
+  $0.73 + 0.623\,c$ on CUDA, with $c$ in millions of cycles. The fixed term is
+  setup, and it dominates: it is $94\%$ of the CPU time and $91\%$ of the CUDA
+  time for canonical Merkle membership, and still $53\%$ and $42\%$ for Fwd-TD
+  MLP. Two consequences follow. A reader comparing the small rows by seconds is
+  comparing SP1's startup cost, not the relations; and the honest unit for
+  comparing relations is cycles, which is deterministic given a guest ELF and
+  an input -- a claim this table can now support directly, since ten rows moved
+  provers with cycle counts identical to the digit.
 \end{itemize}
+
+\subsection{A Whole Training Run Under One Proof}
+
+The rows above prove fragments. \Cref{tab:whole-run} reports single root proofs
+covering an entire run, each over a binary tree of $156$-step leaves with every
+leaf bound to the committed dataset the reported policy was trained on.
+
+\begin{table}[!t]
+\centering
+\small
+\caption{Root proofs covering a complete training run. Each carries
+$\mathrm{step\_start} = 0$ and the stated $\mathrm{step\_end}$ in its public
+inputs, so one proof covers the run rather than a fragment of it.}
+\label{tab:whole-run}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Dataset} & \textbf{Steps} & \textbf{Cycles} &
+\textbf{Prove (s)} & \textbf{Verify (s)} \\
+\midrule
+cartpole-expert & 1{,}248 & 422{,}411{,}631 & 191.8 & 0.054 \\
+lunarlander-expert & 1{,}248 & 422{,}387{,}142 & 192.7 & 0.054 \\
+lunarlander-random & 4{,}992 & 422{,}401{,}017 & 193.1 & 0.054 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Cycle counts are nearly identical across the three because the root node
+verifies two child proofs in every case; the tree depth below it, and hence the
+trace length, does not enter the root's own cost. The $4{,}992$-step row is the
+configuration Table~\ref{tab:rl-performance} reports at $-152.7$ on
+\texttt{lunarlander-random}, so the proof covers the run that produced a number
+in the table rather than a run alongside it.
+
+Two limits bound the trace length, and neither is the proof system. First,
+arithmetic: offline DQN diverges, and at a target-sync interval of $4$ the
+fixed-point $Q$ values crossed the declared bound before step $1{,}404$. At the
+interval of $2{,}000$ the reported configuration uses, a simulation of all
+$32$ chunks put peak $|Q|$ at $1.01\times 10^{5}$ against a declared bound of
+$4.50\times 10^{15}$, so the wall moved by nine orders of magnitude. Second,
+cost: a CartPole run long enough to learn well needs roughly $50{,}000$ steps,
+which at this leaf size is $321$ leaves. At the per-node times this tree
+measured --- $157$\,s per leaf and $213$\,s per internal node --- that is about
+$33$ GPU-hours, and the power-of-two leaf count the tree shape requires rounds
+it to a $512$-leaf tree at about $52$. We did not run it.
+
+\subsection{What the Provable Configuration Costs}
+\label{subsec:provable-config}
+
+A reader who scans the \texttt{double\_dqn\_provable} column will notice that
+five of its six cells are bad policies: $17.0$, $11.0$ and $9.7$ on CartPole,
+$-829.7$ and $-717.9$ on the two LunarLander expert-and-medium sets. It is fair
+to ask what is gained by proving a run that did not learn. We take the question
+seriously enough to organise this subsection around it, and the answer is that
+the column is not a claim about policy quality. It is a measurement of where
+the provable configuration stops tracking the tuned one, and that boundary is
+the practically useful object: it says which of the constraints a proof imposes
+are expensive in return, and therefore which ones a deployment would have to
+negotiate. A verification system whose evaluation reported only the cell where
+it happened to win would be telling the reader less.
+
+The relation checks plain SGD on single transitions with component-wise
+clipping, which is not what a tuned implementation runs. We measure that gap
+rather than leave it to the reader. \texttt{double\_dqn\_provable} in
+\Cref{tab:rl-performance} runs exactly the relation's settings; on
+\texttt{lunarlander-random} it reaches $-152.7$ against $-215.3$ for the tuned
+minibatch row, and it improves on its own previous configuration on all six
+datasets.
+
+Which of the three differences accounts for the gap is not obvious, so we
+changed one at a time. On \texttt{cartpole-random} at $5{,}000$ steps, one
+seed: the tuned configuration scores $78.0$; substituting component-wise for
+$L_2$ clipping gives $75.4$; taking the target-sync interval from $100$ to $4$
+gives $9.4$; taking the batch size from $256$ to $1$ gives $9.4$. The
+substitution the proof forces costs about $3\%$, and the two settings that
+collapse the score are the sync interval and the minibatch.
+
+That result is easy to over-read, and we did. Each of those two was varied with
+the other held at its tuned value, which licenses no conclusion about their
+combination. A sweep of $60$ cells at batch size 1 shows batch size 1 fails at
+a sync interval of $100$ and succeeds at $2{,}000$: on \texttt{cartpole-random}
+it moves from $9.6$ to $209.5$, and on \texttt{lunarlander-random} from
+$-649.1$ to $-197.4$. The setting that mattered was the one already exposed as
+a free public input; the one that would have cost cycles per step was not the
+obstacle. We report the first ablation and its correction because the
+correction is the more useful result.
+
+This is what makes the column worth printing in full. The binding constraint on
+the provable configuration is a single integer in the public statement, which a
+deployment can change without touching the relation, the guest, or the proof
+cost: \texttt{target\_sync\_interval} is a public input, and the leaves of our
+two tree families, proved at intervals of $4$ and $2{,}000$, differ by under
+$0.4\%$ in cycles ($493.5$--$494.7$\,M against $494.2$--$495.3$\,M at
+$k = 156$). The constraints that do cost cycles per step --- batch size one
+and component-wise clipping --- are the ones the ablation exonerates. Read that
+way, the five weak cells are not a verdict on provable training; they are the
+price of one setting that a reader can price exactly, and the row where the
+setting is correct is the $4{,}992$-step configuration this paper proves under a
+single root proof.
+
+\subsection{A Defect the Tamper Suite Could Not See}
+\label{subsec:sampling-defect}
+
+During development the sampler used a fixed seed with a step index local to
+each fragment. Every chunk of a chain therefore drew the same indices: chunk
+$0$ (steps $0$--$7$) and chunk $1$ (steps $8$--$15$) both selected
+$[68, 83, 22, 125, 56, 55, 42, 1]$. A $1{,}248$-step chain was $156$
+repetitions over eight rows of a $50{,}000$-row dataset rather than a pass over
+the data.
+
+Nothing caught it. Every hash agreed, every proof verified, and all $236$
+tamper cases stayed green, because no field had been altered -- the relation
+computed exactly what it said it computed, and what it said was not what we
+believed. \Cref{tab:tamper-summary} tests whether a modified artifact is
+rejected; it cannot test whether an unmodified relation means what its authors
+intended.
+
+We record this for two reasons. It is the sharpest evidence we have that
+sampling integrity is a real verification obligation rather than a theoretical
+one, and it bounds what a field-level tamper benchmark establishes. Binding the
+sampler to the dataset commitment fixes the defect and removes the prover's
+freedom to grind the seed in the same change.
 
 \subsection{Tamper Rejection (Table~\ref{tab:tamper-summary})}
 
@@ -198,44 +287,7 @@ components tested, the total number of adversarial test cases, and the
 rejection outcome. The detailed layer-by-layer rejection results are available
 in the committed \texttt{table3\_tamper\_rejection.json}.
 
-\begin{table*}[!t]
-\centering
-\footnotesize
-\caption{Tamper-rejection summary. All adversarial modifications are detected
-and rejected. Zero rows were unexpectedly accepted.}
-\label{tab:tamper-summary}
-\renewcommand{\arraystretch}{1.1}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-\textbf{Tamper category} & \textbf{Comp.} & \textbf{Tests} &
-\textbf{Rejected} \\
-\midrule
-reward & 6 & 6 & 6/6 \\
-next\_state & 5 & 5 & 5/5 \\
-done flag & 6 & 6 & 6/6 \\
-action & 6 & 6 & 6/6 \\
-merkle\_path & 6 & 17 & 17/17 \\
-merkle\_leaf & 1 & 4 & 4/4 \\
-minibatch\_index & 13 & 43 & 43/43 \\
-q\_value & 2 & 5 & 5/5 \\
-td\_target & 2 & 4 & 4/4 \\
-loss & 1 & 1 & 1/1 \\
-gradient & 5 & 7 & 7/7 \\
-checkpoint\_hash & 13 & 30 & 30/30 \\
-target\_network\_sync & 11 & 11 & 11/11 \\
-proof\_public\_input & 17 & 59 & 57/57$^\dagger$ \\
-dataset\_root & 11 & 14 & 14/14 \\
-manifest\_hash & 13 & 13 & 13/13 \\
-raw\_trajectory\_hash & 1 & 2 & 2/2 \\
-audit\_report\_hash & 1 & 1 & 1/1 \\
-collection\_log\_hash & 2 & 2 & 1/1$^\ddagger$ \\
-\midrule
-\textbf{Total} & --- & \textbf{236} & \textbf{233/233} \\
-\bottomrule
-  \multicolumn{4}{l}{\scriptsize $^\dagger$2 rows marked not\_applicable
-  (no proof artifact). $^\ddagger$1 row not\_applicable (public import).}
-\end{tabular}
-\end{table*}
+\input{generated/table3_tamper_rejection}
 
 \textbf{Analysis.} The tamper-rejection results demonstrate several important
 properties:
@@ -266,5 +318,7 @@ The reviewer fast path is:
 This regenerates a tiny audited CartPole dataset commitment, validates compact
 SP1 provenance and paper report sources, regenerates paper-facing summaries,
 checks theorem/artifact mappings, and writes the artifact manifest. Heavy SP1
-proof reruns require \texttt{RUN\_HEAVY\_SP1=1} and a Linux/WSL2/Kaggle
-environment with the SP1 toolchain installed.
+proof reruns require \texttt{RUN\_HEAVY\_SP1=1} and a Linux host with the SP1
+toolchain; the recursive rows additionally require a CUDA device with at least
+$20$\,GB, since the CPU prover does not complete them within $61$\,GB of host
+memory.

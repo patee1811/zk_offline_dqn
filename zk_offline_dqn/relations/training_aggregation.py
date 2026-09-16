@@ -21,6 +21,15 @@ PUBLIC_SCHEMA_VERSION = "sp1_training_aggregation_public_v1"
 AGGREGATION_MODE = "proof_manifest_chain"
 RECURSIVE_AGGREGATION_MODE = "recursive_sp1"
 CHUNK_RELATION_ID = "training_fragment_k8"
+
+
+def chunk_relation_id(chunk_size: int) -> str:
+    """Relation id of the fragment proof a chunk of this size cites.
+
+    Threaded rather than fixed because it lands inside config_hash, so a chunk
+    covering 128 steps must not claim provenance from the k=8 fragment.
+    """
+    return f"training_fragment_k{int(chunk_size)}"
 BINARY_NODE_RELATION_ID = "training_aggregation_binary_node"
 CLAIM_SCOPE = "chunk-chain aggregation over externally verified proof manifests"
 RECURSIVE_CLAIM_SCOPE = "true recursive SP1 aggregation over child training-fragment proofs"
@@ -137,10 +146,11 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
     if public["relation"] != "training_aggregation":
         raise AssertionError("relation mismatch")
     binary = public.get("aggregation_topology") == BINARY_AGGREGATION_TOPOLOGY
-    if public["chunk_relation_id"] != (chunks[0]["relation_id"] if binary else CHUNK_RELATION_ID):
+    leaf_relation_id = chunk_relation_id(int(public["chunk_size"]))
+    if public["chunk_relation_id"] != (chunks[0]["relation_id"] if binary else leaf_relation_id):
         raise AssertionError("chunk relation mismatch")
-    if int(public["chunk_size"]) != 8:
-        raise AssertionError("chunk_size mismatch")
+    if int(public["chunk_size"]) <= 0:
+        raise AssertionError("chunk_size must be positive")
     if int(public["chunk_count"]) != len(chunks):
         raise AssertionError("chunk_count mismatch")
     if not chunks:
@@ -232,8 +242,11 @@ def _verify_binary_public(public: Mapping[str, Any], chunks: Sequence[Mapping[st
         raise AssertionError("binary tree fan-in mismatch")
     if int(public.get("child_count", 0)) != 2:
         raise AssertionError("binary child_count mismatch")
-    if int(public.get("leaf_chunk_count", 0)) not in {2, 4}:
-        raise AssertionError("binary leaf_chunk_count mismatch")
+    leaf_chunk_count = int(public.get("leaf_chunk_count", 0))
+    # A node covers every leaf beneath it, so this doubles per level: 2 at depth 1,
+    # 4 at depth 2, 16 at depth 4. The old {2, 4} bound capped the tree at depth 2.
+    if leaf_chunk_count < 2 or leaf_chunk_count & (leaf_chunk_count - 1):
+        raise AssertionError("binary leaf_chunk_count must be a power of two >= 2")
     if int(public.get("node_depth", 0)) < 1:
         raise AssertionError("binary node_depth mismatch")
     if int(public.get("node_range_start", -1)) != int(public["step_start"]):
@@ -269,13 +282,14 @@ def _verify_chunk_chain(
                 raise AssertionError("chunk step span mismatch")
             if chunk["relation_id"] != public["chunk_relation_id"]:
                 raise AssertionError("chunk relation_id mismatch")
-            if chunk["relation_id"] == CHUNK_RELATION_ID and child_span != int(public["chunk_size"]):
+            leaf_id = chunk_relation_id(int(public["chunk_size"]))
+            if chunk["relation_id"] == leaf_id and child_span != int(public["chunk_size"]):
                 raise AssertionError("leaf chunk step span mismatch")
-            if chunk["relation_id"] not in {CHUNK_RELATION_ID, BINARY_NODE_RELATION_ID}:
+            if chunk["relation_id"] not in {leaf_id, BINARY_NODE_RELATION_ID}:
                 raise AssertionError("binary child relation_id mismatch")
         elif child_span != int(public["chunk_size"]):
             raise AssertionError("chunk step span mismatch")
-        if not binary and chunk["relation_id"] != CHUNK_RELATION_ID:
+        if not binary and chunk["relation_id"] != chunk_relation_id(int(public["chunk_size"])):
             raise AssertionError("chunk relation_id mismatch")
         for field in [
             "dataset_root",
@@ -431,15 +445,15 @@ def verify_case(vector: Mapping[str, Any]) -> VerificationResult:
 
 
 def generate_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
-    if chunk_size != 8:
-        raise AssertionError("Phase 7 aggregates proof-backed k=8 chunks")
+    if chunk_size <= 0:
+        raise AssertionError("chunk_size must be positive")
     if step_end <= 0 or step_end % chunk_size != 0:
         raise AssertionError("step_end must be a positive multiple of chunk_size")
     fragment = generate_fragment_case(step_end)
     fragment_public = fragment["public_inputs"]
     steps = fragment["private_witness"]["steps"]
-    provenance_hashes = load_k8_provenance_hashes()
-    config_hash = config_hash_from_fragment_public(fragment_public)
+    provenance_hashes = load_fragment_provenance_hashes(chunk_size)
+    config_hash = config_hash_from_fragment_public(fragment_public, chunk_size=chunk_size)
     chunks = []
     for chunk_id, step_start in enumerate(range(0, step_end, chunk_size)):
         final_step = step_start + chunk_size - 1
@@ -456,7 +470,7 @@ def generate_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
             {
                 "boundary": boundary,
                 "format": "training_aggregation_child_public_inputs_v1",
-                "source_relation_id": CHUNK_RELATION_ID,
+                "source_relation_id": chunk_relation_id(chunk_size),
             }
         )
         proof_hash = sha256_json(
@@ -488,6 +502,7 @@ def generate_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
         aggregation_mode=AGGREGATION_MODE,
         claim_scope=CLAIM_SCOPE,
         child_proofs=[],
+        chunk_size=chunk_size,
     )
 
 
@@ -497,21 +512,24 @@ def generate_recursive_case(
     child_materials: Sequence[Mapping[str, Any]] | None = None,
     child_proof_mode: str = CHILD_PROOF_MODE,
     chunk_size: int = 8,
+    fragment_source: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     if child_proof_mode not in RECURSIVE_CHILD_PROOF_MODES:
         raise AssertionError("unsupported recursive child proof mode")
-    child_cases = generate_recursive_child_cases(step_end, chunk_size=chunk_size)
+    child_cases = generate_recursive_child_cases(
+        step_end, chunk_size=chunk_size, fragment_source=fragment_source
+    )
     materials = list(child_materials) if child_materials is not None else [
         placeholder_child_material(child_case, chunk_id, proof_mode=child_proof_mode)
         for chunk_id, child_case in enumerate(child_cases)
     ]
     if len(materials) != len(child_cases):
         raise AssertionError("child material count mismatch")
-    provenance_hashes = load_k8_provenance_hashes()
+    provenance_hashes = load_fragment_provenance_hashes(chunk_size)
     chunks = []
     child_proofs = []
     first_public = child_cases[0]["public_inputs"]
-    config_hash = config_hash_from_fragment_public(first_public)
+    config_hash = config_hash_from_fragment_public(first_public, chunk_size=chunk_size)
     expected_vkey_hash = str(materials[0]["vkey_hash"])
     expected_vkey_digest_words = list(materials[0].get("vkey_digest_words", []))
     for chunk_id, (child_case, material) in enumerate(zip(child_cases, materials)):
@@ -543,8 +561,10 @@ def generate_recursive_case(
             "audit_report_hash": child_public["audit_report_hash"],
             "collection_log_final_hash": child_public["collection_log_final_hash"],
             "raw_trajectory_hash": child_public["raw_trajectory_hash"],
-            "config_hash": config_hash_from_fragment_public(child_public),
-            "relation_id": CHUNK_RELATION_ID,
+            "config_hash": config_hash_from_fragment_public(
+                child_public, chunk_size=child_public["num_steps"]
+            ),
+            "relation_id": chunk_relation_id(child_public["num_steps"]),
             "public_inputs_hash": public_hash,
             "proof_hash": proof_hash,
             "metrics_hash": str(material.get("metrics_hash", provenance_hashes["metrics_hash"])),
@@ -593,6 +613,7 @@ def generate_recursive_case(
         aggregation_mode=RECURSIVE_AGGREGATION_MODE,
         claim_scope=RECURSIVE_CLAIM_SCOPE,
         child_proofs=child_proofs,
+        chunk_size=chunk_size,
     )
     vector["public_inputs"].update(
         {
@@ -606,10 +627,17 @@ def generate_recursive_case(
     return vector
 
 
-def generate_binary_native_case(step_end: int, *, chunk_size: int = 8) -> Dict[str, Any]:
+def generate_binary_native_case(
+    step_end: int,
+    *,
+    chunk_size: int = 8,
+    fragment_source: Mapping[str, Any] | None = None,
+) -> Dict[str, Any]:
     if step_end not in {16, 32}:
         raise AssertionError("binary native fixtures target T=16 or T=32")
-    child_cases = generate_recursive_child_cases(step_end, chunk_size=chunk_size)
+    child_cases = generate_recursive_child_cases(
+        step_end, chunk_size=chunk_size, fragment_source=fragment_source
+    )
     if step_end == 16:
         return build_binary_native_case(
             child_cases,
@@ -660,7 +688,11 @@ def build_binary_native_case(
 ) -> Dict[str, Any]:
     if len(child_cases) != 2 or len(child_materials) != 2:
         raise AssertionError("binary aggregation requires exactly two children")
-    provenance_hashes = load_k8_provenance_hashes()
+    # A child is either a leaf fragment, which names its span num_steps, or a
+    # deeper aggregate node, which carries chunk_size straight through.
+    child_public = child_cases[0]["public_inputs"]
+    chunk_size = int(child_public.get("chunk_size") or child_public["num_steps"])
+    provenance_hashes = load_fragment_provenance_hashes(chunk_size)
     chunks = []
     child_proofs = []
     expected_vkey_hash = str(child_materials[0]["vkey_hash"])
@@ -726,6 +758,7 @@ def build_binary_native_case(
         aggregation_mode=RECURSIVE_AGGREGATION_MODE,
         claim_scope=BINARY_CLAIM_SCOPE,
         child_proofs=child_proofs,
+        chunk_size=chunk_size,
     )
     left, right = chunks
     vector["public_inputs"].update(
@@ -759,9 +792,22 @@ def build_binary_native_case(
     return vector
 
 
-def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> List[Dict[str, Any]]:
-    if chunk_size != 8:
-        raise AssertionError("Phase 7B recursively aggregates k=8 child proofs")
+def generate_recursive_child_cases(
+    step_end: int,
+    *,
+    chunk_size: int = 8,
+    fragment_source: Mapping[str, Any] | None = None,
+) -> List[Dict[str, Any]]:
+    """Chained fragment cases covering [0, step_end).
+
+    `fragment_source` binds the chain to a committed dataset: pass the keyword
+    arguments generate_case takes for a real run -- dataset, provenance,
+    layer_sizes, learning_rate -- and every chunk is generated against it. Left
+    out, the chain uses the synthetic dataset the committed fixtures were built
+    from, which those fixtures still have to reproduce byte for byte.
+    """
+    if chunk_size <= 0:
+        raise AssertionError("chunk_size must be positive")
     if step_end <= 0 or step_end % chunk_size != 0:
         raise AssertionError("step_end must be a positive multiple of chunk_size")
     child_cases = []
@@ -774,6 +820,7 @@ def generate_recursive_child_cases(step_end: int, *, chunk_size: int = 8) -> Lis
             online_start=online,
             target_start=target,
             case_id=f"training_fragment_recursive_chunk_{chunk_id}_steps_{step_start}_{step_start + chunk_size}",
+            **dict(fragment_source or {}),
         )
         child_cases.append(child_case)
         last_step = child_case["private_witness"]["steps"][-1]
@@ -920,7 +967,9 @@ def _binary_child_boundary(
         if not result.accepted or result.public_output is None:
             raise AssertionError(f"binary leaf child {chunk_id} rejected: {result.reason}")
         output = result.public_output
-        config_hash = config_hash_from_fragment_public(child_public)
+        config_hash = config_hash_from_fragment_public(
+            child_public, chunk_size=child_public["num_steps"]
+        )
         return (
             {
                 "chunk_id": chunk_id,
@@ -936,7 +985,7 @@ def _binary_child_boundary(
                 "collection_log_final_hash": output["collection_log_final_hash"],
                 "raw_trajectory_hash": output["raw_trajectory_hash"],
                 "config_hash": config_hash,
-                "relation_id": CHUNK_RELATION_ID,
+                "relation_id": chunk_relation_id(child_public["num_steps"]),
             },
             child_public,
         )
@@ -993,17 +1042,34 @@ def binary_tree_root(chunks: Sequence[Mapping[str, Any]]) -> str:
     )
 
 
-def config_hash_from_fragment_public(fragment_public: Mapping[str, Any]) -> str:
+def config_hash_from_fragment_public(
+    fragment_public: Mapping[str, Any], *, chunk_size: int = 8
+) -> str:
+    """Hash the configuration every chunk in a chain shares.
+
+    sampler_seed used to sit here and no longer can: it is derived per chunk
+    from the dataset root and the chunk's global step, so chunks of one chain
+    hold different seeds and a hash over the seed would differ chunk to chunk.
+    Recording the derivation rule instead keeps the chain pinned to how the
+    seed is fixed, while the fragment relation checks each chunk's own seed
+    against its own root and step.
+
+    That the seed now varies by chunk is the point. With one constant seed and
+    a step index local to the fragment, every chunk drew the same transitions:
+    a 1248-step chain was 156 repetitions over 8 rows of the dataset.
+    """
     return sha256_json(
         {
             "batch_size": fragment_public["batch_size"],
-            "chunk_relation_id": CHUNK_RELATION_ID,
+            "chunk_relation_id": chunk_relation_id(chunk_size),
             "dataset_size": fragment_public["dataset_size"],
             "fixed_point_scale": fragment_public["fixed_point_scale"],
-            "format": "training_aggregation_chunk_config_v1",
+            "format": "training_aggregation_chunk_config_v2",
             "gamma": fragment_public["gamma"],
+            "gradient_clip_fp": fragment_public["gradient_clip_fp"],
             "learning_rate": fragment_public["learning_rate"],
-            "sampler_seed": fragment_public["sampler_seed"],
+            "q_abs_max_fp": fragment_public["q_abs_max_fp"],
+            "sampler_seed_rule": "derived_from_dataset_root_and_global_step_start",
             "sampler_type": fragment_public["sampler_type"],
             "target_sync_interval": fragment_public["target_sync_interval"],
             "target_sync_mode": fragment_public["target_sync_mode"],
@@ -1034,7 +1100,7 @@ def _chunk_boundary(
         "collection_log_final_hash": fragment_public["collection_log_final_hash"],
         "raw_trajectory_hash": fragment_public["raw_trajectory_hash"],
         "config_hash": config_hash,
-        "relation_id": CHUNK_RELATION_ID,
+        "relation_id": chunk_relation_id(chunk_size),
     }
 
 
@@ -1048,6 +1114,7 @@ def _aggregation_vector(
     aggregation_mode: str,
     claim_scope: str,
     child_proofs: Sequence[Mapping[str, Any]],
+    chunk_size: int = 8,
 ) -> Dict[str, Any]:
     public = {
         "relation": "training_aggregation",
@@ -1057,8 +1124,8 @@ def _aggregation_vector(
             else f"training_aggregation_t{step_end}_case_0"
         ),
         "aggregation_mode": aggregation_mode,
-        "chunk_relation_id": CHUNK_RELATION_ID,
-        "chunk_size": 8,
+        "chunk_relation_id": chunk_relation_id(chunk_size),
+        "chunk_size": chunk_size,
         "chunk_count": len(chunks),
         "step_start": chunks[0]["step_start"],
         "step_end": chunks[-1]["step_end"],
@@ -1082,9 +1149,16 @@ def _aggregation_vector(
     }
 
 
-def load_k8_provenance_hashes() -> Dict[str, str]:
+def load_fragment_provenance_hashes(chunk_size: int = 8) -> Dict[str, str]:
+    """Hashes of the proof-backed fragment provenance a chunk of this size cites.
+
+    The directory has to be proof-backed for every file below to exist, so a new
+    chunk size needs its fragment proved through the phase script first.
+    """
     root = Path(__file__).resolve().parents[2]
-    provenance = root / "artifacts" / "reports" / "provenance" / "sp1" / "training_fragment_k8"
+    provenance = (
+        root / "artifacts" / "reports" / "provenance" / "sp1" / f"training_fragment_k{chunk_size}"
+    )
     return {
         "metrics_hash": sha256_file(provenance / "metrics.json"),
         "verify_report_hash": sha256_file(provenance / "verify_report.json"),

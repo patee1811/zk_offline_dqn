@@ -12,7 +12,11 @@ from zk_offline_dqn.backends.sp1.training_fragment import (
     run_cargo,
     verify_case_reference,
 )
-from zk_offline_dqn.relations.training_fragment import lcg_sample_index, recompute_fragment
+from zk_offline_dqn.relations.training_fragment import (
+    SCHEMA_VERSION,
+    lcg_sample_index,
+    recompute_fragment,
+)
 
 
 PROVENANCE_FILES = [
@@ -30,7 +34,7 @@ class Sp1TrainingFragmentFixtureTests(unittest.TestCase):
         for k in [1, 4, 8, 16]:
             with self.subTest(k=k):
                 case = load_case(case_path_for_k(k))
-                self.assertEqual(case["schema_version"], "sp1_training_fragment_case_v1")
+                self.assertEqual(case["schema_version"], SCHEMA_VERSION)
                 self.assertEqual(case["public_inputs"]["relation"], "training_fragment")
                 self.assertEqual(case["public_inputs"]["num_steps"], k)
                 self.assertEqual(case["public_inputs"]["batch_size"], 1)

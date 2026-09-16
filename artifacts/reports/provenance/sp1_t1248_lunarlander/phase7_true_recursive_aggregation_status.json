@@ -1,0 +1,212 @@
+{
+  "cases": [
+    {
+      "aggregation_manifest_saved": true,
+      "aggregation_mode": "recursive_sp1",
+      "aggregation_topology": "binary_tree",
+      "child_proof_mode": "native_sp1",
+      "child_proof_verification_inside_guest": true,
+      "child_proves": [
+        {
+          "chunk_id": 0,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_0.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_0 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_0.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_0 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_0.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = b361008f860236acb89b0671023ee61855efebf72c2a3f644efa35603650696d\nfinal_checkpoint_hash = 0dc224b856e6c666f74ea533eae5d8eb90ba1f7234ae34c271718d7e7700f73f\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.488954\ncycle_count = 493511385\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 220.876058\nverification_time_sec = 0.054921\nproof_size_bytes = 1274013"
+          },
+          "step_end": 156,
+          "step_start": 0
+        },
+        {
+          "chunk_id": 1,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_1.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_1 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.39s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_1.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_1 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_1.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = 0dc224b856e6c666f74ea533eae5d8eb90ba1f7234ae34c271718d7e7700f73f\nfinal_checkpoint_hash = b6626a15d98f5469312c0b68322bbee9c18fb82a6bd7103f3f8d519f34c23f01\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.575824\ncycle_count = 493994994\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 221.602317\nverification_time_sec = 0.054839\nproof_size_bytes = 1274015"
+          },
+          "step_end": 312,
+          "step_start": 156
+        },
+        {
+          "chunk_id": 2,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_2.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_2 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_2.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_2 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_2.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = b6626a15d98f5469312c0b68322bbee9c18fb82a6bd7103f3f8d519f34c23f01\nfinal_checkpoint_hash = 5adc3f4388b6c02da79d1c913e89a304716cc62f45c382395e16fe64102b19a7\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.522417\ncycle_count = 494562881\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 204.629617\nverification_time_sec = 0.054553\nproof_size_bytes = 1274015"
+          },
+          "step_end": 468,
+          "step_start": 312
+        },
+        {
+          "chunk_id": 3,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_3.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_3 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.39s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_3.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_3 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_3.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = 5adc3f4388b6c02da79d1c913e89a304716cc62f45c382395e16fe64102b19a7\nfinal_checkpoint_hash = af1efc2f226788550236ef9e2244acee77c7606ff38488eab218a9c91894eac6\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.493657\ncycle_count = 494737321\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 204.692694\nverification_time_sec = 0.054589\nproof_size_bytes = 1274015"
+          },
+          "step_end": 624,
+          "step_start": 468
+        },
+        {
+          "chunk_id": 4,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_4.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_4 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_4.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_4 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_4.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = af1efc2f226788550236ef9e2244acee77c7606ff38488eab218a9c91894eac6\nfinal_checkpoint_hash = 438720b25d637b66717707d47c4a40badc4e4911bb657ddd96da97d5adae7d5c\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.598719\ncycle_count = 495725173\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 222.700259\nverification_time_sec = 0.054407\nproof_size_bytes = 1274015"
+          },
+          "step_end": 780,
+          "step_start": 624
+        },
+        {
+          "chunk_id": 5,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_5.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_5 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.39s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_5.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_5 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_5.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = 438720b25d637b66717707d47c4a40badc4e4911bb657ddd96da97d5adae7d5c\nfinal_checkpoint_hash = 4719c8eae90d6e14d1da8efecf0b7305899a33b873acd42eac80f22d1252ed79\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.612874\ncycle_count = 496331565\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 206.745238\nverification_time_sec = 0.054771\nproof_size_bytes = 1274015"
+          },
+          "step_end": 936,
+          "step_start": 780
+        },
+        {
+          "chunk_id": 6,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_6.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_6 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_6.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_6 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_6.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = 4719c8eae90d6e14d1da8efecf0b7305899a33b873acd42eac80f22d1252ed79\nfinal_checkpoint_hash = 8ebbb039b8bcaca31dfa3739a9a9d4d9dc7e10483460f88c667639a6e5f63c7f\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.537261\ncycle_count = 497097386\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 223.753250\nverification_time_sec = 0.054619\nproof_size_bytes = 1274016"
+          },
+          "step_end": 1092,
+          "step_start": 936
+        },
+        {
+          "chunk_id": 7,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_7.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_7 --max-steps 156 --proof-mode native_sp1",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.39s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_7.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_7 --max-steps 156 --proof-mode native_sp1`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_cases/training_fragment_binary_leaf_7.json\nhost_precheck = true\nnum_steps = 156\ndataset_root = 328eb8b413623e73ed1cc377153686cb8f0ff1e6bb56d0b6e45386bd846fd151\nstart_checkpoint_hash = 8ebbb039b8bcaca31dfa3739a9a9d4d9dc7e10483460f88c667639a6e5f63c7f\nfinal_checkpoint_hash = 72b68b7cc60c3b26fa566795a2e7b009e0a4f0e41061010d2ae0d7e80187cc8b\ntarget_sync_events = 39\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 21.616169\ncycle_count = 497700363\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 205.186276\nverification_time_sec = 0.054851\nproof_size_bytes = 1274017"
+          },
+          "step_end": 1248,
+          "step_start": 1092
+        },
+        {
+          "node_id": "level1_node0",
+          "out_dir": "/home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node0",
+          "prove": {
+            "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node0_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node0 --child-proof-mode native_sp1 --topology binary_tree",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node0_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node0 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node0_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 312\naggregate_root = 5fd2638b30436d7d954fe62d3182bcd6456560855597fd6c739323d69ce6a594\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.161092\ncycle_count = 422868355\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 197.454939\nverification_time_sec = 0.053940\nproof_size_bytes = 1274671"
+          }
+        },
+        {
+          "node_id": "level1_node1",
+          "out_dir": "/home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node1",
+          "prove": {
+            "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node1_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node1 --child-proof-mode native_sp1 --topology binary_tree",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.39s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node1_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node1 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node1_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 624\naggregate_root = 42b12f51bda5a9751e00edf329029aee00306ed9436312124f7b82bc5c5995a4\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.209833\ncycle_count = 422867826\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 191.031574\nverification_time_sec = 0.054094\nproof_size_bytes = 1274673"
+          }
+        },
+        {
+          "node_id": "level1_node2",
+          "out_dir": "/home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node2",
+          "prove": {
+            "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node2_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node2 --child-proof-mode native_sp1 --topology binary_tree",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node2_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node2 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node2_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 936\naggregate_root = 85a1af1d01d2abd9665f3d484a0304ba46b1be51b17d07e39095cd0342e05ab5\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.166685\ncycle_count = 422878326\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 198.215128\nverification_time_sec = 0.054053\nproof_size_bytes = 1274673"
+          }
+        },
+        {
+          "node_id": "level1_node3",
+          "out_dir": "/home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node3",
+          "prove": {
+            "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node3_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node3 --child-proof-mode native_sp1 --topology binary_tree",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.39s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node3_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node3 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level1/level1_node3_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 1248\naggregate_root = ef4aefd4344cf2cafb0827682b10ab02c9f9916500c84bf2580b6886f3712387\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.361946\ncycle_count = 421907251\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 190.026545\nverification_time_sec = 0.053891\nproof_size_bytes = 1274674"
+          }
+        },
+        {
+          "node_id": "level2_node0",
+          "out_dir": "/home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node0",
+          "prove": {
+            "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node0_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node0 --child-proof-mode native_sp1 --topology binary_tree",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.38s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node0_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node0 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node0_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 624\naggregate_root = d610a344617eae8ffb223a453a47baa66479be232caaa95c0d9d85424e43e7c6\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.300691\ncycle_count = 423340858\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 192.364715\nverification_time_sec = 0.054149\nproof_size_bytes = 1274681"
+          }
+        },
+        {
+          "node_id": "level2_node1",
+          "out_dir": "/home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node1",
+          "prove": {
+            "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node1_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node1 --child-proof-mode native_sp1 --topology binary_tree",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.39s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node1_case.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node1 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node1_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 1248\naggregate_root = 50913c21fdb6d839d60f8e40328c6297008e028341b4a57ba1b3c6aee27a9647\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.230263\ncycle_count = 423336472\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 180.546220\nverification_time_sec = 0.053835\nproof_size_bytes = 1274684"
+          }
+        }
+      ],
+      "chunk_count": 2,
+      "chunk_manifest_saved": true,
+      "chunk_size": 156,
+      "claim_status": "sp1_true_recursive_binary_tree_proof_backed",
+      "execute": {
+        "command": "cargo run --release -p training-aggregation-host -- --execute --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_cases/training_aggregation_binary_native_t1248_case_0.json --mode recursive_sp1 --child-proof-mode native_sp1 --topology binary_tree",
+        "passed": true,
+        "return_code": 0,
+        "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.38s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --execute --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_cases/training_aggregation_binary_native_t1248_case_0.json --mode recursive_sp1 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+        "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_cases/training_aggregation_binary_native_t1248_case_0.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 1248\naggregate_root = 735e56ffeccb4ff14c113aa7eba172c1074f60bb3ad95dd25445b80af7f3be73\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.345815\ncycle_count = 422387142\nexit_code = 0"
+      },
+      "execute_passed": true,
+      "leaf_chunk_count": 8,
+      "metrics_saved": true,
+      "proof": {
+        "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_cases/training_aggregation_binary_native_t1248_case_0.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/training_aggregation_binary_native_t1248 --child-proof-mode native_sp1 --topology binary_tree",
+        "passed": true,
+        "return_code": 0,
+        "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.37s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_cases/training_aggregation_binary_native_t1248_case_0.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/training_aggregation_binary_native_t1248 --child-proof-mode native_sp1 --topology binary_tree`\nRunning sp1-gpu-server 6.1.0 with device 0",
+        "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_cases/training_aggregation_binary_native_t1248_case_0.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 1248\naggregate_root = 735e56ffeccb4ff14c113aa7eba172c1074f60bb3ad95dd25445b80af7f3be73\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.189082\ncycle_count = 422387142\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 192.747735\nverification_time_sec = 0.053972\nproof_size_bytes = 1274654"
+      },
+      "proof_artifact_policy_saved": true,
+      "proof_generated": true,
+      "proof_verified": true,
+      "public_inputs_saved": true,
+      "recursive_child_proof_manifest_saved": true,
+      "reference_passed": true,
+      "relation": "training_aggregation",
+      "roots_match_reference": true,
+      "step_end": 1248,
+      "step_start": 0,
+      "tamper_report_saved": true,
+      "tamper_test_passed": true,
+      "tree_depth": 3,
+      "verify_report_saved": true,
+      "witness_schema_saved": true
+    }
+  ],
+  "relation": "training_aggregation"
+}

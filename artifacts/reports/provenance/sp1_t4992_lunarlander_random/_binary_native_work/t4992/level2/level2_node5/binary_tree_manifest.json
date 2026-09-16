@@ -1,0 +1,33 @@
+{
+  "aggregation_mode": "recursive_sp1",
+  "aggregation_topology": "binary_tree",
+  "binary_tree_fan_in": 2,
+  "child_proof_mode": "native_sp1",
+  "children": [
+    {
+      "child_proof_hash": "d77be05bc62253edeb1dd109f1f4eef4b0fae8f2dac2aa0567c4114d930c78e3",
+      "child_public_inputs_hash": "c81f46e540553301775f6e0c2011c7044d26980f3460973ef0438b5b9e537a51",
+      "child_vkey_hash": "0x005f9eb848e615273856cfdc877e3c685607777147796e776e1a46221ebde368",
+      "chunk_id": 0,
+      "relation_id": "training_aggregation_binary_node",
+      "step_end": 3432,
+      "step_start": 3120
+    },
+    {
+      "child_proof_hash": "038c4a4f458b460fc5bebe5b1494bd0cb2083888fa24e9130c96cc8a03e10b62",
+      "child_public_inputs_hash": "d8c9aafa53269a4042046b9130ed3a0012491714a448fd04d661fac19af80a95",
+      "child_vkey_hash": "0x005f9eb848e615273856cfdc877e3c685607777147796e776e1a46221ebde368",
+      "chunk_id": 1,
+      "relation_id": "training_aggregation_binary_node",
+      "step_end": 3744,
+      "step_start": 3432
+    }
+  ],
+  "leaf_chunk_count": 4,
+  "node_depth": 2,
+  "node_id": "level2_node5",
+  "node_range_end": 3744,
+  "node_range_start": 3120,
+  "relation": "training_aggregation",
+  "tree_root_hash": "0d062960fad0c85741b3a0a34efe27cbbd2c9b409f490d4ac299a6f5332b4e6c"
+}

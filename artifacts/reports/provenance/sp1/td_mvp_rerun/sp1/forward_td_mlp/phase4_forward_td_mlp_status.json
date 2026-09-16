@@ -1,0 +1,27 @@
+{
+  "claim_status": "sp1_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p forward-td-mlp-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: forward-td-mlp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: forward-td-mlp-host@0.1.0: forward-td-mlp-guest built at 2026-09-02 21:10:30\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/forward-td-mlp-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 496\nexecution_ok = true\nexecution_time_sec = 0.096984\ncycle_count = 1547202\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "metrics_saved": false,
+  "proof": {
+    "command": "cargo run --release -p forward-td-mlp-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/forward_td_mlp",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: forward-td-mlp-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: forward-td-mlp-host@0.1.0: forward-td-mlp-guest built at 2026-09-02 21:10:30\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/forward-td-mlp-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/forward_td_mlp`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/forward_td_mlp_case_0.json\nhost_precheck = true\ndataset_root = c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4\nclaimed_batch_loss_fp = 496\nexecution_ok = true\nexecution_time_sec = 0.097675\ncycle_count = 1547202\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 79.313263\nverification_time_sec = 0.115940\nproof_size_bytes = 2797873"
+  },
+  "proof_generated": false,
+  "proof_verified": true,
+  "public_inputs_saved": false,
+  "reference_passed": true,
+  "relation": "forward_td_mlp",
+  "tamper_test_passed": true,
+  "verify_report_saved": false,
+  "witness_schema_saved": false
+}

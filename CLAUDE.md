@@ -49,12 +49,12 @@ SP1 prove **không** nằm trong regression Python. `RUN_SP1_PROVE=1 cargo run -
 
 ## Bất biến
 
-1. `FP_SCALE=1000`, `GAMMA_FP=990`; nhân cố định `(a * b) // fp_scale` — không `round`.
+1. `FP_SCALE=1000`, `GAMMA_FP=990`; nhân cố định là `div_trunc_zero(a * b, fp_scale)` — **cắt về 0**, không phải `//` của Python (hai cái chỉ trùng khi tích không âm) và không `round`.
 2. SmoothL1 beta = 1.0 (`SMOOTH_L1_BETA_FP=1000`), khớp `torch.nn.SmoothL1Loss()`.
 3. Leaf: `",".join(str(int(x)))` rồi SHA256 hex; node trong: `SHA256(bytes.fromhex(L)+bytes.fromhex(R))`; lá lẻ **duplicate** (kiểu Bitcoin).
 4. Chuỗi `schema_version` tương thích ngược trừ khi được duyệt migration.
 5. `relations/` không phụ thuộc đường dẫn file hay argparse.
-6. Cấm claim: full DQN training, Adam, honest public collection, mọi relation đều có SP1, recursion T=128, child proof PLONK, recursion trên CPU. Theorem 7 nay gồm **hai** chế độ: proof-manifest chain T={32,64,128} và recursive_sp1 verify child trong guest T={16,32,64} — chế độ sau **chỉ chạy trên prover CUDA**. Scanner: `scripts/experiments/check_paper_claims.py`.
+6. Cấm claim: full DQN training, Adam, honest public collection, mọi relation đều có SP1, recursion T=128, child proof PLONK, recursion trên CPU. Trỏ định lý bằng **label** (`thm:manifest-aggregation`), không bằng số: chèn thêm định lý làm trôi mọi số sau nó, và ba file đã trỏ nhầm vì vậy. `thm:manifest-aggregation` gồm **hai** chế độ: proof-manifest chain T={32,64,128} và recursive_sp1 verify child trong guest T={16,32,64} phẳng cùng cây nhị phân tới T=4992 — chế độ sau **chỉ chạy trên prover CUDA**. Scanner: `scripts/experiments/check_paper_claims.py`.
 7. Report (`generate_paper_reports.py`) **không** chạy lại prove/benchmark nặng.
 8. Merkle/TD chỉ có một đường import: `zk_offline_dqn.merkle`, `zk_offline_dqn.zk_specs`. Không tạo lại wrapper re-export.
 9. Fixture regression (pkl, merkle JSON, `.pt`) phải có trước khi `run_full_regression.py`.

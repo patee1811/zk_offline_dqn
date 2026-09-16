@@ -19,3 +19,4 @@ Lý do: unittest + fixture JSON là bằng chứng reviewable; pytest/mock bừa
 - Coverage không phải mục tiêu. Không viết assert chỉ để tăng số.
 - Đụng paper/README/docs: chạy `python scripts/experiments/check_paper_claims.py`.
 - Regression 15 check: `run_full_regression.py` cần fixture CI (pkl, merkle JSON, `.pt`). Thiếu thì nói rõ, đừng bịa pass. Test đọc **output** của nó (`regression_summary.json`, `*_python_smoke/summary.json` — đều gitignore) phải `skipTest`, không fail: clone sạch không có chúng.
+- Đổi quan hệ thì cổng cuối trước khi tiêu tiền GPU phải chạy trên **lá thật của cây** — dataset thật, lưới thật, `k` thật — chứ không chỉ vector canonical. Sinh lại 8 lá của cây 1248 bằng code mới và so từng byte với `leaf_cases` đã lưu mất **22 giây Python**, và nó đóng đúng khả năng “đúng trên đồ chơi, sai trên dữ liệu thật”.

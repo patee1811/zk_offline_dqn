@@ -138,16 +138,24 @@ verify time, proof size).
 
 \subsection{Stage 6--7: Fragment Composition and Aggregation}
 
-\textbf{Stage 6: Training fragments.} Multi-step training fragments compose
-$k$ one-step updates ($k \in \{1, 4, 8\}$), each verifying deterministic
-minibatch sampling, replay membership, TD computation, backpropagation, SGD
-update, checkpoint transition, and target-network synchronization.
+\textbf{Stage 6: Training fragments.} Multi-step fragments compose $k$ one-step
+updates, each verifying minibatch sampling, replay membership, TD computation,
+backpropagation, the clipped SGD update, the checkpoint transition, and
+target-network synchronization. The sample indices are derived from the dataset
+commitment rather than read from the statement, so this stage fixes which
+transitions the fragment trains on. Proof-backed sizes are $k \in \{1, 4, 8\}$
+on the canonical vectors, $k = 1$ on each committed expert dataset, and
+$k = 156$ as the leaf of the whole-run trees.
 
-\textbf{Stage 7: Chunk-chain aggregation.} For longer training traces
-($T \in \{32, 64, 128\}$), the aggregation layer binds an ordered sequence of
-externally verified $k=8$ child proof manifests, checking manifest hashes,
-public-input consistency, dataset/config commitments, chunk boundaries, and
-checkpoint links.
+\textbf{Stage 7: Aggregation.} Two modes, and the difference is the point. A
+chunk chain binds an ordered sequence of child proof \emph{manifests}
+($T \in \{32, 64, 128\}$), checking manifest hashes, public-input consistency,
+dataset and configuration commitments, chunk boundaries and checkpoint links --
+the child proofs themselves are verified outside the relation. Recursive
+aggregation instead runs the SP1 verifier on each child inside the guest, so
+acceptance establishes that the children are valid proofs rather than assuming
+it. Recursion is measured for $T \in \{16, 32, 64\}$ flat and for binary trees
+up to $T = 4{,}992$, and requires a CUDA prover.
 
 % ---- Figure 2: Layered Verification Stack ----
 \begin{figure}[!t]
@@ -159,7 +167,7 @@ checkpoint links.
     arr/.style={-{Stealth[length=4pt]}, thick, color=gray!60}
 ]
 \node[layer, fill=orange!12] (L5) at (0, 0)
-  {Layer 5: Proof-manifest chunk-chain aggregation};
+  {Layer 5: Aggregation (manifest chain or in-guest recursion)};
 \node[layer, fill=red!10] (L4) at (0, -1.0)
   {Layer 4: Training fragment proof ($k$-step SP1)};
 \node[layer, fill=red!8] (L3) at (0, -2.0)
@@ -176,8 +184,8 @@ checkpoint links.
 \caption{Layered verification stack. Each layer builds on the one below.
 Layer~1 establishes data provenance. Layer~2 provides fast deterministic
 checks. Layer~3 adds cryptographic proof for individual relations. Layer~4
-composes multi-step proofs. Layer~5 aggregates proof manifests over longer
-traces.}
+composes multi-step proofs. Layer~5 aggregates over longer traces, either by
+binding child manifests or by verifying the child proofs inside the guest.}
 \label{fig:verification-stack}
 \end{figure}
 

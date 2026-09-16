@@ -136,7 +136,12 @@ def run_tamper_checks(case_path: Path, out_dir: Path, run_execute: bool) -> Dict
 def validate_case(case_path: Path, out_root: Path, run_execute: bool, run_prove: bool) -> Dict[str, Any]:
     case = load_case(case_path)
     k = int(case["public_inputs"]["num_steps"])
-    out_dir = out_root / f"training_fragment_k{k}"
+    # The directory follows the case id, not the step count. Two cases at the
+    # same k -- one per environment, say -- otherwise share a directory and the
+    # second proof silently overwrites the first.
+    case_id = str(case.get("public_inputs", {}).get("case_id") or "")
+    slug = case_id[: -len("_case_0")] if case_id.endswith("_case_0") else case_id
+    out_dir = out_root / (slug or f"training_fragment_k{k}")
     out_dir.mkdir(parents=True, exist_ok=True)
     reference = verify_case_reference(case)
     computed = recompute_fragment(case) if reference.accepted else {}
@@ -185,7 +190,7 @@ def validate_case(case_path: Path, out_root: Path, run_execute: bool, run_prove:
         "execute": execute,
         "proof": proof,
     }
-    write_json(out_dir / f"training_fragment_k{k}_status.json", status)
+    write_json(out_dir / f"{out_dir.name}_status.json", status)
     return status
 
 

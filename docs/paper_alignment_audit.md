@@ -15,10 +15,12 @@ committed provenance without implying full offline-DQN training soundness.
 | Distinct minibatch TD | supported for TD-1/2/4/8 proof rows | `artifacts/benchmarks/final_ndss/benchmark_matrix.csv`, `zk_backend/td_mvp/sp1/` | "SP1 proof-backed distinct minibatch TD configurations" |
 | Forward-TD MLP | supported for canonical tiny vectors and benchmark rows | `zk_backend/forward_td_mlp/sp1/`, SP1 provenance, final benchmark matrix | "SP1 proof-backed fixed-point Forward-TD MLP for canonical tiny vectors; not full training" |
 | One-step SGD / training update | supported for canonical tiny vectors | `zk_backend/one_step_sgd_tiny/sp1/`, `zk_backend/training_update/sp1/` | "SP1 proof-backed tiny fixed-point SGD and batch-size-1 training update" |
-| Training fragments | supported for `k={1,4,8}` | `zk_backend/training_fragment/sp1/`, Table 2 | "SP1 proof-backed multi-step fragments for canonical tiny vectors" |
-| Proof-manifest aggregation | supported for `T={32,64,128}` manifest-chain mode | `zk_backend/training_aggregation/sp1/`, Table 2 | "proof-manifest chunk-chain aggregation; not recursive child-proof verification" |
-| Recursive aggregation or long end-to-end trace proof | unsupported | known-failure rows and non-goals | "future work" |
-| Tamper rejection benchmark | supported over current coverage | `artifacts/reports/final_ndss/table3_tamper_rejection.*` | "166 adversarial cases across 19 categories, with zero unexpectedly accepted rows" |
+| Training fragments | supported for `k={1,4,8,156}` plus two vectors bound to committed datasets | `zk_backend/training_fragment/sp1/`, Table 2 | "SP1 proof-backed multi-step fragments; `k=156` is the leaf of the whole-run trees" |
+| Proof-manifest aggregation | supported for `T={32,64,128}` manifest-chain mode | `zk_backend/training_aggregation/sp1/`, Table 2 | "proof-manifest chunk-chain aggregation; this mode does not verify child proofs in-guest" |
+| Recursive aggregation (child proofs verified in-guest) | supported, CUDA prover only | flat `T={16,32,64}`, binary trees to `T=4992`; Table 2, `artifacts/reports/provenance/sp1/training_aggregation_binary_native_*` | "the aggregate guest verifies each child proof cryptographically; measured under a CUDA prover" |
+| Whole-run proof | supported for `T={1248,1248,4992}` | three root proofs with `step_start=0`, each leaf bound to the committed dataset | "one root proof covering an entire run, not a fragment of one" |
+| Proof on a CPU prover | unsupported for recursion | the CPU prover did not complete recursion rows within 61 GB | "recursion rows require a CUDA prover" |
+| Tamper rejection benchmark | supported over current coverage | `artifacts/reports/final_ndss/table3_tamper_rejection.*` | "236 adversarial cases across 19 categories, with zero unexpectedly accepted rows" |
 
 ## Supported Numbers
 
@@ -33,11 +35,14 @@ Paper-facing numbers are sourced from committed artifacts:
 Current manuscript-level summary:
 
 - Python regression: 15 checks, 0 failures.
-- Proof verification: all reported proof-verified Table 2 configurations verify
-  in under 0.21 seconds.
-- Proof size: all reported proof-verified rows are below 2.84 MB.
-- Tamper rejection: 166 adversarial test cases across 19 categories; zero
-  unexpectedly accepted rows.
+- Proof verification: 25 of the 26 proof-verified Table 2 rows verify in
+  0.054-0.130 seconds. The Groth16 child-proof row is the exception at 68.0
+  seconds and is reported as such.
+- Proof size: the same 25 rows are 1.27-2.85 MB; the Groth16 row is 1.47 GB.
+- Prover: all 26 proof-verified rows were produced on the CUDA prover, and each
+  row records which prover produced it.
+- Tamper rejection: 236 adversarial test cases across 19 categories; 233
+  rejected as expected, zero unexpectedly accepted.
 
 ## Risky Claims To Avoid
 
@@ -45,9 +50,13 @@ Current manuscript-level summary:
   checkpoint.
 - Do not claim Adam optimizer soundness, model-selection soundness,
   all-replay-batches soundness, or arbitrary network-size soundness.
-- Do not call proof-manifest chunk-chain aggregation true recursive
-  aggregation; child proofs are externally verified and represented by
-  manifest/public-input hashes.
+- Do not call proof-manifest chunk-chain aggregation recursive aggregation.
+  In that mode child proofs are verified outside the guest and represented by
+  manifest/public-input hashes. The recursive mode is a separate set of rows and
+  a separate claim, and it is the one that verifies child proofs in-guest.
+- Do not quote a prove time without the prover that produced it, and do not
+  compare prove times across provers. Cycles are the hardware-independent unit;
+  ten rows changed prover with cycle counts identical to the digit.
 - Do not claim honest public dataset collection for Minari/D4RL imports.
 - Do not imply that execute-only `k={16,32,128}` fragment rows are
   proof-backed.

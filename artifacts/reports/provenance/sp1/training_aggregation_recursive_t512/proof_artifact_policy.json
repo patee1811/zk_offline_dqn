@@ -1,0 +1,5 @@
+{
+  "expected_runtime_location": "artifacts/kaggle_phase7_recursive_outputs/extracted/phase7_recursive_outputs/sp1/training_aggregation_recursive_t512/proof.bin",
+  "proof_binary_committed": false,
+  "reason": "proof binary is generated artifact and may be large"
+}

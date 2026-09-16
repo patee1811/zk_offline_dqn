@@ -182,6 +182,42 @@ class Phase82ProofBenchmarkTests(unittest.TestCase):
             self.assertEqual(by_case["merkle_membership_dataset_10000"]["Status"], "proof_verified")
             self.assertEqual(by_case["merkle_membership_dataset_100000"]["Status"], "failed_oom")
 
+    def test_prover_reaches_the_row_from_provenance(self):
+        # Prove Time is not comparable across rows without it: an aggregate
+        # proof took 1.4s on CUDA next to a 60.3s CPU row for a smaller relation.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            prov = root / "artifacts/reports/provenance/sp1/training_aggregation_t32"
+            prov.mkdir(parents=True)
+            (prov / "metrics.json").write_text(
+                json.dumps(
+                    {
+                        "proof_generated": True,
+                        "proof_verified": True,
+                        "prove_time_seconds": 1.4,
+                        "cycle_count": 879873,
+                        "prover": "cuda",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            rows = build_rows(root=root, aggregation_targets=[32], batch_sizes=[1], networks=["tiny"], trace_lengths=[1])
+            row = [r for r in rows if r["Case ID"] == "training_aggregation_manifest_t32"][0]
+            self.assertEqual(row["Prover"], "cuda")
+
+    def test_rows_measured_by_hand_are_not_dropped_on_regeneration(self):
+        # These three were appended to the committed table when first measured,
+        # so regenerating Table 2 silently produced 27 rows where the paper
+        # cites 30. They have to come out of build_rows like every other row.
+        rows = build_rows(dataset_sizes=[1000, 10000, 50000, 100000])
+        case_ids = {row["Case ID"] for row in rows}
+        for case_id in (
+            "merkle_membership_dataset_50000",
+            "training_fragment_cartpole_expert_k1",
+            "training_fragment_lunarlander_expert_k1",
+        ):
+            self.assertIn(case_id, case_ids)
+
     def test_proof_binary_paths_are_not_required_in_compact_report(self):
         row = self._proof_row()
         row["Metrics Source"] = "artifacts/reports/provenance/sp1/merkle_membership_dataset_10k/metrics.json"

@@ -7,6 +7,14 @@ const NATIVE_CHILD_PROOF_MODE: &str = "native_sp1";
 const GROTH16_CHILD_PROOF_MODE: &str = "groth16_bn254";
 const PLONK_CHILD_PROOF_MODE: &str = "plonk_bn254";
 const LEAF_CHILD_RELATION_ID: &str = "training_fragment_k8";
+
+/// Relation id of the fragment proof a chunk of this size cites.
+///
+/// Must match `chunk_relation_id` in the Python relation byte for byte: it
+/// lands inside config_hash, which is a public input.
+fn leaf_relation_id(chunk_size: u64) -> String {
+    format!("training_fragment_k{}", chunk_size)
+}
 const BINARY_NODE_RELATION_ID: &str = "training_aggregation_binary_node";
 const BINARY_TOPOLOGY: &str = "binary_tree";
 
@@ -248,16 +256,21 @@ pub fn verify_training_aggregation(input: &TrainingAggregationInput) -> Training
         .first()
         .map(|chunk| chunk.relation_id.as_str())
         .unwrap_or(LEAF_CHILD_RELATION_ID);
+    let leaf_id = leaf_relation_id(public.chunk_size);
     assert_eq!(
         public.chunk_relation_id,
         if binary {
             first_relation
         } else {
-            LEAF_CHILD_RELATION_ID
+            leaf_id.as_str()
         },
         "chunk relation mismatch"
     );
-    assert_eq!(public.chunk_size, 8, "chunk_size mismatch");
+    // Every other use below already treats chunk_size as a variable. Pinning it
+    // to 8 capped a leaf at eight steps, which is the term that drives the whole
+    // aggregation cost: 5000 steps needed 625 leaves and 1248 in-guest child
+    // verifications. A 128-step leaf needs 40 and 78.
+    assert!(public.chunk_size > 0, "chunk_size must be positive");
     assert_eq!(
         public.chunk_count,
         witness.chunks.len(),
@@ -492,9 +505,13 @@ fn verify_binary_public(public: &TrainingAggregationPublicInputs, chunks: &[Chun
     assert_eq!(chunks.len(), 2, "binary tree fan-in mismatch");
     assert_eq!(public.chunk_count, 2, "binary chunk_count mismatch");
     assert_eq!(public.child_count, Some(2), "binary child_count mismatch");
+    // A node covers every leaf beneath it, so this doubles per level: 2 at depth 1,
+    // 4 at depth 2, 16 at depth 4. The old Some(2) | Some(4) match capped the tree
+    // at depth 2, which caps a provable training run at 32 steps.
+    let leaf_chunk_count = public.leaf_chunk_count.expect("missing leaf_chunk_count");
     assert!(
-        matches!(public.leaf_chunk_count, Some(2) | Some(4)),
-        "binary leaf_chunk_count mismatch"
+        leaf_chunk_count >= 2 && leaf_chunk_count & (leaf_chunk_count - 1) == 0,
+        "binary leaf_chunk_count must be a power of two >= 2"
     );
     assert!(
         public.node_depth.unwrap_or_default() >= 1,
@@ -566,6 +583,7 @@ fn verify_chunk_chain(
     chunks: &[ChunkRecord],
     binary: bool,
 ) {
+    let leaf_id = leaf_relation_id(public.chunk_size);
     for (idx, chunk) in chunks.iter().enumerate() {
         assert_eq!(chunk.chunk_id, idx, "chunk order mismatch");
         let span = chunk.step_end - chunk.step_start;
@@ -579,21 +597,15 @@ fn verify_chunk_chain(
                 "chunk relation_id mismatch"
             );
             assert!(
-                matches!(
-                    chunk.relation_id.as_str(),
-                    LEAF_CHILD_RELATION_ID | BINARY_NODE_RELATION_ID
-                ),
+                chunk.relation_id == leaf_id || chunk.relation_id == BINARY_NODE_RELATION_ID,
                 "binary child relation_id mismatch"
             );
-            if chunk.relation_id == LEAF_CHILD_RELATION_ID {
+            if chunk.relation_id == leaf_id {
                 assert_eq!(span, public.chunk_size, "leaf chunk step span mismatch");
             }
         } else {
             assert_eq!(span, public.chunk_size, "chunk step span mismatch");
-            assert_eq!(
-                chunk.relation_id, LEAF_CHILD_RELATION_ID,
-                "chunk relation_id mismatch"
-            );
+            assert_eq!(chunk.relation_id, leaf_id, "chunk relation_id mismatch");
         }
         assert_eq!(
             chunk.dataset_root, public.dataset_root,
@@ -767,8 +779,9 @@ fn verify_recursive_children(
             .expect("child Plonk proof verification failed"),
             _ => panic!("unsupported child proof mode"),
         }
+        let leaf_id = leaf_relation_id(public.chunk_size);
         match chunk.relation_id.as_str() {
-            LEAF_CHILD_RELATION_ID => {
+            id if id == leaf_id => {
                 let child_output: TrainingFragmentOutput = bincode::deserialize(&public_values)
                     .expect("child public values decode failed");
                 assert_fragment_child_output(public, chunk, &child_output);
@@ -1059,15 +1072,29 @@ fn base_chunk_values(chunk: &ChunkRecord) -> Vec<String> {
     ]
 }
 
+/// Hash the configuration every chunk in a chain shares.
+///
+/// sampler_seed used to sit here and no longer can: it is derived per chunk
+/// from the dataset root and the chunk's global step, so chunks of one chain
+/// hold different seeds and a hash over the seed would differ chunk to chunk.
+/// Recording the derivation rule instead keeps the chain pinned to how the seed
+/// is fixed, while the fragment relation checks each chunk's own seed against
+/// its own root and step.
+///
+/// That the seed now varies by chunk is the point. With one constant seed and a
+/// step index local to the fragment, every chunk drew the same transitions: a
+/// 1248-step chain was 156 repetitions over 8 rows of the dataset.
 fn child_config_hash(child: &TrainingFragmentOutput) -> String {
     let payload = format!(
-        "{{\"batch_size\":{},\"chunk_relation_id\":\"training_fragment_k8\",\"dataset_size\":{},\"fixed_point_scale\":{},\"format\":\"training_aggregation_chunk_config_v1\",\"gamma\":{},\"learning_rate\":{},\"sampler_seed\":{},\"sampler_type\":\"{}\",\"target_sync_interval\":{},\"target_sync_mode\":\"{}\"}}",
+        "{{\"batch_size\":{},\"chunk_relation_id\":\"training_fragment_k{}\",\"dataset_size\":{},\"fixed_point_scale\":{},\"format\":\"training_aggregation_chunk_config_v2\",\"gamma\":{},\"gradient_clip_fp\":{},\"learning_rate\":{},\"q_abs_max_fp\":{},\"sampler_seed_rule\":\"derived_from_dataset_root_and_global_step_start\",\"sampler_type\":\"{}\",\"target_sync_interval\":{},\"target_sync_mode\":\"{}\"}}",
         child.batch_size,
+        child.num_steps,
         child.dataset_size,
         child.fixed_point_scale,
         child.gamma,
+        child.gradient_clip_fp,
         child.learning_rate,
-        child.sampler_seed,
+        child.q_abs_max_fp,
         child.sampler_type,
         child.target_sync_interval,
         child.target_sync_mode,

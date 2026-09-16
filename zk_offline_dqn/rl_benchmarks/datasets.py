@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import tarfile
 from argparse import Namespace
 from dataclasses import dataclass, replace
@@ -9,7 +8,10 @@ from typing import Any, Dict, Iterable, List, Sequence
 
 import numpy as np
 
+from zk_offline_dqn.zk_specs import SPECS
+
 from zk_offline_dqn.data_pipeline import (
+    FIXED_POINT_LEAF_RULE,
     AUDIT_REPORT_NAME,
     MERKLE_TREE_NAME,
     RAW_EPISODES_NAME,
@@ -19,10 +21,110 @@ from zk_offline_dqn.data_pipeline import (
     verify_dataset_commitment,
 )
 
+ROOT = Path(__file__).resolve().parents[2]
 
+
+@dataclass(frozen=True)
+class SelfCollectedSpec:
+    """Everything needed to reproduce a committed dataset byte for byte.
+
+    Table 1 previously cited a merkle_root that existed nowhere in the repo:
+    regeneration derived its episode count from a target size instead of from
+    the parameters the committed data was collected under, so it produced a
+    different dataset that still looked valid. Pinning the collection arguments
+    here is what makes a regenerated directory reproduce the committed root.
+    """
+
+    dataset_id: str
+    env_id: str
+    policy: str
+    quality: str
+    base_seed: int
+    num_episodes: int
+    max_transitions: int
+    max_steps_per_episode: int
+    checkpoint: str | None = None
+    epsilon: float = 0.0
+
+    def __iter__(self):
+        # Callers that predate this dataclass unpack a (dataset_id, env_id) pair.
+        return iter((self.dataset_id, self.env_id))
+
+    def __getitem__(self, index: int) -> str:
+        return (self.dataset_id, self.env_id)[index]
+
+
+# MountainCar is absent: 200k steps of online DQN produced -200.0 at every
+# checkpoint, so it has no medium/expert gradient to collect at.
 SELF_COLLECTED_DATASETS = {
-    "cartpole": ("cartpole-random-v1", "CartPole-v1"),
-    "mountaincar": ("mountaincar-random-v1", "MountainCar-v0"),
+    "cartpole-random": SelfCollectedSpec(
+        dataset_id="cartpole-random-v2",
+        env_id="CartPole-v1",
+        policy="random",
+        quality="random",
+        base_seed=31001,
+        num_episodes=6000,
+        max_transitions=50_000,
+        max_steps_per_episode=500,
+    ),
+    "cartpole-medium": SelfCollectedSpec(
+        dataset_id="cartpole-medium-v2",
+        env_id="CartPole-v1",
+        policy="checkpoint",
+        quality="medium",
+        base_seed=31002,
+        num_episodes=2000,
+        max_transitions=50_000,
+        max_steps_per_episode=500,
+        checkpoint="artifacts/source_policies/cartpole/medium.pt",
+        epsilon=0.02,
+    ),
+    "cartpole-expert": SelfCollectedSpec(
+        dataset_id="cartpole-expert-v2",
+        env_id="CartPole-v1",
+        policy="checkpoint",
+        quality="expert",
+        base_seed=31003,
+        num_episodes=2000,
+        max_transitions=50_000,
+        max_steps_per_episode=500,
+        checkpoint="artifacts/source_policies/cartpole/expert.pt",
+        epsilon=0.02,
+    ),
+    "lunarlander-random": SelfCollectedSpec(
+        dataset_id="lunarlander-random-v1",
+        env_id="LunarLander-v3",
+        policy="random",
+        quality="random",
+        base_seed=31004,
+        num_episodes=6000,
+        max_transitions=50_000,
+        max_steps_per_episode=1000,
+    ),
+    "lunarlander-medium": SelfCollectedSpec(
+        dataset_id="lunarlander-medium-v1",
+        env_id="LunarLander-v3",
+        policy="checkpoint",
+        quality="medium",
+        base_seed=31005,
+        num_episodes=3000,
+        max_transitions=50_000,
+        max_steps_per_episode=1000,
+        checkpoint="artifacts/source_policies/lunarlander/medium.pt",
+        epsilon=0.02,
+    ),
+    "lunarlander-expert": SelfCollectedSpec(
+        dataset_id="lunarlander-expert-v1",
+        env_id="LunarLander-v3",
+        policy="checkpoint",
+        quality="expert",
+        base_seed=31006,
+        num_episodes=3000,
+        max_transitions=50_000,
+        max_steps_per_episode=1000,
+        checkpoint="artifacts/source_policies/lunarlander/expert.pt",
+        epsilon=0.02,
+    ),
 }
 MINARI_DATASETS = {
     "minari-pointmaze-umaze": (
@@ -255,12 +357,33 @@ def load_committed_dataset(
         "dataset_root": merkle_tree.get("dataset_root"),
         "merkle_root": manifest.get("merkle_root") or merkle_tree.get("dataset_root"),
         "phase2_dataset_provenance": "reused_existing_artifact",
+        "leaf_hash_rule": merkle_tree.get("leaf_hash_rule"),
     }
-    return _rows_to_dataset(
+    dataset = _rows_to_dataset(
         name=name,
         env_id=manifest.get("env_id"),
         source_type=_source_type(manifest),
         rows=rows,
+        metadata=metadata,
+    )
+    if merkle_tree.get("leaf_hash_rule") == FIXED_POINT_LEAF_RULE:
+        # The Merkle tree commits the fixed-point values, so those are the
+        # dataset. Training on the float column would report numbers for data
+        # that nothing in the artifact commits to.
+        dataset = _to_fixed_point(dataset)
+    return dataset
+
+
+def _to_fixed_point(dataset: OfflineDataset) -> OfflineDataset:
+    scale = float(SPECS.FP_SCALE)
+    quantise = lambda values: (np.round(values * scale) / scale).astype(np.float32)  # noqa: E731
+    metadata = dict(dataset.metadata)
+    metadata["fixed_point_scale"] = SPECS.FP_SCALE
+    return replace(
+        dataset,
+        observations=quantise(dataset.observations),
+        next_observations=quantise(dataset.next_observations),
+        rewards=quantise(dataset.rewards),
         metadata=metadata,
     )
 
@@ -312,17 +435,18 @@ def load_named_dataset(
     )
 
 
-def ensure_self_collected_dataset(
-    dataset_name: str,
-    dataset_root: str | Path,
-    *,
-    target_transitions: int,
-    base_seed: int,
-) -> Path:
+def ensure_self_collected_dataset(dataset_name: str, dataset_root: str | Path) -> Path:
+    """Return the committed dataset directory, regenerating it only if absent.
+
+    The collection parameters come from the spec rather than from the caller, so
+    a regenerated directory carries the same merkle_root as the committed one.
+    The previous signature took a target size and a seed, and passing 10000 here
+    is how Table 1 came to cite a dataset that exists nowhere in the repo.
+    """
     if dataset_name not in SELF_COLLECTED_DATASETS:
         raise ValueError(f"{dataset_name} is not a self-collected discrete benchmark")
-    dataset_id, env_id = SELF_COLLECTED_DATASETS[dataset_name]
-    out_dir = Path(dataset_root) / dataset_id
+    spec = SELF_COLLECTED_DATASETS[dataset_name]
+    out_dir = Path(dataset_root) / spec.dataset_id
     ok, _ = validate_phase2_dataset(out_dir)
     if ok:
         return out_dir
@@ -331,23 +455,33 @@ def ensure_self_collected_dataset(
     from scripts.data.collect_audited_dataset import collect
     from scripts.data.commit_audited_dataset import commit_dataset
 
-    mean_random_horizon = 50 if dataset_name == "cartpole" else 200
-    num_episodes = max(8, math.ceil(target_transitions / mean_random_horizon) * 2)
+    checkpoint = None
+    if spec.checkpoint is not None:
+        checkpoint = ROOT / spec.checkpoint
+        if not checkpoint.exists():
+            raise DatasetUnavailable(
+                f"{spec.dataset_id} needs source policy {spec.checkpoint}; "
+                "run scripts/data/train_source_policies.py first"
+            )
     collect(
         Namespace(
-            env_id=env_id,
-            dataset_id=dataset_id,
-            policy="random",
-            num_episodes=num_episodes,
-            base_seed=base_seed,
-            max_steps_per_episode=500 if dataset_name == "cartpole" else 200,
+            env_id=spec.env_id,
+            dataset_id=spec.dataset_id,
+            policy=spec.policy,
+            checkpoint=None if checkpoint is None else str(checkpoint),
+            policy_label=spec.quality,
+            epsilon=spec.epsilon,
+            num_episodes=spec.num_episodes,
+            max_transitions=spec.max_transitions,
+            base_seed=spec.base_seed,
+            max_steps_per_episode=spec.max_steps_per_episode,
             out_dir=str(out_dir),
             audit_after_collect=False,
             atol=1e-6,
         )
     )
     if not audit_dataset(out_dir):
-        raise DatasetUnavailable(f"audited collection failed for {dataset_id}")
+        raise DatasetUnavailable(f"audited collection failed for {spec.dataset_id}")
     commit_dataset(out_dir)
     return out_dir
 

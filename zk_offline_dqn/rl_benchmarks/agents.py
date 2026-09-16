@@ -9,6 +9,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from ..zk_specs import SPECS, decode_fp, encode_fp
 from .datasets import OfflineDataset, flatten_observation
 
 
@@ -88,6 +89,69 @@ def _finite(loss: torch.Tensor, name: str) -> None:
         raise FloatingPointError(f"{name} became NaN or Inf")
 
 
+# The proved relation applies `post = pre - learning_rate * grad`: no momentum,
+# no adaptive term, and a rate that has to survive encode_fp at FP_SCALE=1000,
+# so it must be a multiple of 0.001. The Adam default of 3e-4 encodes to 0 and
+# cannot be expressed at all. 0.01 is the rate the committed test vectors use
+# (learning_rate_fp=10), which makes this the configuration the proof system
+# actually verifies rather than a tuned stand-in for it.
+PROVED_SGD_LEARNING_RATE = 0.01
+
+# The configuration the SP1 relation actually checks, as one source of truth.
+#
+# Table 1 rows are tuned: minibatches of 64, Adam or SGD, gradients clipped by
+# L2 norm. The relation checks none of that -- it takes one transition at a
+# time, plain SGD, and clamps each gradient component, because a norm needs a
+# square root the guest would have to prove. Quoting a tuned number beside a
+# proof of a different procedure invites the reader to join them, so the
+# provable configuration is measured as its own row instead. See
+# zk_offline_dqn/relations/training_fragment.py for the matching constants.
+PROVED_BATCH_SIZE = 1
+PROVED_GRADIENT_CLIP = 10.0
+# Control E swept this at batch 1 and found it, not the minibatch, is what
+# decides whether the provable configuration learns: at 4 every dataset sits at
+# the untrained floor, at 2000 all six improve and lunarlander-random goes from
+# -775.8 to -152.7, past the tuned batch-256 row. It is a free public input of
+# the relation, so the change costs no proving.
+#
+# The committed test vectors stay at 4 on purpose. They exist to exercise the
+# relation, and a k=8 fragment at 2000 contains no sync event at all, which
+# would leave tamper_target_sync_event with nothing to perturb.
+PROVED_TARGET_SYNC_INTERVAL = 2000
+PROVED_ALGORITHM = "double_dqn"
+
+
+def provable_learning_rate(rate: float) -> float:
+    """Reject a learning rate the relation could not check.
+
+    one_step_update asserts encode_fp(learning_rate) == learning_rate_fp, so a
+    rate that does not survive the round trip describes an update no proof can
+    be produced for. Failing here beats reporting a number from a run that was
+    never verifiable.
+    """
+    encoded = encode_fp(rate)
+    if encoded <= 0 or decode_fp(encoded) != rate:
+        raise ValueError(
+            f"learning rate {rate} is not representable at FP_SCALE="
+            f"{SPECS.FP_SCALE}; it must be a positive multiple of "
+            f"{1.0 / SPECS.FP_SCALE}"
+        )
+    return rate
+
+
+def _make_optimizer(
+    parameters,
+    optimizer: str,
+    learning_rate: float,
+    sgd_learning_rate: float = PROVED_SGD_LEARNING_RATE,
+):
+    if optimizer == "adam":
+        return torch.optim.Adam(parameters, lr=learning_rate)
+    if optimizer == "sgd":
+        return torch.optim.SGD(parameters, lr=provable_learning_rate(sgd_learning_rate))
+    raise ValueError(f"unsupported optimizer: {optimizer}")
+
+
 def train_behavior_cloning_discrete(
     dataset: OfflineDataset,
     *,
@@ -96,13 +160,17 @@ def train_behavior_cloning_discrete(
     device: str = "cpu",
     batch_size: int = 64,
     learning_rate: float = 3e-4,
+    optimizer_name: str = "adam",
+    sgd_learning_rate: float = PROVED_SGD_LEARNING_RATE,
 ) -> TorchPolicy:
     if dataset.action_kind != "discrete":
         raise ValueError("discrete BC requires scalar integer actions")
     seed_everything(seed)
     target_device = _device(device)
     policy = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
-    optimizer = torch.optim.Adam(policy.parameters(), lr=learning_rate)
+    optimizer = _make_optimizer(
+        policy.parameters(), optimizer_name, learning_rate, sgd_learning_rate
+    )
     policy.train()
     for _ in range(max(1, int(train_steps))):
         batch = _batch(dataset, batch_size, target_device)
@@ -132,9 +200,15 @@ def train_offline_q(
     gamma: float = 0.99,
     target_update_interval: int = 100,
     cql_alpha: float = 0.1,
+    optimizer_name: str = "adam",
+    sgd_learning_rate: float = PROVED_SGD_LEARNING_RATE,
+    clip_mode: str = "norm",
+    gradient_clip: float = 10.0,
 ) -> TorchPolicy:
     if dataset.action_kind != "discrete":
         raise ValueError("offline Q baselines require scalar integer actions")
+    if clip_mode not in {"norm", "value"}:
+        raise ValueError(f"unsupported clip_mode: {clip_mode}")
     if algorithm not in {"offline_dqn", "double_dqn", "cql_lite"}:
         raise ValueError(f"unsupported Q baseline: {algorithm}")
     seed_everything(seed)
@@ -142,7 +216,9 @@ def train_offline_q(
     online = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
     target = MLP(dataset.observation_dim, dataset.action_dim).to(target_device)
     target.load_state_dict(online.state_dict())
-    optimizer = torch.optim.Adam(online.parameters(), lr=learning_rate)
+    optimizer = _make_optimizer(
+        online.parameters(), optimizer_name, learning_rate, sgd_learning_rate
+    )
 
     for step in range(max(1, int(train_steps))):
         batch = _batch(dataset, batch_size, target_device)
@@ -160,7 +236,12 @@ def train_offline_q(
             loss = loss + cql_lite_loss(q_values, batch["actions"], cql_alpha)
         optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(online.parameters(), 10.0)
+        if clip_mode == "norm":
+            torch.nn.utils.clip_grad_norm_(online.parameters(), gradient_clip)
+        else:
+            # Component-wise, matching the relation: a norm bounds the vector,
+            # this bounds each entry, so the same threshold is the looser rule.
+            torch.nn.utils.clip_grad_value_(online.parameters(), gradient_clip)
         optimizer.step()
         if (step + 1) % max(1, target_update_interval) == 0:
             target.load_state_dict(online.state_dict())

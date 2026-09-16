@@ -1,0 +1,27 @@
+{
+  "claim_status": "sp1_proof_backed",
+  "execute": {
+    "command": "cargo run --release -p short-trace-host -- --execute --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: short-trace-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: short-trace-host@0.1.0: short-trace-guest built at 2026-09-02 21:12:20\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/short-trace-host --execute --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json\nhost_precheck = true\nstart_checkpoint_hash = f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c\nfinal_checkpoint_hash = 594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1\nexecution_ok = true\nexecution_time_sec = 0.019524\ncycle_count = 115363\nexit_code = 0"
+  },
+  "execute_passed": true,
+  "metrics_saved": false,
+  "proof": {
+    "command": "cargo run --release -p short-trace-host -- --prove --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/short_trace",
+    "passed": true,
+    "return_code": 0,
+    "stderr_tail": "warning: short-trace-host@0.1.0: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: short-trace-host@0.1.0: short-trace-guest built at 2026-09-02 21:12:20\n    Finished `release` profile [optimized] target(s) in 0.34s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `/home/ubuntu/shared-target/release/short-trace-host --prove --case /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json --out-dir artifacts/reports/provenance/sp1/td_mvp_rerun/sp1/short_trace`",
+    "stdout_tail": "case_path = /home/ubuntu/repo/zk_backend/test_vectors/short_trace_case_0.json\nhost_precheck = true\nstart_checkpoint_hash = f461d5b457a3643f5e176e886ad6418447d6b37d574958159ee5ae86405b822c\nfinal_checkpoint_hash = 594a180a45d63cf8a4b4ab2792a5c731e0f4e25d82a46e2b3a5e4a68e22703b1\nexecution_ok = true\nexecution_time_sec = 0.019484\ncycle_count = 115363\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 46.314149\nverification_time_sec = 0.115187\nproof_size_bytes = 2779261"
+  },
+  "proof_generated": false,
+  "proof_verified": true,
+  "public_inputs_saved": false,
+  "reference_passed": true,
+  "relation": "short_trace",
+  "tamper_test_passed": true,
+  "verify_report_saved": false,
+  "witness_schema_saved": false
+}

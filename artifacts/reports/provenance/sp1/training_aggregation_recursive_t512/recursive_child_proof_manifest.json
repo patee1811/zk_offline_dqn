@@ -1,0 +1,45 @@
+{
+  "aggregation_mode": "recursive_sp1",
+  "child_proof_count": 4,
+  "child_proof_mode": "native_sp1",
+  "children": [
+    {
+      "child_proof_hash": "4418b580ff6ca8a7450b0a344ae953e9e0f3785e67cdb7cce6af67a443629394",
+      "child_public_inputs_hash": "c28482626f5adae906ec144bee120d487ee7522c3192a2d354f73a86143d9667",
+      "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+      "chunk_id": 0,
+      "proof_bytes_committed": false,
+      "step_end": 128,
+      "step_start": 0
+    },
+    {
+      "child_proof_hash": "06b3a8ecc893d58e83eff03251bb89ab4e16372ed749eed3e6163a6715b4d66d",
+      "child_public_inputs_hash": "4e4457b84b189634e6ee43be407b57f0caf692cc8f307bccd1aaefa07b97c265",
+      "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+      "chunk_id": 1,
+      "proof_bytes_committed": false,
+      "step_end": 256,
+      "step_start": 128
+    },
+    {
+      "child_proof_hash": "47014f03b8ea234c72cf4a5e66a3cd07424808ac14062cf774f18affcfb4bc27",
+      "child_public_inputs_hash": "91b40d06dded4d3f1c7dc7ce8a2b6706f3b680515d44ab1bb0458b31e696d32d",
+      "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+      "chunk_id": 2,
+      "proof_bytes_committed": false,
+      "step_end": 384,
+      "step_start": 256
+    },
+    {
+      "child_proof_hash": "ca9e5eeb9a8cb1bbb0bcd974792ee70aa929bd581ada9ae4c32d31aa5933092a",
+      "child_public_inputs_hash": "c59f9f3c45e3ba2767fa74895335fbd94bf7848135259b309ae583afe9275535",
+      "child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+      "chunk_id": 3,
+      "proof_bytes_committed": false,
+      "step_end": 512,
+      "step_start": 384
+    }
+  ],
+  "expected_child_vkey_hash": "0x00139ba7080c6097aa5c0c98e70b7abe2920a0c7b089f1533ee2189e4ff613f4",
+  "relation": "training_aggregation"
+}

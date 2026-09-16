@@ -24,7 +24,7 @@ class ProofCase:
 
 
 CORE_CASES = [
-    ProofCase("td_mvp", "core", "td_mvp", "canonical", "relation", None, batch_size=1, network="tiny"),
+    ProofCase("td_mvp", "core", "td_mvp", "canonical", "relation", "td_mvp", batch_size=1, network="tiny"),
     ProofCase("merkle_membership", "core", "merkle_membership", "canonical", "merkle_depth", "merkle_membership"),
     ProofCase("forward_td_mlp", "core", "forward_td_mlp", "canonical_tiny", "network", "forward_td_mlp", batch_size=1, network="tiny"),
     ProofCase("one_step_sgd_tiny", "core", "one_step_sgd_tiny", "canonical_tiny", "network", "one_step_sgd_tiny", batch_size=1, network="tiny"),
@@ -36,6 +36,13 @@ CORE_CASES = [
     ProofCase("training_aggregation_manifest_t32", "aggregation", "training_aggregation_manifest_t32", "proof_manifest_chain", "aggregation_t", "training_aggregation_t32", network="tiny", aggregation_t=32, notes="proof-manifest-chain; does not recursively verify child proofs inside SP1"),
     ProofCase("training_aggregation_manifest_t64", "aggregation", "training_aggregation_manifest_t64", "proof_manifest_chain", "aggregation_t", "training_aggregation_t64", network="tiny", aggregation_t=64, notes="proof-manifest-chain; does not recursively verify child proofs inside SP1"),
     ProofCase("training_aggregation_manifest_t128", "aggregation", "training_aggregation_manifest_t128", "proof_manifest_chain", "aggregation_t", "training_aggregation_t128", network="tiny", aggregation_t=128, notes="proof-manifest-chain; does not recursively verify child proofs inside SP1"),
+    # The two rows whose dataset_root is a root Table 1 also carries, so a
+    # training proof and an RL result name the same committed object. They were
+    # appended to the table by hand when first measured, which meant a
+    # regenerated Table 2 silently dropped them; listing them here makes all
+    # thirty rows come out of one run.
+    ProofCase("training_fragment_cartpole_expert_k1", "core", "training_fragment", "cartpole_expert", "committed_dataset", "training_fragment_cartpole_expert_k1", batch_size=1, network="[4, 64, 2]", notes="dataset_root equals the committed cartpole-expert-v2 merkle_root"),
+    ProofCase("training_fragment_lunarlander_expert_k1", "core", "training_fragment", "lunarlander_expert", "committed_dataset", "training_fragment_lunarlander_expert_k1", batch_size=1, network="[8, 64, 4]", notes="dataset_root equals the committed lunarlander-expert-v1 merkle_root"),
 ]
 
 
@@ -73,6 +80,39 @@ RECURSIVE_CASES = [
         "groth16_child_proofs", "recursive_aggregation", "training_aggregation_groth16_t16",
         network="tiny", aggregation_t=16, status="failed_environment",
         notes="Groth16 child proofs verified in-guest; 20x the cycles of native child verification; PLONK child proofs are untested",
+    ),
+    # A whole run under one proof, rather than a fragment of one: step_start 0
+    # to step_end 1248 over a binary tree of 8 leaves of 156 steps, each leaf
+    # bound to the dataset the matching Table 1 rows train on. 1248 was where
+    # the earlier attempt stopped, not where the prover did -- Q diverged into
+    # i64 overflow at leaf 8 -- and the gradient clip in the relation is what
+    # moved that wall.
+    ProofCase(
+        "binary_tree_native_t1248_cartpole", "recursive_aggregation",
+        "binary_tree_native_t1248_cartpole", "whole_run_cartpole", "recursive_aggregation",
+        "training_aggregation_binary_native_t1248_cartpole",
+        network="[4, 64, 2]", aggregation_t=1248, status="failed_environment",
+        notes="one root proof over the entire 1248-step run; dataset_root equals the committed cartpole-expert-v2 merkle_root",
+    ),
+    ProofCase(
+        "binary_tree_native_t1248_lunarlander", "recursive_aggregation",
+        "binary_tree_native_t1248_lunarlander", "whole_run_lunarlander", "recursive_aggregation",
+        "training_aggregation_binary_native_t1248_lunarlander",
+        network="[8, 64, 4]", aggregation_t=1248, status="failed_environment",
+        notes="one root proof over the entire 1248-step run; dataset_root equals the committed lunarlander-expert-v1 merkle_root",
+    ),
+    # The longest run under one proof, and the only one whose configuration is
+    # the one Table 1 reports: 32 leaves of 156 steps at a target-sync interval
+    # of 2000, where the two rows above sync every 4. It was proved before the
+    # others and cited by hand from the paper, which is exactly how a row goes
+    # stale when the relation changes underneath it.
+    ProofCase(
+        "binary_tree_native_t4992_lunarlander_random", "recursive_aggregation",
+        "binary_tree_native_t4992_lunarlander_random", "whole_run_lunarlander_random",
+        "recursive_aggregation",
+        "training_aggregation_binary_native_t4992_lunarlander_random",
+        network="[8, 64, 4]", aggregation_t=4992, status="failed_environment",
+        notes="one root proof over the entire 4992-step run; dataset_root equals the committed lunarlander-random-v1 merkle_root",
     ),
 ]
 

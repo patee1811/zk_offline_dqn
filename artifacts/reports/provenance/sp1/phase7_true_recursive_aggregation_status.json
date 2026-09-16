@@ -1,0 +1,76 @@
+{
+  "cases": [
+    {
+      "aggregation_manifest_saved": true,
+      "aggregation_mode": "recursive_sp1",
+      "aggregation_topology": null,
+      "child_proof_mode": "groth16_bn254",
+      "child_proof_verification_inside_guest": true,
+      "child_proves": [
+        {
+          "child_proof_material_saved": true,
+          "chunk_id": 0,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/cases/training_fragment_recursive_chunk_0.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/child_0 --max-steps 8 --proof-mode groth16_bn254",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.35s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/cases/training_fragment_recursive_chunk_0.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/child_0 --max-steps 8 --proof-mode groth16_bn254`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/cases/training_fragment_recursive_chunk_0.json\nhost_precheck = true\nnum_steps = 8\ndataset_root = 55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e\nstart_checkpoint_hash = 622e834e2b84b32c7a4b8efbb5c1943d23e229ec0a17f83c35d170bc44b3f35d\nfinal_checkpoint_hash = 6bcbd9b9d88c3df14c8e002c9067dcac882492ab1455d63dcb9329967f81cd1e\ntarget_sync_events = 2\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 0.207952\ncycle_count = 4258644\nexit_code = 0\nSetting environment variables took 17.681\u00b5s\nReading R1CS took 6m38.927446959s\nReading proving key took 18m54.111507204s\nReading witness file took 20.580246ms\nDeserializing JSON data took 31.500336ms\nGenerating witness took 1.380548573s\n\u001b[90m04:45:13\u001b[0m DBG constraint system solver done \u001b[36mnbConstraints=\u001b[0m15972262 \u001b[36mtook=\u001b[0m6289.69516\n\u001b[90m04:46:12\u001b[0m DBG prover done \u001b[36macceleration=\u001b[0mnone \u001b[36mbackend=\u001b[0mgroth16 \u001b[36mcurve=\u001b[0mbn254 \u001b[36mnbConstraints=\u001b[0m15972262 \u001b[36mtook=\u001b[0m58792.332365\nGenerating proof took 1m5.084735276s\n\u001b[90m04:46:12\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mignoring uninitialized slice\u001b[0m \u001b[36mslice name=\u001b[0mVars \u001b[36mslice type=\u001b[0m[]frontend.Variable\n\u001b[90m04:46:12\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mignoring uninitialized slice\u001b[0m \u001b[36mslice name=\u001b[0mVars \u001b[36mslice type=\u001b[0m[]frontend.Variable\n\u001b[90m04:46:12\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mignoring uninitialized slice\u001b[0m \u001b[36mslice name=\u001b[0mVars \u001b[36mslice type=\u001b[0m[]frontend.Variable\n\u001b[90m04:46:12\u001b[0m DBG verifier done \u001b[36mbackend=\u001b[0mgroth16 \u001b[36mcurve=\u001b[0mbn254 \u001b[36mtook=\u001b[0m1.116109\nproof_generated = true\nproof_verified = true\nproving_time_sec = 1615.778259\nverification_time_sec = 0.446978\nproof_size_bytes = 3137"
+          },
+          "step_end": 8,
+          "step_start": 0
+        },
+        {
+          "child_proof_material_saved": true,
+          "chunk_id": 1,
+          "prove": {
+            "command": "cargo run --release -p training-fragment-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/cases/training_fragment_recursive_chunk_1.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/child_1 --max-steps 8 --proof-mode groth16_bn254",
+            "passed": true,
+            "return_code": 0,
+            "stderr_tail": "warning: training-fragment-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-fragment-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-fragment-host@0.1.0: training-fragment-guest built at 2026-09-16 02:33:52\n    Finished `release` profile [optimized] target(s) in 0.63s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-fragment-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/cases/training_fragment_recursive_chunk_1.json --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/child_1 --max-steps 8 --proof-mode groth16_bn254`\nRunning sp1-gpu-server 6.1.0 with device 0",
+            "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_child_work/t16/cases/training_fragment_recursive_chunk_1.json\nhost_precheck = true\nnum_steps = 8\ndataset_root = 55e0b47b31bdeabd1814df2e87a558fdfc24540deee5451400f3f145d5f3df4e\nstart_checkpoint_hash = 6bcbd9b9d88c3df14c8e002c9067dcac882492ab1455d63dcb9329967f81cd1e\nfinal_checkpoint_hash = 109f486f84a1816d3f871f00634a0860582af7eedc3dbe6f05397f5b59b4a0e8\ntarget_sync_events = 2\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 0.220169\ncycle_count = 4260164\nexit_code = 0\nSetting environment variables took 125.267\u00b5s\nReading R1CS took 42.124031365s\nReading proving key took 44.21650585s\nReading witness file took 20.597473ms\nDeserializing JSON data took 28.418854ms\nGenerating witness took 1.372411487s\n\u001b[90m04:48:22\u001b[0m DBG constraint system solver done \u001b[36mnbConstraints=\u001b[0m15972262 \u001b[36mtook=\u001b[0m4351.752345\n\u001b[90m04:49:20\u001b[0m DBG prover done \u001b[36macceleration=\u001b[0mnone \u001b[36mbackend=\u001b[0mgroth16 \u001b[36mcurve=\u001b[0mbn254 \u001b[36mnbConstraints=\u001b[0m15972262 \u001b[36mtook=\u001b[0m58561.299481\nGenerating proof took 1m2.91390671s\n\u001b[90m04:49:20\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mignoring uninitialized slice\u001b[0m \u001b[36mslice name=\u001b[0mVars \u001b[36mslice type=\u001b[0m[]frontend.Variable\n\u001b[90m04:49:20\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mignoring uninitialized slice\u001b[0m \u001b[36mslice name=\u001b[0mVars \u001b[36mslice type=\u001b[0m[]frontend.Variable\n\u001b[90m04:49:20\u001b[0m \u001b[33mWRN\u001b[0m \u001b[1mignoring uninitialized slice\u001b[0m \u001b[36mslice name=\u001b[0mVars \u001b[36mslice type=\u001b[0m[]frontend.Variable\n\u001b[90m04:49:20\u001b[0m DBG verifier done \u001b[36mbackend=\u001b[0mgroth16 \u001b[36mcurve=\u001b[0mbn254 \u001b[36mtook=\u001b[0m0.932429\nproof_generated = true\nproof_verified = true\nproving_time_sec = 172.520115\nverification_time_sec = 0.433931\nproof_size_bytes = 3138"
+          },
+          "step_end": 16,
+          "step_start": 8
+        }
+      ],
+      "chunk_count": 2,
+      "chunk_manifest_saved": true,
+      "chunk_size": 8,
+      "claim_status": "sp1_true_recursive_aggregation_proof_backed",
+      "execute": {
+        "command": "cargo run --release -p training-aggregation-host -- --execute --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t16_case_0.json --mode recursive_sp1 --child-proof-mode groth16_bn254",
+        "passed": false,
+        "return_code": 101,
+        "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 2.14s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --execute --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t16_case_0.json --mode recursive_sp1 --child-proof-mode groth16_bn254`\n\nthread 'main' (127042) panicked at /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sp1-sdk-6.1.0/src/cuda/builder.rs:96:48:\nFailed to create the CUDA prover impl: CudaClientError: Connect(Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })\nContext: \"Could not connect to `sp1-gpu-server` socket\"\n\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace",
+        "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t16_case_0.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 16\naggregate_root = 665a1fcb022ae7bd9638c0a96e84ac29974aba7e77405f9fa9a5ad6f3beb85e6\nprover = cuda"
+      },
+      "execute_passed": false,
+      "leaf_chunk_count": null,
+      "metrics_saved": true,
+      "proof": {
+        "command": "cargo run --release -p training-aggregation-host -- --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t16_case_0.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/training_aggregation_groth16_t16 --child-proof-mode groth16_bn254",
+        "passed": true,
+        "return_code": 0,
+        "stderr_tail": "warning: training-aggregation-host@0.1.0: docker: rustc +succinct --version: \"rustc 1.93.0-dev\\n\"\nwarning: training-aggregation-host@0.1.0: docker: rustc_bin: \"/root/.sp1/toolchains/1uEFbCFVbN/bin/rustc\"\nwarning: training-aggregation-host@0.1.0: training-aggregation-guest built at 2026-09-16 02:38:25\n    Finished `release` profile [optimized] target(s) in 0.36s\nwarning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`\n     Running `target/release/training-aggregation-host --prove --case /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t16_case_0.json --mode recursive_sp1 --out-dir /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/training_aggregation_groth16_t16 --child-proof-mode groth16_bn254`\nRunning sp1-gpu-server 6.1.0 with device 0",
+        "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1/_recursive_cases/training_aggregation_recursive_t16_case_0.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 16\naggregate_root = 665a1fcb022ae7bd9638c0a96e84ac29974aba7e77405f9fa9a5ad6f3beb85e6\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 99.855737\ncycle_count = 6189380355\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 1590.207292\nverification_time_sec = 67.978753\nproof_size_bytes = 1469721875"
+      },
+      "proof_artifact_policy_saved": true,
+      "proof_generated": true,
+      "proof_verified": true,
+      "public_inputs_saved": true,
+      "recursive_child_proof_manifest_saved": true,
+      "reference_passed": true,
+      "relation": "training_aggregation",
+      "roots_match_reference": true,
+      "step_end": 16,
+      "step_start": 0,
+      "tamper_report_saved": true,
+      "tamper_test_passed": true,
+      "tree_depth": null,
+      "verify_report_saved": true,
+      "witness_schema_saved": true
+    }
+  ],
+  "relation": "training_aggregation"
+}

@@ -34,6 +34,8 @@ pub struct TrainingFragmentPublicInputs {
     pub learning_rate: i64,
     pub sampler_seed: u64,
     pub sampler_type: String,
+    pub q_abs_max_fp: i64,
+    pub gradient_clip_fp: i64,
     pub dataset_size: u64,
     pub target_sync_interval: u64,
     pub target_sync_mode: String,
@@ -163,6 +165,8 @@ pub struct TrainingFragmentOutput {
     pub learning_rate: i64,
     pub sampler_seed: u64,
     pub sampler_type: String,
+    pub q_abs_max_fp: i64,
+    pub gradient_clip_fp: i64,
     pub dataset_size: u64,
     pub target_sync_interval: u64,
     pub target_sync_mode: String,
@@ -204,7 +208,7 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
     let public = &input.public_inputs;
     let witness = &input.private_witness;
     assert_eq!(
-        input.schema_version, "sp1_training_fragment_case_v1",
+        input.schema_version, "sp1_training_fragment_case_v2",
         "unexpected schema_version"
     );
     assert_eq!(public.relation, "training_fragment", "unexpected relation");
@@ -223,6 +227,22 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
     assert_eq!(
         public.target_sync_mode, "hard",
         "unexpected target_sync_mode"
+    );
+    assert_eq!(
+        public.sampler_seed,
+        derive_sampler_seed(&public.dataset_root, public.global_step_start),
+        "sampler_seed is not derived from dataset_root"
+    );
+    assert!(public.q_abs_max_fp > 0, "q_abs_max_fp must be positive");
+    // A bound the guest could not honour without overflowing first would let a
+    // case declare a range wider than the arithmetic supports.
+    assert!(
+        public.q_abs_max_fp <= i64::MAX / public.gamma,
+        "q_abs_max_fp admits values that overflow gamma * q"
+    );
+    assert!(
+        public.gradient_clip_fp > 0,
+        "gradient_clip_fp must be positive"
     );
     assert_eq!(public.num_steps, witness.steps.len(), "num_steps mismatch");
     assert!(
@@ -295,10 +315,38 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
         assert_valid_tiny_model(&step.online_model_after, public.fixed_point_scale);
         assert_valid_tiny_model(&step.target_model_after, public.fixed_point_scale);
 
-        let checkpoint_hash_before =
-            model_commitment(&step.online_model_before, public.fixed_point_scale);
-        let target_checkpoint_hash_before =
-            model_commitment(&step.target_model_before, public.fixed_point_scale);
+        // Hashing a model costs about 617k cycles at [4,64,2] -- 1311 cycles per
+        // parameter, dominated by rendering each i64 as decimal before SHA-256.
+        // Four of these per step was 76% of the whole step. Three of the four
+        // recompute a hash the chain already established, so they are replaced
+        // with the structural comparison that makes carrying the hash sound:
+        // equal models have equal commitments, and assert_model_eq is a few
+        // hundred integer compares rather than a serialization.
+        //
+        // The first step has nothing prior to compare against, so it still
+        // hashes and binds to the public start hashes.
+        let (checkpoint_hash_before, target_checkpoint_hash_before) = if idx == 0 {
+            (
+                model_commitment(&step.online_model_before, public.fixed_point_scale),
+                model_commitment(&step.target_model_before, public.fixed_point_scale),
+            )
+        } else {
+            let prev = &witness.steps[idx - 1];
+            assert_model_eq(
+                &step.online_model_before,
+                &prev.online_model_after,
+                "online_model_before",
+            );
+            assert_model_eq(
+                &step.target_model_before,
+                &prev.target_model_after,
+                "target_model_before",
+            );
+            (
+                expected_checkpoint_hash.clone(),
+                expected_target_hash.clone(),
+            )
+        };
         assert_eq!(
             checkpoint_hash_before, step.checkpoint_hash_before,
             "checkpoint_hash_before mismatch"
@@ -375,6 +423,17 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
         let q_online_action = online_forward.q[action];
         let next_action = argmax_first(&online_next.q);
         let q_target_next = target_forward.q[next_action];
+        // Range check before gamma * q_target_next, not after: the multiply is
+        // where i64 gives out, so a check placed downstream is reached only by
+        // an overflow panic that names nothing.
+        assert!(
+            q_online_action.abs() <= public.q_abs_max_fp,
+            "q_online_action exceeds q_abs_max_fp"
+        );
+        assert!(
+            q_target_next.abs() <= public.q_abs_max_fp,
+            "q_target_next exceeds q_abs_max_fp"
+        );
         let done = step.transition.terminated || step.transition.truncated;
         let td_target = if done {
             step.transition.reward
@@ -382,6 +441,10 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
             step.transition.reward
                 + fixed_point_mul(public.gamma, q_target_next, public.fixed_point_scale)
         };
+        assert!(
+            td_target.abs() <= public.q_abs_max_fp,
+            "td_target exceeds q_abs_max_fp"
+        );
         let td_error = q_online_action - td_target;
         let loss = smooth_l1_loss_fp(td_error, public.fixed_point_scale);
         assert_eq!(
@@ -405,6 +468,7 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
             td_error,
             public.learning_rate,
             public.fixed_point_scale,
+            public.gradient_clip_fp,
         );
         assert_eq!(
             step.intermediates.gradients, gradients,
@@ -443,22 +507,25 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
             step.intermediates.target_sync_applied, sync_applied,
             "target_sync_applied mismatch"
         );
-        if sync_applied {
+        // The target model after the step is already asserted structurally equal
+        // to one of two models whose commitment this step has computed, so its
+        // own commitment follows without hashing it again.
+        let target_checkpoint_hash_after = if sync_applied {
             assert_model_eq(
                 &step.target_model_after,
                 &step.online_model_after,
                 "target_model_after",
             );
             target_sync_events += 1;
+            checkpoint_hash_after.clone()
         } else {
             assert_model_eq(
                 &step.target_model_after,
                 &step.target_model_before,
                 "target_model_after",
             );
-        }
-        let target_checkpoint_hash_after =
-            model_commitment(&step.target_model_after, public.fixed_point_scale);
+            target_checkpoint_hash_before.clone()
+        };
         assert_eq!(
             target_checkpoint_hash_after, step.target_checkpoint_hash_after,
             "target_checkpoint_hash_after mismatch"
@@ -526,7 +593,7 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
     assert_eq!(trace_hash, public.trace_hash, "trace_hash mismatch");
 
     TrainingFragmentOutput {
-        schema_version: "sp1_training_fragment_public_v1".to_owned(),
+        schema_version: "sp1_training_fragment_public_v2".to_owned(),
         relation: public.relation.clone(),
         case_id: public.case_id.clone(),
         dataset_id_hash: public.dataset_id_hash.clone(),
@@ -546,6 +613,8 @@ pub fn verify_training_fragment(input: &TrainingFragmentInput) -> TrainingFragme
         gamma: public.gamma,
         learning_rate: public.learning_rate,
         sampler_seed: public.sampler_seed,
+        q_abs_max_fp: public.q_abs_max_fp,
+        gradient_clip_fp: public.gradient_clip_fp,
         sampler_type: public.sampler_type.clone(),
         dataset_size: public.dataset_size,
         target_sync_interval: public.target_sync_interval,
@@ -589,6 +658,35 @@ fn assert_provenance_matches(
         public.raw_trajectory_hash, provenance.raw_trajectory_hash,
         "raw_trajectory_hash witness mismatch"
     );
+}
+
+/// Bind the sampler to the committed dataset instead of to prover choice.
+///
+/// A prover who picks the seed can grind it: run the fragment under many seeds
+/// and publish only the one whose sampled transitions flatter the model. The
+/// proof stays valid, so the ZK layer never notices; what weakens is the claim,
+/// from "trained on the committed dataset" to "trained on a prover-chosen
+/// subset of it". The payload is the canonical JSON the Python oracle hashes,
+/// keys sorted, no spaces.
+fn derive_sampler_seed(dataset_root: &str, global_step_start: u64) -> u64 {
+    let payload = format!(
+        "{{\"dataset_root\":\"{}\",\"format\":\"training_fragment_sampler_seed_v1\",\"global_step_start\":{}}}",
+        dataset_root, global_step_start
+    );
+    let digest = hex::encode(Sha256::digest(payload.as_bytes()));
+    u64::from_str_radix(&digest[..16], 16).expect("sha256 prefix is hex") % LCG_M
+}
+
+/// Clamp one fixed-point component to +/- limit.
+fn clip_fp(value: i64, limit: i64) -> i64 {
+    assert!(limit > 0, "gradient clip must be positive");
+    if value > limit {
+        limit
+    } else if value < -limit {
+        -limit
+    } else {
+        value
+    }
 }
 
 fn lcg_sample_index(seed: u64, step_id: u64, dataset_size: u64) -> u64 {
@@ -665,15 +763,18 @@ fn compute_gradients_and_update(
     td_error: i64,
     learning_rate: i64,
     fp_scale: i64,
+    gradient_clip: i64,
 ) -> (MlpUpdateTensors, MlpUpdateTensors, QuantizedMlp) {
     let forward = mlp_forward(model, &transition.state, fp_scale);
     let action = transition.action;
     let loss_grad = smooth_l1_grad_fp(td_error, fp_scale);
     let mut gradients = zero_update_tensors(&model.layer_sizes);
-    gradients.layers[1].bias[action] = loss_grad;
+    gradients.layers[1].bias[action] = clip_fp(loss_grad, gradient_clip);
     for hidden_idx in 0..forward.h1.len() {
-        gradients.layers[1].weight[action][hidden_idx] =
-            fixed_point_mul(loss_grad, forward.h1[hidden_idx], fp_scale);
+        gradients.layers[1].weight[action][hidden_idx] = clip_fp(
+            fixed_point_mul(loss_grad, forward.h1[hidden_idx], fp_scale),
+            gradient_clip,
+        );
     }
     let output_action_weights = &model.layers[1].weight[action];
     for hidden_idx in 0..forward.z1.len() {
@@ -683,10 +784,12 @@ fn compute_gradients_and_update(
         } else {
             0
         };
-        gradients.layers[0].bias[hidden_idx] = grad_z;
+        gradients.layers[0].bias[hidden_idx] = clip_fp(grad_z, gradient_clip);
         for input_idx in 0..transition.state.len() {
-            gradients.layers[0].weight[hidden_idx][input_idx] =
-                fixed_point_mul(grad_z, transition.state[input_idx], fp_scale);
+            gradients.layers[0].weight[hidden_idx][input_idx] = clip_fp(
+                fixed_point_mul(grad_z, transition.state[input_idx], fp_scale),
+                gradient_clip,
+            );
         }
     }
     let (post, deltas) = apply_sgd_update(model, &gradients, learning_rate, fp_scale);

@@ -30,6 +30,21 @@ step. These systems motivate our goal but do not directly encode offline-RL-spec
 semantics such as terminal Bellman branches, replay membership, Double-DQN
 argmax, target-network synchronization, and TD losses.
 
+The year since has filled this space by model class rather than by learning
+paradigm, which is the pattern our work reads as the opening.
+ZKBoost~\cite{zkboost2026} gives the first zero-knowledge proof of training for
+gradient-boosted trees, using a fixed-point XGBoost that stays within $1\%$ of
+the floating-point model --- the same discipline our relations follow, arrived
+at independently. SUMMER~\cite{summer2026} proves recurrent training end to end
+with recursive composition, and reports the same structural conclusion we do:
+the composition, not the per-step arithmetic, is what makes long traces
+reachable. VeriLoRA~\cite{verilora2026} carries verifiable fine-tuning to
+$13$B-parameter language models by restricting the proved computation to the
+low-rank adapters. Trees, recurrences and adapters have each been claimed;
+sequential decision-making has not, and the reason is not model size --- our
+networks are three orders of magnitude smaller than VeriLoRA's --- but the
+three obligations of \Cref{sec:introduction}.
+
 \paragraph{Verifiable and zero-knowledge machine learning.}
 Verifiable ML has been studied extensively for inference integrity.
 SafetyNets~\cite{safetynets2017} builds proofs for neural-network inference on
@@ -55,17 +70,26 @@ General-purpose zkVMs trade circuit specialization for implementation speed.
 SP1~\cite{succinct2024sp1} is a Rust-oriented RISC-V zkVM using STARK-based
 proofs; we chose it because our relations combine hashing, Merkle paths, schema
 checks, integer arithmetic, and branching. RISC Zero~\cite{risczero2023} is
-another zkVM in the same design space. Both support recursive proof composition,
-though our current aggregation uses proof-manifest chains rather than true
-recursive verification. On-chain verification can be achieved through
+another zkVM in the same design space. Both support recursive proof
+composition, and we use it in both available forms: a proof-manifest chain that
+binds externally verified child manifests, and aggregation in which the guest
+verifies each child proof cryptographically in-circuit. On-chain verification
+can be achieved through
 Groth16~\cite{groth2016zksnark} or PLONK~\cite{gabizon2019plonk} SNARK
 compression.
 
-\paragraph{Verifiable RL.}
-Prior verifiable RL work often focuses on interpretable or formally verifiable
-\emph{policies} rather than cryptographic verification of training
-computations. Programmatic-policy approaches~\cite{verma2019verifiable} search
-for policies checkable by symbolic methods. Our work targets a different layer:
+\paragraph{Verifiable RL, and a name collision worth separating.}
+The phrase now carries two unrelated meanings, and only one of them is ours.
+In current usage ``verifiable reinforcement learning'' most often means RL with
+verifiable rewards, where a checker --- unit tests, an exact-answer comparison,
+a proof assistant --- supplies the training signal. Nothing is proved to a
+third party there; the verifier sits inside the training loop and the model
+owner is the one who benefits from its verdict. Our verifier sits outside, is
+adversarial to the prover, and learns nothing beyond the statement. The older
+line of verifiable RL is likewise about \emph{policies} rather than training:
+programmatic-policy approaches~\cite{verma2019verifiable} search for policies
+checkable by symbolic methods, which certifies what a policy will do, not how
+it came to be. Our work targets a different layer:
 cryptographic verification of the replay membership, Bellman arithmetic,
 model-grounded TD evidence, and update evidence inside offline value learning.
 To the best of our knowledge, this is the first system to provide
@@ -76,10 +100,16 @@ relations over committed replay data.
 The importance of training-data provenance is increasingly
 recognized~\cite{dataauth2024, aiprovenance2025}. Frameworks for cryptographic
 verifiability of end-to-end AI pipelines propose Merkle commitments and content
-identifiers for dataset integrity. Our provenance-bound dataset commitment
-(\Cref{alg:dataset-commitment}) implements this pattern specifically for
-offline RL replay buffers, binding the Merkle root to auditable collection
-artifacts.
+identifiers for dataset integrity. ZKPROV~\cite{zkprov2025} binds a language
+model's responses to datasets certified by their owners, proving provenance
+without revealing dataset contents, and positions itself as complementary to
+proof-of-training rather than as a substitute --- provenance of the data, not
+correctness of the computation over it. Our commitment sits on the same side of
+that line but is consumed on the other: the Merkle root that
+\Cref{alg:dataset-commitment} produces is an input the training relation reads,
+so the sampler, the membership check and the aggregate root all bind to it. A
+provenance claim and a training claim that name the same root are the two
+halves a regulator needs, and joining them is cheaper than proving either.
 
 \paragraph{Verifiable computation.}
 The broader verifiable computation literature~\cite{walfish2015verifiable}

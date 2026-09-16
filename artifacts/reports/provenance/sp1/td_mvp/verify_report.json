@@ -1,0 +1,26 @@
+{
+  "proof_generated": true,
+  "proof_verified": true,
+  "public_output": {
+    "batch_size": null,
+    "claimed_batch_loss_fp": null,
+    "claimed_loss_fp": 80,
+    "claimed_target_fp": 1761,
+    "dataset_root": "c06b06e1430fd4d03ff61b5e12419610d0f4f5dc2a74794e5db2bf7b3e9665f4",
+    "items": [
+      {
+        "index": 0,
+        "loss_fp": 80,
+        "target_fp": 1761
+      }
+    ],
+    "leaf_index": 0,
+    "leaf_indices": null,
+    "network_spec_hash": null,
+    "online_model_commitment": null,
+    "schema_version": "td_mvp_test_vector_v1",
+    "target_model_commitment": null
+  },
+  "public_output_matches_expected": true,
+  "relation": "td_mvp"
+}

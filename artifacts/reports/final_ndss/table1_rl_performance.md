@@ -1,54 +1,60 @@
 # Table 1: RL Performance
 
-| Dataset | Family | Source | Transitions | Baseline | Seeds | Avg Return | Std Return | Norm. Score | Success Rate | Train Steps | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| cartpole-random-v1 | cartpole | audited_self_collected | 9204 | bc | 3 | 11.000 +/- 0.852 | 0.852 |  | 0.000 +/- 0.000 | 5000 | completed |
-| cartpole-random-v1 | cartpole | audited_self_collected | 9204 | offline_dqn | 3 | 161.900 +/- 49.897 | 49.897 |  | 0.000 +/- 0.000 | 5000 | completed |
-| cartpole-random-v1 | cartpole | audited_self_collected | 9204 | double_dqn | 3 | 192.900 +/- 69.318 | 69.318 |  | 0.000 +/- 0.000 | 5000 | completed |
-| cartpole-random-v1 | cartpole | audited_self_collected | 9204 | cql_lite | 3 | 199.000 +/- 34.766 | 34.766 |  | 0.000 +/- 0.000 | 5000 | completed |
-| cartpole-random-v1 | cartpole | audited_self_collected | 9204 | bc_continuous |  |  |  |  |  |  | incompatible_skipped |
-| cartpole-random-v1 | cartpole | audited_self_collected | 9204 | iql_lite |  |  |  |  |  |  | incompatible_skipped |
-| mountaincar-random-v1 | mountaincar | audited_self_collected | 10000 | bc | 3 | -200.000 +/- 0.000 | 0.000 |  | 0.000 +/- 0.000 | 5000 | completed |
-| mountaincar-random-v1 | mountaincar | audited_self_collected | 10000 | offline_dqn | 3 | -200.000 +/- 0.000 | 0.000 |  | 0.000 +/- 0.000 | 5000 | completed |
-| mountaincar-random-v1 | mountaincar | audited_self_collected | 10000 | double_dqn | 3 | -200.000 +/- 0.000 | 0.000 |  | 0.000 +/- 0.000 | 5000 | completed |
-| mountaincar-random-v1 | mountaincar | audited_self_collected | 10000 | cql_lite | 3 | -200.000 +/- 0.000 | 0.000 |  | 0.000 +/- 0.000 | 5000 | completed |
-| mountaincar-random-v1 | mountaincar | audited_self_collected | 10000 | bc_continuous |  |  |  |  |  |  | incompatible_skipped |
-| mountaincar-random-v1 | mountaincar | audited_self_collected | 10000 | iql_lite |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-10000 | minari-pointmaze-umaze | public_source_integrity | 10000 | bc |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-10000 | minari-pointmaze-umaze | public_source_integrity | 10000 | offline_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-10000 | minari-pointmaze-umaze | public_source_integrity | 10000 | double_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-10000 | minari-pointmaze-umaze | public_source_integrity | 10000 | cql_lite |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-10000 | minari-pointmaze-umaze | public_source_integrity | 10000 | bc_continuous | 3 | 174.000 +/- 27.151 | 27.151 |  | 0.833 +/- 0.125 | 5000 | completed |
-| minari-pointmaze-umaze-v2-10000 | minari-pointmaze-umaze | public_source_integrity | 10000 | iql_lite | 3 | 163.400 +/- 15.144 | 15.144 |  | 0.700 +/- 0.082 | 5000 | completed |
-| minari-pointmaze-umaze-v2-50000 | minari-pointmaze-umaze | public_source_integrity | 50000 | bc |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-50000 | minari-pointmaze-umaze | public_source_integrity | 50000 | offline_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-50000 | minari-pointmaze-umaze | public_source_integrity | 50000 | double_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-50000 | minari-pointmaze-umaze | public_source_integrity | 50000 | cql_lite |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-50000 | minari-pointmaze-umaze | public_source_integrity | 50000 | bc_continuous | 3 | 166.167 +/- 21.417 | 21.417 |  | 0.767 +/- 0.125 | 5000 | completed |
-| minari-pointmaze-umaze-v2-50000 | minari-pointmaze-umaze | public_source_integrity | 50000 | iql_lite | 3 | 166.667 +/- 21.344 | 21.344 |  | 0.767 +/- 0.125 | 5000 | completed |
-| minari-pointmaze-umaze-v2-100000 | minari-pointmaze-umaze | public_source_integrity | 100000 | bc |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-100000 | minari-pointmaze-umaze | public_source_integrity | 100000 | offline_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-100000 | minari-pointmaze-umaze | public_source_integrity | 100000 | double_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-100000 | minari-pointmaze-umaze | public_source_integrity | 100000 | cql_lite |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-v2-100000 | minari-pointmaze-umaze | public_source_integrity | 100000 | bc_continuous | 3 | 142.433 +/- 13.241 | 13.241 |  | 0.600 +/- 0.245 | 5000 | completed |
-| minari-pointmaze-umaze-v2-100000 | minari-pointmaze-umaze | public_source_integrity | 100000 | iql_lite | 3 | 142.567 +/- 16.017 | 16.017 |  | 0.500 +/- 0.163 | 5000 | completed |
-| minari-pointmaze-umaze-dense-v2-10000 | minari-pointmaze-umaze-dense | public_source_integrity | 10000 | bc |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-10000 | minari-pointmaze-umaze-dense | public_source_integrity | 10000 | offline_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-10000 | minari-pointmaze-umaze-dense | public_source_integrity | 10000 | double_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-10000 | minari-pointmaze-umaze-dense | public_source_integrity | 10000 | cql_lite |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-10000 | minari-pointmaze-umaze-dense | public_source_integrity | 10000 | bc_continuous | 3 | 186.901 +/- 8.134 | 8.134 |  | 0.833 +/- 0.125 | 5000 | completed |
-| minari-pointmaze-umaze-dense-v2-10000 | minari-pointmaze-umaze-dense | public_source_integrity | 10000 | iql_lite | 3 | 173.787 +/- 9.096 | 9.096 |  | 0.567 +/- 0.094 | 5000 | completed |
-| minari-pointmaze-umaze-dense-v2-50000 | minari-pointmaze-umaze-dense | public_source_integrity | 50000 | bc |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-50000 | minari-pointmaze-umaze-dense | public_source_integrity | 50000 | offline_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-50000 | minari-pointmaze-umaze-dense | public_source_integrity | 50000 | double_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-50000 | minari-pointmaze-umaze-dense | public_source_integrity | 50000 | cql_lite |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-50000 | minari-pointmaze-umaze-dense | public_source_integrity | 50000 | bc_continuous | 3 | 185.394 +/- 10.913 | 10.913 |  | 0.767 +/- 0.125 | 5000 | completed |
-| minari-pointmaze-umaze-dense-v2-50000 | minari-pointmaze-umaze-dense | public_source_integrity | 50000 | iql_lite | 3 | 173.724 +/- 10.247 | 10.247 |  | 0.600 +/- 0.082 | 5000 | completed |
-| minari-pointmaze-umaze-dense-v2-100000 | minari-pointmaze-umaze-dense | public_source_integrity | 100000 | bc |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-100000 | minari-pointmaze-umaze-dense | public_source_integrity | 100000 | offline_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-100000 | minari-pointmaze-umaze-dense | public_source_integrity | 100000 | double_dqn |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-100000 | minari-pointmaze-umaze-dense | public_source_integrity | 100000 | cql_lite |  |  |  |  |  |  | incompatible_skipped |
-| minari-pointmaze-umaze-dense-v2-100000 | minari-pointmaze-umaze-dense | public_source_integrity | 100000 | bc_continuous | 3 | 175.766 +/- 8.057 | 8.057 |  | 0.600 +/- 0.245 | 5000 | completed |
-| minari-pointmaze-umaze-dense-v2-100000 | minari-pointmaze-umaze-dense | public_source_integrity | 100000 | iql_lite | 3 | 170.032 +/- 12.930 | 12.930 |  | 0.567 +/- 0.047 | 5000 | completed |
+| Dataset | Family | Source | Transitions | Baseline | Optimizer | Seeds | Avg Return | Std Return | Norm. Score | Success Rate | Train Steps | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | bc | adam | 3 | 9.433 +/- 0.287 | 0.287 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | bc | sgd | 3 | 35.600 +/- 25.262 | 25.262 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | offline_dqn | adam | 3 | 93.967 +/- 9.686 | 9.686 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | offline_dqn | sgd | 3 | 297.200 +/- 45.676 | 45.676 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | double_dqn | adam | 3 | 239.967 +/- 186.601 | 186.601 |  | 0.333 +/- 0.471 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | double_dqn | sgd | 3 | 311.033 +/- 56.982 | 56.982 |  | 0.033 +/- 0.047 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | cql_lite | adam | 3 | 104.833 +/- 11.773 | 11.773 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | cql_lite | sgd | 3 | 302.667 +/- 47.833 | 47.833 |  | 0.067 +/- 0.094 | 5000 | completed |
+| cartpole-random-v2 | cartpole-random | audited_self_collected | 50006 | double_dqn_provable | sgd | 3 | 17.000 +/- 5.728 | 5.728 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | bc | adam | 3 | 270.033 +/- 8.145 | 8.145 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | bc | sgd | 3 | 341.800 +/- 80.590 | 80.590 |  | 0.133 +/- 0.125 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | offline_dqn | adam | 3 | 9.300 +/- 0.216 | 0.216 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | offline_dqn | sgd | 3 | 9.633 +/- 0.634 | 0.634 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | double_dqn | adam | 3 | 9.300 +/- 0.216 | 0.216 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | double_dqn | sgd | 3 | 9.800 +/- 0.864 | 0.864 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | cql_lite | adam | 3 | 282.967 +/- 55.677 | 55.677 |  | 0.033 +/- 0.047 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | cql_lite | sgd | 3 | 240.100 +/- 91.153 | 91.153 |  | 0.167 +/- 0.236 | 5000 | completed |
+| cartpole-medium-v2 | cartpole-medium | audited_self_collected | 50045 | double_dqn_provable | sgd | 3 | 10.967 +/- 1.605 | 1.605 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | bc | adam | 3 | 435.000 +/- 91.924 | 91.924 |  | 0.833 +/- 0.236 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | bc | sgd | 3 | 492.167 +/- 7.814 | 7.814 |  | 0.933 +/- 0.047 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | offline_dqn | adam | 3 | 9.300 +/- 0.216 | 0.216 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | offline_dqn | sgd | 3 | 16.267 +/- 9.430 | 9.430 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | double_dqn | adam | 3 | 9.300 +/- 0.216 | 0.216 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | double_dqn | sgd | 3 | 9.567 +/- 0.170 | 0.170 |  | 0.000 +/- 0.000 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | cql_lite | adam | 3 | 487.733 +/- 17.348 | 17.348 |  | 0.967 +/- 0.047 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | cql_lite | sgd | 3 | 193.533 +/- 179.876 | 179.876 |  | 0.133 +/- 0.189 | 5000 | completed |
+| cartpole-expert-v2 | cartpole-expert | audited_self_collected | 50261 | double_dqn_provable | sgd | 3 | 9.733 +/- 0.403 | 0.403 |  | 0.000 +/- 0.000 | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | bc | adam | 3 | -300.528 +/- 231.567 | 231.567 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | bc | sgd | 3 | -381.303 +/- 181.112 | 181.112 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | offline_dqn | adam | 3 | -32.527 +/- 33.208 | 33.208 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | offline_dqn | sgd | 3 | -189.360 +/- 22.102 | 22.102 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | double_dqn | adam | 3 | -123.561 +/- 8.350 | 8.350 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | double_dqn | sgd | 3 | -215.283 +/- 75.215 | 75.215 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | cql_lite | adam | 3 | -128.192 +/- 26.488 | 26.488 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | cql_lite | sgd | 3 | -165.696 +/- 23.026 | 23.026 |  |  | 5000 | completed |
+| lunarlander-random-v1 | lunarlander-random | audited_self_collected | 50020 | double_dqn_provable | sgd | 3 | -152.674 +/- 72.107 | 72.107 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | bc | adam | 3 | 9.346 +/- 48.415 | 48.415 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | bc | sgd | 3 | -189.659 +/- 89.573 | 89.573 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | offline_dqn | adam | 3 | -575.957 +/- 64.528 | 64.528 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | offline_dqn | sgd | 3 | -367.583 +/- 118.853 | 118.853 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | double_dqn | adam | 3 | -248.246 +/- 64.328 | 64.328 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | double_dqn | sgd | 3 | -366.554 +/- 110.441 | 110.441 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | cql_lite | adam | 3 | -81.194 +/- 17.649 | 17.649 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | cql_lite | sgd | 3 | -283.658 +/- 111.680 | 111.680 |  |  | 5000 | completed |
+| lunarlander-medium-v1 | lunarlander-medium | audited_self_collected | 50586 | double_dqn_provable | sgd | 3 | -829.683 +/- 30.169 | 30.169 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | bc | adam | 3 | 122.241 +/- 66.439 | 66.439 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | bc | sgd | 3 | -48.397 +/- 6.146 | 6.146 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | offline_dqn | adam | 3 | -294.313 +/- 86.641 | 86.641 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | offline_dqn | sgd | 3 | -517.823 +/- 91.611 | 91.611 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | double_dqn | adam | 3 | -448.006 +/- 101.205 | 101.205 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | double_dqn | sgd | 3 | -518.656 +/- 97.041 | 97.041 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | cql_lite | adam | 3 | 121.547 +/- 20.173 | 20.173 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | cql_lite | sgd | 3 | -390.672 +/- 194.456 | 194.456 |  |  | 5000 | completed |
+| lunarlander-expert-v1 | lunarlander-expert | audited_self_collected | 50552 | double_dqn_provable | sgd | 3 | -717.924 +/- 60.675 | 60.675 |  |  | 5000 | completed |
 
 Table 1 is RL-performance-only; SP1 proof-cost and tamper results are reported separately.

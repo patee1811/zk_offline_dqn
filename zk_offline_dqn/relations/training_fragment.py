@@ -6,7 +6,7 @@ import copy
 import hashlib
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any, Dict, List, Mapping, Sequence, Tuple
 
 from zk_offline_dqn.relations.training_update import (
     apply_sgd_update,
@@ -28,12 +28,66 @@ from zk_offline_dqn.relations.training_update import (
 )
 
 
-SCHEMA_VERSION = "sp1_training_fragment_case_v1"
-PUBLIC_SCHEMA_VERSION = "sp1_training_fragment_public_v1"
+SCHEMA_VERSION = "sp1_training_fragment_case_v2"
+PUBLIC_SCHEMA_VERSION = "sp1_training_fragment_public_v2"
 LCG_A = 1_664_525
 LCG_C = 1_013_904_223
 LCG_M = 2**32
-DEFAULT_SAMPLER_SEED = 12_345
+
+# Ceiling on |Q| that the fragment declares and the relation enforces.
+#
+# i64 overflow is what actually bounds a provable run: gamma * q leaves i64
+# above 9.32e15, and offline DQN drives Q up by roughly x22 every 156 steps.
+# Aborting on overflow is sound but says nothing a verifier can read, and the
+# threshold is a property of the host integer width rather than of the
+# relation -- move to i128 and the statement being proved changes silently.
+# Publishing the bound makes the admissible range part of the claim. 2^52 sits
+# at 48% of the overflow threshold and 4.7x above the peak |Q| of the longest
+# run proved so far (9.49e14 at step 1248).
+DEFAULT_Q_ABS_MAX_FP = 2**52
+
+# Per-component gradient clip, mirroring the clip_grad_norm_(10.0) that the
+# Table 1 agents apply. Clipping by value rather than by norm is deliberate:
+# an L2 norm needs a square root, while a component-wise clamp is one
+# comparison per parameter. It is the looser of the two -- a vector can pass
+# this and fail a norm bound of the same size -- so it is reported as its own
+# configuration rather than as the same algorithm.
+DEFAULT_GRADIENT_CLIP_FP = 10_000
+
+# The guest computes in i64; the bound check has to know where that ends.
+I64_MAX = 2**63 - 1
+
+
+def derive_sampler_seed(dataset_root: str, global_step_start: int) -> int:
+    """Bind the sampler to the committed dataset instead of to prover choice.
+
+    A prover who picks the seed can grind it: run the fragment under many
+    seeds and publish only the one whose sampled transitions flatter the
+    model. The proof stays valid, so the ZK layer does not notice; what
+    weakens is the claim, from "trained on the committed dataset" to "trained
+    on a prover-chosen subset of it". Deriving the seed from the dataset root
+    removes that freedom -- grinding now means grinding the dataset
+    commitment, which the collection pipeline audits separately.
+    """
+    digest = sha256_json(
+        {
+            "format": "training_fragment_sampler_seed_v1",
+            "dataset_root": dataset_root,
+            "global_step_start": int(global_step_start),
+        }
+    )
+    return int(digest[:16], 16) % LCG_M
+
+
+def clip_fp(value: int, limit: int) -> int:
+    """Clamp one fixed-point component to +/- limit."""
+    if limit <= 0:
+        raise AssertionError("gradient clip must be positive")
+    if value > limit:
+        return limit
+    if value < -limit:
+        return -limit
+    return value
 
 
 @dataclass(frozen=True)
@@ -76,7 +130,11 @@ def fragment_trace_hash(
 
 
 def compute_step(
-    public: Mapping[str, Any], step: Mapping[str, Any], online: Mapping[str, Any], target: Mapping[str, Any]
+    public: Mapping[str, Any],
+    step: Mapping[str, Any],
+    online: Mapping[str, Any],
+    target: Mapping[str, Any],
+    before_hash: str,
 ) -> Dict[str, Any]:
     scale = int(public["fixed_point_scale"])
     transition = step["transition"]
@@ -87,29 +145,44 @@ def compute_step(
     q_online_action = online_forward["q"][action]
     next_action = argmax_first(online_next["q"])
     q_target_next = target_forward["q"][next_action]
+    # Range check before gamma * q_target_next, not after: the multiply is where
+    # i64 gives out in the guest, so a check placed downstream is reached only
+    # by an overflow panic that names nothing.
+    q_abs_max = int(public["q_abs_max_fp"])
+    for name, value in (("q_online_action", q_online_action), ("q_target_next", q_target_next)):
+        if abs(value) > q_abs_max:
+            raise AssertionError(f"{name} {value} exceeds q_abs_max_fp {q_abs_max}")
     done = bool(transition["terminated"]) or bool(transition["truncated"])
     td_target = (
         int(transition["reward"])
         if done
         else int(transition["reward"]) + fixed_point_mul(int(public["gamma"]), q_target_next, scale)
     )
+    if abs(td_target) > q_abs_max:
+        raise AssertionError(f"td_target {td_target} exceeds q_abs_max_fp {q_abs_max}")
     td_error = q_online_action - td_target
     loss = smooth_l1_loss_fp(td_error, scale)
     loss_grad = smooth_l1_grad_fp(td_error, scale)
+    gradient_clip = int(public["gradient_clip_fp"])
     gradients = zero_update_tensors(list(online["layer_sizes"]))
-    gradients["layers"][1]["bias"][action] = loss_grad
+    gradients["layers"][1]["bias"][action] = clip_fp(loss_grad, gradient_clip)
     for hidden_idx, hidden_fp in enumerate(online_forward["h1"]):
-        gradients["layers"][1]["weight"][action][hidden_idx] = fixed_point_mul(loss_grad, hidden_fp, scale)
+        gradients["layers"][1]["weight"][action][hidden_idx] = clip_fp(
+            fixed_point_mul(loss_grad, hidden_fp, scale), gradient_clip
+        )
     output_action_weights = online["layers"][1]["weight"][action]
     for hidden_idx, z_fp in enumerate(online_forward["z1"]):
         grad_hidden = fixed_point_mul(loss_grad, int(output_action_weights[hidden_idx]), scale)
         grad_z = grad_hidden if z_fp > 0 else 0
-        gradients["layers"][0]["bias"][hidden_idx] = grad_z
+        gradients["layers"][0]["bias"][hidden_idx] = clip_fp(grad_z, gradient_clip)
         for input_idx, input_fp in enumerate(transition["state"]):
-            gradients["layers"][0]["weight"][hidden_idx][input_idx] = fixed_point_mul(grad_z, int(input_fp), scale)
+            gradients["layers"][0]["weight"][hidden_idx][input_idx] = clip_fp(
+                fixed_point_mul(grad_z, int(input_fp), scale), gradient_clip
+            )
     post, deltas = apply_sgd_update(online, gradients, int(public["learning_rate"]), scale)
     gradient_hash = gradient_commitment(gradients)
-    before_hash = model_commitment(online, scale)
+    # before_hash is handed in: the caller already holds it, either from the
+    # chain or from the one hash the first step pays for.
     post_hash = model_commitment(post, scale)
     update_hash = update_commitment(before_hash, post_hash, gradient_hash, int(public["learning_rate"]))
     return {
@@ -156,8 +229,22 @@ def recompute_fragment(vector: Mapping[str, Any]) -> Dict[str, Any]:
         target_before = step["target_model_before"]
         online_after = step["online_model_after"]
         target_after = step["target_model_after"]
-        online_before_hash = model_commitment(online_before, scale)
-        target_before_hash = model_commitment(target_before, scale)
+        # Mirrors the guest: only the first step hashes the incoming models. After
+        # that the chain already carries their commitment, and what has to be
+        # checked is that these really are the models the previous step ended on
+        # -- a structural comparison, not a second hash of the same bytes. A
+        # model commitment costs about 617k guest cycles at [4, 64, 2].
+        if index == 0:
+            online_before_hash = model_commitment(online_before, scale)
+            target_before_hash = model_commitment(target_before, scale)
+        else:
+            previous = witness["steps"][index - 1]
+            if online_before != previous["online_model_after"]:
+                raise AssertionError("online_model_before mismatch")
+            if target_before != previous["target_model_after"]:
+                raise AssertionError("target_model_before mismatch")
+            online_before_hash = expected_online_hash
+            target_before_hash = expected_target_hash
         if online_before_hash != step["checkpoint_hash_before"]:
             raise AssertionError("checkpoint_hash_before mismatch")
         if target_before_hash != step["target_checkpoint_hash_before"]:
@@ -177,7 +264,7 @@ def recompute_fragment(vector: Mapping[str, Any]) -> Dict[str, Any]:
         assert_path_metadata(step["merkle_path"], int(step["leaf_index"]))
         if recompute_root_from_path(leaf_hash, step["merkle_path"]) != public["dataset_root"]:
             raise AssertionError("dataset_root mismatch")
-        computed = compute_step(public, step, online_before, target_before)
+        computed = compute_step(public, step, online_before, target_before, online_before_hash)
         expected_intermediates = {
             "q_online_action": computed["q_online_action"],
             "q_target_next": computed["q_target_next"],
@@ -200,14 +287,19 @@ def recompute_fragment(vector: Mapping[str, Any]) -> Dict[str, Any]:
             raise AssertionError("intermediates mismatch")
         if online_after != computed["post_model"]:
             raise AssertionError("online_model_after mismatch")
-        online_after_hash = model_commitment(online_after, scale)
+        # compute_step already committed to the post model; online_after is
+        # asserted equal to it just above, so recomputing would hash the same
+        # bytes a second time.
+        online_after_hash = computed["checkpoint_hash_after"]
         if online_after_hash != step["checkpoint_hash_after"]:
             raise AssertionError("checkpoint_hash_after mismatch")
         sync_applied = _target_sync_applies(public, index)
         expected_target_after = online_after if sync_applied else target_before
         if target_after != expected_target_after:
             raise AssertionError("target_model_after mismatch")
-        target_after_hash = model_commitment(target_after, scale)
+        # Equal models have equal commitments, and the comparison above already
+        # pinned this one to a model whose hash this step holds.
+        target_after_hash = online_after_hash if sync_applied else target_before_hash
         if target_after_hash != step["target_checkpoint_hash_after"]:
             raise AssertionError("target_checkpoint_hash_after mismatch")
         if sync_applied:
@@ -282,6 +374,18 @@ def verify_vector(vector: Mapping[str, Any]) -> Dict[str, Any]:
         raise AssertionError("dataset_type mismatch")
     if int(public["num_steps"]) != len(witness["steps"]):
         raise AssertionError("num_steps mismatch")
+    expected_seed = derive_sampler_seed(public["dataset_root"], public.get("global_step_start", 0))
+    if int(public["sampler_seed"]) != expected_seed:
+        raise AssertionError("sampler_seed is not derived from dataset_root")
+    q_abs_max = int(public["q_abs_max_fp"])
+    if q_abs_max <= 0:
+        raise AssertionError("q_abs_max_fp must be positive")
+    # A bound the guest could not honour without overflowing first would let a
+    # case declare a range wider than the arithmetic supports.
+    if q_abs_max > I64_MAX // int(public["gamma"]):
+        raise AssertionError("q_abs_max_fp admits values that overflow gamma * q")
+    if int(public["gradient_clip_fp"]) <= 0:
+        raise AssertionError("gradient_clip_fp must be positive")
     if witness["provenance"] != {
         "dataset_id_hash": public["dataset_id_hash"],
         "dataset_type": public["dataset_type"],
@@ -331,6 +435,8 @@ def public_output(vector: Mapping[str, Any], computed: Mapping[str, Any]) -> Dic
         "learning_rate": p["learning_rate"],
         "sampler_seed": p["sampler_seed"],
         "sampler_type": p["sampler_type"],
+        "q_abs_max_fp": p["q_abs_max_fp"],
+        "gradient_clip_fp": p["gradient_clip_fp"],
         "dataset_size": p["dataset_size"],
         "target_sync_interval": p["target_sync_interval"],
         "target_sync_mode": p["target_sync_mode"],
@@ -360,7 +466,22 @@ def generate_case(
     online_start: Mapping[str, Any] | None = None,
     target_start: Mapping[str, Any] | None = None,
     case_id: str | None = None,
+    layer_sizes: Sequence[int] | None = None,
+    dataset: Sequence[Mapping[str, Any]] | None = None,
+    provenance: Mapping[str, Any] | None = None,
+    learning_rate: int = 10,
+    q_abs_max_fp: int = DEFAULT_Q_ABS_MAX_FP,
+    gradient_clip_fp: int = DEFAULT_GRADIENT_CLIP_FP,
+    target_sync_interval: int = 4,
 ) -> Dict[str, Any]:
+    """Build a fragment vector.
+
+    `dataset` and `provenance` bind the vector to a committed dataset: pass the
+    fixed-point transitions the dataset was committed under and the hashes from
+    its manifest, and `dataset_root` comes out equal to the committed root. The
+    synthetic defaults are what the existing test vectors were generated from
+    and must keep producing them byte for byte.
+    """
     scale = 1000
     public = {
         "relation": "training_fragment",
@@ -380,11 +501,14 @@ def generate_case(
         "batch_size": 1,
         "fixed_point_scale": scale,
         "gamma": 990,
-        "learning_rate": 10,
-        "sampler_seed": DEFAULT_SAMPLER_SEED,
+        "learning_rate": int(learning_rate),
+        # Replaced by derive_sampler_seed once the dataset root is known.
+        "sampler_seed": 0,
         "sampler_type": "lcg_mod_dataset_size",
+        "q_abs_max_fp": int(q_abs_max_fp),
+        "gradient_clip_fp": int(gradient_clip_fp),
         "dataset_size": dataset_size,
-        "target_sync_interval": 4,
+        "target_sync_interval": int(target_sync_interval),
         "target_sync_mode": "hard",
         "global_step_start": global_step_start,
         "trace_hash": "",
@@ -394,25 +518,62 @@ def generate_case(
         "gradient_trace_hash": "",
         "update_trace_hash": "",
     }
-    dataset = [_transition_for_index(index, scale) for index in range(dataset_size)]
+    obs_dim = int(layer_sizes[0]) if layer_sizes is not None else 2
+    if dataset is None:
+        dataset = [
+            _transition_for_index(index, scale, obs_dim) for index in range(dataset_size)
+        ]
+    else:
+        dataset = list(dataset)
+        dataset_size = len(dataset)
+        public["dataset_size"] = dataset_size
+    if provenance is not None:
+        for field in (
+            "dataset_id_hash",
+            "dataset_type",
+            "manifest_hash",
+            "audit_report_hash",
+            "collection_log_final_hash",
+            "raw_trajectory_hash",
+        ):
+            public[field] = provenance[field]
+    action_dim = int(layer_sizes[-1]) if layer_sizes is not None else 2
     leaves = [
-        hash_leaf(serialize_transition_leaf(item, obs_dim=2, action_dim=2))
+        hash_leaf(serialize_transition_leaf(item, obs_dim=obs_dim, action_dim=action_dim))
         for item in dataset
     ]
-    root, paths = _merkle_paths(leaves)
+    # Root first, because the seed is derived from it: the tree is built twice
+    # rather than threading its levels out of the helper, which costs a second
+    # pass of hashing and keeps the dependency readable.
+    root, _ = _merkle_paths(leaves, [])
     public["dataset_root"] = root
-    online = copy.deepcopy(online_start) if online_start is not None else _initial_online_model(scale)
-    target = copy.deepcopy(target_start) if target_start is not None else _initial_target_model(scale)
+    sampler_seed = derive_sampler_seed(root, global_step_start)
+    public["sampler_seed"] = sampler_seed
+    sampled = [
+        lcg_sample_index(sampler_seed, step_id, dataset_size)
+        for step_id in range(num_steps)
+    ]
+    _, paths = _merkle_paths(leaves, sampled)
+    online = (
+        copy.deepcopy(online_start)
+        if online_start is not None
+        else _initial_online_model(scale, layer_sizes)
+    )
+    target = (
+        copy.deepcopy(target_start)
+        if target_start is not None
+        else _initial_target_model(scale, layer_sizes)
+    )
     public["start_checkpoint_hash"] = model_commitment(online, scale)
     public["start_target_checkpoint_hash"] = model_commitment(target, scale)
     steps = []
     for step_id in range(num_steps):
-        sample_index = lcg_sample_index(DEFAULT_SAMPLER_SEED, step_id, dataset_size)
+        sample_index = lcg_sample_index(sampler_seed, step_id, dataset_size)
         transition = copy.deepcopy(dataset[sample_index])
         before_hash = model_commitment(online, scale)
         target_before_hash = model_commitment(target, scale)
         step_shell = {"transition": transition}
-        computed = compute_step(public, step_shell, online, target)
+        computed = compute_step(public, step_shell, online, target, before_hash)
         online_after = computed["post_model"]
         sync_applied = _target_sync_applies(public, step_id)
         target_after = copy.deepcopy(online_after if sync_applied else target)
@@ -495,7 +656,11 @@ def _hash_label(label: str) -> str:
     return hashlib.sha256(label.encode("utf-8")).hexdigest()
 
 
-def _initial_online_model(scale: int) -> Dict[str, Any]:
+def _initial_online_model(
+    scale: int, layer_sizes: Sequence[int] | None = None
+) -> Dict[str, Any]:
+    if layer_sizes is not None and list(layer_sizes) != [2, 2, 2]:
+        return _synthetic_model(scale, list(layer_sizes))
     return {
         "format": "quantized_mlp_v1",
         "layer_sizes": [2, 2, 2],
@@ -507,18 +672,60 @@ def _initial_online_model(scale: int) -> Dict[str, Any]:
     }
 
 
-def _initial_target_model(scale: int) -> Dict[str, Any]:
-    model = _initial_online_model(scale)
+def _synthetic_model(scale: int, layer_sizes: List[int]) -> Dict[str, Any]:
+    """Deterministic fixed-point weights for an arbitrary MLP shape.
+
+    Used to measure proof cost against network size. Values are small and
+    spread around zero so activations do not saturate the fixed-point range.
+    """
+    layers = []
+    for idx in range(len(layer_sizes) - 1):
+        fan_in, fan_out = layer_sizes[idx], layer_sizes[idx + 1]
+        weight = [
+            [(((i * 31 + j * 17 + idx * 7) % 41) - 20) * 25 for j in range(fan_in)]
+            for i in range(fan_out)
+        ]
+        bias = [(((i * 13 + idx * 5) % 11) - 5) * 10 for i in range(fan_out)]
+        layers.append({"weight": weight, "bias": bias})
+    return {
+        "format": "quantized_mlp_v1",
+        "layer_sizes": list(layer_sizes),
+        "fp_scale": scale,
+        "layers": layers,
+    }
+
+
+def _initial_target_model(
+    scale: int, layer_sizes: Sequence[int] | None = None
+) -> Dict[str, Any]:
+    model = _initial_online_model(scale, layer_sizes)
+    if layer_sizes is not None and list(layer_sizes) != [2, 2, 2]:
+        # Nudge one weight so the target differs from the online net, the same
+        # way the committed [2, 2, 2] fixture does.
+        model["layers"][0]["weight"][0][0] += 50
+        return model
     model["layers"][0]["weight"][0][0] = 650
     model["layers"][1]["bias"][1] = -20
     return model
 
 
-def _transition_for_index(index: int, scale: int) -> Dict[str, Any]:
+def _transition_for_index(index: int, scale: int, obs_dim: int = 2) -> Dict[str, Any]:
     state0 = ((index % 11) - 5) * 100
     state1 = (((index * 3) % 13) - 6) * 80
     next_state0 = state0 + (((index % 3) - 1) * 50)
     next_state1 = state1 + ((((index + 1) % 5) - 2) * 40)
+    if obs_dim != 2:
+        # Extend the same pattern so a wider observation stays deterministic.
+        state = [(((index * (d + 2)) % 11) - 5) * 100 for d in range(obs_dim)]
+        next_state = [s + ((((index + d) % 3) - 1) * 50) for d, s in enumerate(state)]
+        return {
+            "state": state,
+            "action": index % 2,
+            "reward": (((index * 7) % 5) - 2) * (scale // 10),
+            "next_state": next_state,
+            "terminated": index % 29 == 0,
+            "truncated": index % 31 == 0,
+        }
     return {
         "state": [state0, state1],
         "action": index % 2,
@@ -529,7 +736,15 @@ def _transition_for_index(index: int, scale: int) -> Dict[str, Any]:
     }
 
 
-def _merkle_paths(leaves: List[str]) -> Tuple[str, List[List[Dict[str, Any]]]]:
+def _merkle_paths(
+    leaves: List[str], indices: Sequence[int] | None = None
+) -> Tuple[str, Dict[int, List[Dict[str, Any]]]]:
+    """Root plus a path per requested leaf, keyed by leaf index.
+
+    `indices` exists because a committed dataset carries 50k leaves and a
+    fragment opens a handful: building every path costs memory proportional to
+    the dataset rather than to the fragment.
+    """
     if not leaves:
         raise AssertionError("Merkle tree requires at least one leaf")
     levels = [leaves[:]]
@@ -541,8 +756,9 @@ def _merkle_paths(leaves: List[str]) -> Tuple[str, List[List[Dict[str, Any]]]]:
             right = level[pos + 1] if pos + 1 < len(level) else left
             next_level.append(hash_internal_node(left, right))
         levels.append(next_level)
-    paths: List[List[Dict[str, Any]]] = []
-    for leaf_index in range(len(leaves)):
+    wanted = range(len(leaves)) if indices is None else sorted(set(int(i) for i in indices))
+    paths: Dict[int, List[Dict[str, Any]]] = {}
+    for leaf_index in wanted:
         current_index = leaf_index
         path = []
         for level_num, level in enumerate(levels[:-1]):
@@ -560,5 +776,5 @@ def _merkle_paths(leaves: List[str]) -> Tuple[str, List[List[Dict[str, Any]]]]:
                 }
             )
             current_index //= 2
-        paths.append(path)
+        paths[leaf_index] = path
     return levels[-1][0], paths

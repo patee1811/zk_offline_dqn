@@ -1,0 +1,31 @@
+{
+  "aggregation_mode": "recursive_sp1",
+  "aggregation_topology": "binary_tree",
+  "backend_version": "0.1.0",
+  "binary_tree_internal_node_count": 1,
+  "child_proof_count": 2,
+  "child_proof_mode": "native_sp1",
+  "child_proof_verification_inside_guest": true,
+  "chunk_count": 2,
+  "chunk_size": 156,
+  "cycle_count": 422859049,
+  "git_commit": "83e5f305703f0ac5c85b213e73fc7dc3fce95985",
+  "guest_elf_sha256": "0bf5c6a1b06890bbff5d4d3ce17ef6dad1f00c7aa443428a6ce14fb02064ed7a",
+  "leaf_chunk_count": 2,
+  "notes": [
+    "SP1 true recursive aggregation; native_sp1 child training-fragment proofs are verified inside the aggregate guest."
+  ],
+  "proof_generated": true,
+  "proof_size_bytes": 1274677,
+  "proof_verified": true,
+  "prove_time_seconds": 189.373744106,
+  "prover": "cuda",
+  "public_inputs_sha256": "f0d480871308d297316c917e4b7e84c50d110fe3f7d189ec695eee73042f31b1",
+  "relation": "training_aggregation",
+  "sp1_version": "6.1.0",
+  "step_end": 4992,
+  "step_start": 4680,
+  "test_vector_sha256": "ce9b10e8d30462054380268c02797a6f5c342fdbc0e50663fa9fbca5b0d19935",
+  "tree_depth": 1,
+  "verify_time_seconds": 0.054176606
+}

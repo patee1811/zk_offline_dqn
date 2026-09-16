@@ -13,7 +13,21 @@ THEOREM_MAP = ROOT / "docs/theorem_artifact_map.md"
 THEOREMS_TEX = ROOT / "paper/sections/formal_statements.tex"
 THREAT_MODEL_TEX = ROOT / "paper/sections/threat_model.tex"
 
-REQUIRED_THEOREMS = [f"Theorem {idx}" for idx in range(1, 9)]
+# Labels, not numbers. Inserting a statement renumbers every theorem after it,
+# and this map pointed at the wrong numbers for exactly that reason; the label
+# is what survives an edit to the paper.
+REQUIRED_THEOREMS = [
+    "thm:replay-membership",
+    "thm:dataset-commitment",
+    "thm:bellman-target",
+    "thm:update-correctness",
+    "thm:checkpoint-chain",
+    "thm:training-fragment",
+    "thm:sampler-binding",
+    "thm:value-bound",
+    "thm:manifest-aggregation",
+    "thm:privacy-boundary",
+]
 REQUIRED_THREAT_TERMS = [
     "prover",
     "verifier",
@@ -59,7 +73,9 @@ def check_theorem_artifact_map(root: Path | None = None) -> Dict[str, Any]:
     unsafe = [phrase for phrase in UNSAFE_PHRASES if phrase in lower]
     artifact_gaps: List[str] = []
     for label in REQUIRED_THEOREMS:
-        line = next((item for item in map_text.splitlines() if label in item), "")
+        # Only the table row counts; prose may cite the label too.
+        line = next((item for item in map_text.splitlines()
+                     if label in item and item.lstrip().startswith("|")), "")
         if not line:
             continue
         cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
@@ -71,12 +87,12 @@ def check_theorem_artifact_map(root: Path | None = None) -> Dict[str, Any]:
                 artifact_gaps.append(f"{label}: missing {name}")
         if cells[5].lower() != "n/a":
             artifact_gaps.append(f"{label}: Table 1 N/A reason missing")
-    theorem7 = "\n".join(item for item in combined.splitlines() if "Theorem 7" in item or "proof-manifest" in item.lower() or "recursive" in item.lower())
+    theorem7 = "\n".join(item for item in combined.splitlines() if "thm:manifest-aggregation" in item or "proof-manifest" in item.lower() or "recursive" in item.lower())
     theorem7_lower = theorem7.lower()
     if "proof-manifest" not in theorem7_lower and "chunk-chain" not in theorem7_lower:
-        artifact_gaps.append("Theorem 7 must be proof-manifest/chunk-chain scoped")
+        artifact_gaps.append("thm:manifest-aggregation must be proof-manifest/chunk-chain scoped")
     if "not true recursive" not in lower and "not recursively verify" not in lower:
-        artifact_gaps.append("Theorem 7 must explicitly state it is not true recursive")
+        artifact_gaps.append("the manifest-chain mode must state it does not verify child proofs in-guest")
 
     reasons = []
     if missing_files:

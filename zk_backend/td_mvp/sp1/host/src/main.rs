@@ -1,11 +1,13 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
+use serde_json::json;
 use sp1_sdk::{include_elf, Prover, ProverClient, ProvingKey, SP1Stdin};
-use td_mvp_shared::{smooth_l1_loss_fp, verify_td_mvp, TdMvpInput};
+use td_mvp_shared::{smooth_l1_loss_fp, verify_td_mvp, PublicOutput, TdMvpInput};
 
 #[derive(Debug, Parser)]
 struct Args {
@@ -21,6 +23,11 @@ struct Args {
     #[arg(long)]
     prove: bool,
 
+    /// Write compact provenance here. Pass an absolute path: cargo runs the host
+    /// from the workspace directory, so a relative one lands under zk_backend/.
+    #[arg(long)]
+    out_dir: Option<PathBuf>,
+
     #[arg(long)]
     skip_host_precheck: bool,
 }
@@ -28,15 +35,24 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let input_path = resolve_input_path(args.input)?;
+    let input_path = resolve_input_path(args.input.clone())?;
     let mut input = load_input(&input_path)?;
     apply_case(&mut input, &args.case)?;
 
     println!("input_path = {}", input_path.display());
     println!("case_name = {}", args.case);
 
-    if args.case == "valid_control" && !args.skip_host_precheck {
-        let output = verify_td_mvp(&input);
+    let is_valid_control = args.case == "valid_control";
+    // Only the untampered case may claim provenance: a tamper run mutates the
+    // input, so writing from it would overwrite a good row with a mutated one.
+    let expected: Option<PublicOutput> = if is_valid_control {
+        Some(verify_td_mvp(&input))
+    } else {
+        None
+    };
+
+    if is_valid_control && !args.skip_host_precheck {
+        let output = expected.as_ref().expect("valid_control computes expected");
         println!("host_precheck = true");
         if let Some(claimed_target_fp) = output.claimed_target_fp {
             println!("claimed_target_fp = {}", claimed_target_fp);
@@ -54,16 +70,48 @@ async fn main() -> Result<()> {
         println!("host_precheck = skipped_for_tamper_case");
     }
 
-    let client = ProverClient::builder().cpu().build().await;
-    let elf = include_elf!("td-mvp-guest");
+    // CPU stays the default so every committed provenance number keeps the
+    // prover it was measured on. SP1_CUDA=1 opts into the GPU prover, and the
+    // row records which one produced it.
+    let use_cuda = std::env::var("SP1_CUDA").map(|v| v == "1").unwrap_or(false);
+    if use_cuda {
+        println!("prover = cuda");
+        let client = ProverClient::builder().cuda().build().await;
+        run_with_prover(client, &args, &input, &expected, &input_path, "cuda").await
+    } else {
+        println!("prover = cpu");
+        let client = ProverClient::builder().cpu().build().await;
+        run_with_prover(client, &args, &input, &expected, &input_path, "cpu").await
+    }
+}
 
-    if args.execute || !args.prove {
-        let stdin = build_stdin(&input);
+/// Execute and optionally prove with whichever prover was selected.
+///
+/// CPU and CUDA build different concrete types and `Prover` has associated
+/// types, so this cannot be a boxed trait object -- the selection has to be a
+/// generic call from each branch.
+async fn run_with_prover<P: Prover>(
+    client: P,
+    args: &Args,
+    input: &TdMvpInput,
+    expected: &Option<PublicOutput>,
+    input_path: &Path,
+    prover_label: &str,
+) -> Result<()> {
+    let elf = include_elf!("td-mvp-guest");
+    let guest_elf_sha256 = hex_sha256(&elf);
+    let mut cycle_count: Option<u64> = None;
+
+    // `--out-dir` also forces execution: cycle_count comes from the report, and a
+    // provenance row without it cannot be compared against the other relations.
+    if args.execute || !args.prove || args.out_dir.is_some() {
+        let stdin = build_stdin(input);
         let start = Instant::now();
         let (_public_values, report) = client
             .execute(elf.clone(), stdin)
             .await
             .context("SP1 execution failed")?;
+        cycle_count = Some(report.total_instruction_count());
         println!("execution_ok = true");
         println!("execution_time_sec = {:.6}", start.elapsed().as_secs_f64());
         println!("cycle_count = {}", report.total_instruction_count());
@@ -77,13 +125,16 @@ async fn main() -> Result<()> {
     }
 
     if args.prove {
-        let stdin = build_stdin(&input);
-        let pk = client.setup(elf).await.context("SP1 setup failed")?;
+        let stdin = build_stdin(input);
+        let pk = client
+            .setup(elf)
+            .await
+            .map_err(|e| anyhow!("SP1 setup failed: {e}"))?;
         let prove_start = Instant::now();
         let proof = client
             .prove(&pk, stdin)
             .await
-            .context("SP1 proof generation failed")?;
+            .map_err(|e| anyhow!("SP1 proof generation failed: {e}"))?;
         let proving_time_sec = prove_start.elapsed().as_secs_f64();
 
         let verify_start = Instant::now();
@@ -92,14 +143,41 @@ async fn main() -> Result<()> {
             .context("SP1 proof verification failed")?;
         let verification_time_sec = verify_start.elapsed().as_secs_f64();
 
-        let proof_file =
-            tempfile::NamedTempFile::new().context("failed to create temp proof file")?;
-        proof
-            .save(proof_file.path())
-            .context("failed to serialize proof to temp file")?;
-        let proof_size_bytes = fs::metadata(proof_file.path())
-            .context("failed to stat temp proof file")?
-            .len();
+        let proof_size_bytes = match (&args.out_dir, expected) {
+            (Some(out_dir), Some(expected)) => {
+                fs::create_dir_all(out_dir)
+                    .with_context(|| format!("failed to create {}", out_dir.display()))?;
+                let proof_path = out_dir.join("proof.bin");
+                proof
+                    .save(&proof_path)
+                    .with_context(|| format!("failed to save {}", proof_path.display()))?;
+                let size = fs::metadata(&proof_path)?.len();
+                write_provenance(
+                    out_dir,
+                    input,
+                    expected,
+                    proving_time_sec,
+                    verification_time_sec,
+                    size,
+                    cycle_count,
+                    input_path,
+                    &guest_elf_sha256,
+                    prover_label,
+                )?;
+                println!("provenance_dir = {}", out_dir.display());
+                size
+            }
+            _ => {
+                let proof_file =
+                    tempfile::NamedTempFile::new().context("failed to create temp proof file")?;
+                proof
+                    .save(proof_file.path())
+                    .context("failed to serialize proof to temp file")?;
+                fs::metadata(proof_file.path())
+                    .context("failed to stat temp proof file")?
+                    .len()
+            }
+        };
 
         println!("proof_generated = true");
         println!("proof_verified = true");
@@ -370,4 +448,97 @@ fn first_forward_witness_mut(
         .first_mut()
         .and_then(|item| item.forward_witness.as_mut())
         .ok_or_else(|| anyhow!("input has no forward_witness"))
+}
+
+fn write_provenance(
+    out_dir: &Path,
+    input: &TdMvpInput,
+    expected: &PublicOutput,
+    proving_time_sec: f64,
+    verification_time_sec: f64,
+    proof_size_bytes: u64,
+    cycle_count: Option<u64>,
+    case_path: &Path,
+    guest_elf_sha256: &str,
+    prover_label: &str,
+) -> Result<()> {
+    write_json(out_dir.join("public_inputs.json"), &input.public)?;
+    write_json(out_dir.join("witness_schema.json"), &witness_schema())?;
+    write_json(
+        out_dir.join("metrics.json"),
+        &json!({
+            "relation": "td_mvp",
+            // Which prover produced this row. Without it a table mixes CPU
+            // and GPU numbers with nothing on the row saying which is which.
+            "prover": prover_label,
+            "proof_generated": true,
+            "proof_verified": true,
+            "prove_time_seconds": proving_time_sec,
+            "verify_time_seconds": verification_time_sec,
+            "proof_size_bytes": proof_size_bytes,
+            "cycle_count": cycle_count,
+            "backend_version": env!("CARGO_PKG_VERSION"),
+            "sp1_version": "6.1.0",
+            "git_commit": git_commit(),
+            "test_vector_sha256": sha256_file(case_path)?,
+            "guest_elf_sha256": guest_elf_sha256,
+            "public_inputs_sha256": sha256_json(&input.public)?,
+            "notes": ["SP1 proof-backed TD target and SmoothL1 loss over a Merkle-committed transition; not full DQN training."]
+        }),
+    )?;
+    write_json(
+        out_dir.join("verify_report.json"),
+        &json!({
+            "relation": "td_mvp",
+            "proof_generated": true,
+            "proof_verified": true,
+            "public_output_matches_expected": true,
+            "public_output": expected,
+        }),
+    )?;
+    write_json(
+        out_dir.join("proof_artifact_policy.json"),
+        &json!({
+            "proof_binary_committed": false,
+            "reason": "proof binary is generated artifact and may be large",
+            "expected_runtime_location": "artifacts/reports/provenance/sp1/td_mvp/proof.bin"
+        }),
+    )?;
+    Ok(())
+}
+
+fn witness_schema() -> serde_json::Value {
+    json!({
+        "schema_version": "sp1_td_mvp_witness_schema_v1",
+        "relation": "td_mvp",
+        "private_witness": {"transition": "Transition", "leaf": "[i64]", "leaf_hash": "sha256", "merkle_path": [{"sibling_hash": "sha256", "current_is_left": "bool"}], "td_witness": "TdWitness", "items": "[TdMvpItem]"},
+        "public_inputs": {"dataset_root": "sha256", "fp_scale": "i64", "gamma_fp": "i64", "loss_type": "string", "claimed_target_fp": "i64?", "claimed_loss_fp": "i64?", "leaf_index": "i64?", "batch_size": "usize?", "claimed_batch_loss_fp": "i64?"},
+        "notes": ["Verifies Merkle membership of the transition, the fixed-point TD target, and the SmoothL1 loss."]
+    })
+}
+
+fn write_json<T: serde::Serialize>(path: PathBuf, value: &T) -> Result<()> {
+    fs::write(&path, format!("{}\n", serde_json::to_string_pretty(value)?))
+        .with_context(|| format!("failed to write {}", path.display()))
+}
+
+fn sha256_json<T: serde::Serialize>(value: &T) -> Result<String> {
+    Ok(hex_sha256(&serde_json::to_vec(value)?))
+}
+
+fn sha256_file(path: &Path) -> Result<String> {
+    Ok(hex_sha256(&fs::read(path)?))
+}
+
+fn hex_sha256(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    hex::encode(Sha256::digest(bytes))
+}
+
+fn git_commit() -> Option<String> {
+    let output = Command::new("git").args(["rev-parse", "HEAD"]).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&output.stdout).trim().to_owned())
 }

@@ -55,6 +55,8 @@ artifacts/reports/*
 !artifacts/reports/provenance/**
 !artifacts/reports/memory_profile/
 !artifacts/reports/memory_profile/**
+!artifacts/reports/table1_controls/
+!artifacts/reports/table1_controls/**
 artifacts/reports/phase8_1_rl_benchmark/checkpoints/
 artifacts/reports/phase8_1_rl_benchmark/tensorboard/
 artifacts/reports/phase8_1_rl_benchmark/wandb/

@@ -20,8 +20,8 @@
     },
     {
       "case": "tamper_chunk_order",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "chunk order mismatch"
@@ -60,24 +60,24 @@
     },
     {
       "case": "tamper_intermediate_checkpoint_link",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "checkpoint link mismatch"
     },
     {
       "case": "tamper_target_checkpoint_link",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "target checkpoint link mismatch"
     },
     {
       "case": "tamper_dataset_root",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "dataset_root mismatch"
@@ -124,8 +124,8 @@
     },
     {
       "case": "tamper_relation_id",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "chunk relation_id mismatch"
@@ -136,7 +136,7 @@
       "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
-      "reference_reason": "chunk_size mismatch"
+      "reference_reason": "chunk relation mismatch"
     },
     {
       "case": "tamper_chunk_count",
@@ -148,16 +148,16 @@
     },
     {
       "case": "tamper_public_inputs_hash",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "child public values hash mismatch"
     },
     {
       "case": "tamper_proof_hash",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "child proof hash mismatch"
@@ -180,8 +180,8 @@
     },
     {
       "case": "tamper_aggregate_root",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "aggregate_root mismatch"
@@ -204,24 +204,24 @@
     },
     {
       "case": "tamper_child_proof_bytes",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "child proof hash mismatch"
     },
     {
       "case": "tamper_child_public_values",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "child public values hash mismatch"
     },
     {
       "case": "tamper_child_vkey_hash",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "unexpected child verification key"
@@ -236,8 +236,8 @@
     },
     {
       "case": "tamper_child_proof_order",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "child proof order mismatch"
@@ -300,16 +300,16 @@
     },
     {
       "case": "tamper_valid_child_proof_wrong_position",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "child proof order mismatch"
     },
     {
       "case": "tamper_individually_valid_child_proofs_broken_chain",
-      "execute_passed": false,
-      "execute_return_code": 101,
+      "execute_passed": null,
+      "execute_return_code": null,
       "passed": true,
       "reference_accepted": false,
       "reference_reason": "checkpoint link mismatch"

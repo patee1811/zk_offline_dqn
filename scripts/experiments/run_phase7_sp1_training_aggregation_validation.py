@@ -14,6 +14,13 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from zk_offline_dqn.rl_benchmarks.agents import (  # noqa: E402
+    PROVED_TARGET_SYNC_INTERVAL,
+)
+from zk_offline_dqn.data_pipeline import (  # noqa: E402
+    RAW_EPISODES_NAME,
+    read_jsonl,
+)
 from zk_offline_dqn.backends.sp1.training_aggregation import (  # noqa: E402
     BACKEND_DIR,
     cargo_command,
@@ -378,16 +385,55 @@ def validate_case(
     return status
 
 
+def build_fragment_source(args: argparse.Namespace) -> Dict[str, Any] | None:
+    """Turn --dataset-dir into the keyword arguments generate_case needs.
+
+    Returns None when no dataset was named, which leaves the chain on the
+    synthetic fixture data the committed vectors were generated from.
+    """
+    if not args.dataset_dir:
+        return None
+    if not args.layer_sizes or len(args.layer_sizes) != 3:
+        raise SystemExit("--dataset-dir requires --layer-sizes with one hidden layer")
+
+    import importlib.util
+
+    exporter = ROOT / "scripts/experiments/export_training_fragment_vector.py"
+    spec = importlib.util.spec_from_file_location("_fragment_export", exporter)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    dataset_dir = Path(args.dataset_dir)
+    if not dataset_dir.is_absolute():
+        dataset_dir = ROOT / dataset_dir
+    rows = read_jsonl(dataset_dir / RAW_EPISODES_NAME)
+    return {
+        "dataset": module.fixed_point_transitions(rows),
+        "provenance": module.provenance_from(dataset_dir),
+        "layer_sizes": list(args.layer_sizes),
+        "learning_rate": int(args.learning_rate_fp),
+        # Threaded rather than left at the relation default, because it lands
+        # inside config_hash: a chain whose leaves sync every 4 steps is a
+        # different configuration from the one Table 1 reports, and binding the
+        # wrong one is how the learning rate went wrong.
+        "target_sync_interval": int(args.target_sync_interval),
+    }
+
+
 def prepare_recursive_case(
     target: int,
     out_root: Path,
     *,
     child_proof_mode: str,
     run_child_proves: bool,
+    chunk_size: int = 8,
+    fragment_source: Dict[str, Any] | None = None,
 ) -> tuple[Path, List[Dict[str, Any]]]:
     if child_proof_mode not in RECURSIVE_CHILD_PROOF_MODES:
         raise SystemExit(f"unsupported --child-proof-mode {child_proof_mode}")
-    child_cases = generate_recursive_child_cases(target)
+    child_cases = generate_recursive_child_cases(
+        target, chunk_size=chunk_size, fragment_source=fragment_source
+    )
     work_dir = out_root / "_recursive_child_work" / f"t{target}"
     case_dir = work_dir / "cases"
     materials: List[Dict[str, Any]] = []
@@ -402,7 +448,7 @@ def prepare_recursive_case(
                     case_path=case_path,
                     mode="prove",
                     out_dir=child_out,
-                    max_steps=8,
+                    max_steps=chunk_size,
                     proof_mode=child_proof_mode,
                 ),
                 cwd=FRAGMENT_BACKEND_DIR,
@@ -443,6 +489,7 @@ def prepare_recursive_case(
         case_path,
         child_materials=materials,
         child_proof_mode=child_proof_mode,
+        chunk_size=chunk_size,
     )
     write_json(work_dir / "child_proof_status.json", {"children": child_statuses})
     return case_path, child_statuses
@@ -453,6 +500,7 @@ def _prepare_leaf_materials(
     work_dir: Path,
     *,
     run_child_proves: bool,
+    chunk_size: int = 8,
 ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     case_dir = work_dir / "leaf_cases"
     materials: List[Dict[str, Any]] = []
@@ -467,7 +515,7 @@ def _prepare_leaf_materials(
                     case_path=case_path,
                     mode="prove",
                     out_dir=child_out,
-                    max_steps=8,
+                    max_steps=chunk_size,
                     proof_mode=CHILD_PROOF_MODE,
                 ),
                 cwd=FRAGMENT_BACKEND_DIR,
@@ -536,75 +584,99 @@ def _prove_binary_node_material(
     return material, {"prove": prove, "out_dir": str(out_dir)}
 
 
+def _build_binary_level(
+    cases,
+    materials,
+    *,
+    depth: int,
+    leaf_chunk_count: int,
+    work_dir: Path,
+    run_child_proves: bool,
+    statuses: List[Dict[str, Any]],
+    internal_dirs: Dict[str, Path],
+):
+    """Fold one level of the tree: pair siblings, prove each pair, return the parents.
+
+    Recursion needs the parent to verify proofs of nodes that are themselves
+    parents, so every level except the last is proved here and its material is
+    handed upward. The root is not proved -- the caller writes its case and the
+    host proves it, the same way the depth-1 tree always worked.
+    """
+    parent_cases = []
+    parent_materials = []
+    level_dir = work_dir / f"level{depth}"
+    is_root_level = len(cases) == 2
+    for pair_id in range(0, len(cases), 2):
+        # The last fold produces the root, and downstream provenance keys off
+        # node_id == "root".
+        node_id = "root" if is_root_level else f"level{depth}_node{pair_id // 2}"
+        case = build_binary_native_case(
+            cases[pair_id : pair_id + 2],
+            materials[pair_id : pair_id + 2],
+            node_id=node_id,
+            node_depth=depth,
+            leaf_chunk_count=leaf_chunk_count,
+        )
+        parent_cases.append(case)
+        if is_root_level:
+            # The caller writes the root case and the host proves it.
+            parent_materials.append(None)
+            continue
+        out_dir = level_dir / node_id
+        material, status = _prove_binary_node_material(
+            case,
+            level_dir / f"{node_id}_case.json",
+            out_dir,
+            run_child_proves=run_child_proves,
+            child_id=pair_id // 2,
+        )
+        parent_materials.append(material)
+        statuses.append({"node_id": node_id, **status})
+        internal_dirs[node_id] = out_dir
+    return parent_cases, parent_materials
+
+
 def prepare_binary_native_case(
     target: int,
     out_root: Path,
     *,
     run_child_proves: bool,
+    chunk_size: int = 8,
+    fragment_source: Dict[str, Any] | None = None,
 ) -> tuple[Path, List[Dict[str, Any]], Dict[str, Path]]:
-    if target not in {16, 32}:
-        raise SystemExit("binary native aggregation targets T=16 or T=32")
-    child_cases = generate_recursive_child_cases(target)
+    child_cases = generate_recursive_child_cases(
+        target, chunk_size=chunk_size, fragment_source=fragment_source
+    )
+    leaves = len(child_cases)
+    if leaves < 2 or leaves & (leaves - 1):
+        raise SystemExit(
+            f"binary native aggregation needs a power-of-two leaf count, got {leaves}"
+        )
     work_dir = out_root / "_binary_native_work" / f"t{target}"
     leaf_materials, statuses = _prepare_leaf_materials(
-        child_cases, work_dir, run_child_proves=run_child_proves
+        child_cases, work_dir, run_child_proves=run_child_proves, chunk_size=chunk_size
     )
     internal_dirs: Dict[str, Path] = {}
-    if target == 16:
-        case = build_binary_native_case(
-            child_cases,
-            leaf_materials,
-            node_id="root",
-            node_depth=1,
-            leaf_chunk_count=2,
-        )
-    else:
-        left = build_binary_native_case(
-            child_cases[:2],
-            leaf_materials[:2],
-            node_id="level1_left",
-            node_depth=1,
-            leaf_chunk_count=2,
-        )
-        right = build_binary_native_case(
-            child_cases[2:],
-            leaf_materials[2:],
-            node_id="level1_right",
-            node_depth=1,
-            leaf_chunk_count=2,
-        )
-        level_dir = work_dir / "level1"
-        left_material, left_status = _prove_binary_node_material(
-            left,
-            level_dir / "level1_left_case.json",
-            level_dir / "level1_left",
+
+    cases = list(child_cases)
+    materials = list(leaf_materials)
+    depth = 0
+    span = 2
+    while len(cases) > 1:
+        depth += 1
+        cases, materials = _build_binary_level(
+            cases,
+            materials,
+            depth=depth,
+            leaf_chunk_count=span,
+            work_dir=work_dir,
             run_child_proves=run_child_proves,
-            child_id=0,
+            statuses=statuses,
+            internal_dirs=internal_dirs,
         )
-        right_material, right_status = _prove_binary_node_material(
-            right,
-            level_dir / "level1_right_case.json",
-            level_dir / "level1_right",
-            run_child_proves=run_child_proves,
-            child_id=1,
-        )
-        statuses.extend(
-            [
-                {"node_id": "level1_left", **left_status},
-                {"node_id": "level1_right", **right_status},
-            ]
-        )
-        internal_dirs = {
-            "level1_left": level_dir / "level1_left",
-            "level1_right": level_dir / "level1_right",
-        }
-        case = build_binary_native_case(
-            [left, right],
-            [left_material, right_material],
-            node_id="root",
-            node_depth=2,
-            leaf_chunk_count=4,
-        )
+        span *= 2
+    case = cases[0]
+
     case_path = (
         out_root
         / "_binary_native_cases"
@@ -630,6 +702,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--targets", nargs="+", type=int, default=[32, 64, 128])
     parser.add_argument("--chunk-size", type=int, default=8)
+    parser.add_argument(
+        "--dataset-dir",
+        help="Committed dataset to bind every chunk to. Without it the chain "
+        "uses the synthetic fixture data, which proves nothing about a real run.",
+    )
+    parser.add_argument("--layer-sizes", nargs="+", type=int)
+    parser.add_argument("--learning-rate-fp", type=int, default=50)
+    parser.add_argument("--target-sync-interval", type=int,
+                        default=PROVED_TARGET_SYNC_INTERVAL)
     parser.add_argument("--aggregation-mode", default="proof_manifest_chain")
     parser.add_argument("--aggregation-topology")
     parser.add_argument("--child-proof-mode", default=CHILD_PROOF_MODE)
@@ -640,8 +721,9 @@ def main() -> int:
     parser.add_argument("--run-prove", action="store_true")
     parser.add_argument("--continue-on-failure", action="store_true")
     args = parser.parse_args()
-    if args.chunk_size != 8:
-        raise SystemExit("Phase 7 requires --chunk-size 8")
+    fragment_source = build_fragment_source(args)
+    if args.chunk_size <= 0:
+        raise SystemExit("--chunk-size must be positive")
     if args.aggregation_mode not in {"proof_manifest_chain", RECURSIVE_AGGREGATION_MODE}:
         raise SystemExit("unsupported --aggregation-mode")
     if args.aggregation_topology not in {None, BINARY_AGGREGATION_TOPOLOGY}:
@@ -667,6 +749,8 @@ def main() -> int:
                 target,
                 out_root,
                 run_child_proves=args.run_child_proves,
+                chunk_size=args.chunk_size,
+                fragment_source=fragment_source,
             )
         elif args.aggregation_mode == RECURSIVE_AGGREGATION_MODE:
             case_path, child_statuses = prepare_recursive_case(
@@ -674,6 +758,8 @@ def main() -> int:
                 out_root,
                 child_proof_mode=args.child_proof_mode,
                 run_child_proves=args.run_child_proves,
+                chunk_size=args.chunk_size,
+                fragment_source=fragment_source,
             )
         else:
             case_path = write_generated_case(target)

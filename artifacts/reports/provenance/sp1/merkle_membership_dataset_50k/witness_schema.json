@@ -1,0 +1,31 @@
+{
+  "claim": "canonical leaf hash authenticates to provenance-bound dataset_root",
+  "notes": [
+    "Python computes the canonical transition hash for this phase.",
+    "The SP1 guest proves leaf_hash/path membership and commits provenance public inputs."
+  ],
+  "private_witness": {
+    "merkle_path": [
+      {
+        "current_index": "u64",
+        "current_is_left": "bool",
+        "level": "u64",
+        "sibling_hash": "32-byte hex string",
+        "sibling_index": "u64"
+      }
+    ]
+  },
+  "public_inputs": {
+    "audit_report_hash": "32-byte hex string",
+    "collection_log_final_hash": "nullable 32-byte hex string",
+    "dataset_id": "string",
+    "dataset_root": "32-byte hex string",
+    "dataset_type": "self_collected_replay_audited | public_benchmark",
+    "leaf_hash": "32-byte hex string",
+    "leaf_index": "u64",
+    "manifest_hash": "32-byte hex string",
+    "raw_trajectory_hash": "32-byte hex string"
+  },
+  "relation": "merkle_membership",
+  "schema_version": "sp1_merkle_membership_witness_schema_v1"
+}

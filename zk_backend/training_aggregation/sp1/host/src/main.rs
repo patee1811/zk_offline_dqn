@@ -195,6 +195,11 @@ async fn run_with_prover<P: Prover>(
             cycle_count,
             case_path,
             &guest_elf_sha256,
+            if std::env::var("SP1_CUDA").map(|v| v == "1").unwrap_or(false) {
+                "cuda"
+            } else {
+                "cpu"
+            },
         )?;
         println!("proof_generated = true");
         println!("proof_verified = true");
@@ -302,6 +307,7 @@ fn write_provenance(
     cycle_count: Option<u64>,
     case_path: &Path,
     guest_elf_sha256: &str,
+    prover_label: &str,
 ) -> Result<()> {
     let recursive = input.public_inputs.aggregation_mode == "recursive_sp1";
     let binary = input.public_inputs.aggregation_topology.as_deref() == Some("binary_tree");
@@ -314,6 +320,10 @@ fn write_provenance(
         out_dir.join("metrics.json"),
         &json!({
             "relation": "training_aggregation",
+            // Which prover produced this row. Recursion only runs on CUDA while
+            // the manifest chain can run either way, so a table without this
+            // puts a 1.4s aggregate proof beside a 60s one and explains neither.
+            "prover": prover_label,
             "aggregation_mode": input.public_inputs.aggregation_mode,
             "aggregation_topology": input.public_inputs.aggregation_topology,
             "child_proof_mode": input.public_inputs.child_proof_mode,

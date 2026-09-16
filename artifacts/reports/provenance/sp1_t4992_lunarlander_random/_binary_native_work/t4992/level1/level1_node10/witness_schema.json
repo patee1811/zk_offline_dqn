@@ -1,0 +1,33 @@
+{
+  "aggregation_mode": "recursive_sp1",
+  "aggregation_topology": "recursive aggregate cases may opt into binary_tree",
+  "notes": [
+    "The aggregate guest verifies each recursive child proof and the online/target checkpoint chain."
+  ],
+  "private_witness": {
+    "child_proofs": [
+      {
+        "proof_bytes": "private native compressed, Groth16, or Plonk SP1 proof bytes",
+        "public_values_bytes": "private SP1 public values hashed, verified, and decoded in guest",
+        "vkey_bytes": "native SP1 only: serialized child verifying key used by the host to attach the child proof",
+        "vkey_digest_words": "native SP1 only: vkey digest passed to verify_sp1_proof",
+        "vkey_hash": "private proof vkey hash checked against aggregation public input"
+      }
+    ],
+    "chunks": [
+      {
+        "child_proof_hash": "sha256 of recursive child proof bytes",
+        "child_public_inputs_hash": "sha256 of child public-values bytes",
+        "child_vkey_hash": "SP1 training-fragment vkey hash checked by the child verifier",
+        "chunk_id": "sequential k=8 child chunk id checked by guest",
+        "input_checkpoint_hash": "must match child public start checkpoint",
+        "output_checkpoint_hash": "must match child public final checkpoint",
+        "step_end": "must match child training-fragment public span",
+        "step_start": "must match child training-fragment public global_step_start"
+      }
+    ]
+  },
+  "public_inputs": "aggregate boundaries, recursive child roots, and expected child vkey material",
+  "relation": "training_aggregation",
+  "schema_version": "sp1_training_aggregation_recursive_witness_schema_v1"
+}

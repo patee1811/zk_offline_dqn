@@ -13,11 +13,13 @@
   "dataset_sizes": [
     1000,
     10000,
+    50000,
     100000
   ],
   "merkle_dataset_sizes": [
     1000,
     10000,
+    50000,
     100000
   ],
   "merkle_depth_proof_scaling": true,
@@ -26,15 +28,15 @@
     "tiny",
     "small"
   ],
-  "out_dir": "/home/ubuntu/repo/artifacts/reports/final_ndss",
+  "out_dir": "C:/Users/Ngoc Duy/Duytapcode/zk_offline_dqn/artifacts/reports/final_ndss",
   "paper": false,
   "refresh_proof_metrics": true,
   "regenerate_missing_merkle_datasets": false,
   "reuse_existing_provenance": true,
-  "reuse_phase2_datasets": true,
+  "reuse_phase2_datasets": false,
   "run_sp1_execute": false,
   "run_sp1_prove": false,
-  "smoke": false,
+  "smoke": true,
   "trace_lengths": [
     1,
     4,

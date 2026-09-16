@@ -116,6 +116,15 @@ encoding with a global scale factor $\fpscale = 1000$. A real value $v$ is
 represented as $\lfloor v \cdot \fpscale \rceil \in \mathbb{Z}$, and all
 additions, multiplications (with rescaling), comparisons, and hash inputs
 operate on these integer values. This eliminates floating-point
-nondeterminism between Python semantic oracles and Rust/SP1 guests, ensuring
-that the same inputs produce identical outputs across both verification
-paths.
+nondeterminism between Python semantic oracles and Rust/SP1 guests, so the same
+inputs produce identical outputs across both verification paths.
+
+The encoding has a ceiling, and it is close enough to matter. The guest
+computes in \texttt{i64}, so the discount multiplication $\gamma \cdot Q$
+leaves the representable range once $|Q|$ passes
+$\texttt{i64::MAX} / \gamma \approx 9.3 \times 10^{15}$. Offline DQN can reach
+that: value estimates grow multiplicatively when the target network is
+refreshed too often. \Cref{thm:value-bound} states what the relation does about
+it. The scale factor also decides which learning rates exist at all -- a rate
+must be a multiple of $1/\fpscale$, so $10^{-2}$ encodes to $10$ and
+$3 \times 10^{-4}$ encodes to $0$.

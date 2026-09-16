@@ -44,9 +44,6 @@ paper/
     |-- abstract.tex
     |-- introduction.tex
     |-- related_work.tex
-    |-- problem_setup.tex
-    |-- zk_direction.tex
-    |-- experimental_setup.tex
     |-- results.tex
     |-- discussion.tex
     |-- conclusion.tex
