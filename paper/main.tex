@@ -51,6 +51,12 @@
 \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
 \renewcommand{\thetable}{\arabic{table}}
+% IEEEtran prints headings from a separate set of display macros, and
+% \thesubsectiondis hardcodes \Alph{subsection}. Without these the counters
+% above reach cross-references only, and the headings still read A., B., C.
+% \appendices redefines \thesubsection to \Alph, so appendices stay lettered.
+\renewcommand{\thesubsectiondis}{\thesubsection.}
+\renewcommand{\thesubsubsectiondis}{\thesubsubsection.}
 
 \newtheorem{theorem}{Theorem}
 \crefname{theorem}{Theorem}{Theorems}
