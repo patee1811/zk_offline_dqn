@@ -50,7 +50,7 @@ the entire pipeline without heavy proof regeneration.
 
 Several directions can extend the current system:
 
-\textbf{Future work: recursion off the GPU.} Recursive child-proof verification
+\textbf{Recursion off the GPU.} Recursive child-proof verification
 inside the aggregate SP1 guest is implemented and measured for
 $T \in \{16, 32, 64\}$ as flat chains and for binary trees to $T = 4{,}992$,
 which removes the need for external child-proof verification at those sizes.
@@ -80,11 +80,14 @@ what was holding the provable configuration back.
 \textbf{Larger network architectures.} Moving beyond the canonical tiny
 Linear--ReLU--Linear MLP to deeper networks with convolutional layers or
 batch normalization would extend applicability to Atari-scale DQN.
+\Cref{sec:discussion} measures the gap: at a matched step count, a network
+carrying a MinAtar DQN's parameter count costs $126\times$ the cycles of the
+one proved here, which puts a $k = 156$ leaf near $62$ billion cycles.
 
 \textbf{On-chain verification.} Compressing SP1 STARK proofs to
 Groth16~\cite{groth2016zksnark} SNARKs would enable on-chain verification.
-We measured the adjacent configuration -- verifying Groth16 child proofs
-\emph{inside} the aggregate guest -- and it is expensive on both axes
+We measured the adjacent configuration --- verifying Groth16 child proofs
+\emph{inside} the aggregate guest --- and it is expensive on both axes
 (\Cref{tab:proof-cost}). Wrapping the final root proof for an on-chain verifier
 is a different and more promising operation, which we have not measured.
 

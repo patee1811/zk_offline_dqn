@@ -10,9 +10,9 @@ modifications.
 \subsection{Experimental Setup}
 
 \textbf{Environments.} We use three environment families:
-CartPole-v1 and LunarLander-v3~\cite{brockman2016gym} as self-collected
+CartPole-v1 and LunarLander-v3~\cite{towers2024gymnasium, brockman2016gym} as self-collected
 classic-control benchmarks, and PointMaze from D4RL/Minari~\cite{fu2020d4rl,
-minari2023} as a public benchmark source.
+minari2024} as a public benchmark source.
 
 \textbf{Datasets.} Six self-collected datasets span two environments at
 three data-quality levels each: CartPole and LunarLander, at random, medium and
@@ -60,7 +60,7 @@ learning. The optimizer split runs by environment rather than by optimizer:
 SGD takes 10 of 12 CartPole cells and Adam 11 of 12 LunarLander cells, so the
 overall split is 13--11 to Adam. Plain offline DQN collapses to the minimum episode length on the
 medium and expert CartPole data, which is a property of the data rather than of
-the implementation -- an expert policy rarely terminates, so only $0.046\%$ of
+the implementation --- an expert policy rarely terminates, so only $0.046\%$ of
 its transitions carry a terminal flag against $4.475\%$ for random data, and
 the TD fixed point degenerates. CQL-lite recovers where plain DQN does not.
 
@@ -128,7 +128,7 @@ magnitude above the fragments they aggregate.}
 
   \item \textbf{The Groth16 variant is the exception on both axes.} Verifying
   Groth16 child proofs inside the guest costs $6.19$ billion cycles, a
-  $1.47$\,GB proof, and $68.0$\,s to verify -- roughly $520\times$ the size and
+  $1.47$\,GB proof, and $68.0$\,s to verify --- roughly $520\times$ the size and
   $520\times$ the verify time of the next row. We report it because it is the one
   configuration where in-guest verification of a SNARK, rather than of a native
   SP1 proof, was measured; it is not a configuration we would recommend.
@@ -141,7 +141,7 @@ magnitude above the fragments they aggregate.}
   proofs below use $156$-step leaves rather than $8$-step leaves.
 
   \item \textbf{Merkle cost grows with depth, not size.} Dataset scaling from
-  $1$k to $100$k leaves moves cycles from $358$k to $554$k -- a $100\times$
+  $1$k to $100$k leaves moves cycles from $358$k to $554$k --- a $100\times$
   increase in dataset size for a $1.5\times$ increase in cycles, consistent
   with a per-level cost over a tree of depth $\lceil \log_2 n \rceil$.
 
@@ -154,7 +154,7 @@ magnitude above the fragments they aggregate.}
   MLP. Two consequences follow. A reader comparing the small rows by seconds is
   comparing SP1's startup cost, not the relations; and the honest unit for
   comparing relations is cycles, which is deterministic given a guest ELF and
-  an input -- a claim this table can now support directly, since ten rows moved
+  an input --- a claim this table can now support directly, since ten rows moved
   provers with cycle counts identical to the digit.
 \end{itemize}
 
@@ -203,10 +203,10 @@ interval of $2{,}000$ the reported configuration uses, a simulation of all
 $32$ chunks put peak $|Q|$ at $1.01\times 10^{5}$ against a declared bound of
 $4.50\times 10^{15}$, so the wall moved by nine orders of magnitude. Second,
 cost: a CartPole run long enough to learn well needs roughly $50{,}000$ steps,
-which at this leaf size is $321$ leaves. At the per-node times this tree
-measured --- $157$\,s per leaf and $213$\,s per internal node --- that is about
-$33$ GPU-hours, and the power-of-two leaf count the tree shape requires rounds
-it to a $512$-leaf tree at about $52$. We did not run it.
+which at this leaf size is $321$ leaves. At the per-node times the CartPole
+tree measured --- $157$\,s per leaf and $193$\,s per internal node --- that is
+about $31$ GPU-hours, and the power-of-two leaf count the tree shape requires
+rounds it to a $512$-leaf tree at about $50$. We did not run it.
 
 \subsection{What the Provable Configuration Costs}
 \label{subsec:provable-config}
@@ -216,7 +216,7 @@ A reader who scans the \texttt{double\_dqn\_provable} column will notice that
 five of its six cells are bad policies: $17.0$, $11.0$ and $9.7$ on CartPole,
 $-829.7$ and $-717.9$ on the two LunarLander expert-and-medium sets. It is fair
 to ask what is gained by proving a run that did not learn. We take the question
-seriously enough to organise this subsection around it, and the answer is that
+seriously enough to organize this subsection around it, and the answer is that
 the column is not a claim about policy quality. It is a measurement of where
 the provable configuration stops tracking the tuned one, and that boundary is
 the practically useful object: it says which of the constraints a proof imposes
@@ -255,8 +255,9 @@ the provable configuration is a single integer in the public statement, which a
 deployment can change without touching the relation, the guest, or the proof
 cost: \texttt{target\_sync\_interval} is a public input, and the leaves of our
 two tree families, proved at intervals of $4$ and $2{,}000$, differ by under
-$0.4\%$ in cycles ($493.5$--$494.7$\,M against $494.2$--$495.3$\,M at
-$k = 156$). The constraints that do cost cycles per step --- batch size one
+$0.9\%$ in cycles: $493.5$--$497.7$\,M across the eight interval-$4$ leaves
+and $493.5$--$495.3$\,M across the thirty-two at interval $2{,}000$, all at
+$k = 156$. The constraints that do cost cycles per step --- batch size one
 and component-wise clipping --- are the ones the ablation exonerates. Read that
 way, the five weak cells are not a verdict on provable training; they are the
 price of one setting that a reader can price exactly, and the row where the
@@ -274,7 +275,7 @@ repetitions over eight rows of a $50{,}000$-row dataset rather than a pass over
 the data.
 
 Nothing caught it. Every hash agreed, every proof verified, and all $236$
-tamper cases stayed green, because no field had been altered -- the relation
+tamper cases stayed green, because no field had been altered --- the relation
 computed exactly what it said it computed, and what it said was not what we
 believed. \Cref{tab:tamper-summary} tests whether a modified artifact is
 rejected; it cannot test whether an unmodified relation means what its authors
