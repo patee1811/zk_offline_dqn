@@ -302,11 +302,23 @@ class PaperNumbersTests(unittest.TestCase):
 
     def test_no_section_carries_a_mangled_escape(self) -> None:
         # A lost backslash turns \texttt into a tab plus "exttt", which LaTeX
-        # renders without complaint. One reached the abstract that way.
+        # renders without complaint. One reached the abstract that way, and
+        # later \bigskip became a backspace plus "igskip" and printed as
+        # "igskip" in the PDF. Every C escape is a candidate, not just \t, so
+        # this rejects any control character rather than naming them.
         for path in live_sections():
-            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                with self.subTest(section=path.stem, line=number):
-                    self.assertNotIn("\t", line)
+            # Read bytes, not text: read_text opens with universal newlines,
+            # which rewrites the bare carriage return a mangled \ref leaves
+            # into a newline before anything here can see it. CRLF is a real
+            # line ending on this tree, so normalise that pair and no more.
+            data = path.read_bytes().replace(b"\r\n", b"\n")
+            bad = [(data.count(b"\n", 0, i) + 1, hex(b))
+                   for i, b in enumerate(data) if b < 0x20 and b != 0x0A]
+            with self.subTest(section=path.stem):
+                self.assertEqual(
+                    [], bad,
+                    "control character in %s at (line, byte); a backslash was "
+                    "eaten before it reached the file" % path.name)
 
 
 if __name__ == "__main__":
