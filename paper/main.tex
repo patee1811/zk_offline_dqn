@@ -41,9 +41,16 @@
 }
 
 \title{Layered Zero-Knowledge Verifiable Artifacts for Offline Deep Q-Network Training over Committed Replay Data}
-\author{Duy~Ngoc~Nguyen%
-\thanks{D.~N.~Nguyen is with the Faculty of Information Technology, University of Engineering and Technology (UET), Vietnam National University, Hanoi, Vietnam (e-mail: duypt114@gmail.com).}%
-\thanks{Manuscript received \today. This work was conducted independently. The artifact source code is available at \url{https://github.com/patee1811/zk_offline_dqn}.}}
+\author{Duy~Ngoc~Nguyen and Ngoc~Tan~Nguyen%
+\thanks{D.~N.~Nguyen and N.~T.~Nguyen are with the Faculty of Information Technology, University of Engineering and Technology (UET), Vietnam National University, Hanoi, Vietnam (e-mail: 23021504@vnu.edu.vn; tan.nguyen@vnu.edu.vn).}%
+\thanks{Corresponding author: D.~N.~Nguyen.}%
+\thanks{Manuscript received \today. The artifact source code is available at \url{https://github.com/patee1811/zk_offline_dqn}.}}
+
+% Journal house style: Arabic section numbers (1, 1.1, 1.1.1)
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+\renewcommand{\thetable}{\arabic{table}}
 
 \newtheorem{theorem}{Theorem}
 \crefname{theorem}{Theorem}{Theorems}
@@ -104,6 +111,8 @@
 
 \section{Conclusion and Future Work}\label{sec:conclusion}
 \input{sections/conclusion}
+
+\input{sections/declarations}
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}

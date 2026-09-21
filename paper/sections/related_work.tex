@@ -23,27 +23,33 @@ zkDL~\cite{zkdl2023} targets zero-knowledge proofs for deep learning training
 including neural nonlinearities and backpropagation, using custom arithmetic
 circuits. Kaizen~\cite{kaizen2024} gives a zero-knowledge proof-of-training
 construction for DNNs based on per-iteration proofs and recursive composition,
-achieving end-to-end training verification for small networks. zkPoT~\cite{zkpotvicinity2025}
-explores an alternative approach through optimum vicinity, proving that a
+achieving end-to-end training verification for networks up to VGG-11 scale.
+zkPoT~\cite{zkpotvicinity2025} explores an alternative approach through optimum vicinity, proving that a
 trained model lies near the optimum rather than re-executing every gradient
-step. These systems motivate our goal but do not directly encode offline-RL-specific
-semantics such as terminal Bellman branches, replay membership, Double-DQN
+step. Tan et al. also name the prover's freedom over training randomness as a
+bias vector, and answer it by leaving the trajectory unproved: optimum vicinity
+bounds the distance to the optimum of a convex problem. That answer does not
+transfer here, because offline $Q$-learning is not convex and offers no optimum
+to be near, so we bind the randomness rather than bypass it --- the sampler seed
+is derived from the dataset commitment inside the relation
+(\Cref{thm:sampler-binding}). These systems motivate our goal but do not
+directly encode offline-RL-specific semantics such as terminal Bellman branches, replay membership, Double-DQN
 argmax, target-network synchronization, and TD losses.
 
-The year since has filled this space by model class rather than by learning
-paradigm, which is the pattern our work reads as the opening.
+Work published since has filled this space by model class rather than by
+learning paradigm, and that is the pattern this work reads as an opening.
 ZKBoost~\cite{zkboost2026} gives the first zero-knowledge proof of training for
 gradient-boosted trees, using a fixed-point XGBoost that stays within $1\%$ of
 the floating-point model --- the same discipline our relations follow, arrived
-at independently. SUMMER~\cite{summer2026} proves recurrent training end to end
-with recursive composition, and reports the same structural conclusion we do:
-the composition, not the per-step arithmetic, is what makes long traces
-reachable. VeriLoRA~\cite{verilora2026} carries verifiable fine-tuning to
-$13$B-parameter language models by restricting the proved computation to the
-low-rank adapters. Trees, recurrences and adapters have each been claimed;
-sequential decision-making has not, and the reason is not model size --- our
-networks are three orders of magnitude smaller than VeriLoRA's --- but the
-three obligations of \Cref{sec:introduction}.
+at independently. SUMMER~\cite{summer2026} gives the first end-to-end zkPoT for
+recurrent training, folding per-step commitments with Merkle trees so that
+proof size and verification time are independent of the iteration count --- the
+same structural lever our aggregation pulls. VeriLoRA~\cite{verilora2026}
+carries verifiable fine-tuning to $13$B-parameter language models by
+restricting the proved computation to the low-rank adapters. Trees, recurrences
+and adapters have each been covered; sequential decision-making has not, and
+the reason is not model size --- our networks carry fewer than a thousand
+parameters --- but the three obligations of \Cref{sec:introduction}.
 
 \paragraph{Verifiable and zero-knowledge machine learning.}
 Verifiable ML has been studied extensively for inference integrity.
@@ -102,9 +108,9 @@ recognized~\cite{dataauth2024, aiprovenance2025}. Frameworks for cryptographic
 verifiability of end-to-end AI pipelines propose Merkle commitments and content
 identifiers for dataset integrity. ZKPROV~\cite{zkprov2025} binds a language
 model's responses to datasets certified by their owners, proving provenance
-without revealing dataset contents, and positions itself as complementary to
-proof-of-training rather than as a substitute --- provenance of the data, not
-correctness of the computation over it. Our commitment sits on the same side of
+without revealing dataset contents. We read it as complementary to
+proof-of-training rather than a substitute: it establishes provenance of the
+data, not correctness of the computation over it. Our commitment sits on the same side of
 that line but is consumed on the other: the Merkle root that
 \Cref{alg:dataset-commitment} produces is an input the training relation reads,
 so the sampler, the membership check and the aggregate root all bind to it. A

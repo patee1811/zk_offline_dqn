@@ -1,54 +1,32 @@
 \begin{abstract}
-A recent survey of zero-knowledge verifiable machine learning scopes itself to
-supervised learning, and the training systems it covers are for regression,
-support vector machines, $K$-means, decision trees and deep networks; no
-reinforcement-learning system appears. Value-based RL is not simply a larger
-computation: it carries three verification obligations, two of which supervised
-constructions never meet and one of which it meets in a weaker form. Its labels
-are produced by the model being trained, so a proof must cover how each label
-was derived; target-network synchronisation is a discrete event a prover can
-move while keeping the run internally consistent; and where a supervised proof
-of training can fix the order of a training epoch with a publicly derived
-permutation that spends every record exactly once, replay sampling draws with
-replacement and touches a vanishing fraction of the buffer, so a prover who
-picks the draw picks the data the claim is about. We present a
-layered artifact system that gives zero-knowledge proof-backed verification of
+A recent survey of zero-knowledge verifiable machine learning covers
+supervised training only; no reinforcement-learning system appears. We present
+a layered artifact system for zero-knowledge proof-backed verification of
 offline Deep Q-Network (DQN) training over provenance-bound committed replay
 data. Datasets are committed with SHA-256 Merkle trees after a replay audit.
-Relations are stated in fixed-point integer arithmetic and implemented twice,
-as a Python oracle and as an SP1 zkVM guest, so that a disagreement between
-them is caught before a prover runs. The fragment relation derives its sampler
-seed from the dataset commitment rather than accepting one, publishes a bound
-on the values it will admit, and clips gradients component-wise.
+Each relation is stated in fixed-point integer arithmetic and implemented
+twice, as a Python oracle and an SP1 zkVM guest, so disagreements surface
+before proving. The fragment relation derives its sampler seed from the
+dataset commitment rather than accepting one, publishes a bound on admitted
+values, and clips gradients component-wise; the first two close freedoms
+specific to value learning, whose labels come from the model under training and
+whose sampling touches little of the buffer.
 
-Aggregation comes in two modes. A chunk chain binds child proof manifests for
-$T \in \{32, 64, 128\}$; recursive aggregation verifies each child proof
-cryptographically inside the guest, which we measure for $T \in \{16, 32, 64\}$
-flat and for binary trees up to $T = 4{,}992$. The largest of these is a single
-root proof covering an entire $4{,}992$-step run, bound to the dataset that
-produced a policy we report.
-
-We state and sketch proofs for ten security statements, each mapped to relation
-code, backend, tests and benchmark rows. On CartPole and LunarLander, with
-PointMaze from D4RL backing the dataset-scaling rows, twenty-five of the
-twenty-six proved configurations verify in $0.054$--$0.130$\,s with proofs of
-$1.27$--$2.85$\,MB; the exception verifies Groth16 child proofs in-guest and
-costs $68$\,s and $1.47$\,GB. A tamper benchmark of $236$ adversarial cases
-across $19$ categories yields no unexpectedly accepted row. We also report what
-the provable configuration costs in policy quality rather than leaving it to
-the reader: on \texttt{lunarlander-random} it reaches $-152.7$ against $-215.3$
-for the tuned minibatch baseline, and an ablation isolates the target-sync
-interval -- not the minibatch, and not the clipping rule the proof forces -- as
-what governs whether it learns.
-
-The contribution is a deliberately scoped
-security/systems artifact: it does not claim complete DQN training soundness
-or Adam optimizer proofs, and its recursive aggregation requires a CUDA prover:
-flat to $T = 64$, and as binary trees to $T = 4{,}992$.
+On CartPole, LunarLander and PointMaze, twenty-five of twenty-six proved
+configurations verify in $0.054$--$0.130$\,s with proofs of
+$1.27$--$2.85$\,MB; the exception verifies Groth16 child proofs in-guest at
+$68$\,s and $1.47$\,GB. Recursive aggregation places an entire $4{,}992$-step
+run under one root proof bound to the dataset behind a reported policy. A
+tamper benchmark of $236$ adversarial cases across $19$ categories yields no
+unexpected acceptance. We report what provability costs: on
+\texttt{lunarlander-random} it reaches $-152.7$ against $-215.3$ for the tuned
+baseline, and an ablation isolates the target-sync interval as decisive. Ten
+security statements map to relation code, backend, tests and benchmark rows.
+The artifact does not claim complete DQN training soundness or Adam proofs, and
+recursive aggregation requires a CUDA prover.
 \end{abstract}
 
 \begin{IEEEkeywords}
 Zero-knowledge proofs, offline reinforcement learning, verifiable machine
-learning, proof-of-training, Deep Q-Network, SP1 zkVM, Merkle commitment,
-tamper detection.
+learning, proof-of-training, Deep Q-Network, SP1 zkVM, tamper detection.
 \end{IEEEkeywords}

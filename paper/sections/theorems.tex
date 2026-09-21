@@ -108,8 +108,6 @@ The verifier recomputes the checkpoint hash before and after each checked
 update and requires each step's output hash to equal the next step's input hash.
 The final public checkpoint hash must equal the recomputed final state.  Step
 order, intermediate checkpoint, and final checkpoint mutations therefore fail.
-This is local checkpoint chaining, not an end-to-end proof from initialization
-to a final deployed model.
 \end{proof}
 
 \begin{theorem}[Training-fragment soundness]
@@ -164,7 +162,7 @@ bound is small enough that the discount multiplication cannot overflow the
 \begin{proof}[Proof sketch]
 The guest asserts $|Q| \le B$ on both operands before forming
 $\gamma \cdot Q / \fpscale$, asserts $|y| \le B$ on the result, and rejects any
-case declaring $B > \texttt{i64::MAX} / \gamma$.  The order matters: a check
+case declaring $B > \texttt{i64::MAX} / \gamma_{\mathrm{fp}}$.  The order matters: a check
 placed after the product is reached only once the product has already
 overflowed.  Without these checks the multiplication wraps silently, and a
 prover computing its witness under the same \texttt{i64} semantics obtains a
@@ -175,7 +173,7 @@ rather than a property of the host integer width, so it survives a change of
 encoding.
 \end{proof}
 
-\noindent\emph{Remark.} Constructions that arithmetise training over a prime
+\noindent\emph{Remark.} Constructions that arithmetize training over a prime
 field choose the field wide enough for the range they expect and are done;
 Kaizen~\cite{kaizen2024} does exactly this. The statement above is not a
 replacement for that choice and does not improve on it. What it adds is
@@ -240,5 +238,6 @@ zero knowledge does not hide timing, proof size, or other published metadata.
 \end{proof}
 
 The theorem-to-artifact mapping in \texttt{docs/theorem\_artifact\_map.md}
-lists, for each theorem, the relation, backend implementation, tests, and
-Table 2/Table 3 benchmark evidence supporting the statement.
+lists, for each theorem, the relation, backend implementation, tests, and the
+benchmark evidence in \Cref{tab:proof-cost} and \Cref{tab:tamper-summary} that
+supports the statement.

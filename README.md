@@ -162,6 +162,12 @@ python scripts/experiments/generate_paper_reports.py
 python -m zk_offline_dqn.cli.main report generate
 ```
 
+> **Table naming.** In this repository "Table 1", "Table 2" and "Table 3"
+> name the generated artifact tables
+> (`artifacts/reports/final_ndss/table{1,2,3}_*`), not the numbering in the
+> manuscript. In `paper/main.pdf` those three appear as Table 4 (RL
+> performance), Table 5 (proof cost) and Table 7 (tamper rejection).
+
 Generate the RL-performance-only Table 1 benchmark separately:
 
 ```text

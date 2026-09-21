@@ -74,7 +74,7 @@ $k$-step fragment.
 \Ensure Final checkpoint $W_k$ is correct
 \State $\sigma \gets \mhash(\mroot \,\|\, g)$
 \Comment{Seed derived, not supplied}
-\State \textbf{assert} $B \le \texttt{i64::MAX} / \gamma$
+\State \textbf{assert} $B \le \texttt{i64::MAX} / \gamma_{\mathrm{fp}}$
 \For{$t = 0$ to $k - 1$}
   \State $i_t \gets \mathsf{DeterministicSample}(\sigma, t)$
   \Comment{Minibatch index}
@@ -91,7 +91,7 @@ $k$-step fragment.
   \State \textbf{assert} $|Q_s[a_{i_t}]| \le B$ \textbf{and}
     $|\bar{Q}_{s'}[a^*]| \le B$
   \Comment{Before the multiply that overflows}
-  \State $y \gets r_{i_t} + \gamma(1 - d_{i_t}) \bar{Q}_{s'}[a^*]
+  \State $y \gets r_{i_t} + \gamma_{\mathrm{fp}}(1 - d_{i_t}) \bar{Q}_{s'}[a^*]
     / \fpscale$
   \State \textbf{assert} $|y| \le B$
   \State $\ell \gets L_{\mathrm{SmoothL1}}(Q_s[a_{i_t}] - y)$
@@ -112,8 +112,8 @@ $k$-step fragment.
 The one-step training update ($k=1$) is the base case: it proves a single
 canonical batch-size-1 update and binds the pre-update checkpoint to the
 post-update checkpoint. The multi-step fragment repeats this relation and
-requires each output checkpoint to match the next input checkpoint. Target
-network state is linked separately so that tampering with sync events is
+requires each output checkpoint to match the next input checkpoint.
+Target-network state is linked separately so that tampering with sync events is
 detected. SP1 proof provenance covers $k \in \{1, 4, 8\}$ on the canonical
 vectors, $k = 1$ on each committed expert dataset, and $k = 156$ as the leaf
 size of the whole-run trees. Fragments at $k \in \{16, 32, 128\}$ have

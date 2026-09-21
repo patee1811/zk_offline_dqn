@@ -4,6 +4,12 @@ This audit records the manuscript scope against the implemented artifact. The
 goal is claim hardening: every paper-facing claim should map to code, tests, and
 committed provenance without implying full offline-DQN training soundness.
 
+> **Table naming.** In this repository "Table 1", "Table 2" and "Table 3"
+> name the generated artifact tables
+> (`artifacts/reports/final_ndss/table{1,2,3}_*`), not the numbering in the
+> manuscript. In `paper/main.pdf` those three appear as Table 4 (RL
+> performance), Table 5 (proof cost) and Table 7 (tamper rejection).
+
 ## Current Claim Inventory
 
 | Claim | Support level | Provenance | Safe wording |
