@@ -1,0 +1,192 @@
+{
+  "calibration": {
+    "case": "zk_backend/test_vectors/training_fragment_k156_case_0.json",
+    "cycles_in_committed_provenance": 73471504,
+    "cycles_measured_here": 73471504,
+    "note": "Re-running a committed vector on this host reproduces its recorded cycle count exactly, which is what licenses the rows below.",
+    "provenance_path": "artifacts/reports/provenance/sp1/training_fragment_k156/metrics.json"
+  },
+  "committed_whole_run_leaves": {
+    "cycles": [
+      493511385,
+      493994994,
+      494562881,
+      494737321,
+      495725173,
+      496331565,
+      497097386,
+      497700363
+    ],
+    "dataset_size": 50552,
+    "note": "The eight k=156 leaves of the LunarLander t1248 tree. Their cycle counts are recorded per leaf in the tracked provenance above; re-running them here in execute mode reproduced all eight to the digit, which is the calibration this sweep rests on.",
+    "num_steps": 156,
+    "reproduced_here": true,
+    "source": "artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/leaf_*/metrics.json",
+    "target_sync_interval": 4
+  },
+  "dataset": {
+    "dataset_size": 50020,
+    "id": "lunarlander-random-v1",
+    "matches_committed_merkle_root": true,
+    "merkle_root": "24eebb925e4f3ed990c17c4b4fd9ca0188eb519a22909cec56de7076f169cd86"
+  },
+  "derived": {
+    "minatar_leaf_cycles": {
+      "from": "494623692 * 125.99",
+      "note": "A projection, not a measurement. The k=156 witness at this width is 3.3 GB and the executor's shared-memory ring could not back it on the measurement host.",
+      "value": 62300000000.0
+    },
+    "width_ratio_at_k4": {
+      "from": "2032685749 / 16133939",
+      "note": "Measured, not extrapolated: same dataset, same settings, same step count, only the hidden width differs.",
+      "value": 125.99
+    }
+  },
+  "fixed_settings": {
+    "batch_size": 1,
+    "fixed_point_scale": 1000,
+    "gamma_fp": 990,
+    "gradient_clip_fp": 10000,
+    "learning_rate_fp": 50,
+    "target_sync_interval": 4,
+    "target_sync_mode": "hard"
+  },
+  "git_commit": "f8af4de5e4b9a5210a58f332757135ac504623b5",
+  "how_to_regenerate": [
+    "python scripts/experiments/export_training_fragment_vector.py --dataset-dir artifacts/datasets/lunarlander-random-v1 --layer-sizes 8 <hidden> 4 --num-steps <k> --case-id scale_h<hidden>_k<k> --out <vector.json>",
+    "cargo run --release -p training-fragment-host -- --case <vector.json> --execute"
+  ],
+  "known_limits": {
+    "executor_ceiling": "Cases whose witness passed roughly 50 MB failed with SIGBUS in the SP1 native executor on this host. Widening /dev/shm from 5.8 GB to 9 GB let the 86 MB case through, so the ceiling is host shared memory, not SP1 and not the cycle count: 2.03 billion cycles completed fine."
+  },
+  "measurement_host": "WSL2 Ubuntu on Windows 11, 20 vCPU, 11 GB RAM, CPU executor",
+  "minatar_reference": {
+    "caveat": "The guest evaluates a dense Linear-ReLU-Linear network. The 10197-unit rows match MinAtar's parameter count to within one parameter (132,565 against 132,566), not its convolutional structure.",
+    "citation": "Young and Tian, MinAtar, arXiv:1903.03176, 2019",
+    "game": "Breakout",
+    "game_dependence": "Channel counts differ by game (Breakout 4, Freeway 7, Seaquest 10), so the parameter count varies by under 1% across the suite. The rows here match Breakout.",
+    "note": "MinAtar's DQN example: nn.Conv2d(in_channels, 16, kernel_size=3, stride=1) over the 10x10xn state, then nn.Linear(1024, 128) and nn.Linear(128, num_actions). num_actions() returns 6 for every MinAtar game; Breakout's state has 4 channels.",
+    "parameter_breakdown": {
+      "conv": "4*16*3*3 + 16 = 592",
+      "fc_hidden": "8*8*16*128 + 128 = 131200",
+      "output": "128*6 + 6 = 774"
+    },
+    "parameters": 132566,
+    "verified_against": [
+      "https://github.com/kenjyoung/MinAtar/blob/master/examples/dqn.py",
+      "https://github.com/kenjyoung/MinAtar/blob/master/minatar/environment.py",
+      "https://github.com/kenjyoung/MinAtar/blob/master/minatar/environments/breakout.py"
+    ]
+  },
+  "relation": "training_fragment",
+  "sp1_version": "6.1.0",
+  "step_sweep": [
+    {
+      "cycles": 5756363,
+      "hidden": 64,
+      "num_steps": 1,
+      "parameters": 836
+    },
+    {
+      "cycles": 16133939,
+      "hidden": 64,
+      "num_steps": 4,
+      "parameters": 836
+    },
+    {
+      "cycles": 55250377,
+      "hidden": 64,
+      "num_steps": 16,
+      "parameters": 836
+    },
+    {
+      "cycles": 206857415,
+      "hidden": 64,
+      "num_steps": 64,
+      "parameters": 836
+    },
+    {
+      "cycles": 494623692,
+      "hidden": 64,
+      "num_steps": 156,
+      "parameters": 836
+    },
+    {
+      "cycles": 754564962,
+      "hidden": 10197,
+      "num_steps": 1,
+      "parameters": 132565
+    },
+    {
+      "cycles": 1190155801,
+      "hidden": 10197,
+      "num_steps": 2,
+      "parameters": 132565
+    },
+    {
+      "cycles": 2032685749,
+      "hidden": 10197,
+      "num_steps": 4,
+      "parameters": 132565
+    }
+  ],
+  "what": "SP1 guest cycle counts for the training_fragment relation as the hidden layer and the step count vary. Execute mode only: these count cycles, they do not prove, so no row here is proof-backed.",
+  "why": "The discussion section's cost for a MinAtar-sized network was an estimate with no derivation. These rows replace it.",
+  "width_sweep_k1": [
+    {
+      "cycles": 5756363,
+      "hidden": 64,
+      "layer_sizes": [
+        8,
+        64,
+        4
+      ],
+      "num_steps": 1,
+      "parameters": 836
+    },
+    {
+      "cycles": 20231527,
+      "hidden": 256,
+      "layer_sizes": [
+        8,
+        256,
+        4
+      ],
+      "num_steps": 1,
+      "parameters": 3332
+    },
+    {
+      "cycles": 75173365,
+      "hidden": 1024,
+      "layer_sizes": [
+        8,
+        1024,
+        4
+      ],
+      "num_steps": 1,
+      "parameters": 13316
+    },
+    {
+      "cycles": 297252514,
+      "hidden": 4096,
+      "layer_sizes": [
+        8,
+        4096,
+        4
+      ],
+      "num_steps": 1,
+      "parameters": 53252
+    },
+    {
+      "cycles": 754564962,
+      "hidden": 10197,
+      "layer_sizes": [
+        8,
+        10197,
+        4
+      ],
+      "num_steps": 1,
+      "parameters": 132565
+    }
+  ]
+}
