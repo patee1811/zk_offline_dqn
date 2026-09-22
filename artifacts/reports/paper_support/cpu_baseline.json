@@ -1,0 +1,91 @@
+{
+  "cpu_side_recovered_from": "git show 5cb3807^:artifacts/reports/final_ndss/table2_zk_proof_cost.csv",
+  "note": "Cycle counts are identical on both sides, which is the point: the speedup is in the prover, not in the relation.",
+  "re_prove_commit": "5cb380725bad39ed6ebe94ff63d7ed6a0f918a16",
+  "rows": [
+    {
+      "case_id": "td_mvp",
+      "cpu_prove_seconds": 60.49624495,
+      "cuda_prove_seconds": 1.04340432,
+      "cycle_count": 434785,
+      "cycle_count_unchanged": true,
+      "speedup": 57.97967651696132
+    },
+    {
+      "case_id": "merkle_membership",
+      "cpu_prove_seconds": 50.203970284,
+      "cuda_prove_seconds": 0.86279849,
+      "cycle_count": 116750,
+      "cycle_count_unchanged": true,
+      "speedup": 58.18736456527642
+    },
+    {
+      "case_id": "forward_td_mlp",
+      "cpu_prove_seconds": 90.389507192,
+      "cuda_prove_seconds": 1.778908419,
+      "cycle_count": 1628852,
+      "cycle_count_unchanged": true,
+      "speedup": 50.81178222924583
+    },
+    {
+      "case_id": "one_step_sgd_tiny",
+      "cpu_prove_seconds": 71.527741481,
+      "cuda_prove_seconds": 1.349984525,
+      "cycle_count": 928948,
+      "cycle_count_unchanged": true,
+      "speedup": 52.98411956314833
+    },
+    {
+      "case_id": "short_trace",
+      "cpu_prove_seconds": 51.787273056,
+      "cuda_prove_seconds": 0.881319949,
+      "cycle_count": 122067,
+      "cycle_count_unchanged": true,
+      "speedup": 58.76103577907323
+    },
+    {
+      "case_id": "training_update_batch1",
+      "cpu_prove_seconds": 61.319989572,
+      "cuda_prove_seconds": 0.997119924,
+      "cycle_count": 494177,
+      "cycle_count_unchanged": true,
+      "speedup": 61.49710591080316
+    },
+    {
+      "case_id": "merkle_membership_dataset_1000",
+      "cpu_prove_seconds": 57.741494579,
+      "cuda_prove_seconds": 0.925883929,
+      "cycle_count": 357965,
+      "cycle_count_unchanged": true,
+      "speedup": 62.36364275310798
+    },
+    {
+      "case_id": "merkle_membership_dataset_10000",
+      "cpu_prove_seconds": 59.349334546,
+      "cuda_prove_seconds": 0.99340296,
+      "cycle_count": 470318,
+      "cycle_count_unchanged": true,
+      "speedup": 59.74346457151688
+    },
+    {
+      "case_id": "merkle_membership_dataset_50000",
+      "cpu_prove_seconds": 60.343401029,
+      "cuda_prove_seconds": 0.983866823,
+      "cycle_count": 526578,
+      "cycle_count_unchanged": true,
+      "speedup": 61.33289548782763
+    },
+    {
+      "case_id": "merkle_membership_dataset_100000",
+      "cpu_prove_seconds": 60.826582997,
+      "cuda_prove_seconds": 0.985963135,
+      "cycle_count": 554100,
+      "cycle_count_unchanged": true,
+      "speedup": 61.69255303546415
+    }
+  ],
+  "speedup_max": 62.36364275310798,
+  "speedup_min": 50.81178222924583,
+  "what": "Prove times for the ten Table 2 rows that were measured on the CPU prover before a CUDA path existed for their hosts, paired with the CUDA rows that replaced them.",
+  "why": "The discussion quotes a 51--62x speedup. The CPU side is not in the working tree: it was overwritten when the rows were re-proved, so without this file the claim is checkable only by reading git history."
+}

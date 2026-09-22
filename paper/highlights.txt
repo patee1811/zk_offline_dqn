@@ -1,0 +1,7 @@
+Highlights
+
+- Zero-knowledge proof-backed verification of offline DQN training
+- Sampler seed is derived from the dataset commitment, not chosen by the prover
+- One recursive root proof covers an entire 4,992-step training run
+- 25 of 26 proved configurations verify in 0.054-0.130 s at 1.27-2.85 MB
+- 236 adversarial tamper cases in 19 categories, with no unexpected acceptance

@@ -162,5 +162,46 @@
         "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_cartpole/_binary_native_work/t1248/level2/level2_node1_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 1248\naggregate_root = 5186133298100edc3f0e6e3736412e9a3914e666879dd040b12d500f99d0d8be\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.213640\ncycle_count = 423354499\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 190.738189\nverification_time_sec = 0.054049\nproof_size_bytes = 1274684"
       }
     }
-  ]
+  ],
+  "leaf_cycle_summary": {
+    "cycle_count_max": 380170295,
+    "cycle_count_min": 374888319,
+    "leaf_count": 8,
+    "leaves": [
+      {
+        "chunk_id": 0,
+        "cycle_count": 374888319
+      },
+      {
+        "chunk_id": 1,
+        "cycle_count": 375460931
+      },
+      {
+        "chunk_id": 2,
+        "cycle_count": 376295057
+      },
+      {
+        "chunk_id": 3,
+        "cycle_count": 377593801
+      },
+      {
+        "chunk_id": 4,
+        "cycle_count": 379251672
+      },
+      {
+        "chunk_id": 5,
+        "cycle_count": 379985958
+      },
+      {
+        "chunk_id": 6,
+        "cycle_count": 380170295
+      },
+      {
+        "chunk_id": 7,
+        "cycle_count": 378733085
+      }
+    ],
+    "num_steps": 156,
+    "target_sync_interval": 4
+  }
 }

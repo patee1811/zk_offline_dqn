@@ -36,6 +36,11 @@ from zk_offline_dqn.backends.sp1.training_fragment import (  # noqa: E402
     BACKEND_DIR as FRAGMENT_BACKEND_DIR,
     cargo_command as fragment_cargo_command,
 )
+from zk_offline_dqn.backends.sp1.metrics import (  # noqa: E402
+    LEAF_CYCLE_SUMMARY_KEY,
+    leaf_cycle_summary,
+    load_tree_leaves,
+)
 from zk_offline_dqn.relations.training_aggregation import (  # noqa: E402
     CHILD_PROOF_MODE,
     BINARY_AGGREGATION_TOPOLOGY,
@@ -683,7 +688,13 @@ def prepare_binary_native_case(
         / f"training_aggregation_binary_native_t{target}_case_0.json"
     )
     write_json(case_path, case, compact=True)
-    write_json(work_dir / "binary_child_proof_status.json", {"children": statuses})
+    status_doc: Dict[str, Any] = {"children": statuses}
+    if run_child_proves:
+        # Written while the leaves are still on disk, over all of them, so the
+        # range the paper quotes is read from here rather than off the leaves by
+        # hand -- which is how it came to cover four of eight.
+        status_doc[LEAF_CYCLE_SUMMARY_KEY] = leaf_cycle_summary(load_tree_leaves(work_dir))
+    write_json(work_dir / "binary_child_proof_status.json", status_doc)
     return case_path, statuses, internal_dirs
 
 

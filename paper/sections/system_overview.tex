@@ -80,12 +80,12 @@ proof verdicts, and benchmark tables are the primary outputs.}
 \label{fig:system-architecture}
 \end{figure*}
 
-\subsection{Stage 1--3: Dataset Provenance Pipeline}
+\subsection{Stages 1--3: Dataset Provenance Pipeline}
 
 \textbf{Stage 1: Collection or import.} A dataset is either self-collected
 through instrumented environment interaction (with a collection log recording
 environment seed, policy, and step-level evidence) or imported from a public
-benchmark source (Minari/D4RL~\cite{minari2023, fu2020d4rl}).
+benchmark source (Minari/D4RL~\cite{minari2024, fu2020d4rl}).
 
 \textbf{Stage 2: Audit.} Self-collected data undergoes replay/reward auditing:
 the audit pipeline replays the environment deterministically and checks that
@@ -122,7 +122,7 @@ all provenance hashes, creating a single binding point for all subsequent proofs
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Stage 4--5: Relation Proofs}
+\subsection{Stages 4--5: Relation Proofs}
 
 \textbf{Stage 4: Witness generation.} For each relation to be proved, the
 system opens the relevant transitions, model checkpoints, Merkle sibling paths,
@@ -136,7 +136,7 @@ prover generates a STARK proof that the guest accepted the public inputs. The
 host verifies the proof and records compact metrics (cycle count, prove time,
 verify time, proof size).
 
-\subsection{Stage 6--7: Fragment Composition and Aggregation}
+\subsection{Stages 6--7: Fragment Composition and Aggregation}
 
 \textbf{Stage 6: Training fragments.} Multi-step fragments compose $k$ one-step
 updates, each verifying minibatch sampling, replay membership, TD computation,
@@ -150,7 +150,7 @@ $k = 156$ as the leaf of the whole-run trees.
 \textbf{Stage 7: Aggregation.} Two modes, and the difference is the point. A
 chunk chain binds an ordered sequence of child proof \emph{manifests}
 ($T \in \{32, 64, 128\}$), checking manifest hashes, public-input consistency,
-dataset and configuration commitments, chunk boundaries and checkpoint links --
+dataset and configuration commitments, chunk boundaries and checkpoint links ---
 the child proofs themselves are verified outside the relation. Recursive
 aggregation instead runs the SP1 verifier on each child inside the guest, so
 acceptance establishes that the children are valid proofs rather than assuming

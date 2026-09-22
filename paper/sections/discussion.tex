@@ -25,10 +25,8 @@ in \Cref{fig:verification-stack}) and an SP1 proof-backed implementation
 Several important limitations are inherent to the current scope:
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{No full training proof.} The system does not prove that a
-  final checkpoint follows from initialization through all replay batches,
-  target-network synchronizations, optimizer states, or model-selection
-  decisions.
+  \item \textbf{No full training proof.} The non-goals listed in
+  \Cref{sec:threat-model} apply here unchanged.
 
   \item \textbf{No Adam proof.} The tiny update scope is limited to simple SGD.
   Modern DQN implementations typically use Adam; proving Adam's per-parameter
@@ -37,9 +35,17 @@ Several important limitations are inherent to the current scope:
   \item \textbf{No large-scale proofs.} The benchmarks use CartPole and
   LunarLander, with PointMaze backing the public dataset-scaling rows.
   Atari-scale or MuJoCo-scale proofs would require more efficient
-  neural-network circuits: a MinAtar-sized network needs $16$--$33$ billion
-  cycles per leaf, against the $6.19$ billion of the largest row we have
-  proved.
+  neural-network circuits, and we measured by how much. MinAtar's
+  DQN~\cite{young2019minatar} carries $132{,}566$ parameters on Breakout: a
+  $16$-filter $3\times3$ convolution over a $10\times10\times4$ state, then a
+  $128$-unit fully connected layer. Widening our hidden layer to $132{,}565$
+  parameters costs $126\times$ the cycles of the $836$-parameter network proved
+  here at a matched step count --- $2.033$ billion against $16.13$ million at
+  $k = 4$, both in execute mode over the committed
+  \texttt{lunarlander-random} dataset. A $k = 156$ fragment costs $494.6$
+  million cycles at the proved width under the same settings, which puts a leaf
+  of the wider network near $62$ billion. The guest evaluates a dense Linear--ReLU--Linear
+  network, so this prices the parameter count and not the convolutions.
 
   \item \textbf{Recursive aggregation needs a GPU.} The aggregate guest
   verifies child proofs cryptographically for $T \in \{16, 32, 64\}$ and for all
@@ -100,7 +106,7 @@ implementation, test, and benchmark evidence.
 
 The SP1 proof cost data (\Cref{tab:proof-cost}) reveals that proving is
 prototype-scale. Under a CUDA prover the most expensive relation is Groth16
-child-proof aggregation at $1590$\,s; the training fragments that dominate a
+child-proof aggregation at $1{,}590$\,s; the training fragments that dominate a
 run cost seconds ($3.3$\,s at $k\!=\!8$), and a proof covering an entire
 1248-step run costs $192$\,s. Verification stays flat at $0.054$--$0.13$\,s
 regardless, except for Groth16, whose in-circuit SNARK check takes $68$\,s.
@@ -200,9 +206,9 @@ things follow, and none of them is a deficiency of Kaizen in its own setting.
   evaluates the next state, so an offline-DQN statement must contain a second
   forward pass whose inputs are a checkpoint, not data, and must bind that
   checkpoint to the chain. There is nothing in a supervised iteration to
-  specialise for this; the computation is simply absent.
+  specialize for this; the computation is simply absent.
   \item \textbf{No line advances a second model.} Target-network
-  synchronisation is a step-indexed event that rewrites the network the labels
+  synchronization is a step-indexed event that rewrites the network the labels
   come from. A construction with one model has no place to put it, and a
   verifier reading a correct-looking supervised transcript cannot tell whether
   the sync schedule it assumed was the one the prover ran.
@@ -243,7 +249,7 @@ Proof of gradient descent itself & $20.7\%$ & $7.3\%$ \\
 \end{tabular}
 \end{center}
 
-\medskip
+\bigskip
 \noindent Committing to the model dominates, and it dominates \emph{more} as
 the network gets smaller: on the $61.7$k-parameter network the learning step
 the system exists to prove accounts for $7.3\%$ of the prover's time. Our own
@@ -259,6 +265,6 @@ Two very different stacks, a proof system built for the task and a
 general-purpose zkVM, therefore agree that at the model sizes anyone can
 currently prove, the
 binding to model state, not the arithmetic of learning, is the thing to
-optimise. We read this as a statement about the current cost regime of
+optimize. We read this as a statement about the current cost regime of
 proof-of-training rather than about either system, and it is the reason we
 report cycles per relation rather than seconds per epoch.

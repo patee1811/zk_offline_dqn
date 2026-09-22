@@ -162,5 +162,46 @@
         "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t1248_lunarlander/_binary_native_work/t1248/level2/level2_node1_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 1248\naggregate_root = 50913c21fdb6d839d60f8e40328c6297008e028341b4a57ba1b3c6aee27a9647\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.230263\ncycle_count = 423336472\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 180.546220\nverification_time_sec = 0.053835\nproof_size_bytes = 1274684"
       }
     }
-  ]
+  ],
+  "leaf_cycle_summary": {
+    "cycle_count_max": 497700363,
+    "cycle_count_min": 493511385,
+    "leaf_count": 8,
+    "leaves": [
+      {
+        "chunk_id": 0,
+        "cycle_count": 493511385
+      },
+      {
+        "chunk_id": 1,
+        "cycle_count": 493994994
+      },
+      {
+        "chunk_id": 2,
+        "cycle_count": 494562881
+      },
+      {
+        "chunk_id": 3,
+        "cycle_count": 494737321
+      },
+      {
+        "chunk_id": 4,
+        "cycle_count": 495725173
+      },
+      {
+        "chunk_id": 5,
+        "cycle_count": 496331565
+      },
+      {
+        "chunk_id": 6,
+        "cycle_count": 497097386
+      },
+      {
+        "chunk_id": 7,
+        "cycle_count": 497700363
+      }
+    ],
+    "num_steps": 156,
+    "target_sync_interval": 4
+  }
 }

@@ -33,7 +33,7 @@ evaluation:
 \end{equation}
 
 Throughout this paper, the loss function $L$ is the SmoothL1 (Huber)
-loss~\cite{huber1964robust}:
+loss~\cite{huber1964robust, girshick2015fastrcnn}:
 \begin{equation}\label{eq:smoothl1}
   L(\delta) =
   \begin{cases}
@@ -115,16 +115,21 @@ All arithmetic in the relation layer uses deterministic fixed-point integer
 encoding with a global scale factor $\fpscale = 1000$. A real value $v$ is
 represented as $\lfloor v \cdot \fpscale \rceil \in \mathbb{Z}$, and all
 additions, multiplications (with rescaling), comparisons, and hash inputs
-operate on these integer values. This eliminates floating-point
+operate on these integer values. A product is rescaled by truncation
+\emph{toward zero}, $a \odot b = \operatorname{trunc}(ab / \fpscale)$, not by
+flooring; the two agree only when $ab \ge 0$, and TD errors are negative
+about as often as not. The discount factor enters the relation as the
+integer $\gamma_{\mathrm{fp}} = 990$, so that $\gamma = \gamma_{\mathrm{fp}} / \fpscale$.
+This eliminates floating-point
 nondeterminism between Python semantic oracles and Rust/SP1 guests, so the same
 inputs produce identical outputs across both verification paths.
 
 The encoding has a ceiling, and it is close enough to matter. The guest
-computes in \texttt{i64}, so the discount multiplication $\gamma \cdot Q$
-leaves the representable range once $|Q|$ passes
-$\texttt{i64::MAX} / \gamma \approx 9.3 \times 10^{15}$. Offline DQN can reach
+computes in \texttt{i64}, so the discount multiplication $\gamma_{\mathrm{fp}} \cdot Q$
+leaves the representable range once the fixed-point $|Q|$ passes
+$\texttt{i64::MAX} / \gamma_{\mathrm{fp}} \approx 9.3 \times 10^{15}$. Offline DQN can reach
 that: value estimates grow multiplicatively when the target network is
 refreshed too often. \Cref{thm:value-bound} states what the relation does about
-it. The scale factor also decides which learning rates exist at all -- a rate
+it. The scale factor also decides which learning rates exist at all --- a rate
 must be a multiple of $1/\fpscale$, so $10^{-2}$ encodes to $10$ and
 $3 \times 10^{-4}$ encodes to $0$.

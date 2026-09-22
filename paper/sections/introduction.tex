@@ -5,10 +5,11 @@
 The deployment of reinforcement learning (RL) models in safety-critical
 applications---autonomous driving, medical treatment planning, robotic
 control---demands that stakeholders can verify the integrity of the training
-process~\cite{levine2020offline}. Unlike supervised learning, where a fixed
+process. Unlike supervised learning, where a fixed
 mapping from inputs to labels can be checked through inference verification
 alone, RL policies emerge from sequential interactions with an environment.
-In the \emph{offline} setting, a policy is trained entirely from a fixed replay
+In the \emph{offline} setting~\cite{levine2020offline}, a policy is trained
+entirely from a fixed replay
 dataset $\dataset$ without further environment interaction, making the
 provenance and integrity of $\dataset$ as critical as the correctness of the
 learning algorithm itself.
@@ -25,7 +26,7 @@ membership, Double-DQN target selection, temporal-difference (TD) error
 computation, target-network synchronization, and checkpoint chaining that
 characterize offline value-based methods.
 
-Zero-knowledge proof systems offer a principled solution: a prover can
+Zero-knowledge proof systems answer this directly: a prover can
 demonstrate that a computation was performed correctly without revealing
 sensitive witness data~\cite{thalerbook}. Recent work has applied
 zero-knowledge proofs to deep learning training~\cite{zkdl2023, kaizen2024,
@@ -34,8 +35,8 @@ but these systems target supervised architectures and do not address
 RL-specific training semantics. At the same time, advances in general-purpose
 zkVMs such as SP1~\cite{succinct2024sp1} and RISC Zero~\cite{risczero2023}
 have made it feasible to prove complex Rust programs inside a STARK-based
-virtual machine, opening the door to \emph{cryptographically} verifiable RL
-training. We keep that adjective throughout, because the phrase ``verifiable
+virtual machine, which brings \emph{cryptographically} verifiable RL training
+within reach. We keep that adjective throughout, because the phrase ``verifiable
 reinforcement learning'' now most often denotes RL with verifiable rewards,
 where an external checker scores an answer and nothing is proved to a third
 party. That line and this one share a word and no threat model: there, the
@@ -69,9 +70,9 @@ in a weaker form:
   commits to them. A TD target is computed from the target network during
   training, so a proof must establish not only that the update used the label
   but that the label itself was derived correctly from a committed checkpoint.
-  \item \textbf{Target-network synchronisation is a discrete event.} The
+  \item \textbf{Target-network synchronization is a discrete event.} The
   target is refreshed every $N$ steps. A prover free to move those events
-  changes what every subsequent label means, and the resulting run remains
+  changes what every subsequent label means, yet the resulting run remains
   internally consistent.
   \item \textbf{Replay sampling draws with replacement from a buffer it never
   exhausts.} This is the obligation supervised constructions do meet, and the
@@ -92,18 +93,19 @@ in a weaker form:
 
 \noindent The third obligation is not hypothetical. During development our own
 chain sampled with a fixed seed and a step index local to each fragment, so
-every chunk of a $1248$-step run drew the same eight transitions from a
+every chunk of a $1{,}248$-step run drew the same eight transitions from a
 $50{,}000$-row dataset. Every hash agreed, every proof verified, and all $236$
 tamper cases stayed green, because no field had been altered---the relation
 simply described a different computation than intended. Binding the sampler to
 the dataset commitment removes both this defect and the prover's freedom to
-grind the seed~\cite{zkpotvicinity2025}.
+grind the seed, a bias vector first identified by Tan et
+al.~\cite{zkpotvicinity2025}.
 
 The contributions of this work are as follows:
 \begin{enumerate}[leftmargin=1.8em]
-  \item \textbf{RL-specific verification relations.} We formalise and implement
+  \item \textbf{RL-specific verification relations.} We formalize and implement
   relations for the three obligations above---model-generated labels,
-  synchronisation timing, and sampling integrity---together with replay
+  synchronization timing, and sampling integrity---together with replay
   membership and checkpoint chaining, and we bind the sampler to the committed
   dataset root so that minibatch selection follows from the commitment rather
   than from a prover input (\Cref{sec:relations}).
@@ -119,7 +121,7 @@ The contributions of this work are as follows:
   \item \textbf{A whole training run under a single proof.} We prove three
   complete runs, each as one root proof over a binary tree of $156$-step leaves
   with every leaf bound to the committed dataset the reported policy was
-  trained on: $1248$ steps for each environment, and $4{,}992$ steps over
+  trained on: $1{,}248$ steps for each environment, and $4{,}992$ steps over
   $32$ leaves on \texttt{lunarlander-random}. All three carry
   $\mathrm{step\_start}=0$ and verify in $0.054$\,s, and the longest is the
   configuration \Cref{tab:rl-performance} reports

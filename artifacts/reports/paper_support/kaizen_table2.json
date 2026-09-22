@@ -1,0 +1,51 @@
+{
+  "models": {
+    "LeNet": {
+      "components_sum_seconds": 193.42,
+      "parameters": 61706,
+      "percent_of_total": {
+        "commitments": 55.1,
+        "proof_of_aggregation": 10.3,
+        "proof_of_gradient_descent": 7.3,
+        "proof_of_verifier_circuit": 27.3
+      },
+      "seconds": {
+        "commitments": 106.6,
+        "proof_of_aggregation": 19.98,
+        "proof_of_gradient_descent": 14.08,
+        "proof_of_verifier_circuit": 52.76
+      },
+      "total_prover_seconds": 193.4
+    },
+    "VGG-11": {
+      "components_sum_seconds": 882.0,
+      "parameters": 10100000,
+      "percent_of_total": {
+        "commitments": 51.3,
+        "proof_of_aggregation": 16.1,
+        "proof_of_gradient_descent": 20.7,
+        "proof_of_verifier_circuit": 12.0
+      },
+      "seconds": {
+        "commitments": 452.1,
+        "proof_of_aggregation": 142.1,
+        "proof_of_gradient_descent": 182.2,
+        "proof_of_verifier_circuit": 105.6
+      },
+      "total_prover_seconds": 882.0
+    }
+  },
+  "note": "Kaizen labels the last component 'Proof of C', where C is the training iteration circuit proved by their PoGD prover. Our table calls it the proof of gradient descent itself.",
+  "source": {
+    "authors": "Kasra Abbaszadeh, Christodoulos Pappas, Jonathan Katz, Dimitrios Papadopoulos",
+    "bibtex_key": "kaizen2024",
+    "doi": "10.1145/3658644.3670316",
+    "eprint": "https://eprint.iacr.org/2024/162",
+    "parameter_counts_from": "Section 8, 'DNN Models and training datasets': LeNet 61,706 trainable parameters; VGG-11 a total of 10.1 million parameters",
+    "table": "Table 2, column N = 16",
+    "title": "Zero-Knowledge Proofs of Training for Deep Neural Networks",
+    "venue": "ACM CCS 2024"
+  },
+  "what": "Kaizen's reported prover-time breakdown at batch size N = 16, and the share each component takes of that model's total.",
+  "why": "Our discussion argues that committing to model state dominates, and dominates more as the network shrinks. The argument rests on Kaizen's numbers, not ours, so the inputs belong in the repository alongside the recomputation."
+}

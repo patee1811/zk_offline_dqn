@@ -1,5 +1,25 @@
 # Harness changelog
 
+## 2026-09-22 — 1.10.0
+
+**Kích hoạt:** phiên đo chi phí MinAtar và ghim số paper. Inbox chỉ còn một mục (câu hỏi một lần), nhưng phiên sinh ra ba thất bại im lặng mà chưa rule nào chặn: build xanh, test xanh, kết quả sai.
+
+**Lý do:** một dòng rule đang mô tả sai cổng của chính nó. `rules/00` nói cổng escape "chặn ký tự TAB"; trong phiên, `\bigskip` thành backspace + `igskip`, lọt qua cổng đó và in thẳng vào PDF với `latexmk` exit 0.
+
+**Đã sửa:**
+
+- `rules/00` — dòng heredoc: cổng nay chặn **mọi byte điều khiển** và đọc **bytes**, vì `read_text()` bật universal newline và tự xoá CR lạc — hai bản sửa cổng đầu tiên đều xanh trên file đang hỏng.
+- `rules/30` — cổng mới phải **được nhìn thấy đỏ**: phá đúng thứ nó canh rồi chạy lại. Ba cổng không thể đỏ trong cùng một phiên (TAB-only, `read_text`, `assertIn("193")` thoả bởi chữ số ở câu khác); ghim nguyên cụm, không ghim chữ số trần.
+- `90-domain/paper-claims.md` — `final_ndss/` không phải nơi duy nhất cần đối chiếu: ba con số sai nằm ngoài nó (`provenance/sp1_t*/` hoặc không đâu cả). Thêm quy tắc dải min–max phải nêu quần thể, và path `artifacts/reports/paper_support/**`.
+
+**Gộp:** ba lần cổng không thể đỏ vào một dòng `rules/30` thay vì ba dòng; hai lỗi dải min–max và lỗi giây-mỗi-nút vào một dòng, vì cùng một hình.
+
+**Bỏ:** mục 2026-09-17 ("ý tôi là bài của tôi có mạnh đến Q1 không ý") — câu hỏi một lần do `capture_learning.py` tự bắt.
+
+**Không lên thang hook:** PreToolUse chặn heredoc-có-backslash đã bị bác ở 1.8.0 vì báo giả với `echo "\n"`, và lý do đó vẫn đúng. Cổng mạnh hơn đã nằm trong repo: `test_no_section_carries_a_mangled_escape` đọc byte, đã thử phá đủ ba kiểu (backspace, TAB, CR) và đỏ cả ba. "Nói rõ quần thể" không kiểm máy móc được; cơ chế thật là các test ghim từng con số trong `test_paper_numbers_match_artifacts.py`.
+
+**Còn ngỏ:** ghi `cycle_count` từng lá vào provenance khi sinh lại cây, để dải min–max được sinh ra thay vì chép tay. Hiện test đọc lại `metrics.json` từng lá trong `provenance/sp1_t1248_lunarlander/` và `sp1_t4992_lunarlander_random/`, nhưng cây `provenance/sp1/_binary_native_work/` vẫn bị gitignore.
+
 ## 2026-09-16 — 1.9.0
 
 **Kích hoạt:** ba phiên máy liên tiếp (prove lại toàn bộ Bảng 2, cây 4992, nhánh CUDA cho sáu host) đẩy 15 mục vào inbox, trong đó **bốn mục bác bỏ một dòng rule đang có** chứ không bổ sung gì.

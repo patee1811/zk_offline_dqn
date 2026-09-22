@@ -389,4 +389,11 @@ Format:
 **Bài học:** ý tôi là bài của tôi có mạnh đến Q1 không ý
 **Đích đề xuất:** /harness-sync quyết định
 **Độ tin cậy:** thấp (tự động, chưa duyệt)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** bỏ (câu hỏi một lần, không phải quy ước) — 1.10.0
+
+## 2026-09-21 — phát hiện mới — scope paper
+**Kích hoạt:** Đo lại `--execute` 8 lá cam kết của cây t1248 (`artifacts/reports/provenance/sp1/_binary_native_work/t1248/leaf_cases/`, k=156, dataset 50.552, `target_sync_interval=4`) cho dải **493.5–497.7 M cycles** (leaf_0 … leaf_7). `results.tex` in dải họ interval-4 là "493.5--494.7 M" và kết luận hai họ "differ by under 0.4%". 493.5 = leaf_0 và 494.7 = leaf_3, nên con số đã in nhiều khả năng là min/max của **4 lá đầu**, không phải cả 8. Trên toàn bộ 8 lá, độ tản là 0,85%.
+**Bài học:** dải min/max trong paper phải nêu rõ quần thể nào, và phải sinh lại từ artifact chứ không chép tay — không có file nào trong repo chứa 493.5/494.7, nên không cổng nào bắt được sai lệch này.
+**Đích đề xuất:** `scripts/experiments/check_paper_claims.py` — thêm check cho dải cycles của lá; hoặc ghi cycle_count từng lá vào provenance khi sinh cây.
+**Độ tin cậy:** cao (đo trực tiếp, và phép đo đã hiệu chuẩn: chạy lại `training_fragment_k156_case_0.json` cho đúng 73.471.504 cycles, trùng từng chữ số với `provenance/sp1/training_fragment_k156/metrics.json`)
+**Trạng thái:** đã áp dụng. **Đính chính một kết luận sai của chính mục này:** tôi đã viết "không file nào trong repo chứa 493.5/494.7". Sai. `artifacts/reports/provenance/sp1_t1248_lunarlander/` và `sp1_t4992_lunarlander_random/` đều được track và chứa `cycle_count` từng lá; tôi đã tìm nhầm trong `provenance/sp1/_binary_native_work/` (thư mục bị gitignore). Phép đo WSL trùng 8/8 từng chữ số với provenance đó. Họ interval-4 sửa thành 493,5--497,7 M; họ interval-2000 cũng sai cận dưới (in 494,2 = leaf_19, thật là 493,5 = leaf_20) — đã sửa. Cổng mới `test_both_leaf_ranges_cover_every_leaf_of_their_tree` đọc thẳng provenance.

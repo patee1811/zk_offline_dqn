@@ -1,0 +1,67 @@
+To the Editor-in-Chief
+Journal of Information Security and Applications
+
+Dear Editor,
+
+We are submitting the manuscript "Layered Zero-Knowledge Verifiable Artifacts for
+Offline Deep Q-Network Training over Committed Replay Data" for consideration as
+a research article in the Journal of Information Security and Applications.
+
+The paper addresses a practical assurance problem: when a decision-making model
+is trained offline on a fixed dataset, an auditor who is shown only the final
+model has no way to check that the training actually consumed the data it was
+supposed to consume. We build and measure a working system that produces
+zero-knowledge proofs for this setting, and we report what it costs.
+
+We would like to be explicit about what kind of submission this is, because the
+manuscript contains formal statements and we do not want them to be mistaken
+for its contribution. This is an implementation-and-measurement paper. The system
+comprises six proof relations implemented as SP1 zkVM guests in Rust, each
+mirrored by an independent Python oracle so that a specification disagreement is
+caught before a prover runs; 315 automated tests; and 26 proof configurations
+measured end to end on real hardware, including GPU proving runs, rather than
+estimated analytically. Twenty-five of the 26 configurations verify in
+0.054-0.130 s with proofs of 1.27-2.85 MB. A tamper benchmark exercises 236
+adversarial cases across 19 categories and yields no unexpected acceptance. The
+largest result places an entire 4,992-step training run under a single recursive
+proof. The ten security statements in the paper exist to document precisely what
+each measured configuration guarantees, and each is mapped to the relation code,
+the backend, the tests, and the benchmark rows that support it.
+
+Two findings came out of building the system rather than reasoning about it, and
+we report both. A fixed-point overflow was accepted by the guest and caught only
+because the Python oracle uses arbitrary-precision integers; the resulting design
+publishes the admitted value range as part of the public statement. Separately,
+deriving the replay sampler seed from the dataset commitment closes a freedom
+that a valid proof does not otherwise constrain.
+
+The complete artifact, including source code, dataset commitments, SP1 proof
+provenance records, the self-collected replay datasets, and the scripts that
+regenerate every reported table, is publicly archived at
+https://doi.org/10.5281/zenodo.XXXXXXX. All reported numbers can be reproduced
+from it.
+
+We state the scope limits plainly in the paper: the system does not prove a
+complete DQN training history from initialization, does not cover the Adam
+optimizer, and its recursive aggregation requires a CUDA prover. We report the
+cost of provability in policy quality rather than omitting it.
+
+To our knowledge no reinforcement-learning system appears in the existing
+zero-knowledge verifiable machine learning literature, which has so far
+addressed supervised training.
+
+This manuscript is original, has not been published previously, and is not under
+consideration for publication elsewhere. There are no competing interests to
+declare. Use of generative AI in preparing the manuscript is declared in the
+paper.
+
+Thank you for your time and consideration.
+
+Yours sincerely,
+
+Duy Ngoc Nguyen (corresponding author)
+on behalf of the authors: Duy Ngoc Nguyen and Ngoc Tan Nguyen
+Faculty of Information Technology
+University of Engineering and Technology (UET)
+Vietnam National University, Hanoi, Vietnam
+23021504@vnu.edu.vn

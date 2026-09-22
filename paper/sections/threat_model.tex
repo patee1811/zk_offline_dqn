@@ -95,7 +95,7 @@ A4 and A5 differ in kind from the rest. The others alter a value the relation
 recomputes, so a correct relation rejects them and a tamper suite can exercise
 them by mutating a field. These two are exercised by supplying inputs that are
 internally consistent, which is why they were closed by constraining the
-statement -- deriving the seed, publishing a bound -- rather than by adding a
+statement --- deriving the seed, publishing a bound --- rather than by adding a
 check on a witness.
 
 \subsection{Reward and Dataset Correctness Boundary}
@@ -105,7 +105,7 @@ checks reward, next-state, termination, truncation, and collection-log evidence
 \emph{before} commitment. After commitment, proofs and verifiers check
 consistency with the committed and audited data. The system does not establish
 reward correctness for arbitrary external datasets beyond the import and
-source-integrity checks that were performed. Public Minari/D4RL~\cite{minari2023, fu2020d4rl} benchmark rows are source-integrity commitments,
+source-integrity checks that were performed. Public Minari/D4RL~\cite{minari2024, fu2020d4rl} benchmark rows are source-integrity commitments,
 not honest-collection proofs.
 
 \subsection{Security Goals and Non-Goals}
@@ -178,7 +178,7 @@ Break checkpoint chain or target sync &
 Per-step checkpoint + target checkpoint links &
 Thms.~\ref{thm:checkpoint-chain}, \ref{thm:training-fragment} &
 checkpoint hash, target sync &
-Chains are local; initialisation is an input \\
+Chains are local; initialization is an input \\
 \midrule
 Reorder chunks / swap proof manifests &
 Manifest hashes + aggregate roots + checkpoint links &
