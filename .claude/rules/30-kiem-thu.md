@@ -16,6 +16,7 @@ Lý do: unittest + fixture JSON là bằng chứng reviewable; pytest/mock bừa
 - Test hợp đồng công khai (`check_*`, `verify_*`). Không mock `relations/`. Mock chỉ ở biên (filesystem/checkpoint) khi test đã làm vậy.
 - Tất định: không mạng, không `sleep`, không đồng hồ hệ thống. SP1 prove không thuộc unittest; chỉ fixture/command builder.
 - Vá bug: thêm test fail trước. Không `skip` thiếu `TODO(owner)` / lý do fixture vắng (`skipUnless(...exists())` đã dùng).
+- Cổng mới phải **được nhìn thấy đỏ** một lần: phá đúng thứ nó canh, chạy lại, khôi phục. Một phiên có ba cổng xanh mà không thể đỏ — cổng escape chỉ nêu TAB nên backspace lọt, `read_text` xoá CR nên hai bản sửa đều xanh trên file hỏng, và `assertIn("193", text)` được thoả bởi chữ số ở câu khác. Ghim **nguyên cụm**, đừng ghim chữ số trần.
 - Coverage không phải mục tiêu. Không viết assert chỉ để tăng số.
 - Đụng paper/README/docs: chạy `python scripts/experiments/check_paper_claims.py`.
 - Regression 15 check: `run_full_regression.py` cần fixture CI (pkl, merkle JSON, `.pt`). Thiếu thì nói rõ, đừng bịa pass. Test đọc **output** của nó (`regression_summary.json`, `*_python_smoke/summary.json` — đều gitignore) phải `skipTest`, không fail: clone sạch không có chúng.

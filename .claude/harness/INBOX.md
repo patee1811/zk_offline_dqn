@@ -389,7 +389,7 @@ Format:
 **Bài học:** ý tôi là bài của tôi có mạnh đến Q1 không ý
 **Đích đề xuất:** /harness-sync quyết định
 **Độ tin cậy:** thấp (tự động, chưa duyệt)
-**Trạng thái:** chờ xử lý
+**Trạng thái:** bỏ (câu hỏi một lần, không phải quy ước) — 1.10.0
 
 ## 2026-09-21 — phát hiện mới — scope paper
 **Kích hoạt:** Đo lại `--execute` 8 lá cam kết của cây t1248 (`artifacts/reports/provenance/sp1/_binary_native_work/t1248/leaf_cases/`, k=156, dataset 50.552, `target_sync_interval=4`) cho dải **493.5–497.7 M cycles** (leaf_0 … leaf_7). `results.tex` in dải họ interval-4 là "493.5--494.7 M" và kết luận hai họ "differ by under 0.4%". 493.5 = leaf_0 và 494.7 = leaf_3, nên con số đã in nhiều khả năng là min/max của **4 lá đầu**, không phải cả 8. Trên toàn bộ 8 lá, độ tản là 0,85%.
