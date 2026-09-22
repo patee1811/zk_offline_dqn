@@ -714,5 +714,142 @@
         "stdout_tail": "case_path = /home/ubuntu/p2repo/artifacts/reports/provenance/sp1_t4992_lunarlander_random/_binary_native_work/t4992/level4/level4_node1_case.json\nhost_precheck = true\naggregation_mode = recursive_sp1\nchunk_count = 2\nstep_end = 4992\naggregate_root = dbb85032bdab01e848825e1d1a4a30b2acdef3d05349fbb16ca627c54a30badc\nprover = cuda\nexecution_ok = true\nexecution_time_sec = 18.206686\ncycle_count = 423359202\nexit_code = 0\nproof_generated = true\nproof_verified = true\nproving_time_sec = 192.831532\nverification_time_sec = 0.054053\nproof_size_bytes = 1274685"
       }
     }
-  ]
+  ],
+  "leaf_cycle_summary": {
+    "cycle_count_max": 495290908,
+    "cycle_count_min": 493516150,
+    "leaf_count": 32,
+    "leaves": [
+      {
+        "chunk_id": 0,
+        "cycle_count": 495290908
+      },
+      {
+        "chunk_id": 1,
+        "cycle_count": 495055231
+      },
+      {
+        "chunk_id": 2,
+        "cycle_count": 495113229
+      },
+      {
+        "chunk_id": 3,
+        "cycle_count": 494969209
+      },
+      {
+        "chunk_id": 4,
+        "cycle_count": 495269558
+      },
+      {
+        "chunk_id": 5,
+        "cycle_count": 495247784
+      },
+      {
+        "chunk_id": 6,
+        "cycle_count": 494836895
+      },
+      {
+        "chunk_id": 7,
+        "cycle_count": 494923715
+      },
+      {
+        "chunk_id": 8,
+        "cycle_count": 494412281
+      },
+      {
+        "chunk_id": 9,
+        "cycle_count": 494923061
+      },
+      {
+        "chunk_id": 10,
+        "cycle_count": 494987519
+      },
+      {
+        "chunk_id": 11,
+        "cycle_count": 494270157
+      },
+      {
+        "chunk_id": 12,
+        "cycle_count": 494228655
+      },
+      {
+        "chunk_id": 13,
+        "cycle_count": 494618600
+      },
+      {
+        "chunk_id": 14,
+        "cycle_count": 494341233
+      },
+      {
+        "chunk_id": 15,
+        "cycle_count": 494137359
+      },
+      {
+        "chunk_id": 16,
+        "cycle_count": 494398946
+      },
+      {
+        "chunk_id": 17,
+        "cycle_count": 494317186
+      },
+      {
+        "chunk_id": 18,
+        "cycle_count": 494485193
+      },
+      {
+        "chunk_id": 19,
+        "cycle_count": 494202308
+      },
+      {
+        "chunk_id": 20,
+        "cycle_count": 493516150
+      },
+      {
+        "chunk_id": 21,
+        "cycle_count": 493862020
+      },
+      {
+        "chunk_id": 22,
+        "cycle_count": 493692198
+      },
+      {
+        "chunk_id": 23,
+        "cycle_count": 494512524
+      },
+      {
+        "chunk_id": 24,
+        "cycle_count": 494496111
+      },
+      {
+        "chunk_id": 25,
+        "cycle_count": 494316255
+      },
+      {
+        "chunk_id": 26,
+        "cycle_count": 494783067
+      },
+      {
+        "chunk_id": 27,
+        "cycle_count": 494775038
+      },
+      {
+        "chunk_id": 28,
+        "cycle_count": 494402507
+      },
+      {
+        "chunk_id": 29,
+        "cycle_count": 494415115
+      },
+      {
+        "chunk_id": 30,
+        "cycle_count": 494052563
+      },
+      {
+        "chunk_id": 31,
+        "cycle_count": 494404148
+      }
+    ],
+    "num_steps": 156,
+    "target_sync_interval": 2000
+  }
 }
