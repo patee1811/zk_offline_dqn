@@ -25,6 +25,12 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from zk_offline_dqn.backends.sp1.metrics import (  # noqa: E402
+    LEAF_CYCLE_SUMMARY_KEY,
+    leaf_cycle_summary,
+    load_tree_leaves,
+)
+
 FINAL = ROOT / "artifacts/reports/final_ndss"
 SECTIONS = ROOT / "paper/sections"
 PROVENANCE = ROOT / "artifacts/reports/provenance/sp1"
@@ -35,7 +41,10 @@ RETIRED = ["440.6", "254.1", "163.1", "167.7", "121.7", "104.8", "82.3",
            "159.5", "198.5", "253.2", "2.84", "Kaggle",
            # The MinAtar cost the paper used to estimate with no derivation,
            # and the leaf range that was the min and max of four of eight leaves.
-           "16$--$33", "494.7", "494.2$--$495.3"]
+           "16$--$33", "494.7", "494.2$--$495.3",
+           # The leaf ranges come from generated/leaf_cycle_ranges.tex now; a
+           # literal range back in a section means someone retyped one.
+           "$493.5$--$497.7$", "$493.5$--$495.3$"]
 
 
 def live_sections():
@@ -61,6 +70,13 @@ def cycle_sweep():
 def support(name):
     path = ROOT / "artifacts/reports/paper_support" / (name + ".json")
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def tree_summary(tree):
+    """The leaf_cycle_summary a committed tree's generator wrote beside its leaves."""
+    path = next((PROVENANCE.parent / tree).glob(
+        "_binary_native_work/t*/binary_child_proof_status.json"))
+    return json.loads(path.read_text(encoding="utf-8"))[LEAF_CYCLE_SUMMARY_KEY]
 
 
 def tree_nodes(tree):
@@ -184,16 +200,13 @@ class PaperNumbersTests(unittest.TestCase):
         self.assertEqual(widest, 13 * 10197 + 4)
         self.assertLessEqual(abs(widest - (conv + hidden + output)), 1)
 
-    def test_the_leaf_range_the_results_section_quotes(self) -> None:
-        leaves = cycle_sweep()["committed_whole_run_leaves"]["cycles"]
-        self.assertEqual(len(leaves), 8)
-        self.assertEqual(round(min(leaves) / 1e6, 1), 493.5)
-        self.assertEqual(round(max(leaves) / 1e6, 1), 497.7)
-        spread = (max(leaves) - min(leaves)) / min(leaves)
-        self.assertLess(spread, 0.009)
-        text = (SECTIONS / "results.tex").read_text(encoding="utf-8")
-        self.assertIn("493.5", text)
-        self.assertIn("497.7", text)
+    def test_the_execute_rerun_reproduces_every_committed_leaf(self) -> None:
+        # The sweep's calibration claim: re-running the eight leaves on the
+        # measurement host lands on the counts the tree's generator recorded.
+        rerun = cycle_sweep()["committed_whole_run_leaves"]["cycles"]
+        recorded = [leaf["cycle_count"]
+                    for leaf in tree_summary("sp1_t1248_lunarlander")["leaves"]]
+        self.assertEqual(rerun, recorded)
 
     def test_the_sweep_says_it_is_execute_only(self) -> None:
         # No row here is proof-backed, and the paper must not imply otherwise.
@@ -210,25 +223,29 @@ class PaperNumbersTests(unittest.TestCase):
         self.assertEqual(metrics("training_fragment_k156")["cycle_count"],
                          cal["cycles_in_committed_provenance"])
 
-    def test_both_leaf_ranges_cover_every_leaf_of_their_tree(self) -> None:
-        # Both ranges the results section prints were once the min and max of a
-        # subset. Recompute them from every committed leaf instead.
-        for tree, count, lo, hi in (
-            ("sp1_t1248_lunarlander", 8, 493.5, 497.7),
-            ("sp1_t4992_lunarlander_random", 32, 493.5, 495.3),
-        ):
+    def test_each_tree_summary_covers_every_committed_leaf(self) -> None:
+        # Both ranges the results section once printed were the min and max of a
+        # subset. The summary is the paper's source now, so it has to agree with
+        # a recomputation over every leaf -- a hand edit of it fails here.
+        for tree, count in (("sp1_t1248_cartpole", 8),
+                            ("sp1_t1248_lunarlander", 8),
+                            ("sp1_t4992_lunarlander_random", 32)):
             with self.subTest(tree=tree):
-                leaves, _ = tree_nodes(tree)
-                cycles = [j["cycle_count"] for j in leaves]
-                self.assertEqual(len(cycles), count)
-                self.assertEqual(round(min(cycles) / 1e6, 1), lo)
-                self.assertEqual(round(max(cycles) / 1e6, 1), hi)
-                self.assertTrue(all(j["num_steps"] == 156 for j in leaves))
+                work_dir = next((PROVENANCE.parent / tree).glob("_binary_native_work/t*"))
+                self.assertEqual(tree_summary(tree),
+                                 leaf_cycle_summary(load_tree_leaves(work_dir)))
+                self.assertEqual(tree_summary(tree)["leaf_count"], count)
 
+    def test_results_quotes_the_leaf_ranges_through_the_generated_macros(self) -> None:
+        # A range typed into the sentence is how four-of-eight got printed.
         text = (SECTIONS / "results.tex").read_text(encoding="utf-8")
-        for token in ("493.5", "497.7", "495.3"):
-            with self.subTest(token=token):
-                self.assertIn(token, text)
+        for macro in (r"\leafRangeSyncFour", r"\leafRangeSyncTwoThousand",
+                      r"\leafCountSyncFour", r"\leafCountSyncTwoThousand",
+                      r"\leafSpreadBound", r"\leafSteps"):
+            with self.subTest(macro=macro):
+                self.assertIn(macro, text)
+        main = (ROOT / "paper/main.tex").read_text(encoding="utf-8")
+        self.assertIn(r"\input{generated/leaf_cycle_ranges}", main)
 
     def test_the_per_node_times_behind_the_gpu_hour_projection(self) -> None:
         # The projection is a CartPole run, so it takes the CartPole tree's

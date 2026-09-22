@@ -255,9 +255,9 @@ the provable configuration is a single integer in the public statement, which a
 deployment can change without touching the relation, the guest, or the proof
 cost: \texttt{target\_sync\_interval} is a public input, and the leaves of our
 two tree families, proved at intervals of $4$ and $2{,}000$, differ by under
-$0.9\%$ in cycles: $493.5$--$497.7$\,M across the eight interval-$4$ leaves
-and $493.5$--$495.3$\,M across the thirty-two at interval $2{,}000$, all at
-$k = 156$. The constraints that do cost cycles per step --- batch size one
+\leafSpreadBound{} in cycles: \leafRangeSyncFour{} across the
+\leafCountSyncFour{} interval-$4$ leaves and \leafRangeSyncTwoThousand{} across
+the \leafCountSyncTwoThousand{} at interval $2{,}000$, all at $k = \leafSteps$. The constraints that do cost cycles per step --- batch size one
 and component-wise clipping --- are the ones the ablation exonerates. Read that
 way, the five weak cells are not a verdict on provable training; they are the
 price of one setting that a reader can price exactly, and the row where the
